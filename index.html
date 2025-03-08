@@ -6,31 +6,75 @@
     <title>futbola</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
 </head>
-<body class="font-sans bg-white text-gray-900">
-    <!-- Navigation Bar -->
-    <nav class="bg-white text-black p-4 flex justify-between items-center shadow-md">
-        <div class="text-2xl font-bold flex items-center">
+<body class="font-sans bg-white text-black">
+
+<!-- Navigation Bar -->
+<nav class="bg-white text-black p-4 shadow-md fixed top-0 left-0 w-full z-50">
+    <div class="container mx-auto flex justify-between items-center">
+        <!-- Clickable Logo -->
+        <a href="#home" class="flex items-center">
             <img src="./images/futbolaLogo.png" width="50" height="50" alt="futbola logo" class="mr-2">
-            futbola
-        </div>
-        <ul class="flex space-x-6">
-            <li class="hover:text-orange-400 cursor-pointer">Home</li>
-            <li class="hover:text-orange-400 cursor-pointer">How It Works</li>
-            <li class="hover:text-orange-400 cursor-pointer">Testimonials</li>
-            <li class="hover:text-orange-400 cursor-pointer">Upcoming Games</li>
-            <li class="hover:text-orange-400 cursor-pointer">Contact</li>
+            <span class="text-2xl font-bold">futbola</span>
+        </a>
+        <!-- Hamburger Menu Button (Shown on Mobile) -->
+        <button id="menu-btn" class="md:hidden focus:outline-none">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+            </svg>
+        </button>
+        <!-- Navigation Links -->
+        <ul id="menu" class="hidden md:flex space-x-6">
+            <li><a href="#home" class="hover:text-orange-400 cursor-pointer">Home</a></li>
+            <li><a href="#how-it-works" class="hover:text-orange-400 cursor-pointer">How It Works</a></li>
+            <li><a href="#testimonials" class="hover:text-orange-400 cursor-pointer">Testimonials</a></li>
+            <li><a href="#upcoming-games" class="hover:text-orange-400 cursor-pointer">Upcoming Games</a></li>
+            <li><a href="#contact" class="hover:text-orange-400 cursor-pointer">Contact</a></li>
         </ul>
-    </nav>
+    </div>
+    <!-- Mobile Menu -->
+    <ul id="mobile-menu" class="hidden flex flex-col space-y-4 mt-4 text-center bg-gray-100 text-black p-4 md:hidden">
+        <li><a href="#home" class="hover:text-orange-400 cursor-pointer">Home</a></li>
+        <li><a href="#how-it-works" class="hover:text-orange-400 cursor-pointer">How It Works</a></li>
+        <li><a href="#testimonials" class="hover:text-orange-400 cursor-pointer">Testimonials</a></li>
+        <li><a href="#upcoming-games" class="hover:text-orange-400 cursor-pointer">Upcoming Games</a></li>
+        <li><a href="#contact" class="hover:text-orange-400 cursor-pointer">Contact</a></li>
+    </ul>
+</nav>
+
+<script>
+    const menuBtn = document.getElementById('menu-btn');
+    const mobileMenu = document.getElementById('mobile-menu');
+
+    menuBtn.addEventListener('click', () => {
+        mobileMenu.classList.toggle('hidden');
+    });
+
+    // Smooth Scrolling
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function(e) {
+            e.preventDefault();
+            document.querySelector(this.getAttribute("href")).scrollIntoView({
+                behavior: "smooth"
+            });
+
+            // Close mobile menu when clicking a link
+            if (!mobileMenu.classList.contains("hidden")) {
+                mobileMenu.classList.add("hidden");
+            }
+        });
+    });
+</script>
 
     <!-- Hero Section -->
-    <header class="flex flex-col md:flex-row items-center justify-between px-10 py-20 text-black" style="background-image: url('./images/backgroundOrangeGradient.jpg'); padding-top: 120px;padding-bottom: 120px;">
+    <header id="home" class="flex flex-col md:flex-row items-center justify-between px-10 py-20 text-black" style="background-image: url('./images/backgroundOrangeGradient.jpg'); padding-top: 120px;padding-bottom: 120px;">
         <div class="md:w-1/2 space-y-6">
-            <h1 class="text-5xl font-bold">Know-Know <span style="color:red">Football</span> Game</h1>
+            <h1 class="text-5xl font-bold">Know-Know <span style="color:red">Football</span></h1>
             <p class="text-lg">No plans? No team? No problem! Book a spot and jump straight into an open-play football game today.</p>
-            <button class="bg-red-600 hover:bg-yellow-600 text-white px-6 py-3 rounded-lg font-bold transition">Book a Game</button>
+            <button class="bg-red-600 hover:bg-yellow-600 text-white px-6 py-3 rounded-lg font-bold transition" style="
+    margin-bottom: 24px;">Book a Game</button>
         </div>
-        <div class="mx-auto h-full">
-            <img src="./images/heroPlay.jfif" alt="Football Play" class="rounded-lg shadow-lg" />
+        <div class="mx-auto">
+            <img src="./images/funFootball.jpg" alt="Football Play" class="rounded-lg" />
         </div>
     </header>
 
@@ -38,57 +82,57 @@
     <section class="text-center py-16 px-8 bg-white">
         <h2 class="text-4xl font-bold text-black">The futbola Way of Kicking Ball</h2>
         <p class="mt-6 text-lg max-w-3xl mx-auto">
-            Life happens—graduation, moving cities, job and family commitments—and suddenly, your "professional" footballer dream fades away. But who says you have to stop playing?
+        Life happens—graduation, moving cities, job change and family commitments—and suddenly, your "professional" footballer dream fades away. But who says you can't play anymore?
         </p>
         <p class="mt-4 text-lg max-w-3xl mx-auto">
-            At futbola, getting back on the pitch is effortless. No teams, no commitments—just book, show up, and kick ball. Play for the love of the game, meet fellow footballers, and feel the rush again!
+        At futbola, getting back on the pitch is effortless. With our hassle-free system, you just need to book a game nearby, show up, and kick ball with fellow footballers!
         </p>
         <p class="mt-6 text-xl font-semibold text-orange-500"><span style="color:red">Book. Kick. Repeat.</span></p>
     </section>
 
     <!-- How It Works -->
-    <section class="py-16 bg-white text-center" >
+    <section id="how-it-works" class="py-16 bg-white text-center" >
         <h2 class="text-4xl font-bold text-black">How It Works</h2>
         <div class="flex flex-col md:flex-row justify-center items-center mt-8 space-y-6 md:space-y-0 md:space-x-12">
             <div class="text-center max-w-xs">
-                <img src="https://picsum.photos/100" class="mx-auto mb-4" alt="Calendar" />
+                <img src="./images/pickaGame.webp" class="mx-auto mb-4" alt="Calendar" />
                 <p class="text-lg">1. Pick a Game</p>
             </div>
             <div class="text-center max-w-xs">
-                <img src="https://picsum.photos/100" class="mx-auto mb-4" alt="Player" />
+                <img src="./images/bookaSlot.webp" class="mx-auto mb-4" alt="Player" />
                 <p class="text-lg">2. Book Your Spot</p>
             </div>
             <div class="text-center max-w-xs">
-                <img src="https://picsum.photos/100" class="mx-auto mb-4" alt="Stadium" />
+                <img src="./images/showUp.webp" class="mx-auto mb-4" alt="Stadium" />
                 <p class="text-lg">3. Show Up & Play</p>
             </div>
         </div>
     </section>
 
     <!-- Testimonials -->
-    <section class="py-16 text-center bg-white" >
+    <section id="testimonials" class="py-16 text-center bg-white" >
         <h2 class="text-4xl font-bold text-black">What Players Say</h2>
         <div class="flex justify-center items-center mt-8 space-x-6">
             <div class="bg-yellow-200 p-6 rounded-lg shadow-lg max-w-xs">
-                <img src="https://picsum.photos/80" class="mx-auto rounded-full" alt="User" />
+                <img src="./images/face.webp" class="mx-auto rounded-full" alt="User" />
                 <p class="mt-4 italic">"Great platform to find and play football whenever I want!"</p>
                 <p class="mt-2 font-semibold">- Fareez</p>
             </div>
             <div class="bg-yellow-200 p-6 rounded-lg shadow-lg max-w-xs">
-                <img src="https://picsum.photos/80" class="mx-auto rounded-full" alt="User" />
+                <img src="./images/face.webp" class="mx-auto rounded-full" alt="User" />
                 <p class="mt-4 italic">"Easy booking and fun games every time!"</p>
                 <p class="mt-2 font-semibold">- Hadi</p>
             </div>
             <div class="bg-yellow-200 p-6 rounded-lg shadow-lg max-w-xs">
-                <img src="https://picsum.photos/80" class="mx-auto rounded-full" alt="User" />
+                <img src="./images/face.webp" class="mx-auto rounded-full" alt="User" />
                 <p class="mt-4 italic">"Met amazing footballers through futbola!"</p>
-                <p class="mt-2 font-semibold">- Marcos</p>
+                <p class="mt-2 font-semibold">- M. Nasir</p>
             </div>
         </div>
     </section>
 
     <!-- Upcoming Games -->
-    <section class="py-16 bg-white">
+    <section id="upcoming-games" class="py-16 bg-white">
         <h2 class="text-4xl text-center font-bold text-black">Upcoming Games</h2>
         <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mt-8 px-10">
             <div class="bg-white p-6 rounded-lg shadow-lg">
@@ -125,13 +169,62 @@
             </div>
         </div>
     </section>
- <!-- Footer -->
-    <footer class="bg-yellow-200 text-black text-center p-6 mt-16" style="background-image: url('./images/backgroundOrangeGradient.jpg');>
-        <div class="flex justify-center items-center mb-4">
-            <img src="./images/futbolaLogo.png" width="50" height="50" alt="futbola logo" class="mr-2">
-            <span class="text-xl font-bold">futbola</span>
+
+<!-- Footer -->
+<footer id="contact" class="bg-yellow-200 text-black p-10 mt-16" style="background-image: url('./images/backgroundOrangeGradient.jpg');">
+    <div class="container mx-auto flex flex-col md:flex-row justify-between items-center md:items-start text-center md:text-left">
+        <!-- Logo & About -->
+        <div class="mb-6 md:mb-0">
+            <a href="#home" class="flex justify-center md:justify-start items-center">
+                <img src="./images/futbolaLogo.png" width="50" height="50" alt="futbola logo" class="mr-2">
+                <span class="text-xl font-bold">futbola</span>
+            </a>
+            <p class="mt-3 text-sm max-w-xs">
+                Join, play, and enjoy casual football games effortlessly. No teams, no commitments—just pure football fun!
+            </p>
         </div>
-        <p>&copy; 2025 futbola. All Rights Reserved.</p>
-    </footer>
+
+        <!-- Quick Links -->
+        <div class="mb-6 md:mb-0">
+            <h3 class="font-bold text-lg">Quick Links</h3>
+            <ul class="mt-2 space-y-1">
+                <li><a href="#how-it-works" class="hover:text-orange-400">How It Works</a></li>
+                <li><a href="#upcoming-games" class="hover:text-orange-400">Upcoming Games</a></li>
+                <li><a href="#testimonials" class="hover:text-orange-400">Testimonials</a></li>
+                <li><a href="#contact" class="hover:text-orange-400">Contact Us</a></li>
+            </ul>
+        </div>
+
+        <!-- More Information -->
+        <div class="mb-6 md:mb-0">
+            <h3 class="font-bold text-lg">More Info</h3>
+            <ul class="mt-2 space-y-1">
+                <li><a href="#about" class="hover:text-orange-400">About Us</a></li>
+                <li><a href="#faq" class="hover:text-orange-400">FAQ</a></li>
+                <li><a href="#terms" class="hover:text-orange-400">Terms & Conditions</a></li>
+                <li><a href="#privacy" class="hover:text-orange-400">Privacy Policy</a></li>
+            </ul>
+        </div>
+
+        <!-- Social Media -->
+        <div>
+            <h3 class="font-bold text-lg">Follow Us</h3>
+            <div class="mt-2 flex justify-center md:justify-start space-x-4">
+                <a href="https://instagram.com" target="_blank">
+                    <img src="./images/instagramIcon.png" width="30" height="30" alt="Instagram">
+                </a>
+                <a href="https://tiktok.com" target="_blank">
+                    <img src="./images/tiktokIcon.png" width="30" height="30" alt="TikTok">
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <hr class="my-6 border-gray-400">
+
+    <!-- Copyright -->
+    <p class="text-center text-sm">&copy; 2025 futbola. All Rights Reserved.</p>
+</footer>
+
 </body>
 </html>
