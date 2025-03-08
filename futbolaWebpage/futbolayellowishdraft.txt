@@ -1,0 +1,107 @@
+import React from "react";
+
+const App = () => {
+  return (
+    <div className="font-sans bg-yellow-50 text-gray-900">
+      {/* Navigation Bar */}
+      <nav className="bg-yellow-600 text-white p-4 flex justify-between items-center shadow-md">
+        <div className="text-2xl font-bold">Futbola</div>
+        <ul className="flex space-x-6">
+          <li className="hover:text-orange-400 cursor-pointer">Home</li>
+          <li className="hover:text-orange-400 cursor-pointer">How It Works</li>
+          <li className="hover:text-orange-400 cursor-pointer">Testimonials</li>
+          <li className="hover:text-orange-400 cursor-pointer">Upcoming Games</li>
+          <li className="hover:text-orange-400 cursor-pointer">Contact</li>
+        </ul>
+      </nav>
+
+      {/* Hero Section */}
+      <header className="flex flex-col md:flex-row items-center justify-between px-10 py-20 bg-yellow-500 text-white">
+        <div className="md:w-1/2 space-y-6">
+          <h1 className="text-5xl font-extrabold">Football, Out of Thin Air!</h1>
+          <p className="text-lg">No plans? No team? No problem! Book a spot and jump straight into an open-play football game today.</p>
+          <button className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg font-bold transition">Book a Game</button>
+        </div>
+        <div className="md:w-1/2 mt-8 md:mt-0">
+          <img src="https://source.unsplash.com/500x300/?football" alt="Football Play" className="rounded-lg shadow-lg" />
+        </div>
+      </header>
+
+      {/* Brand Section */}
+      <section className="text-center py-16 px-8 bg-white">
+        <h2 className="text-4xl font-bold text-yellow-600">The Futbola Way of Kicking Ball</h2>
+        <p className="mt-6 text-lg max-w-3xl mx-auto">
+          Life happens—graduation, moving cities, job and family commitments—and suddenly, your "professional" footballer dream fades away. But who says you have to stop playing?
+        </p>
+        <p className="mt-4 text-lg max-w-3xl mx-auto">
+          At Futbola, getting back on the pitch is effortless. No teams, no commitments—just book, show up, and kick ball. Play for the love of the game, meet fellow footballers, and feel the rush again!
+        </p>
+        <p className="mt-6 text-xl font-semibold text-orange-500">Book. Kick. Repeat.</p>
+      </section>
+
+      {/* How It Works */}
+      <section className="py-16 bg-yellow-100">
+        <h2 className="text-3xl font-bold text-center text-yellow-600">How It Works</h2>
+        <div className="flex flex-col md:flex-row justify-center items-center mt-8 space-y-6 md:space-y-0 md:space-x-12">
+          <div className="text-center max-w-xs">
+            <img src="https://source.unsplash.com/100x100/?calendar" className="mx-auto mb-4" alt="Calendar" />
+            <p className="text-lg">Pick a Game</p>
+          </div>
+          <div className="text-center max-w-xs">
+            <img src="https://source.unsplash.com/100x100/?football-player" className="mx-auto mb-4" alt="Player" />
+            <p className="text-lg">Book Your Spot</p>
+          </div>
+          <div className="text-center max-w-xs">
+            <img src="https://source.unsplash.com/100x100/?stadium" className="mx-auto mb-4" alt="Stadium" />
+            <p className="text-lg">Show Up & Play</p>
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials */}
+      <section className="py-16 text-center bg-white">
+        <h2 className="text-3xl font-bold text-yellow-600">What Players Say</h2>
+        <div className="flex justify-center items-center mt-8 space-x-6">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="bg-yellow-200 p-6 rounded-lg shadow-lg max-w-xs">
+              <img src={`https://source.unsplash.com/80x80/?person${i}`} className="mx-auto rounded-full" alt="User" />
+              <p className="mt-4 italic">"Great platform to find and play football whenever I want!"</p>
+              <p className="mt-2 font-semibold">- Player {i}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Upcoming Games */}
+      <section className="py-16 bg-yellow-100">
+        <h2 className="text-3xl font-bold text-center text-yellow-600">Upcoming Games</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8 px-10">
+          {[{
+            location: "Bangi Uptown Sports", time: "Saturday 10:30-12:00PM", price: "RM20"
+          }, {
+            location: "PJ Sportizza", time: "Sunday 10:00-12:00PM", price: "RM20"
+          }, {
+            location: "IOI City Mall", time: "Sunday 10:00-12:00AM", price: "RM20"
+          }, {
+            location: "Do ARENA 1MK", time: "Friday 10:30-12:00PM", price: "RM25"
+          }].map((game, i) => (
+            <div key={i} className="bg-white p-6 rounded-lg shadow-lg">
+              <img src="https://source.unsplash.com/400x250/?futsal-court" className="w-full h-40 object-cover rounded-md mb-4" alt="Futsal Court" />
+              <h3 className="text-xl font-semibold text-yellow-600">{game.location}</h3>
+              <p className="mt-2 text-gray-600">{game.time}</p>
+              <p className="text-lg font-bold text-orange-500">{game.price}</p>
+              <button className="mt-4 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-bold transition">Book Now</button>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-yellow-600 text-white text-center p-6 mt-12">
+        <p className="font-bold">Futbola &copy; 2025. All rights reserved.</p>
+      </footer>
+    </div>
+  );
+};
+
+export default App;
