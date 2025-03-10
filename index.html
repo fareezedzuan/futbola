@@ -70,8 +70,9 @@
         <div class="md:w-1/2 space-y-6">
             <h1 class="text-5xl font-bold">Know-Know <span style="color:red">Football</span></h1>
             <p class="text-lg">No plans? No team? No problem! Book a spot and jump straight into an open-play football game today.</p>
-            <button class="bg-red-600 hover:bg-yellow-600 text-white px-6 py-3 rounded-lg font-bold transition" style="
-    margin-bottom: 24px;">Book a Game</button>
+            <button onclick="location.href='#upcoming-games'" class="bg-red-600 hover:bg-yellow-600 text-white px-6 py-3 rounded-lg font-bold transition" style="margin-bottom: 24px;">
+                Book a Game
+            </button>
         </div>
         <div class="mx-auto">
             <img src="./images/funFootball.jpg" alt="Football Play" class="rounded-lg" />
@@ -132,45 +133,36 @@
     </section>
 
     <!-- Upcoming Games -->
-    <section id="upcoming-games" class="py-16 bg-white">
-        <h2 class="text-4xl text-center font-bold text-black">Upcoming Games</h2>
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mt-8 px-10">
-            <div class="bg-white p-6 rounded-lg shadow-lg">
-                <h3 class="text-xl font-semibold text-black">Bangi Uptown Sports</h3>
-                <img src="./images/bangi.jfif" class="mt-4 mx-auto" alt="BangiCourt" width="225" />
-                <p class="mt-2 text-gray-600">Booking Status 15/20</p>
-                <p class="text-gray-600">Saturday 10:30-12:00PM</p>
-                <p class="text-lg font-semibold text-orange-500">RM20</p>
-                <button class="mt-4 bg-red-600 hover:bg-yellow-600 text-white px-6 py-3 rounded-lg font-bold transition">Book Now</button>
-            </div>
-            <!--  
-            <div class="bg-white p-6 rounded-lg shadow-lg">
-                <h3 class="text-xl font-semibold text-black">PJ Sportizza</h3>
-                <img src="./images/bangi.jfif" class="mt-4 mx-auto" alt="BangiCourt" width="225" />
-                <p class="mt-2 text-gray-600">Booking Status 15/20</p>
-                <p class="text-gray-600">Sunday 10:00-12:00PM</p>
-                <p class="text-lg font-semibold text-orange-500">RM20</p>
-                <button class="mt-4 bg-red-600 hover:bg-yellow-600 text-white px-6 py-3 rounded-lg font-bold transition">Book Now</button>
-            </div> -->
-            <div class="bg-white p-6 rounded-lg shadow-lg">
-                <h3 class="text-xl font-semibold text-black">IOI City Mall</h3>
-                <img src="./images/bangi.jfif" class="mt-4 mx-auto" alt="BangiCourt" width="225" />
-                <p class="mt-2 text-gray-600">Booking Status 15/20</p>
-                <p class="text-gray-600">Sunday 10:00-12:00AM</p>
-                <p class="text-lg font-semibold text-orange-500">RM20</p>
-                <button class="mt-4 bg-red-600 hover:bg-yellow-600 text-white px-6 py-3 rounded-lg font-bold transition">Book Now</button>
-            </div>
-            <!--  
-            <div class="bg-white p-6 rounded-lg shadow-lg">
-                <h3 class="text-xl font-semibold text-black">Do ARENA 1MK</h3>
-                <img src="./images/bangi.jfif" class="mt-4 mx-auto" alt="BangiCourt" width="225" />
-                <p class="mt-2 text-gray-600">Booking Status 15/20</p>
-                <p class="text-gray-600">Friday 10:30-12:00PM</p>
-                <p class="text-lg font-semibold text-orange-500">RM30</p>
-                <button class="mt-4 bg-red-600 hover:bg-yellow-600 text-white px-6 py-3 rounded-lg font-bold transition">Book Now</button>
-            </div> -->
+<section id="upcoming-games" class="py-16 bg-white text-center">
+    <h2 class="text-4xl font-bold text-black">Upcoming Games</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-8 px-10 place-items-center">
+        <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-sm">
+            <h3 class="text-xl font-semibold text-black">Bangi Uptown Sports</h3>
+            <img src="./images/bangi.jfif" class="mt-4 mx-auto" alt="BangiCourt" width="225" />
+            <p class="mt-2 text-gray-600">Booking Status NA/20</p>
+            <p class="text-gray-600">Saturday 10:30-12:00PM</p>
+            <p class="text-lg font-semibold text-orange-500">RM20</p>
+            <a href="https://docs.google.com/forms/d/e/1FAIpQLSfBucGqXUvfPwIyhvd9KRlGmariWtB15AdS-GFtaXXzw1Z8bA/viewform?usp=dialog" target="_blank">
+                <button class="mt-4 bg-red-600 hover:bg-yellow-600 text-white px-6 py-3 rounded-lg font-bold transition">
+                    Book Now
+                </button>
+            </a>
         </div>
-    </section>
+
+        <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-sm">
+            <h3 class="text-xl font-semibold text-black">IOI City Mall</h3>
+            <img src="./images/bangi.jfif" class="mt-4 mx-auto" alt="BangiCourt" width="225" />
+            <p class="mt-2 text-gray-600">Booking Status NA/20</p>
+            <p class="text-gray-600">Sunday 3:00-4:30PM</p>
+            <p class="text-lg font-semibold text-orange-500">RM20</p>
+            <a href="https://docs.google.com/forms/d/e/1FAIpQLSfaWEh1RBLQjFGEQhOvhq8lvqdfNRgdGyKEETrSo7VwXmF1vQ/viewform?usp=dialog" target="_blank">
+                <button class="mt-4 bg-red-600 hover:bg-yellow-600 text-white px-6 py-3 rounded-lg font-bold transition">
+                    Book Now
+                </button>
+            </a>
+        </div>
+    </div>
+</section>
 
 <!-- Footer -->
 <footer id="contact" class="bg-yellow-200 text-black p-10 mt-16" style="background-image: url('./images/backgroundOrangeGradient.jpg');">
