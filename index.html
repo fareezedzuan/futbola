@@ -9,7 +9,7 @@
 <body class="font-sans bg-white text-black">
 
 <!-- Navigation Bar -->
-<nav class="bg-white text-black p-4 shadow-md fixed top-0 left-0 w-full z-50">
+<nav class="bg-white text-black p-4 shadow-md fixed top-0 left-0 w-full z-50" style="background-image: url('./images/backgroundOrangeGradient.jpg');">
     <div class="container mx-auto flex justify-between items-center">
         <!-- Clickable Logo -->
         <a href="#home" class="flex items-center">
@@ -66,34 +66,34 @@
 </script>
 
     <!-- Hero Section -->
-    <header id="home" class="flex flex-col md:flex-row items-center justify-between px-10 py-20 text-black" style="background-image: url('./images/backgroundOrangeGradient.jpg'); padding-top: 120px;padding-bottom: 120px;">
-        <div class="md:w-1/2 space-y-6">
-            <h1 class="text-5xl font-bold">Play <span style="color:red">football</span> today!</h1>
-            <p class="text-lg">No team? Know no one? No problem! Book a spot and jump straight into an open-play football game today.</p>
-            <button onclick="location.href='#upcoming-games'" class="bg-red-600 hover:bg-yellow-600 text-white px-6 py-3 rounded-lg font-bold transition" style="margin-bottom: 24px;">
-                Book a Game
+    <header id="home" class="relative flex items-center justify-center text-black text-center py-32"
+        style="background: url('./images/futsalCourtDrone.jpg') center/cover no-repeat;">
+        <div class="max-w-3xl mx-auto px-6 rounded-lg py-10">
+            <h1 class="text-5xl font-bold">Play <span style="color:darkorange">football</span> now</h1>
+            <p class="text-lg mt-4 font-semibold ">No team? Know no one? No problem! Book a spot and jump straight into an open-play football game.</p>
+            <button onclick="location.href='#upcoming-games'"
+                class="bg-yellow-500 hover:bg-red-400 text-black px-6 py-3 rounded-lg font-bold transition mt-6">
+                Book a game
             </button>
-        </div>
-        <div class="mx-auto">
-            <img src="./images/funFootball.jpg" alt="Football Play" class="rounded-lg" />
         </div>
     </header>
 
+
     <!-- Brand Section -->
-    <section class="text-center py-16 px-8 bg-white">
-        <h2 class="text-4xl font-bold text-black">The futbola Way of Kicking Ball</h2>
+    <section class="text-center py-16 px-8" style="background-image: url('./images/backgroundOrangeGradient.jpg');">
+        <h2 class="text-4xl font-bold text-black">The futbola way of kicking ball</h2>
         <p class="mt-6 text-lg max-w-3xl mx-auto">
         Life happens—graduation, moving cities, job change and family commitments—and suddenly, your "professional" footballer dream fades away. But who says you can't play anymore?
         </p>
         <p class="mt-4 text-lg max-w-3xl mx-auto">
         At futbola, getting back on the pitch is effortless. With our hassle-free system, you just need to book a game nearby, show up, and kick ball with fellow footballers!
         </p>
-        <p class="mt-6 text-xl font-semibold text-orange-500"><span style="color:red">Book. Kick. Repeat.</span></p>
+        <p class="mt-6 text-xl font-semibold text-orange-500"><span style="color:black">Book. Kick. Repeat.</span></p>
     </section>
 
     <!-- How It Works -->
     <section id="how-it-works" class="py-16 bg-white text-center" >
-        <h2 class="text-4xl font-bold text-black">How It Works</h2>
+        <h2 class="text-4xl font-bold text-black">How it works</h2>
         <div class="flex flex-col md:flex-row justify-center items-center mt-8 space-y-6 md:space-y-0 md:space-x-12">
             <div class="text-center max-w-xs">
                 <img src="./images/selectDoodle.webp" class="mx-auto mb-4" alt="Calendar" />
@@ -112,7 +112,7 @@
 
     <!-- Testimonials -->
     <section id="testimonials" class="py-16 text-center bg-white" >
-        <h2 class="text-4xl font-bold text-black">What Players Say</h2>
+        <h2 class="text-4xl font-bold text-black">What players say</h2>
         <div class="flex justify-center items-center mt-8 space-x-6">
             <div class="bg-yellow-200 p-6 rounded-lg shadow-lg max-w-xs">
                 <img src="./images/Fareez.jpg" class="mx-auto rounded-full" alt="User" />
@@ -134,7 +134,7 @@
 
     <!-- Upcoming Games -->
 <section id="upcoming-games" class="py-16 bg-white text-center">
-    <h2 class="text-4xl font-bold text-black">Upcoming Games</h2>
+    <h2 class="text-4xl font-bold text-black">Upcoming games</h2>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-8 px-10 place-items-center">
         <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-sm">
             <h3 class="text-xl font-semibold text-black">Bangi Uptown Sports</h3>
@@ -144,8 +144,8 @@
             <p class="text-gray-600">10:30-12:00PM</p>
             <p class="text-lg font-semibold text-orange-500">RM20</p>
             <a href="https://docs.google.com/forms/d/e/1FAIpQLSfBucGqXUvfPwIyhvd9KRlGmariWtB15AdS-GFtaXXzw1Z8bA/viewform?usp=dialog" target="_blank">
-                <button class="mt-4 bg-red-600 hover:bg-yellow-600 text-white px-6 py-3 rounded-lg font-bold transition">
-                    Book Now
+                <button class="mt-4 bg-yellow-500 hover:bg-red-400 text-black px-6 py-3 rounded-lg font-bold transition">
+                    Book now
                 </button>
             </a>
         </div>
@@ -158,8 +158,8 @@
             <p class="text-gray-600">3:00-4:30PM</p>
             <p class="text-lg font-semibold text-orange-500">RM20</p>
             <a href="https://docs.google.com/forms/d/e/1FAIpQLSfaWEh1RBLQjFGEQhOvhq8lvqdfNRgdGyKEETrSo7VwXmF1vQ/viewform?usp=dialog" target="_blank">
-                <button class="mt-4 bg-red-600 hover:bg-yellow-600 text-white px-6 py-3 rounded-lg font-bold transition">
-                    Book Now
+                <button class="mt-4 bg-yellow-500 hover:bg-red-400 text-black px-6 py-3 rounded-lg font-bold transition">
+                    Book now
                 </button>
             </a>
         </div>
@@ -172,8 +172,8 @@
             <p class="text-gray-600">9:00-11:00PM</p>
             <p class="text-lg font-semibold text-orange-500">RM20</p>
             <a href="https://docs.google.com/forms/d/e/1FAIpQLSfB2GAj6rQeelI31mxmI6jhyVIuqAeuI-IxqwRnIm1ECEmHbA/viewform?usp=dialog" target="_blank">
-                <button class="mt-4 bg-red-600 hover:bg-yellow-600 text-white px-6 py-3 rounded-lg font-bold transition">
-                    Book Now
+                <button class="mt-4 bg-yellow-500 hover:bg-red-400 text-black px-6 py-3 rounded-lg font-bold transition">
+                    Book now
                 </button>
             </a>
         </div>
