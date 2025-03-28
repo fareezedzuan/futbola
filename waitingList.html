@@ -279,14 +279,49 @@ input[type="checkbox"]:checked + .day-option {
 
             <button type="button" id="submitButton">Submit Your Interest & Follow Us!</button>
 
-        <script>
-            document.getElementById("submitButton").addEventListener("click", function () {
-                document.querySelector("form").submit(); // Submit the form
-                setTimeout(() => {
-                    window.open("https://www.instagram.com/futbola_my/?hl=en", "_blank"); // Open IG in a new tab
-                }, 500); // Delay to ensure form submission starts before redirect
-            });
-        </script>
+            <script>
+                document.getElementById("submitButton").addEventListener("click", async function (event) {
+                    event.preventDefault(); // Prevent default form submission
+            
+                    const name = document.getElementById("name").value;
+                    const phone = document.getElementById("phone").value;
+                    const email = document.getElementById("email").value;
+                    const age_group = document.getElementById("age_group").value;
+                    const gender = document.getElementById("gender").value;
+                    const play_frequency = document.getElementById("play_frequency").value;
+                    const level_preference = document.getElementById("level_preference").value;
+                    const skill_level = document.getElementById("skill_level").value;
+                    const preferred_days = Array.from(document.querySelectorAll("input[name='preferred_days[]']:checked")).map(el => el.value);
+                    const time_slot = Array.from(document.querySelectorAll("input[name='time_slot[]']:checked")).map(el => el.value);
+                    const preferred_court = document.getElementById("court").value;
+            
+                    const requestBody = {
+                        name, phone, email, age_group, gender, play_frequency, 
+                        level_preference, skill_level, preferred_days, time_slot, preferred_court
+                    };
+            
+                    try {
+                        const response = await fetch("https://futbola-backend-fareezedzuans-projects.vercel.app/api/submit-waiting-list", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify(requestBody)
+                        });
+            
+                        if (response.ok) {
+                            alert("Successfully submitted! Redirecting to Instagram...");
+                            window.open("https://www.instagram.com/futbola_my/?hl=en", "_blank"); // Open IG in a new tab
+                        } else {
+                            const errorData = await response.json();
+                            alert("Submission failed: " + errorData.error);
+                        }
+                    } catch (error) {
+                        alert("Error submitting form: " + error.message);
+                    }
+                });
+            </script>
+            
         </form>
 
         <p class="footer">Follow us on Instagram @futbola_my for updates! ⚽🔥</p>
