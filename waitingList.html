@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join Futbola Waiting List</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-image: url('./images/backgroundOrangeGradient.jpg');
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow-y: auto;
+            margin: 0;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            border-top: 5px solid #ff5a5f;
+        }
+
+        h2 {
+            color: #702963;
+            margin-bottom: 10px;
+            font-weight: bold;
+            font-family: Arial, Helvetica, sans-serif;
+            text-align: left;
+        }
+
+        p {
+            color: black;            
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            text-align: left;
+            margin-top: 10px;
+            font-weight: bold;
+            color: #ff5a5f;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .time-slots {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr); /* Three equal columns */
+            gap: 10px; /* Space between columns */
+            margin-top: 10px;
+        }
+
+        .time-option {
+            display: block;
+            background-color: white;
+            color: black;
+            border: 2px solid #ff5a5f;
+            padding: 10px;
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-top: 5px;
+            transition: all 0.3s;
+        }
+
+        .time-option:hover {
+            background-color: #ff5a5f;
+            color: white;
+        }
+
+        input[type="checkbox"] {
+            display: none;
+        }
+
+        input[type="checkbox"]:checked + .time-option {
+            background-color: #ff5a5f;
+            color: white;
+        }
+
+        .day-option {
+    display: block;
+    background-color: white;
+    color: black;
+    border: 2px solid #ff5a5f;
+    padding: 10px;
+    text-align: center;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: 5px;
+    margin-top: 5px;
+    transition: all 0.3s;
+    flex: 1 1 calc(25%); /* 4 items per row */
+    max-width: calc(25%);
+}
+
+.day-slots {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    justify-content: left;
+}
+
+.day-option:hover {
+    background-color: #ff5a5f;
+    color: white;
+}
+
+input[type="checkbox"] {
+    display: none;
+}
+
+input[type="checkbox"]:checked + .day-option {
+    background-color: #ff5a5f;
+    color: white;
+}
+
+        button {
+            background-color: #ff0000;
+            color: white;
+            padding: 12px 15px;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            margin-top: 20px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        button:hover {
+            background-color: #cc0000;
+        }
+
+        .footer {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Want to Play Football but Hard to Find Enough Player?⚽</h2>  
+        <p><span style="font-weight: bolder;color: #cc0000;">futbola</span> is kicking off open football games community platform right after the Raya break! Help us build the open play community together!🙌🤝</p>
+        <p>✅ Zero hassle – just show up and play! No need to gather players.</p>  
+        <p>✅ Easily book your game through the futbola website.</p>  
+        <p>✅ All skill levels welcome – from first-timers to ballers!</p>  
+        <p>Register your interest below to play more ball game.👇</br> 
+            Stand a chance to be invited for a free session.⭐</p>   
+        
+        <form action="/submit-waiting-list" method="POST">
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" placeholder="Enter your name" required>
+                        
+            <label for="phone">Phone:</label>
+            <input type="text" id="phone" name="phone" placeholder="Reachable by WhatsApp for invitation" required>
+            
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" placeholder="If you're not comfortable with sharing phone number" required>
+
+            <label for="age_group">Age:</label>
+            <select id="age_group" name="age_group" required>
+                <option value="" disabled selected>Select your age group</option>
+                <option value="below_23">Below 23</option>
+                <option value="23-29">23 - 29</option>
+                <option value="30-39">30 - 39</option>
+                <option value="40-49">40 - 49</option>
+                <option value="golden">Above 50. Gold status.</option>
+            </select>
+
+            <label for="gender">Gender:</label>
+            <select id="gender" name="gender" required>
+                <option value="" disabled selected>Select your gender</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+            </select>
+
+            <label for="play_frequency">How Often do You Play?</label>
+            <select id="play_frequency" name="play_frequency" required>
+                <option value="weekly">Weekly</option>
+                <option value="biweekly">Biweekly (every two weeks)</option>
+                <option value="monthly">Monthly</option>
+                <option value="monthly">Rarely</option>
+            </select>
+            
+            <label for="level_preference">Preferred Play Level:</label>
+            <select id="level_preference" name="level_preference" required>
+                <option value="casual">Casual – Just for fun!</option>
+                <option value="semi-competitive">Semi-Competitive – A bit of fun, a bit of challenge!</option>
+                <option value="competitive">Competitive – Serious play, high energy!</option>
+                <option value="any">Any – I'm happy to play at any level!</option>
+            </select>
+
+            <label for="skill_level">Skill Level:</label>
+            <select id="skill_level" name="skill_level" required>
+                <option value="5">🌟 Top player—one of the best on the field!</option>
+                <option value="4">🔥 Key team player—always making an impact!</option>
+                <option value="3">⚽ Solid player—can hold your own in a game!</option>
+                <option value="2">😃 Love football—not the most skillful but always ready to play!</option>
+                <option value="1">👶 Just starting—no worries, everyone begins somewhere!</option>
+            </select>
+
+            <label for="preferred_days">Preferred Days:</label>
+            <div class="day-slots">
+                <input type="checkbox" id="monday" name="preferred_days[]" value="Monday">
+                <label for="monday" class="day-option">Monday</label>
+
+                <input type="checkbox" id="tuesday" name="preferred_days[]" value="Tuesday">
+                <label for="tuesday" class="day-option">Tuesday</label>
+
+                <input type="checkbox" id="wednesday" name="preferred_days[]" value="Wednesday">
+                <label for="wednesday" class="day-option">Wednesday</label>
+
+                <input type="checkbox" id="thursday" name="preferred_days[]" value="Thursday">
+                <label for="thursday" class="day-option">Thursday</label>
+
+                <input type="checkbox" id="friday" name="preferred_days[]" value="Friday">
+                <label for="friday" class="day-option">Friday</label>
+
+                <input type="checkbox" id="saturday" name="preferred_days[]" value="Saturday">
+                <label for="saturday" class="day-option">Saturday</label>
+
+                <input type="checkbox" id="sunday" name="preferred_days[]" value="Sunday">
+                <label for="sunday" class="day-option">Sunday</label>
+            </div>
+
+            <label>Preferred Time Slots:</label>
+            <div class="time-slots">
+                <input type="checkbox" id="slot1" name="time_slot[]" value="8pm-9pm">
+                <label for="slot1" class="time-option">8PM - 9PM</label>
+            
+                <input type="checkbox" id="slot2" name="time_slot[]" value="9pm-10pm">
+                <label for="slot2" class="time-option">9PM - 10PM</label>
+            
+                <input type="checkbox" id="slot3" name="time_slot[]" value="10pm-11pm">
+                <label for="slot3" class="time-option">10PM - 11PM</label>
+            
+                <input type="checkbox" id="slot4" name="time_slot[]" value="11pm-12am">
+                <label for="slot4" class="time-option">11PM - 12AM</label>
+            </div>
+            
+            <label>Preferred Time Slots for Weekend:</label>
+            <div class="time-slots">
+                <input type="checkbox" id="slot1weekend" name="time_slot[]" value="10am-12pm">
+                <label for="slot1weekend" class="time-option">10AM - 12PM</label>
+            
+                <input type="checkbox" id="slot2weekend" name="time_slot[]" value="1pm-3pm">
+                <label for="slot2weekend" class="time-option">1PM - 3PM</label>
+            
+                <input type="checkbox" id="slot3weekend" name="time_slot[]" value="3pm-5pm">
+                <label for="slot3weekend" class="time-option">3PM - 5PM</label>
+            
+                <input type="checkbox" id="slot4weekend" name="time_slot[]" value="5pm-7pm">
+                <label for="slot4weekend" class="time-option">5PM - 7PM</label>
+            </div>
+
+            <!-- <label for="phone">Any Function Suggestions?:</label>
+            <input type="text" id="function" name="function" placeholder="WA notifications, Self host, Level selection, etc." required> -->
+
+            <label for="phone">Preferred Court:</label>
+            <input type="text" id="court" name="court" placeholder="Uptown Sports Bangi, IOI City Mall, others" required>
+
+            <button type="button" id="submitButton">Submit Your Interest & Follow Us!</button>
+
+        <script>
+            document.getElementById("submitButton").addEventListener("click", function () {
+                document.querySelector("form").submit(); // Submit the form
+                setTimeout(() => {
+                    window.open("https://www.instagram.com/futbola_my/?hl=en", "_blank"); // Open IG in a new tab
+                }, 500); // Delay to ensure form submission starts before redirect
+            });
+        </script>
+        </form>
+
+        <p class="footer">Follow us on Instagram @futbola_my for updates! ⚽🔥</p>
+    </div>
+
+</body>
+</html>
