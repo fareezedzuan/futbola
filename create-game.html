@@ -91,21 +91,17 @@
       <label for="end_time">End Time:</label>
       <input type="time" id="end_time" name="end_time" required />
 
-      <label for="level">Level:</label>
+      <label for="level">Recommended Level:</label>
       <select id="level" name="level" required>
-        <option value="">Select Level</option>
-        <option value="Beginner">Beginner</option>
-        <option value="Intermediate">Intermediate</option>
-        <option value="Open">Open</option>
+        <option value="" disabled selected>Select level</option>
+        <option value="casual">Casual</option>
+        <option value="semi-competitive">Semi-Competitive</option>
+        <option value="competitive">Competitive</option>
+        <option value="any">All levels welcome</option>
       </select>
 
-      <label for="play_style">Play Style:</label>
-      <select id="play_style" name="play_style" required>
-        <option value="">Select Style</option>
-        <option value="Friendly">Friendly</option>
-        <option value="Competitive">Competitive</option>
-        <option value="Training">Training</option>
-      </select>
+      <label for="play_style">Play Style / Format:</label>
+      <input type="text" id="play_style" name="play_style" placeholder="e.g. 5-a-side, 3 teams rotation" required>
 
       <label for="price">Price (RM):</label>
       <input type="number" id="price" name="price" min="0" step="0.01" placeholder="e.g. 35.00" required />
