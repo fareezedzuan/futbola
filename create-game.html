@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Host futbola Game</title>
+  <title>Create Game</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -12,6 +12,7 @@
       justify-content: center;
       align-items: center;
       min-height: 100vh;
+      overflow-y: auto;
       margin: 0;
     }
 
@@ -21,22 +22,22 @@
       border-radius: 10px;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
       width: 100%;
-      max-width: 450px;
+      max-width: 400px;
       text-align: center;
       border-top: 5px solid #ff5a5f;
     }
 
     h2 {
       color: #702963;
+      margin-bottom: 10px;
       font-weight: bold;
-      text-align: left;
-      margin-bottom: 20px;
+      text-align: center;
     }
 
     label {
       display: block;
       text-align: left;
-      margin-top: 15px;
+      margin-top: 10px;
       font-weight: bold;
       color: #ff5a5f;
     }
@@ -74,67 +75,61 @@
   </style>
 </head>
 <body>
-
   <div class="container">
-    <h2>Create a New Futbola Game</h2>
+    <h2>Create a New Game</h2>
 
-    <form id="gameForm">
-      <label for="venue">Venue Name:</label>
-      <input type="text" id="venue" name="venue" placeholder="e.g. Uptown Sports Bangi" required>
+    <form id="createGameForm">
+      <label for="venue">Venue:</label>
+      <input type="text" id="venue" name="venue" placeholder="e.g. Bangi Uptown Sports" required />
 
-      <label for="date">Date:</label>
-      <input type="date" id="date" name="date" required>
+      <label for="game_date">Game Date:</label>
+      <input type="date" id="game_date" name="game_date" required />
 
-      <label for="time">Start Time:</label>
-      <input type="time" id="time" name="time" required>
+      <label for="start_time">Start Time:</label>
+      <input type="time" id="start_time" name="start_time" required />
 
-      <label for="level">Recommended Level:</label>
+      <label for="end_time">End Time:</label>
+      <input type="time" id="end_time" name="end_time" required />
+
+      <label for="level">Level:</label>
       <select id="level" name="level" required>
-        <option value="" disabled selected>Select level</option>
-        <option value="casual">Casual</option>
-        <option value="semi-competitive">Semi-Competitive</option>
-        <option value="competitive">Competitive</option>
-        <option value="any">All levels welcome</option>
+        <option value="">Select Level</option>
+        <option value="Beginner">Beginner</option>
+        <option value="Intermediate">Intermediate</option>
+        <option value="Open">Open</option>
       </select>
 
-      <label for="format">Play Style / Format:</label>
-      <input type="text" id="format" name="format" placeholder="e.g. 6v6, rotating keeper, etc." required>
+      <label for="play_style">Play Style:</label>
+      <select id="play_style" name="play_style" required>
+        <option value="">Select Style</option>
+        <option value="Friendly">Friendly</option>
+        <option value="Competitive">Competitive</option>
+        <option value="Training">Training</option>
+      </select>
 
-      <label for="price">Price per Slot (RM):</label>
-      <input type="number" id="price" name="price" min="0" placeholder="e.g. 35" required>
+      <label for="price">Price (RM):</label>
+      <input type="number" id="price" name="price" min="0" step="0.01" placeholder="e.g. 35.00" required />
 
-      <label for="max_players">Maximum Players:</label>
-      <input type="number" id="max_players" name="max_players" min="1" placeholder="e.g. 12" required>
+      <label for="max_players">Max Players:</label>
+      <input type="number" id="max_players" name="max_players" min="1" max="30" required />
 
-      <button type="submit">Create Game</button>
+      <button type="button" id="submitGameButton">Create Game</button>
     </form>
 
-    <p class="footer">
-      Need help? DM us on 
-      <a href="https://www.instagram.com/futbola_my" target="_blank">@futbola_my</a>
-    </p>
+    <p class="footer">Follow us on Instagram <a href="https://www.instagram.com/futbola_my" target="_blank">@futbola_my</a></p>
   </div>
 
   <script>
-    document.getElementById("gameForm").addEventListener("submit", async function (event) {
-      event.preventDefault();
-
-      const venue = document.getElementById("venue").value;
-      const date = document.getElementById("date").value;
-      const time = document.getElementById("time").value;
-      const level = document.getElementById("level").value;
-      const format = document.getElementById("format").value;
-      const price = parseFloat(document.getElementById("price").value);
-      const max_players = parseInt(document.getElementById("max_players").value);
-
-      const requestBody = {
-        venue,
-        date,
-        time,
-        level,
-        format,
-        price,
-        max_players
+    document.getElementById("submitGameButton").addEventListener("click", async () => {
+      const data = {
+        venue: document.getElementById("venue").value,
+        game_date: document.getElementById("game_date").value,
+        start_time: document.getElementById("start_time").value,
+        end_time: document.getElementById("end_time").value,
+        level: document.getElementById("level").value,
+        play_style: document.getElementById("play_style").value,
+        price: parseFloat(document.getElementById("price").value),
+        max_players: parseInt(document.getElementById("max_players").value),
       };
 
       try {
@@ -143,21 +138,19 @@
           headers: {
             "Content-Type": "application/json"
           },
-          body: JSON.stringify(requestBody)
+          body: JSON.stringify(data)
         });
 
+        const result = await response.json();
         if (response.ok) {
-          alert("Game successfully created!");
-          document.getElementById("gameForm").reset();
+          alert("Game created successfully!");
         } else {
-          const err = await response.json();
-          alert("Error: " + err.message);
+          alert("Failed: " + result.error);
         }
       } catch (err) {
-        alert("Network error: " + err.message);
+        alert("Error: " + err.message);
       }
     });
   </script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </body>
 </html>
