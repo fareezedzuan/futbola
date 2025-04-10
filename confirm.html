@@ -1,10 +1,9 @@
-<!-- confirm.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Booking Confirmed - futbola</title>
+  <title>Booking Confirmed</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -12,52 +11,50 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
+      min-height: 100vh;
       margin: 0;
-      padding: 20px;
     }
 
     .container {
       background: white;
-      padding: 40px;
+      padding: 30px;
       border-radius: 10px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
       text-align: center;
       max-width: 400px;
-      border-top: 6px solid #ff5a5f;
+      border-top: 5px solid #ff5a5f;
     }
 
     h2 {
       color: #702963;
-      margin-bottom: 15px;
     }
 
     p {
       font-size: 16px;
-      margin-bottom: 25px;
+      margin-bottom: 20px;
     }
 
-    a {
+    a.button {
       display: inline-block;
-      padding: 12px 20px;
-      background-color: #ff5a5f;
+      background-color: #ff0000;
       color: white;
+      padding: 12px 20px;
       text-decoration: none;
-      font-weight: bold;
       border-radius: 5px;
+      font-weight: bold;
     }
 
-    a:hover {
+    a.button:hover {
       background-color: #cc0000;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h2>✅ Booking Confirmed!</h2>
-    <p>Thank you for booking your slot with <strong>futbola</strong>!<br>
-       You’ll receive a WhatsApp message before the session.</p>
-    <a href="/upcoming">📅 Book More Games</a>
+    <h2>🎉 Booking Confirmed!</h2>
+    <p>Thank you for booking with <strong>futbola</strong>.</p>
+    <p>You’ll be contacted via WhatsApp closer to game day.</p>
+    <a class="button" href="https://www.futbola.my">← Back to Homepage</a>
   </div>
 </body>
 </html>
