@@ -1,9 +1,7 @@
 {
   "routes": [
     { "src": "/(.*)", "dest": "/$1" }
-  ]
-}
-{
+  ],
   "rewrites": [
     {
       "source": "/render-upcoming",
