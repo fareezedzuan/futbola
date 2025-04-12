@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Start Game - futbola</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-image: url('./images/backgroundOrangeGradient.jpg');
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 600px;
+      border-top: 5px solid #ff5a5f;
+    }
+    h2 {
+      color: #702963;
+      margin-bottom: 20px;
+      font-weight: bold;
+      text-align: center;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: bold;
+      color: #ff5a5f;
+    }
+    input, select, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
+    button {
+      background-color: #ff0000;
+      color: white;
+      font-weight: bold;
+      border: none;
+      margin-top: 20px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #cc0000;
+    }
+    .team-input {
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Set Up Game</h2>
+
+    <label for="gameSelect">Select Game (within next 3 days):</label>
+    <select id="gameSelect">
+      <option value="">-- Loading games... --</option>
+    </select>
+
+    <label for="teamCount">Number of Teams:</label>
+    <select id="teamCount" onchange="generateTeamInputs()">
+      <option value="">-- Select --</option>
+      <option value="2">2</option>
+      <option value="3">3</option>
+      <option value="4">4</option>
+      <option value="5">5</option>
+      <option value="6">6</option>
+    </select>
+
+    <div id="teamInputs"></div>
+
+    <label for="duration">Match Duration (minutes):</label>
+    <input type="number" id="duration" value="7" min="1" />
+
+    <button onclick="randomizeTeams()">Randomize Teams</button>
+    <div id="playerAssignment"></div>
+    <button onclick="startGame()">Start Game</button>
+  </div>
+
+  <script>
+    let allPlayers = [];
+
+    async function fetchGames() {
+      const res = await fetch("/api/get-upcoming-games");
+      const data = await res.json();
+      const select = document.getElementById("gameSelect");
+      select.innerHTML = '<option value="">-- Select Game --</option>';
+      const now = new Date();
+      const threeDaysLater = new Date();
+      threeDaysLater.setDate(now.getDate() + 3);
+      data.games.forEach(game => {
+        const gameDate = new Date(game.game_date);
+        if (gameDate >= now && gameDate <= threeDaysLater) {
+          const option = document.createElement("option");
+          option.value = game.id;
+          option.textContent = `${game.venue} - ${game.game_date} ${game.start_time}`;
+          select.appendChild(option);
+        }
+      });
+    }
+
+    async function fetchPlayers(gameId) {
+      const res = await fetch(`/api/get-bookings?game_id=${gameId}`);
+      const data = await res.json();
+      allPlayers = data.bookings.map(b => b.name);
+      generatePlayerAssignment();
+    }
+
+    function generateTeamInputs() {
+      const teamInputs = document.getElementById("teamInputs");
+      teamInputs.innerHTML = "";
+      const count = parseInt(document.getElementById("teamCount").value);
+      for (let i = 0; i < count; i++) {
+        const label = document.createElement("label");
+        label.textContent = `Team ${i + 1} Name:`;
+        const input = document.createElement("input");
+        input.type = "text";
+        input.id = `team${i}`;
+        input.className = "team-input";
+        input.value = `Team ${String.fromCharCode(65 + i)}`;
+        teamInputs.appendChild(label);
+        teamInputs.appendChild(input);
+      }
+      generatePlayerAssignment();
+    }
+
+    function generatePlayerAssignment() {
+      const container = document.getElementById("playerAssignment");
+      container.innerHTML = "";
+      const teamCount = parseInt(document.getElementById("teamCount").value);
+      if (!teamCount || allPlayers.length === 0) return;
+
+      for (let i = 0; i < teamCount; i++) {
+        const wrapper = document.createElement("div");
+        wrapper.style.marginTop = "15px";
+        const label = document.createElement("label");
+        label.textContent = `Assign players to Team ${i + 1}:`;
+        wrapper.appendChild(label);
+
+        allPlayers.forEach((player, idx) => {
+          const checkbox = document.createElement("input");
+          checkbox.type = "checkbox";
+          checkbox.value = player;
+          checkbox.name = `team${i}Players`;
+
+          const span = document.createElement("span");
+          span.textContent = player;
+
+          const div = document.createElement("div");
+          div.appendChild(checkbox);
+          div.appendChild(span);
+
+          wrapper.appendChild(div);
+        });
+
+        container.appendChild(wrapper);
+      }
+    }
+
+    function randomizeTeams() {
+      const teamCount = parseInt(document.getElementById("teamCount").value);
+      if (!teamCount || allPlayers.length === 0) return alert("Please select a game and enter teams first.");
+      const shuffled = [...allPlayers].sort(() => Math.random() - 0.5);
+      const assignments = Array.from({ length: teamCount }, () => []);
+      shuffled.forEach((player, i) => {
+        assignments[i % teamCount].push(player);
+      });
+
+      assignments.forEach((teamPlayers, teamIdx) => {
+        const checkboxes = document.getElementsByName(`team${teamIdx}Players`);
+        checkboxes.forEach(cb => {
+          cb.checked = teamPlayers.includes(cb.value);
+        });
+      });
+    }
+
+    function startGame() {
+      const count = parseInt(document.getElementById("teamCount").value);
+      const gameId = document.getElementById("gameSelect").value;
+      if (!gameId) return alert("Please select a game.");
+      if (!count || count < 2) return alert("Please select at least 2 teams.");
+
+      const teamNames = [];
+      const teamPlayers = [];
+      for (let i = 0; i < count; i++) {
+        const name = document.getElementById(`team${i}`).value.trim();
+        if (!name) return alert("Please fill all team names.");
+        teamNames.push(name);
+
+        const checkboxes = document.getElementsByName(`team${i}Players`);
+        const selected = Array.from(checkboxes).filter(cb => cb.checked).map(cb => cb.value);
+        teamPlayers.push(selected);
+      }
+
+      const duration = parseInt(document.getElementById("duration").value);
+      if (!duration || duration < 1) return alert("Please enter a valid match duration.");
+
+      sessionStorage.setItem("gameId", gameId);
+      sessionStorage.setItem("teamNames", JSON.stringify(teamNames));
+      sessionStorage.setItem("teamPlayers", JSON.stringify(teamPlayers));
+      sessionStorage.setItem("duration", duration);
+
+      window.location.href = "track-match.html";
+    }
+
+    document.getElementById("gameSelect").addEventListener("change", e => {
+      const gameId = e.target.value;
+      if (gameId) fetchPlayers(gameId);
+    });
+
+    fetchGames();
+  </script>
+</body>
+</html>
