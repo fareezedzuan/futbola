@@ -3,27 +3,30 @@ import Cors from "micro-cors";
 
 const cors = Cors({
   allowMethods: ["GET", "OPTIONS"],
-  origin: "*", // or set to your frontend like "https://www.futbola.my"
+  origin: "*", // or "https://www.futbola.my"
 });
-
-console.log("SUPABASE_URL:", process.env.SUPABASE_URL);
-console.log("SUPABASE_KEY:", process.env.SUPABASE_KEY?.slice(0, 5) + "..."); // Just partial
-
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_KEY
-);
 
 async function handler(req, res) {
   if (req.method === "OPTIONS") return res.status(200).end();
-
   if (req.method !== "GET") {
     return res.status(405).json({ error: "Method Not Allowed" });
   }
 
-  try {
-    const today = new Date().toISOString().split("T")[0]; // Format: YYYY-MM-DD
+  // ✅ Check and log env vars
+  const SUPABASE_URL = process.env.SUPABASE_URL;
+  const SUPABASE_KEY = process.env.SUPABASE_KEY;
 
+  console.log("SUPABASE_URL:", SUPABASE_URL);
+  console.log("SUPABASE_KEY:", SUPABASE_KEY?.slice(0, 5) + "...");
+
+  if (!SUPABASE_URL || !SUPABASE_KEY) {
+    return res.status(500).json({ error: "Missing Supabase credentials" });
+  }
+
+  const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  try {
+    const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
     const { data, error } = await supabase
       .from("games")
       .select("*")
