@@ -95,6 +95,8 @@
     async function fetchGames() {
       const res = await fetch("/api/get-upcoming-games");
       const data = await res.json();
+      console.log("Fetched from API:", data);
+      alert("Fetched " + (data.games?.length || 0) + " games");
       const select = document.getElementById("gameSelect");
       select.innerHTML = '<option value="">-- Select Game --</option>';
 
