@@ -6,6 +6,9 @@ const cors = Cors({
   origin: "*", // or set to your frontend like "https://www.futbola.my"
 });
 
+console.log("SUPABASE_URL:", process.env.SUPABASE_URL);
+console.log("SUPABASE_KEY:", process.env.SUPABASE_KEY?.slice(0, 5) + "..."); // Just partial
+
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_KEY
