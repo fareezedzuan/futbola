@@ -3,7 +3,7 @@ import Cors from "micro-cors";
 
 const cors = Cors({
   allowMethods: ["GET", "OPTIONS"],
-  origin: "https://www.futbola.my", // Replace with your frontend domain
+  origin: "*", // or set to your frontend like "https://www.futbola.my"
 });
 
 const supabase = createClient(
@@ -19,13 +19,13 @@ async function handler(req, res) {
   }
 
   try {
-    const now = new Date().toISOString().split("T")[0]; // today's date string
+    const today = new Date().toISOString().split("T")[0]; // Format: YYYY-MM-DD
 
     const { data, error } = await supabase
       .from("games")
       .select("*")
       .eq("is_active", true)
-      .gte("game_date", now)
+      .gte("game_date", today)
       .order("game_date", { ascending: true });
 
     if (error) throw error;
