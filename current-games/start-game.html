@@ -97,12 +97,16 @@
       const data = await res.json();
       const select = document.getElementById("gameSelect");
       select.innerHTML = '<option value="">-- Select Game --</option>';
-      const now = new Date();
+
+      const today = new Date();
       const threeDaysLater = new Date();
-      threeDaysLater.setDate(now.getDate() + 3);
+      today.setHours(0, 0, 0, 0);
+      threeDaysLater.setDate(today.getDate() + 3);
+      threeDaysLater.setHours(23, 59, 59, 999);
+
       data.games.forEach(game => {
-        const gameDate = new Date(game.game_date);
-        if (gameDate >= now && gameDate <= threeDaysLater) {
+        const gameDate = new Date(game.game_date + "T00:00:00");
+        if (gameDate >= today && gameDate <= threeDaysLater) {
           const option = document.createElement("option");
           option.value = game.id;
           option.textContent = `${game.venue} - ${game.game_date} ${game.start_time}`;
@@ -111,29 +115,12 @@
       });
     }
 
-    async function fetchGames() {
-  const res = await fetch("/api/get-upcoming-games");
-  const data = await res.json();
-  const select = document.getElementById("gameSelect");
-  select.innerHTML = '<option value="">-- Select Game --</option>';
-
-  const today = new Date();
-  const threeDaysLater = new Date();
-  today.setHours(0, 0, 0, 0);
-  threeDaysLater.setDate(today.getDate() + 3);
-  threeDaysLater.setHours(23, 59, 59, 999);
-
-  data.games.forEach(game => {
-    const gameDate = new Date(game.game_date + "T00:00:00");
-    if (gameDate >= today && gameDate <= threeDaysLater) {
-      const option = document.createElement("option");
-      option.value = game.id;
-      option.textContent = `${game.venue} - ${game.game_date} ${game.start_time}`;
-      select.appendChild(option);
+    async function fetchPlayers(gameId) {
+      const res = await fetch(`/api/get-bookings?game_id=${gameId}`);
+      const data = await res.json();
+      allPlayers = data.bookings.filter(b => b.status === 'confirmed').map(b => b.name);
+      generatePlayerAssignment();
     }
-  });
-}
-
 
     function generateTeamInputs() {
       const teamInputs = document.getElementById("teamInputs");
