@@ -1,0 +1,486 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Track Match - futbola</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-image: url('./images/backgroundOrangeGradient.jpg');
+      margin: 0;
+      padding: 20px;
+      overflow-y: scroll;
+    }
+
+    .container {
+      background: white;
+      max-width: 1000px;
+      margin: auto;
+      padding: 20px;
+      border-radius: 10px;
+      border-top: 5px solid #ff5a5f;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    h2, h3 {
+      color: #702963;
+    }
+
+    .match-header {
+      font-size: 24px;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 20px;
+      color: #702963;
+    }
+
+    .score-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .team-clickable {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .team-clickable img {
+      height: 50px;
+      object-fit: contain;
+      margin-bottom: 5px;
+    }
+
+    .team-clickable span {
+      font-size: 20px;
+      font-weight: bold;
+      color: #ff5a5f;
+    }
+
+    .score-number {
+      font-size: 28px;
+      color: #ff5a5f;
+      font-weight: bold;
+    }
+
+    .center-timer {
+      font-size: 60px;
+      font-weight: bold;
+      text-align: center;
+      color: black;
+      text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.2);
+      margin-bottom: 10px;
+    }
+
+    .goals-row {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 10px;
+      gap: 10px;
+    }
+
+    .goals-list {
+      flex: 1;
+      font-size: 14px;
+    }
+
+    .section {
+      margin-top: 30px;
+      background: #f3f3f3;
+      padding: 15px;
+      border-radius: 8px;
+    }
+
+    .btn-primary {
+      background-color: #ff5a5f;
+      color: white;
+      font-weight: bold;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    .btn-primary:hover {
+      background-color: #cc0000;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 6px;
+      text-align: center;
+    }
+
+    th {
+      background-color: #ffe4e1;
+    }
+
+    pre {
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.3);
+      z-index: 99;
+    }
+
+    .scorer-popup {
+      display: none;
+      position: fixed;
+      top: 20%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: white;
+      z-index: 100;
+      padding: 20px;
+      border-radius: 10px;
+      border: 2px solid #ff5a5f;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      width: 80%;
+      max-width: 600px;
+    }
+
+    .scorer-popup h4 {
+      text-align: center;
+      color: #702963;
+    }
+
+    .scorer-columns {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 10px;
+      gap: 20px;
+    }
+
+    .scorer-columns div {
+      width: 50%;
+    }
+
+    .scorer-columns button {
+      width: 100%;
+      margin-bottom: 6px;
+      padding: 8px;
+      background-color: #ff5a5f;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .scorer-columns button:hover {
+      background-color: #cc0000;
+    }
+
+    .goal-line {
+      font-size: 13px;
+      color: #444;
+      margin: 4px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="overlay" id="overlay"></div>
+  <div class="scorer-popup" id="scorerPopup">
+    <h4>Select Scorer</h4>
+    <div class="scorer-columns">
+      <div id="defendingPlayers"><strong>Own Goal</strong><br/></div>
+      <div id="attackingPlayers"><strong>Scorer</strong><br/></div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="match-header" id="matchTitle">Match 1</div>
+
+    <div class="center-timer" id="timer">00:00</div>
+    <div style="text-align: center;">
+      <button class="btn-primary" id="timerBtn" onclick="handleTimerClick()">Start Timer</button>
+      <button class="btn-primary" onclick="resetTimer()">Reset Timer</button>
+    </div>
+
+    <div class="score-row">
+      <div class="team-clickable" onclick="triggerScorer('A')">
+        <img id="teamAIcon" src="./images/default.png" alt="Team A" />
+        <span id="teamAName">Team A</span>
+        <div class="score-number" id="scoreA">0</div>
+        <div id="goalLogA"></div>
+      </div>
+
+      <div class="team-clickable" onclick="triggerScorer('B')">
+        <img id="teamBIcon" src="./images/default.png" alt="Team B" />
+        <span id="teamBName">Team B</span>
+        <div class="score-number" id="scoreB">0</div>
+        <div id="goalLogB"></div>
+      </div>
+    </div>
+
+    <button class="btn-primary" onclick="confirmNextMatch()">Start Next Match</button>
+
+    <div class="section">
+      <h3>Match Results</h3>
+      <div id="matchHistory"></div>
+    </div>
+
+    <div class="section">
+      <h3>Top Scorers</h3>
+      <div id="leaderboardList"></div>
+    </div>
+
+    <div class="section">
+      <h3>Live Standings</h3>
+      <div id="standingsTable"></div>
+    </div>
+
+    <button class="btn-primary" onclick="confirmFinish()">Finish & Share</button>
+  </div>
+
+<script>
+let duration = parseInt(sessionStorage.getItem("duration")) || 7;
+let teamNames = JSON.parse(sessionStorage.getItem("teamNames") || "[]");
+let teamPlayers = JSON.parse(sessionStorage.getItem("teamPlayers") || "[]");
+let timeElapsed = 0;
+let timer = null;
+let timerPaused = false;
+let timerRunning = false;
+let matchNumber = 0;
+let matchResults = [];
+let goalHistory = [];
+let standings = {};
+
+function generateRoundRobin(teams) {
+  const rounds = [];
+  const t = [...teams];
+  if (t.length % 2) t.push("BYE");
+  const half = t.length / 2;
+  for (let i = 0; i < t.length - 1; i++) {
+    for (let j = 0; j < half; j++) {
+      const home = t[j], away = t[t.length - 1 - j];
+      if (home !== "BYE" && away !== "BYE") rounds.push([home, away]);
+    }
+    t.splice(1, 0, t.pop());
+  }
+  return rounds;
+}
+
+const matchups = generateRoundRobin(teamNames);
+
+function handleTimerClick() {
+  if (!timerRunning) {
+    timerRunning = true;
+    timerPaused = false;
+    document.getElementById('timerBtn').textContent = "Pause";
+    timer = setInterval(() => {
+      if (!timerPaused) {
+        timeElapsed++;
+        updateTimerDisplay();
+        if (timeElapsed >= duration * 60) {
+          clearInterval(timer);
+          timerRunning = false;
+          document.getElementById('timerBtn').textContent = "Start Timer";
+          endMatch();
+        }
+      }
+    }, 1000);
+  } else {
+    timerPaused = !timerPaused;
+    document.getElementById('timerBtn').textContent = timerPaused ? "Resume" : "Pause";
+  }
+}
+
+function resetTimer() {
+  clearInterval(timer);
+  timeElapsed = 0;
+  timerRunning = false;
+  timerPaused = false;
+  updateTimerDisplay();
+  document.getElementById('timerBtn').textContent = "Start Timer";
+}
+
+function updateTimerDisplay() {
+  const min = Math.floor(timeElapsed / 60);
+  const sec = timeElapsed % 60;
+  document.getElementById("timer").textContent =
+    `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+}
+
+function startNextMatch() {
+  if (matchNumber >= matchups.length) {
+    alert("All matches completed.");
+    return;
+  }
+
+  resetTimer();
+  document.getElementById("scoreA").textContent = "0";
+  document.getElementById("scoreB").textContent = "0";
+  document.getElementById("goalLogA").innerHTML = "";
+  document.getElementById("goalLogB").innerHTML = "";
+
+  const [teamA, teamB] = matchups[matchNumber];
+  document.getElementById("matchTitle").textContent = `Match ${matchNumber + 1}`;
+  document.getElementById("teamAName").textContent = teamA;
+  document.getElementById("teamBName").textContent = teamB;
+  document.getElementById("teamAIcon").src = `./images/${teamA}.png`;
+  document.getElementById("teamBIcon").src = `./images/${teamB}.png`;
+
+  matchNumber++;
+}
+
+function triggerScorer(teamSide) {
+  const teamA = document.getElementById("teamAName").textContent;
+  const teamB = document.getElementById("teamBName").textContent;
+  const idxA = teamNames.indexOf(teamA);
+  const idxB = teamNames.indexOf(teamB);
+
+  const attackPlayers = (teamSide === 'A') ? teamPlayers[idxA] : teamPlayers[idxB];
+  const defendPlayers = (teamSide === 'A') ? teamPlayers[idxB] : teamPlayers[idxA];
+  const attackTeam = (teamSide === 'A') ? teamA : teamB;
+  const defendTeam = (teamSide === 'A') ? teamB : teamA;
+
+  const attackingDiv = document.getElementById("attackingPlayers");
+  const defendingDiv = document.getElementById("defendingPlayers");
+
+  attackingDiv.innerHTML = "<strong>Scorer</strong><br/>" +
+    attackPlayers.map(p => `<button onclick="selectScorer('${attackTeam}', '${p}', false)"> ${p} </button>`).join("");
+  defendingDiv.innerHTML = "<strong>Own Goal</strong><br/>" +
+    defendPlayers.map(p => `<button onclick="selectScorer('${attackTeam}', '${p}', true)"> ${p} </button>`).join("");
+
+  document.getElementById("scorerPopup").style.display = "block";
+  document.getElementById("overlay").style.display = "block";
+}
+
+function selectScorer(teamName, playerName, isOG) {
+  const nowMin = Math.floor(timeElapsed / 60);
+  const extra = Math.max(0, nowMin - duration);
+  const time = extra > 0 ? `${duration}+${extra}'` : `${Math.max(nowMin, 1)}'`;
+
+  updateScore(teamName, 1);
+  goalHistory.push({ team: teamName, player: playerName, isOG, time });
+
+  renderGoalsForTeam(teamName);
+
+  document.getElementById("scorerPopup").style.display = "none";
+  document.getElementById("overlay").style.display = "none";
+  updateLeaderboard();
+}
+
+function updateScore(teamName, delta) {
+  if (document.getElementById("teamAName").textContent === teamName) {
+    const s = parseInt(document.getElementById("scoreA").textContent);
+    document.getElementById("scoreA").textContent = s + delta;
+  } else {
+    const s = parseInt(document.getElementById("scoreB").textContent);
+    document.getElementById("scoreB").textContent = s + delta;
+  }
+}
+
+function renderGoalsForTeam(team) {
+  const div = (document.getElementById("teamAName").textContent === team) ? 
+    document.getElementById("goalLogA") : document.getElementById("goalLogB");
+
+  const grouped = {};
+  goalHistory.filter(g => g.team === team && !g.isOG).forEach(g => {
+    if (!grouped[g.player]) grouped[g.player] = [];
+    grouped[g.player].push(g.time);
+  });
+
+  const ogs = goalHistory.filter(g => g.team === team && g.isOG)
+    .map(g => `${g.player} OG ${g.time}`);
+
+  div.innerHTML = Object.entries(grouped)
+    .map(([name, times]) => `<div class='goal-line'>${name} ${times.join(", ")}</div>`)
+    .concat(ogs.map(txt => `<div class='goal-line'>${txt}</div>`))
+    .join("");
+}
+
+function endMatch() {
+  const tA = document.getElementById("teamAName").textContent;
+  const tB = document.getElementById("teamBName").textContent;
+  const gA = parseInt(document.getElementById("scoreA").textContent);
+  const gB = parseInt(document.getElementById("scoreB").textContent);
+
+  document.getElementById("matchHistory").innerHTML += `<p>${tA} ${gA} - ${gB} ${tB}</p>`;
+  updateStandings(tA, tB, gA, gB);
+}
+
+function updateLeaderboard() {
+  const tally = {};
+  goalHistory.forEach(g => {
+    if (g.isOG) return;
+    if (!tally[g.player]) tally[g.player] = 0;
+    tally[g.player]++;
+  });
+  const sorted = Object.entries(tally)
+    .sort((a, b) => b[1] - a[1]);
+  document.getElementById("leaderboardList").innerHTML = sorted
+    .map(([name, count]) => `<p>${name} – ${count}</p>`).join("");
+}
+
+function updateStandings(tA, tB, gA, gB) {
+  [tA, tB].forEach(t => {
+    if (!standings[t]) standings[t] = { MP: 0, Pts: 0, GF: 0, GA: 0 };
+  });
+  standings[tA].MP++; standings[tB].MP++;
+  standings[tA].GF += gA; standings[tA].GA += gB;
+  standings[tB].GF += gB; standings[tB].GA += gA;
+
+  if (gA > gB) standings[tA].Pts += 3;
+  else if (gB > gA) standings[tB].Pts += 3;
+  else { standings[tA].Pts += 1; standings[tB].Pts += 1; }
+
+  const rows = Object.entries(standings).map(([team, stat]) => ({
+    team,
+    MP: stat.MP,
+    Pts: stat.Pts,
+    GF: stat.GF,
+    GA: stat.GA,
+    GD: stat.GF - stat.GA
+  }));
+
+  rows.sort((a, b) =>
+    b.Pts - a.Pts || b.GD - a.GD || b.GF - a.GF || a.team.localeCompare(b.team));
+
+  const tableHTML = `
+    <table>
+      <tr><th>Team</th><th>MP</th><th>Pts</th><th>GF</th><th>GA</th><th>GD</th></tr>
+      ${rows.map(r => `<tr><td>${r.team}</td><td>${r.MP}</td><td>${r.Pts}</td><td>${r.GF}</td><td>${r.GA}</td><td>${r.GD}</td></tr>`).join("")}
+    </table>`;
+  document.getElementById("standingsTable").innerHTML = tableHTML;
+}
+
+function confirmNextMatch() {
+  if (confirm("Are you sure you want to start the next match?")) startNextMatch();
+}
+
+function confirmFinish() {
+  if (confirm("Finish and copy summary?")) {
+    const summary = document.getElementById("matchHistory").innerText +
+                    "\n\nScorers:\n" +
+                    document.getElementById("leaderboardList").innerText;
+    navigator.clipboard.writeText(summary).then(() =>
+      alert("Copied to clipboard! Paste in WhatsApp or anywhere."));
+  }
+}
+
+updateTimerDisplay();
+startNextMatch();
+</script>
+</body>
+</html>
