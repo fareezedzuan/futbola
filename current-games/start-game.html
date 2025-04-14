@@ -141,28 +141,33 @@
     let activePlayers = [];
 
     async function fetchGames() {
-      const res = await fetch("/api/get-upcoming-games");
-      const data = await res.json();
-      const select = document.getElementById("gameSelect");
-      select.innerHTML = '<option value="">-- Select Game --</option>';
-      const today = new Date();
-      const threeDaysLater = new Date();
-      today.setHours(0, 0, 0, 0);
-      threeDaysLater.setDate(today.getDate() + 3);
-      threeDaysLater.setHours(23, 59, 59, 999);
-      data.games.forEach(game => {
-        const gameDate = new Date(game.game_date + "T00:00:00");
-        if (gameDate >= today && gameDate <= threeDaysLater) {
-          const option = document.createElement("option");
-          option.value = game.id;
-          option.textContent = ${game.venue} - ${game.game_date} ${game.start_time};
-          select.appendChild(option);
-        }
-      });
+      try {
+        const res = await fetch("/api/get-upcoming-games");
+        const data = await res.json();
+        const select = document.getElementById("gameSelect");
+        select.innerHTML = '<option value="">-- Select Game --</option>';
+        const today = new Date();
+        const threeDaysLater = new Date();
+        today.setHours(0, 0, 0, 0);
+        threeDaysLater.setDate(today.getDate() + 3);
+        threeDaysLater.setHours(23, 59, 59, 999);
+        data.games.forEach(game => {
+          const gameDate = new Date(game.game_date + "T00:00:00");
+          if (gameDate >= today && gameDate <= threeDaysLater) {
+            const option = document.createElement("option");
+            option.value = game.id;
+            option.textContent = `${game.venue} - ${game.game_date} ${game.start_time}`;
+            select.appendChild(option);
+          }
+        });
+      } catch (err) {
+        alert("Failed to load games: " + err.message);
+        console.error(err);
+      }
     }
 
     async function fetchPlayers(gameId) {
-      const res = await fetch(/api/get-bookings?game_id=${gameId});
+      const res = await fetch(`/api/get-bookings?game_id=${gameId}`);
       const data = await res.json();
       allPlayers = data.bookings.filter(b => b.status === 'confirmed').map(b => b.name);
       activePlayers = [...allPlayers];
@@ -177,9 +182,9 @@
       for (let i = 0; i < count; i++) {
         const input = document.createElement("input");
         input.type = "text";
-        input.id = team${i};
+        input.id = `team${i}`;
         input.className = "team-input";
-        input.value = Team ${String.fromCharCode(65 + i)};
+        input.value = `Team ${String.fromCharCode(65 + i)}`;
         teamInputs.appendChild(input);
       }
       generatePlayerAssignment();
@@ -194,7 +199,7 @@
         const wrapper = document.createElement("div");
         wrapper.style.marginTop = "20px";
         const label = document.createElement("label");
-        label.textContent = Assign players to Team ${i + 1}:;
+        label.textContent = `Assign players to Team ${i + 1}:`;
         wrapper.appendChild(label);
         const grid = document.createElement("div");
         grid.className = "player-grid";
@@ -236,10 +241,10 @@
       const teamNames = [];
       const teamPlayers = [];
       for (let i = 0; i < count; i++) {
-        const name = document.getElementById(team${i}).value.trim();
+        const name = document.getElementById(`team${i}`).value.trim();
         if (!name) return alert("Please fill all team names.");
         teamNames.push(name);
-        const boxes = document.querySelectorAll(#playerAssignment .player-grid:nth-of-type(${i + 1}) .player-box.selected);
+        const boxes = document.querySelectorAll(`#playerAssignment .player-grid:nth-of-type(${i + 1}) .player-box.selected`);
         const selected = Array.from(boxes).map(box => box.dataset.name);
         teamPlayers.push(selected);
       }
