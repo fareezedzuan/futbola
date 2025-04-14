@@ -141,6 +141,18 @@
       font-size: 18px;
       font-weight: bold;
     }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      padding: 6px;
+      text-align: center;
+      border: 1px solid #ccc;
+    }
+    th {
+      background-color: #ffe4e1;
+    }
   </style>
 </head>
 <body>
@@ -184,6 +196,16 @@
     <h3>Match Results</h3>
     <div id="matchHistory"></div>
   </div>
+
+  <div class="section">
+    <h3>Top Scorers</h3>
+    <div id="leaderboardList"></div>
+  </div>
+
+  <div class="section">
+    <h3>Live Standings</h3>
+    <div id="standingsTable"></div>
+  </div>
 </div>
 
 <script>
@@ -192,7 +214,9 @@ const teamNames = JSON.parse(sessionStorage.getItem("teamNames") || "[]");
 const teamPlayers = JSON.parse(sessionStorage.getItem("teamPlayers") || "[]");
 let matchNumber = 0;
 let matchups = [];
+let allGoals = [];
 let currentGoals = [];
+let standings = {};
 let timeElapsed = 0, timer = null, timerRunning = false, timerPaused = false;
 
 function generateRoundRobin(teams) {
@@ -247,17 +271,14 @@ function resetTimer() {
 }
 
 function startNextMatch() {
-  if (matchNumber >= matchups.length) {
-    alert("All matches done!");
-    return;
-  }
+  if (matchNumber >= matchups.length) return alert("All matches done!");
+  if (matchNumber > 0) recordMatch();
   resetTimer();
   document.getElementById("scoreA").textContent = "0";
   document.getElementById("scoreB").textContent = "0";
   document.getElementById("goalLogA").innerHTML = "";
   document.getElementById("goalLogB").innerHTML = "";
   currentGoals = [];
-
   const [teamA, teamB] = matchups[matchNumber];
   document.getElementById("matchTitle").textContent = `Match ${matchNumber + 1}`;
   document.getElementById("teamAName").textContent = teamA;
@@ -265,6 +286,51 @@ function startNextMatch() {
   document.getElementById("teamAIcon").src = `./images/${teamA}.png`;
   document.getElementById("teamBIcon").src = `./images/${teamB}.png`;
   matchNumber++;
+}
+
+function recordMatch() {
+  const tA = document.getElementById("teamAName").textContent;
+  const tB = document.getElementById("teamBName").textContent;
+  const gA = parseInt(document.getElementById("scoreA").textContent);
+  const gB = parseInt(document.getElementById("scoreB").textContent);
+  document.getElementById("matchHistory").innerHTML += `<p>${tA} ${gA} - ${gB} ${tB}</p>`;
+  allGoals.push(...currentGoals);
+  updateLeaderboard();
+  updateStandings(tA, tB, gA, gB);
+}
+
+function updateLeaderboard() {
+  const tally = {};
+  allGoals.forEach(g => {
+    if (!g.ownGoal) {
+      if (!tally[g.player]) tally[g.player] = 0;
+      tally[g.player]++;
+    }
+  });
+  const sorted = Object.entries(tally).sort((a, b) => b[1] - a[1]);
+  document.getElementById("leaderboardList").innerHTML =
+    sorted.map(([name, count]) => `<p>${name} – ${count}</p>`).join("");
+}
+
+function updateStandings(tA, tB, gA, gB) {
+  [tA, tB].forEach(t => {
+    if (!standings[t]) standings[t] = { MP: 0, Pts: 0, GF: 0, GA: 0 };
+  });
+  standings[tA].MP++; standings[tB].MP++;
+  standings[tA].GF += gA; standings[tA].GA += gB;
+  standings[tB].GF += gB; standings[tB].GA += gA;
+  if (gA > gB) standings[tA].Pts += 3;
+  else if (gB > gA) standings[tB].Pts += 3;
+  else { standings[tA].Pts += 1; standings[tB].Pts += 1; }
+  const rows = Object.entries(standings).map(([team, s]) => ({
+    team, ...s, GD: s.GF - s.GA
+  }));
+  rows.sort((a, b) =>
+    b.Pts - a.Pts || b.GD - a.GD || b.GF - a.GF || a.team.localeCompare(b.team));
+  document.getElementById("standingsTable").innerHTML =
+    `<table><tr><th>Team</th><th>MP</th><th>Pts</th><th>GF</th><th>GA</th><th>GD</th></tr>` +
+    rows.map(r => `<tr><td>${r.team}</td><td>${r.MP}</td><td>${r.Pts}</td><td>${r.GF}</td><td>${r.GA}</td><td>${r.GD}</td></tr>`).join("") +
+    `</table>`;
 }
 
 function triggerScorer(side) {
@@ -278,14 +344,12 @@ function triggerScorer(side) {
   divB.innerHTML = "";
   document.getElementById("teamACol").textContent = teamA;
   document.getElementById("teamBCol").textContent = teamB;
-
   teamPlayers[idxA].forEach(p => {
-    divA.innerHTML += `<button onclick="addGoal('${teamA}', '${p}')">${p}</button>`;
+    divA.innerHTML += `<button onclick="addGoal('${teamA}', '${p}', false)">${p}</button>`;
   });
   teamPlayers[idxB].forEach(p => {
-    divB.innerHTML += `<button onclick="addGoal('${teamB}', '${p}')">${p}</button>`;
+    divB.innerHTML += `<button onclick="addGoal('${teamB}', '${p}', true)">${p} (OG)</button>`;
   });
-
   document.getElementById("overlay").style.display = "block";
   document.getElementById("scorerPopup").style.display = "block";
 }
@@ -295,16 +359,13 @@ function closePopup() {
   document.getElementById("scorerPopup").style.display = "none";
 }
 
-function addGoal(team, player) {
+function addGoal(team, player, ownGoal) {
   const timeMin = Math.floor(timeElapsed / 60);
   const extra = timeMin >= duration ? `+${timeMin - duration}` : "";
   const formatted = `${Math.min(timeMin + 1, duration)}${extra}'`;
-
-  currentGoals.push({ team, player, time: formatted });
-
+  currentGoals.push({ team, player, time: formatted, ownGoal });
   const scoreEl = team === document.getElementById("teamAName").textContent ? "scoreA" : "scoreB";
   document.getElementById(scoreEl).textContent = parseInt(document.getElementById(scoreEl).textContent) + 1;
-
   renderGoalLog();
   closePopup();
 }
@@ -312,19 +373,17 @@ function addGoal(team, player) {
 function renderGoalLog() {
   const tA = document.getElementById("teamAName").textContent;
   const tB = document.getElementById("teamBName").textContent;
-
   const logA = {}, logB = {};
   currentGoals.forEach(g => {
     const target = g.team === tA ? logA : logB;
-    if (!target[g.player]) target[g.player] = [];
-    target[g.player].push(g.time);
+    const key = g.ownGoal ? `${g.player} OG` : g.player;
+    if (!target[key]) target[key] = [];
+    target[key].push(g.time);
   });
-
-  document.getElementById("goalLogA").innerHTML = Object.entries(logA)
-    .map(([p, times]) => `<div class='goal-line'>${p} ${times.join(", ")}</div>`).join("");
-
-  document.getElementById("goalLogB").innerHTML = Object.entries(logB)
-    .map(([p, times]) => `<div class='goal-line'>${p} ${times.join(", ")}</div>`).join("");
+  document.getElementById("goalLogA").innerHTML =
+    Object.entries(logA).map(([p, times]) => `<div class='goal-line'>${p} ${times.join(", ")}</div>`).join("");
+  document.getElementById("goalLogB").innerHTML =
+    Object.entries(logB).map(([p, times]) => `<div class='goal-line'>${p} ${times.join(", ")}</div>`).join("");
 }
 
 matchups = generateRoundRobin(teamNames);
