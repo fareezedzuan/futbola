@@ -55,14 +55,6 @@
     button:hover {
       background-color: #cc0000;
     }
-    .row {
-      display: flex;
-      justify-content: space-between;
-      gap: 10px;
-    }
-    .half {
-      flex: 1;
-    }
     .grid-4 {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -91,264 +83,258 @@
       color: white;
       border-color: #ff5a5f;
     }
-
-    /* Confirmation popup styling */
-    .overlay {
+    .row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .half {
+      flex: 1;
+    }
+    #confirmationPopup {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      border: 2px solid #ff5a5f;
+      border-radius: 10px;
+      padding: 20px;
+      width: 80%;
+      max-width: 500px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+      z-index: 99;
+    }
+    #confirmationPopup h3 {
+      color: #702963;
+      text-align: center;
+    }
+    #confirmationPopup ul {
+      padding-left: 20px;
+      margin-top: 10px;
+    }
+    #overlay {
       display: none;
       position: fixed;
       top: 0; left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0,0,0,0.3);
-      z-index: 99;
-    }
-    .scorer-popup {
-      display: none;
-      position: fixed;
-      top: 10%;
-      left: 50%;
-      transform: translateX(-50%);
-      background: white;
-      z-index: 100;
-      padding: 20px;
-      border-radius: 10px;
-      border: 2px solid #ff5a5f;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-      width: 90%;
-      max-width: 600px;
-      max-height: 80vh;
-      overflow-y: auto;
-    }
-    .scorer-popup h4 {
-      text-align: center;
-      color: #702963;
+      background: rgba(0, 0, 0, 0.3);
+      z-index: 98;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h2>Set Up Game</h2>
+<div class="container">
+  <h2>Set Up Game</h2>
 
-    <label for="gameSelect">Select Game (within next 3 days):</label>
-    <select id="gameSelect">
-      <option value="">-- Loading games... --</option>
-    </select>
+  <label for="gameSelect">Select Game (within next 3 days):</label>
+  <select id="gameSelect"><option value="">-- Loading games... --</option></select>
 
-    <label for="teamCount">Number of Teams:</label>
-    <select id="teamCount" onchange="generateTeamInputs()">
-      <option value="">-- Select --</option>
-      <option value="2">2</option>
-      <option value="3">3</option>
-      <option value="4">4</option>
-      <option value="5">5</option>
-      <option value="6">6</option>
-    </select>
+  <label for="teamCount">Number of Teams:</label>
+  <select id="teamCount" onchange="generateTeamInputs()">
+    <option value="">-- Select --</option>
+    <option value="2">2</option>
+    <option value="3">3</option>
+    <option value="4">4</option>
+  </select>
 
-    <div id="teamInputs" class="grid-4"></div>
+  <div id="teamInputs" class="grid-4"></div>
 
-    <label for="duration">Match Duration (minutes):</label>
-    <input type="number" id="duration" value="7" min="1" />
+  <label for="duration">Match Duration (minutes):</label>
+  <input type="number" id="duration" value="7" min="1" />
 
-    <div class="row">
-      <div class="half">
-        <button onclick="showEditPlayerOptions()">Edit Players</button>
-        <div id="editControls" style="display:none; margin-top:10px;">
-          <select id="removePlayerSelect" style="margin-bottom:5px;"></select>
-          <button onclick="removePlayer()">Confirm Remove</button>
-          <input type="text" id="newPlayerName" placeholder="New Player Name" />
-          <button onclick="addPlayer()">Add Walk-in</button>
-        </div>
-      </div>
-      <div class="half">
-        <button onclick="randomizeTeams()">Randomize Teams</button>
+  <div class="row">
+    <div class="half">
+      <button onclick="toggleEditPlayers()">✏️ Edit Players</button>
+      <div id="editControls" style="display:none;">
+        <select id="removePlayerSelect" style="margin-top:10px;"></select>
+        <button onclick="removePlayer()">❌ Remove</button>
+        <input type="text" id="newPlayerName" placeholder="New Player Name" />
+        <button onclick="addPlayer()">➕ Add Walk-in</button>
       </div>
     </div>
-
-    <div id="playerAssignment"></div>
-    <button onclick="startGame()">Start Game</button>
+    <div class="half">
+      <button onclick="randomizeTeams()">🎲 Randomize Teams</button>
+    </div>
   </div>
 
-  <!-- Confirmation Popup -->
-  <div class="overlay" id="confirmOverlay"></div>
-  <div class="scorer-popup" id="teamConfirmPopup">
-    <h4>Confirm Team Assignments</h4>
-    <div id="teamConfirmContent"></div>
-    <button class="btn-primary" onclick="proceedToTrackMatch()">Confirm & Start</button>
-    <button class="btn-primary" onclick="closeTeamConfirmPopup()">Cancel</button>
-  </div>
+  <div id="playerAssignment"></div>
+  <button onclick="confirmTeamAssignment()">Start Game</button>
+</div>
 
-  <script>
-    let allPlayers = [];
-    let activePlayers = [];
+<div id="overlay"></div>
+<div id="confirmationPopup">
+  <h3>Confirm Team Assignments</h3>
+  <div id="popupContent"></div>
+  <button onclick="startGame()">✅ Confirm & Start</button>
+  <button onclick="closePopup()">❌ Cancel</button>
+</div>
 
-    async function fetchGames() {
-      const res = await fetch("/api/get-upcoming-games");
-      const data = await res.json();
-      const select = document.getElementById("gameSelect");
-      select.innerHTML = '<option value="">-- Select Game --</option>';
-      const today = new Date();
-      const threeDaysLater = new Date();
-      today.setHours(0, 0, 0, 0);
-      threeDaysLater.setDate(today.getDate() + 3);
-      threeDaysLater.setHours(23, 59, 59, 999);
-      data.games.forEach(game => {
-        const gameDate = new Date(game.game_date + "T00:00:00");
-        if (gameDate >= today && gameDate <= threeDaysLater) {
-          const option = document.createElement("option");
-          option.value = game.id;
-          option.textContent = `${game.venue} - ${game.game_date} ${game.start_time}`;
-          select.appendChild(option);
-        }
-      });
+<script>
+let allPlayers = [];
+let activePlayers = [];
+
+async function fetchGames() {
+  const res = await fetch("/api/get-upcoming-games");
+  const data = await res.json();
+  const select = document.getElementById("gameSelect");
+  select.innerHTML = '<option value="">-- Select Game --</option>';
+  const now = new Date();
+  const threeDaysLater = new Date();
+  threeDaysLater.setDate(now.getDate() + 3);
+  data.games.forEach(game => {
+    const gameDate = new Date(game.game_date);
+    if (gameDate >= now && gameDate <= threeDaysLater) {
+      const option = document.createElement("option");
+      option.value = game.id;
+      option.textContent = `${game.venue} - ${game.game_date} ${game.start_time}`;
+      select.appendChild(option);
     }
+  });
+}
 
-    async function fetchPlayers(gameId) {
-      const res = await fetch(`/api/get-bookings?game_id=${gameId}`);
-      const data = await res.json();
-      allPlayers = data.bookings.filter(b => b.status === 'confirmed').map(b => b.name);
-      activePlayers = [...allPlayers];
-      updateRemoveDropdown();
-      generatePlayerAssignment();
-    }
+async function fetchPlayers(gameId) {
+  const res = await fetch(`/api/get-bookings?game_id=${gameId}`);
+  const data = await res.json();
+  allPlayers = data.bookings.filter(b => b.status === 'confirmed').map(b => b.name);
+  activePlayers = [...allPlayers];
+  updateRemoveDropdown();
+  generatePlayerAssignment();
+}
 
-    function generateTeamInputs() {
-      const teamInputs = document.getElementById("teamInputs");
-      teamInputs.innerHTML = "";
-      const count = parseInt(document.getElementById("teamCount").value);
-      for (let i = 0; i < count; i++) {
-        const input = document.createElement("input");
-        input.type = "text";
-        input.id = `team${i}`;
-        input.className = "team-input";
-        input.value = `Team ${String.fromCharCode(65 + i)}`;
-        teamInputs.appendChild(input);
-      }
-      generatePlayerAssignment();
-    }
+function generateTeamInputs() {
+  const teamInputs = document.getElementById("teamInputs");
+  teamInputs.innerHTML = "";
+  const count = parseInt(document.getElementById("teamCount").value);
+  for (let i = 0; i < count; i++) {
+    const input = document.createElement("input");
+    input.type = "text";
+    input.id = `team${i}`;
+    input.value = `Team ${String.fromCharCode(65 + i)}`;
+    teamInputs.appendChild(input);
+  }
+  generatePlayerAssignment();
+}
 
-    function generatePlayerAssignment() {
-      const container = document.getElementById("playerAssignment");
-      container.innerHTML = "";
-      const teamCount = parseInt(document.getElementById("teamCount").value);
-      if (!teamCount || activePlayers.length === 0) return;
-      for (let i = 0; i < teamCount; i++) {
-        const wrapper = document.createElement("div");
-        wrapper.style.marginTop = "20px";
-        const label = document.createElement("label");
-        label.textContent = `Assign players to Team ${i + 1}:`;
-        wrapper.appendChild(label);
-        const grid = document.createElement("div");
-        grid.className = "player-grid";
-        activePlayers.forEach(player => {
-          const box = document.createElement("div");
-          box.className = "player-box";
-          box.textContent = player.slice(0, 15);
-          box.dataset.name = player;
-          box.onclick = () => box.classList.toggle("selected");
-          grid.appendChild(box);
-        });
-        wrapper.appendChild(grid);
-        container.appendChild(wrapper);
-      }
-    }
-
-    function randomizeTeams() {
-      const teamCount = parseInt(document.getElementById("teamCount").value);
-      if (!teamCount || activePlayers.length === 0) return alert("Please select a game and enter teams first.");
-      const shuffled = [...activePlayers].sort(() => Math.random() - 0.5);
-      const assignments = Array.from({ length: teamCount }, () => []);
-      shuffled.forEach((player, i) => {
-        assignments[i % teamCount].push(player);
-      });
-      const containers = document.querySelectorAll(".player-grid");
-      containers.forEach((grid, teamIdx) => {
-        Array.from(grid.children).forEach(box => {
-          const name = box.dataset.name;
-          box.classList.toggle("selected", assignments[teamIdx].includes(name));
-        });
-      });
-    }
-
-    function startGame() {
-      const count = parseInt(document.getElementById("teamCount").value);
-      const gameId = document.getElementById("gameSelect").value;
-      if (!gameId) return alert("Please select a game.");
-      if (!count || count < 2) return alert("Please select at least 2 teams.");
-
-      const teamNames = [];
-      const teamPlayers = [];
-      let debugHTML = "";
-
-      for (let i = 0; i < count; i++) {
-        const name = document.getElementById(`team${i}`).value.trim();
-        if (!name) return alert("Please fill all team names.");
-        teamNames.push(name);
-        const boxes = document.querySelectorAll(`#playerAssignment .player-grid:nth-of-type(${i + 1}) .player-box.selected`);
-        const selected = Array.from(boxes).map(box => box.dataset.name);
-        teamPlayers.push(selected);
-        debugHTML += `<strong>${name}</strong><ul>` + selected.map(p => `<li>${p}</li>`).join("") + `</ul>`;
-      }
-
-      const duration = parseInt(document.getElementById("duration").value);
-      if (!duration || duration < 1) return alert("Please enter a valid match duration.");
-
-      sessionStorage.setItem("gameId", gameId);
-      sessionStorage.setItem("teamNames", JSON.stringify(teamNames));
-      sessionStorage.setItem("teamPlayers", JSON.stringify(teamPlayers));
-      sessionStorage.setItem("duration", duration);
-
-      document.getElementById("teamConfirmContent").innerHTML = debugHTML;
-      document.getElementById("teamConfirmPopup").style.display = "block";
-      document.getElementById("confirmOverlay").style.display = "block";
-    }
-
-    function proceedToTrackMatch() {
-      window.location.href = "track-match.html";
-    }
-
-    function closeTeamConfirmPopup() {
-      document.getElementById("teamConfirmPopup").style.display = "none";
-      document.getElementById("confirmOverlay").style.display = "none";
-    }
-
-    function showEditPlayerOptions() {
-      const controls = document.getElementById("editControls");
-      controls.style.display = controls.style.display === "none" ? "block" : "none";
-    }
-
-    function removePlayer() {
-      const toRemove = document.getElementById("removePlayerSelect").value;
-      activePlayers = activePlayers.filter(p => p !== toRemove);
-      updateRemoveDropdown();
-      generatePlayerAssignment();
-    }
-
-    function addPlayer() {
-      const newPlayer = document.getElementById("newPlayerName").value.trim();
-      if (!newPlayer || activePlayers.includes(newPlayer)) return;
-      activePlayers.push(newPlayer);
-      updateRemoveDropdown();
-      generatePlayerAssignment();
-      document.getElementById("newPlayerName").value = "";
-    }
-
-    function updateRemoveDropdown() {
-      const dropdown = document.getElementById("removePlayerSelect");
-      dropdown.innerHTML = "";
-      activePlayers.forEach(p => {
-        const opt = document.createElement("option");
-        opt.value = p;
-        opt.textContent = p;
-        dropdown.appendChild(opt);
-      });
-    }
-
-    document.getElementById("gameSelect").addEventListener("change", e => {
-      const gameId = e.target.value;
-      if (gameId) fetchPlayers(gameId);
+function generatePlayerAssignment() {
+  const container = document.getElementById("playerAssignment");
+  container.innerHTML = "";
+  const teamCount = parseInt(document.getElementById("teamCount").value);
+  if (!teamCount || activePlayers.length === 0) return;
+  for (let i = 0; i < teamCount; i++) {
+    const wrapper = document.createElement("div");
+    wrapper.innerHTML = `<label>Assign players to Team ${i + 1}:</label>`;
+    const grid = document.createElement("div");
+    grid.className = "player-grid";
+    activePlayers.forEach(player => {
+      const box = document.createElement("div");
+      box.className = "player-box";
+      box.textContent = player.slice(0, 15);
+      box.dataset.name = player;
+      box.onclick = () => box.classList.toggle("selected");
+      grid.appendChild(box);
     });
+    wrapper.appendChild(grid);
+    container.appendChild(wrapper);
+  }
+}
 
-    fetchGames();
-  </script>
+function randomizeTeams() {
+  const teamCount = parseInt(document.getElementById("teamCount").value);
+  if (!teamCount || activePlayers.length === 0) return alert("Please select game and teams first.");
+  const shuffled = [...activePlayers].sort(() => Math.random() - 0.5);
+  const assignments = Array.from({ length: teamCount }, () => []);
+  shuffled.forEach((player, i) => assignments[i % teamCount].push(player));
+  const containers = document.querySelectorAll(".player-grid");
+  containers.forEach((grid, teamIdx) => {
+    Array.from(grid.children).forEach(box => {
+      const name = box.dataset.name;
+      box.classList.toggle("selected", assignments[teamIdx].includes(name));
+    });
+  });
+}
+
+function confirmTeamAssignment() {
+  const count = parseInt(document.getElementById("teamCount").value);
+  const popup = document.getElementById("popupContent");
+  popup.innerHTML = "";
+  for (let i = 0; i < count; i++) {
+    const teamName = document.getElementById(`team${i}`).value;
+    const boxes = document.querySelectorAll(`#playerAssignment .player-grid:nth-of-type(${i + 1}) .player-box.selected`);
+    const names = Array.from(boxes).map(box => box.dataset.name);
+    popup.innerHTML += `<h4>${teamName}</h4><ul>${names.map(n => `<li>${n}</li>`).join("")}</ul>`;
+  }
+  document.getElementById("confirmationPopup").style.display = "block";
+  document.getElementById("overlay").style.display = "block";
+}
+
+function startGame() {
+  const count = parseInt(document.getElementById("teamCount").value);
+  const gameId = document.getElementById("gameSelect").value;
+  if (!gameId || count < 2) return alert("Please select a valid game and teams.");
+  const teamNames = [];
+  const teamPlayers = [];
+  for (let i = 0; i < count; i++) {
+    const name = document.getElementById(`team${i}`).value.trim();
+    const boxes = document.querySelectorAll(`#playerAssignment .player-grid:nth-of-type(${i + 1}) .player-box.selected`);
+    const selected = Array.from(boxes).map(box => box.dataset.name);
+    teamNames.push(name);
+    teamPlayers.push(selected);
+  }
+  const duration = parseInt(document.getElementById("duration").value);
+  sessionStorage.setItem("gameId", gameId);
+  sessionStorage.setItem("teamNames", JSON.stringify(teamNames));
+  sessionStorage.setItem("teamPlayers", JSON.stringify(teamPlayers));
+  sessionStorage.setItem("duration", duration);
+  window.location.href = "track-match.html";
+}
+
+function closePopup() {
+  document.getElementById("confirmationPopup").style.display = "none";
+  document.getElementById("overlay").style.display = "none";
+}
+
+function toggleEditPlayers() {
+  const panel = document.getElementById("editControls");
+  panel.style.display = panel.style.display === "none" ? "block" : "none";
+}
+
+function removePlayer() {
+  const name = document.getElementById("removePlayerSelect").value;
+  activePlayers = activePlayers.filter(p => p !== name);
+  updateRemoveDropdown();
+  generatePlayerAssignment();
+}
+
+function addPlayer() {
+  const newName = document.getElementById("newPlayerName").value.trim();
+  if (newName && !activePlayers.includes(newName)) {
+    activePlayers.push(newName);
+    updateRemoveDropdown();
+    generatePlayerAssignment();
+    document.getElementById("newPlayerName").value = "";
+  }
+}
+
+function updateRemoveDropdown() {
+  const dropdown = document.getElementById("removePlayerSelect");
+  dropdown.innerHTML = "";
+  activePlayers.forEach(name => {
+    const opt = document.createElement("option");
+    opt.value = name;
+    opt.textContent = name;
+    dropdown.appendChild(opt);
+  });
+}
+
+document.getElementById("gameSelect").addEventListener("change", e => {
+  const gameId = e.target.value;
+  if (gameId) fetchPlayers(gameId);
+});
+
+fetchGames();
+</script>
 </body>
 </html>
