@@ -202,8 +202,60 @@
         sessionStorage.setItem("duration", duration);
         window.location.href = "track-match.html";
       };
+
+      function startGame() {
+  const count = parseInt(document.getElementById("teamCount").value);
+  const gameId = document.getElementById("gameSelect").value;
+  if (!gameId) return alert("Please select a game.");
+  if (!count || count < 2) return alert("Please select at least 2 teams.");
+
+  const teamNames = [];
+  const teamPlayers = [];
+  let debugHTML = "";
+
+  for (let i = 0; i < count; i++) {
+    const name = document.getElementById(`team${i}`).value.trim();
+    if (!name) return alert("Please fill all team names.");
+    teamNames.push(name);
+
+    const boxes = document.querySelectorAll(`#playerAssignment .player-grid:nth-of-type(${i + 1}) .player-box.selected`);
+    const selected = Array.from(boxes).map(box => box.dataset.name);
+    teamPlayers.push(selected);
+
+    debugHTML += `<strong>${name}</strong><ul>` + selected.map(p => `<li>${p}</li>`).join("") + `</ul>`;
+  }
+
+  // Save to sessionStorage
+  sessionStorage.setItem("gameId", gameId);
+  sessionStorage.setItem("teamNames", JSON.stringify(teamNames));
+  sessionStorage.setItem("teamPlayers", JSON.stringify(teamPlayers));
+  sessionStorage.setItem("duration", parseInt(document.getElementById("duration").value));
+
+  // Show confirmation
+  document.getElementById("teamConfirmContent").innerHTML = debugHTML;
+  document.getElementById("confirmOverlay").style.display = "block";
+  document.getElementById("teamConfirmPopup").style.display = "block";
+}
+
+function proceedToTrackMatch() {
+  window.location.href = "track-match.html";
+}
+
+function closeTeamConfirmPopup() {
+  document.getElementById("teamConfirmPopup").style.display = "none";
+  document.getElementById("confirmOverlay").style.display = "none";
+}
+
     }
+
   </script>
+  <div class="overlay" id="confirmOverlay" style="display:none;"></div>
+  <div class="scorer-popup" id="teamConfirmPopup" style="display:none; max-height: 70vh; overflow-y: auto;">
+    <h4>Confirm Team Assignments</h4>
+    <div id="teamConfirmContent"></div>
+    <button class="btn-primary" onclick="proceedToTrackMatch()">Confirm & Start</button>
+    <button class="btn-primary" onclick="closeTeamConfirmPopup()">Cancel</button>
+  </div>
   
 </body>
 </html>
