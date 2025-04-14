@@ -21,9 +21,6 @@
       border-top: 5px solid #ff5a5f;
       box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     }
-    h2, h3 {
-      color: #702963;
-    }
     .match-header {
       font-size: 24px;
       font-weight: bold;
@@ -74,7 +71,7 @@
       border: none;
       border-radius: 5px;
       cursor: pointer;
-      margin-top: 10px;
+      margin: 5px;
     }
     .btn-primary:hover {
       background-color: #cc0000;
@@ -85,25 +82,12 @@
       padding: 15px;
       border-radius: 8px;
     }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-    }
-    th, td {
-      border: 1px solid #ddd;
-      padding: 6px;
-      text-align: center;
-    }
-    th {
-      background-color: #ffe4e1;
-    }
     .goal-line {
       font-size: 13px;
       color: #444;
       margin: 4px 0;
     }
-    .overlay {
+    .overlay, .scorer-popup {
       display: none;
       position: fixed;
       top: 0; left: 0;
@@ -114,8 +98,7 @@
     }
     .scorer-popup {
       display: none;
-      position: fixed;
-      top: 15%;
+      top: 10%;
       left: 50%;
       transform: translateX(-50%);
       background: white;
@@ -124,7 +107,7 @@
       border-radius: 10px;
       border: 2px solid #ff5a5f;
       box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-      width: 80%;
+      width: 90%;
       max-width: 600px;
     }
     .scorer-popup h4 {
@@ -135,10 +118,9 @@
       display: flex;
       justify-content: space-between;
       gap: 20px;
-      margin-top: 10px;
     }
     .scorer-columns div {
-      flex: 1;
+      width: 50%;
     }
     .scorer-columns button {
       width: 100%;
@@ -151,25 +133,25 @@
       font-weight: bold;
       cursor: pointer;
     }
-    .scorer-columns button:hover {
-      background-color: #cc0000;
-    }
-    .popup-close {
-      float: right;
-      font-size: 20px;
+    .close-popup {
+      position: absolute;
+      top: 10px;
+      right: 15px;
       cursor: pointer;
-      color: #999;
+      font-size: 18px;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
-<div class="overlay" id="overlay"></div>
+
+<div class="overlay" id="overlay" onclick="closePopup()"></div>
 <div class="scorer-popup" id="scorerPopup">
-  <span class="popup-close" onclick="closePopup()">×</span>
+  <div class="close-popup" onclick="closePopup()">×</div>
   <h4>Select Scorer</h4>
   <div class="scorer-columns">
-    <div id="leftTeamPlayers"></div>
-    <div id="rightTeamPlayers"></div>
+    <div><strong id="teamACol"></strong><div id="playersA"></div></div>
+    <div><strong id="teamBCol"></strong><div id="playersB"></div></div>
   </div>
 </div>
 
@@ -178,75 +160,60 @@
   <div class="center-timer" id="timer">00:00</div>
   <div style="text-align: center;">
     <button class="btn-primary" id="timerBtn" onclick="handleTimerClick()">Start Timer</button>
-    <button class="btn-primary" onclick="resetTimer()">Reset</button>
+    <button class="btn-primary" onclick="resetTimer()">Reset Timer</button>
   </div>
 
   <div class="score-row">
     <div class="team-clickable" onclick="triggerScorer('A')">
-      <img id="teamAIcon" src="./images/default.png" alt="Team A" />
+      <img id="teamAIcon" src="./images/default.png" />
       <span id="teamAName">Team A</span>
       <div class="score-number" id="scoreA">0</div>
       <div id="goalLogA"></div>
     </div>
     <div class="team-clickable" onclick="triggerScorer('B')">
-      <img id="teamBIcon" src="./images/default.png" alt="Team B" />
+      <img id="teamBIcon" src="./images/default.png" />
       <span id="teamBName">Team B</span>
       <div class="score-number" id="scoreB">0</div>
       <div id="goalLogB"></div>
     </div>
   </div>
 
-  <button class="btn-primary" onclick="confirmNextMatch()">Start Next Match</button>
+  <button class="btn-primary" onclick="startNextMatch()">Start Next Match</button>
 
   <div class="section">
     <h3>Match Results</h3>
     <div id="matchHistory"></div>
   </div>
-
-  <div class="section">
-    <h3>Top Scorers</h3>
-    <div id="leaderboardList"></div>
-  </div>
-
-  <div class="section">
-    <h3>Live Standings</h3>
-    <div id="standingsTable"></div>
-  </div>
-
-  <button class="btn-primary" onclick="confirmFinish()">Finish & Share</button>
 </div>
 
 <script>
-// JS script will follow in the next message
-// --- Begin JavaScript logic ---
-let duration = parseInt(sessionStorage.getItem("duration")) || 7;
-let teamNames = JSON.parse(sessionStorage.getItem("teamNames") || "[]");
-let teamPlayers = JSON.parse(sessionStorage.getItem("teamPlayers") || "[]");
-let timeElapsed = 0;
-let timer = null;
-let timerPaused = false;
-let timerRunning = false;
+const duration = parseInt(sessionStorage.getItem("duration")) || 7;
+const teamNames = JSON.parse(sessionStorage.getItem("teamNames") || "[]");
+const teamPlayers = JSON.parse(sessionStorage.getItem("teamPlayers") || "[]");
 let matchNumber = 0;
-let matchResults = [];
-let goalHistory = [];
-let standings = {};
+let matchups = [];
+let currentGoals = [];
+let timeElapsed = 0, timer = null, timerRunning = false, timerPaused = false;
 
 function generateRoundRobin(teams) {
-  const rounds = [];
-  const t = [...teams];
+  const rounds = [], t = [...teams];
   if (t.length % 2) t.push("BYE");
   const half = t.length / 2;
   for (let i = 0; i < t.length - 1; i++) {
     for (let j = 0; j < half; j++) {
-      const home = t[j], away = t[t.length - 1 - j];
-      if (home !== "BYE" && away !== "BYE") rounds.push([home, away]);
+      const a = t[j], b = t[t.length - 1 - j];
+      if (a !== "BYE" && b !== "BYE") rounds.push([a, b]);
     }
     t.splice(1, 0, t.pop());
   }
   return rounds;
 }
 
-const matchups = generateRoundRobin(teamNames);
+function updateTimerDisplay() {
+  const min = Math.floor(timeElapsed / 60);
+  const sec = timeElapsed % 60;
+  document.getElementById("timer").textContent = `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+}
 
 function handleTimerClick() {
   if (!timerRunning) {
@@ -261,7 +228,6 @@ function handleTimerClick() {
           clearInterval(timer);
           timerRunning = false;
           document.getElementById('timerBtn').textContent = "Start Timer";
-          endMatch();
         }
       }
     }, 1000);
@@ -280,15 +246,9 @@ function resetTimer() {
   document.getElementById('timerBtn').textContent = "Start Timer";
 }
 
-function updateTimerDisplay() {
-  const min = Math.floor(timeElapsed / 60);
-  const sec = timeElapsed % 60;
-  document.getElementById("timer").textContent = `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
-}
-
 function startNextMatch() {
   if (matchNumber >= matchups.length) {
-    alert("All matches completed.");
+    alert("All matches done!");
     return;
   }
   resetTimer();
@@ -296,6 +256,7 @@ function startNextMatch() {
   document.getElementById("scoreB").textContent = "0";
   document.getElementById("goalLogA").innerHTML = "";
   document.getElementById("goalLogB").innerHTML = "";
+  currentGoals = [];
 
   const [teamA, teamB] = matchups[matchNumber];
   document.getElementById("matchTitle").textContent = `Match ${matchNumber + 1}`;
@@ -306,115 +267,67 @@ function startNextMatch() {
   matchNumber++;
 }
 
-function triggerScorer(teamSide) {
+function triggerScorer(side) {
   const teamA = document.getElementById("teamAName").textContent;
   const teamB = document.getElementById("teamBName").textContent;
   const idxA = teamNames.indexOf(teamA);
   const idxB = teamNames.indexOf(teamB);
-  const playersA = teamPlayers[idxA] || [];
-  const playersB = teamPlayers[idxB] || [];
+  const divA = document.getElementById("playersA");
+  const divB = document.getElementById("playersB");
+  divA.innerHTML = "";
+  divB.innerHTML = "";
+  document.getElementById("teamACol").textContent = teamA;
+  document.getElementById("teamBCol").textContent = teamB;
 
-  document.getElementById("leftTeamPlayers").innerHTML = `<strong>${teamA}</strong><br/>` +
-    playersA.map(p => `<button onclick=\"selectScorer('${teamA}', '${p}', false)\">${p}</button>`).join("");
-  document.getElementById("rightTeamPlayers").innerHTML = `<strong>${teamB}</strong><br/>` +
-    playersB.map(p => `<button onclick=\"selectScorer('${teamB}', '${p}', false)\">${p}</button>`).join("");
+  teamPlayers[idxA].forEach(p => {
+    divA.innerHTML += `<button onclick="addGoal('${teamA}', '${p}')">${p}</button>`;
+  });
+  teamPlayers[idxB].forEach(p => {
+    divB.innerHTML += `<button onclick="addGoal('${teamB}', '${p}')">${p}</button>`;
+  });
 
-  document.getElementById("scorerPopup").style.display = "block";
   document.getElementById("overlay").style.display = "block";
+  document.getElementById("scorerPopup").style.display = "block";
 }
 
 function closePopup() {
-  document.getElementById("scorerPopup").style.display = "none";
   document.getElementById("overlay").style.display = "none";
+  document.getElementById("scorerPopup").style.display = "none";
 }
 
-function selectScorer(teamName, playerName, isOG) {
-  const rawMin = timeElapsed / 60;
-  const minute = Math.floor(rawMin);
-  const extra = timeElapsed - duration * 60;
-  const time = extra > 0 ? `${duration}+${Math.ceil(extra / 60)}'` : `${Math.max(1, Math.ceil(rawMin))}'`;
+function addGoal(team, player) {
+  const timeMin = Math.floor(timeElapsed / 60);
+  const extra = timeMin >= duration ? `+${timeMin - duration}` : "";
+  const formatted = `${Math.min(timeMin + 1, duration)}${extra}'`;
 
-  updateScore(teamName, 1);
-  goalHistory.push({ team: teamName, player: playerName, isOG, time });
+  currentGoals.push({ team, player, time: formatted });
 
-  renderGoalsForTeam(teamName);
+  const scoreEl = team === document.getElementById("teamAName").textContent ? "scoreA" : "scoreB";
+  document.getElementById(scoreEl).textContent = parseInt(document.getElementById(scoreEl).textContent) + 1;
+
+  renderGoalLog();
   closePopup();
-  updateLeaderboard();
 }
 
-function updateScore(teamName, delta) {
-  const currentNameA = document.getElementById("teamAName").textContent;
-  const id = currentNameA === teamName ? "scoreA" : "scoreB";
-  const scoreEl = document.getElementById(id);
-  scoreEl.textContent = parseInt(scoreEl.textContent) + delta;
-}
-
-function renderGoalsForTeam(teamName) {
-  const isTeamA = document.getElementById("teamAName").textContent === teamName;
-  const logEl = document.getElementById(isTeamA ? "goalLogA" : "goalLogB");
-  const grouped = {};
-  goalHistory.filter(g => g.team === teamName && !g.isOG).forEach(g => {
-    if (!grouped[g.player]) grouped[g.player] = [];
-    grouped[g.player].push(g.time);
-  });
-  const lines = Object.entries(grouped)
-    .map(([name, times]) => `<div class='goal-line'>${name} ${times.join(", ")}</div>`);
-  logEl.innerHTML = lines.join("");
-}
-
-function endMatch() {
+function renderGoalLog() {
   const tA = document.getElementById("teamAName").textContent;
   const tB = document.getElementById("teamBName").textContent;
-  const gA = parseInt(document.getElementById("scoreA").textContent);
-  const gB = parseInt(document.getElementById("scoreB").textContent);
-  document.getElementById("matchHistory").innerHTML += `<p>${tA} ${gA} - ${gB} ${tB}</p>`;
-  updateStandings(tA, tB, gA, gB);
-}
 
-function updateLeaderboard() {
-  const tally = {};
-  goalHistory.forEach(g => {
-    if (g.isOG) return;
-    tally[g.player] = (tally[g.player] || 0) + 1;
+  const logA = {}, logB = {};
+  currentGoals.forEach(g => {
+    const target = g.team === tA ? logA : logB;
+    if (!target[g.player]) target[g.player] = [];
+    target[g.player].push(g.time);
   });
-  const sorted = Object.entries(tally).sort((a, b) => b[1] - a[1]);
-  document.getElementById("leaderboardList").innerHTML =
-    sorted.map(([name, count]) => `<p>${name} – ${count}</p>`).join("");
+
+  document.getElementById("goalLogA").innerHTML = Object.entries(logA)
+    .map(([p, times]) => `<div class='goal-line'>${p} ${times.join(", ")}</div>`).join("");
+
+  document.getElementById("goalLogB").innerHTML = Object.entries(logB)
+    .map(([p, times]) => `<div class='goal-line'>${p} ${times.join(", ")}</div>`).join("");
 }
 
-function updateStandings(tA, tB, gA, gB) {
-  [tA, tB].forEach(t => standings[t] = standings[t] || { MP: 0, Pts: 0, GF: 0, GA: 0 });
-  standings[tA].MP++; standings[tB].MP++;
-  standings[tA].GF += gA; standings[tA].GA += gB;
-  standings[tB].GF += gB; standings[tB].GA += gA;
-
-  if (gA > gB) standings[tA].Pts += 3;
-  else if (gB > gA) standings[tB].Pts += 3;
-  else { standings[tA].Pts += 1; standings[tB].Pts += 1; }
-
-  const rows = Object.entries(standings).map(([team, stat]) => ({
-    team, ...stat, GD: stat.GF - stat.GA
-  })).sort((a, b) =>
-    b.Pts - a.Pts || b.GD - a.GD || b.GF - a.GF || a.team.localeCompare(b.team));
-
-  document.getElementById("standingsTable").innerHTML =
-    `<table><tr><th>Team</th><th>MP</th><th>Pts</th><th>GF</th><th>GA</th><th>GD</th></tr>` +
-    rows.map(r => `<tr><td>${r.team}</td><td>${r.MP}</td><td>${r.Pts}</td><td>${r.GF}</td><td>${r.GA}</td><td>${r.GD}</td></tr>`).join("") +
-    `</table>`;
-}
-
-function confirmNextMatch() {
-  if (confirm("Start next match?")) startNextMatch();
-}
-
-function confirmFinish() {
-  if (confirm("Finish & export?")) {
-    const text = document.getElementById("matchHistory").innerText +
-                 "\n\nScorers:\n" + document.getElementById("leaderboardList").innerText;
-    navigator.clipboard.writeText(text).then(() => alert("Copied to clipboard."));
-  }
-}
-
+matchups = generateRoundRobin(teamNames);
 updateTimerDisplay();
 startNextMatch();
 </script>
