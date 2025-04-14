@@ -141,6 +141,19 @@
       font-size: 18px;
       font-weight: bold;
     }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 6px;
+      text-align: center;
+    }
+    th {
+      background-color: #ffe4e1;
+    }
   </style>
 </head>
 <body>
@@ -184,18 +197,33 @@
     <h3>Match Results</h3>
     <div id="matchHistory"></div>
   </div>
+
+  <div class="section">
+    <h3>Top Scorers</h3>
+    <div id="topScorersList"></div>
+  </div>
+
+  <div class="section">
+    <h3>Live Standings</h3>
+    <div id="standingsTable"></div>
+  </div>
+
+  <button class="btn-primary" onclick="exportResults()">Export to WhatsApp</button>
 </div>
 
 <script>
+  
 const duration = parseInt(sessionStorage.getItem("duration")) || 7;
 const teamNames = JSON.parse(sessionStorage.getItem("teamNames") || "[]");
 const teamPlayers = JSON.parse(sessionStorage.getItem("teamPlayers") || "[]");
 
 let matchNumber = 0;
-let matchups = [];
+let matchups = generateRoundRobin(teamNames);
+let timeElapsed = 0, timer = null, timerRunning = false, timerPaused = false;
 let currentGoals = [];
 let matchResults = [];
-let timeElapsed = 0, timer = null, timerRunning = false, timerPaused = false;
+let standings = {};
+let allGoals = [];
 
 function generateRoundRobin(teams) {
   const rounds = [], t = [...teams];
@@ -249,12 +277,12 @@ function resetTimer() {
 }
 
 function startNextMatch() {
-  if (matchNumber > 0) saveCurrentMatch();
-
   if (matchNumber >= matchups.length) {
     alert("All matches done!");
     return;
   }
+
+  if (matchNumber > 0) saveCurrentMatch();
 
   resetTimer();
   document.getElementById("scoreA").textContent = "0";
@@ -274,85 +302,92 @@ function startNextMatch() {
 }
 
 function saveCurrentMatch() {
-  const teamA = document.getElementById("teamAName").textContent;
-  const teamB = document.getElementById("teamBName").textContent;
-  const scoreA = parseInt(document.getElementById("scoreA").textContent);
-  const scoreB = parseInt(document.getElementById("scoreB").textContent);
-  const log = `${teamA} ${scoreA} - ${scoreB} ${teamB}`;
-  matchResults.push(log);
-  document.getElementById("matchHistory").innerHTML = matchResults.map(m => `<div>${m}</div>`).join("");
-}
-
-function triggerScorer(clickedSide) {
-  const teamA = document.getElementById("teamAName").textContent;
-  const teamB = document.getElementById("teamBName").textContent;
-  const idxA = teamNames.indexOf(teamA);
-  const idxB = teamNames.indexOf(teamB);
-
-  const colA = document.getElementById("playersA");
-  const colB = document.getElementById("playersB");
-  colA.innerHTML = "";
-  colB.innerHTML = "";
-
-  document.getElementById("teamACol").textContent = teamA;
-  document.getElementById("teamBCol").textContent = teamB;
-
-  teamPlayers[idxA].forEach(p => {
-    const label = clickedSide === 'A' ? p : `${p} (OG)`;
-    const team = clickedSide === 'A' ? teamA : teamB;
-    colA.innerHTML += `<button onclick="addGoal('${team}', '${p}', ${clickedSide !== 'A'})">${label}</button>`;
-  });
-  teamPlayers[idxB].forEach(p => {
-    const label = clickedSide === 'B' ? p : `${p} (OG)`;
-    const team = clickedSide === 'B' ? teamB : teamA;
-    colB.innerHTML += `<button onclick="addGoal('${team}', '${p}', ${clickedSide !== 'B'})">${label}</button>`;
-  });
-
-  document.getElementById("overlay").style.display = "block";
-  document.getElementById("scorerPopup").style.display = "block";
-}
-
-function closePopup() {
-  document.getElementById("overlay").style.display = "none";
-  document.getElementById("scorerPopup").style.display = "none";
-}
-
-function addGoal(team, player, isOG = false) {
-  const timeMin = Math.floor(timeElapsed / 60);
-  const extra = timeMin >= duration ? `+${timeMin - duration}` : "";
-  const formatted = `${Math.min(timeMin + 1, duration)}${extra}'`;
-
-  currentGoals.push({ team, player, isOG, time: formatted });
-
-  const scoreEl = team === document.getElementById("teamAName").textContent ? "scoreA" : "scoreB";
-  document.getElementById(scoreEl).textContent = parseInt(document.getElementById(scoreEl).textContent) + 1;
-
-  renderGoalLog();
-  closePopup();
-}
-
-function renderGoalLog() {
   const tA = document.getElementById("teamAName").textContent;
   const tB = document.getElementById("teamBName").textContent;
-  const logA = {}, logB = {};
+  const gA = parseInt(document.getElementById("scoreA").textContent);
+  const gB = parseInt(document.getElementById("scoreB").textContent);
 
-  currentGoals.forEach(g => {
-    const target = g.team === tA ? logA : logB;
-    const name = g.isOG ? `${g.player} OG` : g.player;
-    if (!target[name]) target[name] = [];
-    target[name].push(g.time);
+  matchResults.push({ tA, tB, gA, gB });
+  allGoals = allGoals.concat(currentGoals);
+  updateMatchHistory();
+  updateLeaderboard();
+  updateStandings(tA, tB, gA, gB);
+}
+
+function updateMatchHistory() {
+  document.getElementById("matchHistory").innerHTML = matchResults.map(
+    r => `<p>${r.tA} ${r.gA} - ${r.gB} ${r.tB}</p>`
+  ).join("");
+}
+
+function updateLeaderboard() {
+  const tally = {};
+  allGoals.forEach(g => {
+    if (g.isOG) return;
+    tally[g.player] = (tally[g.player] || 0) + 1;
   });
 
-  document.getElementById("goalLogA").innerHTML = Object.entries(logA)
-    .map(([p, times]) => `<div class='goal-line'>${p} ${times.join(", ")}</div>`).join("");
+  const sorted = Object.entries(tally).sort((a, b) => b[1] - a[1]);
+  const out = sorted.map(([name, count]) => `<p>${name} – ${count}</p>`).join("");
+  document.getElementById("leaderboardList")?.remove(); // Clear old if any
+  const box = document.createElement("div");
+  box.id = "leaderboardList";
+  box.innerHTML = `<h3>Top Scorers</h3>${out}`;
+  document.querySelector(".container").appendChild(box);
+}
 
-  document.getElementById("goalLogB").innerHTML = Object.entries(logB)
-    .map(([p, times]) => `<div class='goal-line'>${p} ${times.join(", ")}</div>`).join("");
+function updateStandings(tA, tB, gA, gB) {
+  const stats = name => standings[name] ||= { MP: 0, W: 0, D: 0, L: 0, Pts: 0, GF: 0, GA: 0 };
+  stats(tA).MP++; stats(tB).MP++;
+  stats(tA).GF += gA; stats(tA).GA += gB;
+  stats(tB).GF += gB; stats(tB).GA += gA;
+
+  if (gA > gB) { stats(tA).W++; stats(tB).L++; stats(tA).Pts += 3; }
+  else if (gB > gA) { stats(tB).W++; stats(tA).L++; stats(tB).Pts += 3; }
+  else { stats(tA).D++; stats(tB).D++; stats(tA).Pts += 1; stats(tB).Pts += 1; }
+
+  const rows = Object.entries(standings).map(([team, s]) => ({
+    team, ...s, GD: s.GF - s.GA
+  }));
+
+  rows.sort((a, b) =>
+    b.Pts - a.Pts || b.GD - a.GD || b.GF - a.GF || a.team.localeCompare(b.team)
+  );
+
+  const html = `
+    <table>
+      <tr><th>Team</th><th>MP</th><th>W</th><th>D</th><th>L</th><th>Pts</th><th>GF</th><th>GA</th><th>GD</th></tr>
+      ${rows.map(r => `<tr><td>${r.team}</td><td>${r.MP}</td><td>${r.W}</td><td>${r.D}</td><td>${r.L}</td><td>${r.Pts}</td><td>${r.GF}</td><td>${r.GA}</td><td>${r.GD}</td></tr>`).join("")}
+    </table>
+  `;
+  document.getElementById("standingsTable")?.remove(); // Clear old if any
+  const tableBox = document.createElement("div");
+  tableBox.id = "standingsTable";
+  tableBox.innerHTML = `<h3>Live Standings</h3>${html}`;
+  document.querySelector(".container").appendChild(tableBox);
+}
+
+function exportSummary() {
+  saveCurrentMatch(); // Save the last match if not yet saved
+  let summary = matchResults.map(r => `${r.tA} ${r.gA} - ${r.gB} ${r.tB}`).join("\n");
+
+  const tally = {};
+  allGoals.forEach(g => { if (!g.isOG) tally[g.player] = (tally[g.player] || 0) + 1; });
+  const topScorers = Object.entries(tally).sort((a, b) => b[1] - a[1])
+    .map(([name, count]) => `${name} – ${count}`).join("\n");
+
+  summary += "\n\nTop Scorers:\n" + topScorers;
+
+  navigator.clipboard.writeText(summary).then(() =>
+    alert("Copied to clipboard. Paste into WhatsApp.")
+  );
 }
 
 matchups = generateRoundRobin(teamNames);
 updateTimerDisplay();
 startNextMatch();
 </script>
+
+
 </body>
 </html>
