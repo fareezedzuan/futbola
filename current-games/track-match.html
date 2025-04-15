@@ -1,5 +1,3 @@
-
-<!-- FULL HTML with Upgraded Layout Will Be Inserted in next step -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,87 +5,126 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Track Match - futbola</title>
   <style>
-    body {
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
       font-family: Arial, sans-serif;
       background-image: url('./images/backgroundOrangeGradient.jpg');
-      margin: 0;
-      padding: 20px;
-      overflow-x: hidden;
     }
     .container {
       background: white;
-      max-width: 1200px;
+      width: 100%;
+      max-width: 1000px;
       margin: auto;
       padding: 20px;
       border-radius: 10px;
       border-top: 5px solid #ff5a5f;
       box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      min-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
     }
+
     .match-header {
       font-size: 24px;
       font-weight: bold;
       text-align: center;
-      margin-bottom: 20px;
       color: #702963;
+      margin-bottom: 10px;
     }
-    .top-row {
+
+    .main-layout {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      flex-wrap: wrap;
+      flex-grow: 1;
     }
+
     .team-box {
-      width: 30%;
-      text-align: center;
-      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 25%;
     }
+
     .team-box img {
       height: 60px;
-      object-fit: contain;
-      margin-bottom: 5px;
+      margin-bottom: 10px;
     }
-    .team-box .name {
-      font-size: 20px;
+
+    .team-box span {
+      font-size: 24px;
+      font-weight: bold;
+      color: #ff5a5f;
+      margin-bottom: 8px;
+    }
+
+    .score-number {
+      font-size: 40px;
       font-weight: bold;
       color: #ff5a5f;
     }
-    .team-box .score {
-      font-size: 36px;
-      font-weight: bold;
-      color: #ff5a5f;
-    }
+
     .center-timer {
-      width: 30%;
-      font-size: 64px;
+      font-size: 70px;
       font-weight: bold;
       text-align: center;
-      color: black;
-      text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.2);
+      flex: 1;
+      color: #222;
+      text-shadow: 2px 2px 6px rgba(0,0,0,0.2);
     }
+
+    .btn-row {
+      text-align: center;
+      margin-top: 10px;
+    }
+
     .btn-primary {
       background-color: #ff5a5f;
       color: white;
       font-weight: bold;
-      padding: 10px 15px;
+      padding: 10px 20px;
       border: none;
       border-radius: 5px;
-      cursor: pointer;
       margin: 5px;
+      cursor: pointer;
     }
+
     .btn-primary:hover {
       background-color: #cc0000;
     }
-    .goal-line {
-      font-size: 13px;
-      color: #444;
-      margin: 4px 0;
-    }
+
     .section {
-      margin-top: 30px;
+      margin-top: 20px;
       background: #f3f3f3;
       padding: 15px;
       border-radius: 8px;
     }
+
+    .goal-line {
+      font-size: 14px;
+      color: #444;
+      margin: 3px 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      padding: 6px;
+      text-align: center;
+    }
+
+    th {
+      background-color: #ffe4e1;
+    }
+
     .overlay, .scorer-popup {
       display: none;
       position: fixed;
@@ -97,7 +134,9 @@
       background: rgba(0,0,0,0.3);
       z-index: 99;
     }
+
     .scorer-popup {
+      display: none;
       top: 10%;
       left: 50%;
       transform: translateX(-50%);
@@ -110,18 +149,22 @@
       width: 90%;
       max-width: 600px;
     }
+
     .scorer-popup h4 {
       text-align: center;
       color: #702963;
     }
+
     .scorer-columns {
       display: flex;
       justify-content: space-between;
       gap: 20px;
     }
+
     .scorer-columns div {
       width: 50%;
     }
+
     .scorer-columns button {
       width: 100%;
       margin-bottom: 6px;
@@ -133,6 +176,7 @@
       font-weight: bold;
       cursor: pointer;
     }
+
     .close-popup {
       position: absolute;
       top: 10px;
@@ -141,27 +185,9 @@
       font-size: 18px;
       font-weight: bold;
     }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-    }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 6px;
-      text-align: center;
-    }
-    th {
-      background-color: #ffe4e1;
-    }
-    .control-buttons {
-      display: flex;
-      justify-content: center;
-      flex-wrap: wrap;
-      margin-top: 20px;
-    }
   </style>
 </head>
+
 <body>
 
     <div class="overlay" id="overlay" onclick="closePopup()"></div>
