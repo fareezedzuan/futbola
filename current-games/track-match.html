@@ -413,7 +413,10 @@ function exportSummary() {
   const venue = sessionStorage.getItem("venue") || "futbola court";
   const date = sessionStorage.getItem("date") || new Date().toLocaleDateString();
 
-  let msg = `⚽ Thank you for joining futbola!📋 *Match Results*\n`;
+   let message = `⚽ Thank you for joining futbola!`;
+
+  // Match results
+  message += `📋 *Match Results*\n`;
   matchResults.forEach((r, i) => {
     msg += `Match ${i + 1}: ${r.tA} ${r.gA} - ${r.gB} ${r.tB}\n`;
   });
