@@ -219,8 +219,9 @@
   <div class="btn-row">
     <button class="btn-primary" id="timerBtn" onclick="handleTimerClick()">Start Timer</button>
     <button class="btn-primary" onclick="resetTimer()">Reset Timer</button>
-    <button class="btn-primary" onclick="startNextMatch()">Start Next Match</button>
-    <button class="btn-primary" onclick="exportSummary()">Export to WhatsApp</button>
+    <button class="btn-primary" onclick="openEditGoals()">Edit Goals</button>
+    <button class="btn-primary" onclick="startNextMatch()">Next Match</button>
+    <button class="btn-primary" onclick="exportSummary()">Export WhatsApp</button>
   </div>
 
   <div class="section">
@@ -237,6 +238,13 @@
     <h3>Live Standings</h3>
     <div id="standingsTable"></div>
   </div>
+</div>
+
+<div class="overlay" id="editOverlay" onclick="closeEditPopup()"></div>
+<div class="scorer-popup" id="editGoalsPopup">
+  <div class="close-popup" onclick="closeEditPopup()">×</div>
+  <h4>Edit Goals</h4>
+  <div id="editGoalsList"></div>
 </div>
 
 <script>
@@ -286,7 +294,7 @@ function handleTimerClick() {
     }, 1000);
   } else {
     timerPaused = !timerPaused;
-    document.getElementById('timerBtn').textContent = timerPaused ? "Resume" : "Pause";
+    document.getElementById('timerBtn').textContent = timerPaused ? "Resume Timer" : "Pause Timer";
   }
 }
 
@@ -475,6 +483,56 @@ function exportSummary() {
   navigator.clipboard.writeText(message).then(() =>
     alert("Copied WhatsApp summary to clipboard 📋. Paste and share the vibes 💬!")
   );
+}
+
+function openEditGoals() {
+  const container = document.getElementById("editGoalsList");
+  container.innerHTML = "";
+
+  if (currentGoals.length === 0) {
+    container.innerHTML = "<p>No goals to edit yet.</p>";
+  } else {
+    currentGoals.forEach((g, index) => {
+      const label = g.isOG ? `${g.player} (OG)` : g.player;
+      container.innerHTML += `
+        <div style="margin-bottom:10px;">
+          ${label} – ${g.time}
+          <button onclick="editGoal(${index})">✏️</button>
+          <button onclick="deleteGoal(${index})">🗑️</button>
+        </div>
+      `;
+    });
+  }
+
+  document.getElementById("editOverlay").style.display = "block";
+  document.getElementById("editGoalsPopup").style.display = "block";
+}
+
+function closeEditPopup() {
+  document.getElementById("editOverlay").style.display = "none";
+  document.getElementById("editGoalsPopup").style.display = "none";
+}
+
+function deleteGoal(index) {
+  if (confirm("Delete this goal?")) {
+    currentGoals.splice(index, 1);
+    renderGoalLog();
+    openEditGoals(); // Refresh popup
+  }
+}
+
+function editGoal(index) {
+  const newPlayer = prompt("Enter new player name:", currentGoals[index].player);
+  if (newPlayer === null) return;
+
+  const newTime = prompt("Enter new time (e.g. 5'):", currentGoals[index].time);
+  if (newTime === null) return;
+
+  currentGoals[index].player = newPlayer;
+  currentGoals[index].time = newTime;
+
+  renderGoalLog();
+  openEditGoals(); // Refresh popup
 }
 
 
