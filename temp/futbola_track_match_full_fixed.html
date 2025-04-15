@@ -1,3 +1,4 @@
+<!-- FULL track-match.html merged version START -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -97,6 +98,7 @@
       z-index: 99;
     }
     .scorer-popup {
+      display: none;
       top: 10%;
       left: 50%;
       transform: translateX(-50%);
@@ -108,8 +110,6 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.2);
       width: 90%;
       max-width: 600px;
-      max-height: 90vh;
-      overflow-y: auto;
     }
     .scorer-popup h4 {
       text-align: center;
@@ -158,4 +158,264 @@
   </style>
 </head>
 <body>
-<!-- HTML truncated due to length -->
+
+<div class="overlay" id="overlay" onclick="closePopup()"></div>
+<div class="scorer-popup" id="scorerPopup">
+  <div class="close-popup" onclick="closePopup()">×</div>
+  <h4>Select Scorer</h4>
+  <div class="scorer-columns">
+    <div><strong id="teamACol"></strong><div id="playersA"></div></div>
+    <div><strong id="teamBCol"></strong><div id="playersB"></div></div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="match-header" id="matchTitle">Match 1</div>
+  <div class="center-timer" id="timer">00:00</div>
+  <div style="text-align: center;">
+    <button class="btn-primary" id="timerBtn" onclick="handleTimerClick()">Start Timer</button>
+    <button class="btn-primary" onclick="resetTimer()">Reset Timer</button>
+  </div>
+
+  <div class="score-row">
+    <div class="team-clickable" onclick="triggerScorer('A')">
+      <img id="teamAIcon" src="./images/default.png" />
+      <span id="teamAName">Team A</span>
+      <div class="score-number" id="scoreA">0</div>
+      <div id="goalLogA"></div>
+    </div>
+    <div class="team-clickable" onclick="triggerScorer('B')">
+      <img id="teamBIcon" src="./images/default.png" />
+      <span id="teamBName">Team B</span>
+      <div class="score-number" id="scoreB">0</div>
+      <div id="goalLogB"></div>
+    </div>
+  </div>
+
+  <button class="btn-primary" onclick="startNextMatch()">Start Next Match</button>
+
+  <div class="section">
+    <h3>Match Results</h3>
+    <div id="matchHistory"></div>
+  </div>
+
+  <div class="section">
+    <h3>Top Scorers</h3>
+    <div id="topScorersList"></div>
+  </div>
+
+  <div class="section">
+    <h3>Live Standings</h3>
+    <div id="standingsTable"></div>
+  </div>
+
+  <button class="btn-primary" onclick="exportSummary()">Export to WhatsApp</button>
+</div>
+
+<script>
+const duration = parseInt(sessionStorage.getItem("duration")) || 7;
+const teamNames = JSON.parse(sessionStorage.getItem("teamNames") || "[]");
+const teamPlayers = JSON.parse(sessionStorage.getItem("teamPlayers") || "[]");
+
+let matchNumber = 0;
+let matchups = generateRoundRobin(teamNames);
+let timeElapsed = 0, timer = null, timerRunning = false, timerPaused = false;
+let currentGoals = [];
+let matchResults = [];
+let standings = {};
+let allGoals = [];
+
+function generateRoundRobin(teams) {
+  const rounds = [], t = [...teams];
+  if (t.length % 2) t.push("BYE");
+  const half = t.length / 2;
+  for (let i = 0; i < t.length - 1; i++) {
+    for (let j = 0; j < half; j++) {
+      const a = t[j], b = t[t.length - 1 - j];
+      if (a !== "BYE" && b !== "BYE") rounds.push([a, b]);
+    }
+    t.splice(1, 0, t.pop());
+  }
+  return rounds;
+}
+
+function handleTimerClick() {
+  if (!timerRunning) {
+    timerRunning = true;
+    timerPaused = false;
+    document.getElementById('timerBtn').textContent = "Pause";
+    timer = setInterval(() => {
+      if (!timerPaused) {
+        timeElapsed++;
+        updateTimerDisplay();
+        if (timeElapsed >= duration * 60) {
+          clearInterval(timer);
+          timerRunning = false;
+          document.getElementById('timerBtn').textContent = "Start Timer";
+        }
+      }
+    }, 1000);
+  } else {
+    timerPaused = !timerPaused;
+    document.getElementById('timerBtn').textContent = timerPaused ? "Resume" : "Pause";
+  }
+}
+
+function updateTimerDisplay() {
+  const min = Math.floor(timeElapsed / 60);
+  const sec = timeElapsed % 60;
+  document.getElementById("timer").textContent = `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+}
+
+function resetTimer() {
+  clearInterval(timer);
+  timeElapsed = 0;
+  timerRunning = false;
+  timerPaused = false;
+  updateTimerDisplay();
+  document.getElementById('timerBtn').textContent = "Start Timer";
+}
+
+function startNextMatch() {
+  if (matchNumber > 0) saveCurrentMatch();
+  if (matchNumber >= matchups.length) return alert("All matches done!");
+  resetTimer();
+  currentGoals = [];
+  document.getElementById("scoreA").textContent = "0";
+  document.getElementById("scoreB").textContent = "0";
+  document.getElementById("goalLogA").innerHTML = "";
+  document.getElementById("goalLogB").innerHTML = "";
+
+  const [teamA, teamB] = matchups[matchNumber];
+  document.getElementById("matchTitle").textContent = `Match ${matchNumber + 1}`;
+  document.getElementById("teamAName").textContent = teamA;
+  document.getElementById("teamBName").textContent = teamB;
+  document.getElementById("teamAIcon").src = `./images/${teamA}.png`;
+  document.getElementById("teamBIcon").src = `./images/${teamB}.png`;
+  matchNumber++;
+}
+
+function triggerScorer(side) {
+  const teamA = document.getElementById("teamAName").textContent;
+  const teamB = document.getElementById("teamBName").textContent;
+  const idxA = teamNames.indexOf(teamA);
+  const idxB = teamNames.indexOf(teamB);
+
+  const playersA = teamPlayers[idxA] || [];
+  const playersB = teamPlayers[idxB] || [];
+
+  document.getElementById("teamACol").textContent = teamA;
+  document.getElementById("teamBCol").textContent = teamB;
+
+  document.getElementById("playersA").innerHTML = playersA.map(p =>
+    `<button onclick="addGoal('${teamA}', '${p}', false)">${p}</button>`).join("");
+
+  document.getElementById("playersB").innerHTML = playersB.map(p =>
+    `<button onclick="addGoal('${teamA}', '${p}', true)">${p} (OG)</button>`).join("");
+
+  document.getElementById("overlay").style.display = "block";
+  document.getElementById("scorerPopup").style.display = "block";
+}
+
+function closePopup() {
+  document.getElementById("overlay").style.display = "none";
+  document.getElementById("scorerPopup").style.display = "none";
+}
+
+function addGoal(team, player, isOG = false) {
+  const timeMin = Math.floor(timeElapsed / 60);
+  const extra = timeMin >= duration ? `+${timeMin - duration}` : "";
+  const formatted = `${Math.min(timeMin + 1, duration)}${extra}'`;
+
+  currentGoals.push({ team, player, time: formatted, isOG });
+  const scoreId = team === document.getElementById("teamAName").textContent ? "scoreA" : "scoreB";
+  document.getElementById(scoreId).textContent = parseInt(document.getElementById(scoreId).textContent) + 1;
+
+  renderGoalLog();
+  closePopup();
+}
+
+function renderGoalLog() {
+  const tA = document.getElementById("teamAName").textContent;
+  const tB = document.getElementById("teamBName").textContent;
+  const logA = {}, logB = {};
+
+  currentGoals.forEach(g => {
+    const teamLog = g.team === tA ? logA : logB;
+    const name = g.isOG ? `${g.player} (OG)` : g.player;
+    if (!teamLog[name]) teamLog[name] = [];
+    teamLog[name].push(g.time);
+  });
+
+  document.getElementById("goalLogA").innerHTML = Object.entries(logA)
+    .map(([p, times]) => `<div class='goal-line'>${p} ${times.join(", ")}</div>`).join("");
+  document.getElementById("goalLogB").innerHTML = Object.entries(logB)
+    .map(([p, times]) => `<div class='goal-line'>${p} ${times.join(", ")}</div>`).join("");
+}
+
+function saveCurrentMatch() {
+  const tA = document.getElementById("teamAName").textContent;
+  const tB = document.getElementById("teamBName").textContent;
+  const gA = parseInt(document.getElementById("scoreA").textContent);
+  const gB = parseInt(document.getElementById("scoreB").textContent);
+
+  matchResults.push({ tA, tB, gA, gB });
+  allGoals = allGoals.concat(currentGoals);
+  updateMatchHistory();
+  updateLeaderboard();
+  updateStandings(tA, tB, gA, gB);
+}
+
+function updateMatchHistory() {
+  document.getElementById("matchHistory").innerHTML = matchResults.map(
+    r => `<p>${r.tA} ${r.gA} - ${r.gB} ${r.tB}</p>`
+  ).join("");
+}
+
+function updateLeaderboard() {
+  const tally = {};
+  allGoals.forEach(g => {
+    if (!g.isOG) tally[g.player] = (tally[g.player] || 0) + 1;
+  });
+  const sorted = Object.entries(tally).sort((a, b) => b[1] - a[1]);
+  document.getElementById("topScorersList").innerHTML =
+    sorted.map(([name, count]) => `<p>${name} – ${count}</p>`).join("");
+}
+
+function updateStandings(tA, tB, gA, gB) {
+  const stats = name => standings[name] ||= { MP: 0, W: 0, D: 0, L: 0, Pts: 0, GF: 0, GA: 0 };
+  stats(tA).MP++; stats(tB).MP++;
+  stats(tA).GF += gA; stats(tA).GA += gB;
+  stats(tB).GF += gB; stats(tB).GA += gA;
+  if (gA > gB) { stats(tA).W++; stats(tB).L++; stats(tA).Pts += 3; }
+  else if (gB > gA) { stats(tB).W++; stats(tA).L++; stats(tB).Pts += 3; }
+  else { stats(tA).D++; stats(tB).D++; stats(tA).Pts += 1; stats(tB).Pts += 1; }
+
+  const rows = Object.entries(standings).map(([team, s]) => ({ team, ...s, GD: s.GF - s.GA }))
+    .sort((a, b) => b.Pts - a.Pts || b.GD - a.GD || b.GF - a.GF);
+
+  document.getElementById("standingsTable").innerHTML = `
+    <table>
+      <tr><th>Team</th><th>MP</th><th>W</th><th>D</th><th>L</th><th>Pts</th><th>GF</th><th>GA</th><th>GD</th></tr>
+      ${rows.map(r => `<tr><td>${r.team}</td><td>${r.MP}</td><td>${r.W}</td><td>${r.D}</td><td>${r.L}</td><td>${r.Pts}</td><td>${r.GF}</td><td>${r.GA}</td><td>${r.GD}</td></tr>`).join("")}
+    </table>`;
+}
+
+function exportSummary() {
+  saveCurrentMatch();
+  let summary = matchResults.map(r => `${r.tA} ${r.gA} - ${r.gB} ${r.tB}`).join("\n");
+  const tally = {};
+  allGoals.forEach(g => { if (!g.isOG) tally[g.player] = (tally[g.player] || 0) + 1; });
+  const topScorers = Object.entries(tally).sort((a, b) => b[1] - a[1])
+    .map(([name, count]) => `${name} – ${count}`).join("\n");
+  summary += "\n\nTop Scorers:\n" + topScorers;
+  navigator.clipboard.writeText(summary).then(() =>
+    alert("Copied to clipboard. Paste into WhatsApp.")
+  );
+}
+
+updateTimerDisplay();
+startNextMatch();
+</script>
+</body>
+</html>
