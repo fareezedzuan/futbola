@@ -1,4 +1,5 @@
-<!-- track-match.html (MVP landscape layout version) -->
+
+<!-- FULL HTML with Upgraded Layout Will Be Inserted in next step -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,118 +11,83 @@
       font-family: Arial, sans-serif;
       background-image: url('./images/backgroundOrangeGradient.jpg');
       margin: 0;
-      padding: 0;
-      overflow-y: scroll;
+      padding: 20px;
+      overflow-x: hidden;
     }
     .container {
+      background: white;
       max-width: 1200px;
       margin: auto;
       padding: 20px;
+      border-radius: 10px;
+      border-top: 5px solid #ff5a5f;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     }
     .match-header {
-      font-size: 28px;
+      font-size: 24px;
       font-weight: bold;
       text-align: center;
-      color: #702963;
       margin-bottom: 20px;
+      color: #702963;
     }
-
-    .main-display {
+    .top-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      height: 300px;
-      margin-bottom: 10px;
+      flex-wrap: wrap;
     }
-
-    .team-block {
+    .team-box {
       width: 30%;
       text-align: center;
       cursor: pointer;
     }
-
-    .team-block img {
+    .team-box img {
       height: 60px;
-      margin-bottom: 10px;
+      object-fit: contain;
+      margin-bottom: 5px;
     }
-
-    .team-block span {
-      font-size: 22px;
+    .team-box .name {
+      font-size: 20px;
       font-weight: bold;
       color: #ff5a5f;
     }
-
-    .score-number {
-      font-size: 40px;
+    .team-box .score {
+      font-size: 36px;
       font-weight: bold;
       color: #ff5a5f;
-      margin-top: 5px;
     }
-
-    .goal-log {
-      font-size: 14px;
-      margin-top: 10px;
-    }
-
-    .timer-block {
-      width: 35%;
-      text-align: center;
-    }
-
     .center-timer {
-      font-size: 80px;
+      width: 30%;
+      font-size: 64px;
       font-weight: bold;
+      text-align: center;
       color: black;
       text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.2);
     }
-
-    .btn-row {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-
     .btn-primary {
       background-color: #ff5a5f;
       color: white;
       font-weight: bold;
-      padding: 10px 20px;
+      padding: 10px 15px;
       border: none;
       border-radius: 5px;
       cursor: pointer;
       margin: 5px;
     }
-
     .btn-primary:hover {
       background-color: #cc0000;
     }
-
-    .section {
-      background: #f3f3f3;
-      padding: 15px;
-      border-radius: 8px;
-      margin-top: 20px;
-    }
-
     .goal-line {
       font-size: 13px;
       color: #444;
       margin: 4px 0;
     }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
+    .section {
+      margin-top: 30px;
+      background: #f3f3f3;
+      padding: 15px;
+      border-radius: 8px;
     }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 6px;
-      text-align: center;
-    }
-    th {
-      background-color: #ffe4e1;
-    }
-
     .overlay, .scorer-popup {
       display: none;
       position: fixed;
@@ -175,11 +141,30 @@
       font-size: 18px;
       font-weight: bold;
     }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 6px;
+      text-align: center;
+    }
+    th {
+      background-color: #ffe4e1;
+    }
+    .control-buttons {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
   </style>
 </head>
 <body>
 
-<div class="overlay" id="overlay" onclick="closePopup()"></div>
+    <div class="overlay" id="overlay" onclick="closePopup()"></div>
 <div class="scorer-popup" id="scorerPopup">
   <div class="close-popup" onclick="closePopup()">×</div>
   <h4>Select Scorer</h4>
@@ -192,25 +177,23 @@
 <div class="container">
   <div class="match-header" id="matchTitle">Match 1</div>
 
-  <div class="main-display">
-    <div class="team-block" onclick="triggerScorer('A')">
+  <div class="top-row">
+    <div class="team-box" onclick="triggerScorer('A')">
       <img id="teamAIcon" src="./images/default.png" />
-      <span id="teamAName">Team A</span>
-      <div class="score-number" id="scoreA">0</div>
-      <div class="goal-log" id="goalLogA"></div>
+      <div class="name" id="teamAName">Team A</div>
+      <div class="score" id="scoreA">0</div>
+      <div id="goalLogA"></div>
     </div>
-    <div class="timer-block">
-      <div class="center-timer" id="timer">00:00</div>
-    </div>
-    <div class="team-block" onclick="triggerScorer('B')">
+    <div class="center-timer" id="timer">00:00</div>
+    <div class="team-box" onclick="triggerScorer('B')">
       <img id="teamBIcon" src="./images/default.png" />
-      <span id="teamBName">Team B</span>
-      <div class="score-number" id="scoreB">0</div>
-      <div class="goal-log" id="goalLogB"></div>
+      <div class="name" id="teamBName">Team B</div>
+      <div class="score" id="scoreB">0</div>
+      <div id="goalLogB"></div>
     </div>
   </div>
 
-  <div class="btn-row">
+  <div class="control-buttons">
     <button class="btn-primary" id="timerBtn" onclick="handleTimerClick()">Start Timer</button>
     <button class="btn-primary" onclick="resetTimer()">Reset Timer</button>
     <button class="btn-primary" onclick="startNextMatch()">Start Next Match</button>
@@ -234,8 +217,6 @@
 </div>
 
 <script>
-// Paste your existing JS logic here from the MVP version (match tracking, popup, standings, export, etc.)
-// You already have all this working beautifully – just stitch into this layout.
 const duration = parseInt(sessionStorage.getItem("duration")) || 7;
 const teamNames = JSON.parse(sessionStorage.getItem("teamNames") || "[]");
 const teamPlayers = JSON.parse(sessionStorage.getItem("teamPlayers") || "[]");
@@ -432,10 +413,7 @@ function exportSummary() {
   const venue = sessionStorage.getItem("venue") || "futbola court";
   const date = sessionStorage.getItem("date") || new Date().toLocaleDateString();
 
-   let message = `⚽ Thank you for joining futbola!`;
-
-  // Match results
-  message += `📋 *Match Results*\n`;
+  let msg = `⚽ Thank you for joining futbola!📋 *Match Results*\n`;
   matchResults.forEach((r, i) => {
     msg += `Match ${i + 1}: ${r.tA} ${r.gA} - ${r.gB} ${r.tB}\n`;
   });
