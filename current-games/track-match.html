@@ -304,14 +304,19 @@ function triggerScorer(side) {
   const playersA = teamPlayers[idxA] || [];
   const playersB = teamPlayers[idxB] || [];
 
-  document.getElementById("teamACol").textContent = teamA;
-  document.getElementById("teamBCol").textContent = teamB;
+  const scoringTeam = side === 'A' ? teamA : teamB;
+const opponentTeam = side === 'A' ? teamB : teamA;
+const scoringIdx = side === 'A' ? idxA : idxB;
+const opponentIdx = side === 'A' ? idxB : idxA;
 
-  document.getElementById("playersA").innerHTML = playersA.map(p =>
-    `<button onclick="addGoal('${teamA}', '${p}', false)">${p}</button>`).join("");
+document.getElementById("teamACol").textContent = scoringTeam;
+document.getElementById("teamBCol").textContent = opponentTeam;
 
-  document.getElementById("playersB").innerHTML = playersB.map(p =>
-    `<button onclick="addGoal('${teamA}', '${p}', true)">${p} (OG)</button>`).join("");
+document.getElementById("playersA").innerHTML = (teamPlayers[scoringIdx] || []).map(p =>
+  `<button onclick="addGoal('${scoringTeam}', '${p}', false)">${p}</button>`).join("");
+
+document.getElementById("playersB").innerHTML = (teamPlayers[opponentIdx] || []).map(p =>
+  `<button onclick="addGoal('${scoringTeam}', '${p}', true)">${p} (OG)</button>`).join("");
 
   document.getElementById("overlay").style.display = "block";
   document.getElementById("scorerPopup").style.display = "block";
