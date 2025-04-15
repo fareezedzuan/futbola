@@ -1,4 +1,5 @@
-<!-- FULL track-match.html merged version START -->
+
+<!-- FULL HTML with Upgraded Layout Will Be Inserted in next step -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,11 +12,11 @@
       background-image: url('./images/backgroundOrangeGradient.jpg');
       margin: 0;
       padding: 20px;
-      overflow-y: scroll;
+      overflow-x: hidden;
     }
     .container {
       background: white;
-      max-width: 1000px;
+      max-width: 1200px;
       margin: auto;
       padding: 20px;
       border-radius: 10px;
@@ -29,40 +30,39 @@
       margin-bottom: 20px;
       color: #702963;
     }
-    .score-row {
+    .top-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 10px;
+      flex-wrap: wrap;
     }
-    .team-clickable {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+    .team-box {
+      width: 30%;
+      text-align: center;
       cursor: pointer;
     }
-    .team-clickable img {
-      height: 50px;
+    .team-box img {
+      height: 60px;
       object-fit: contain;
       margin-bottom: 5px;
     }
-    .team-clickable span {
+    .team-box .name {
       font-size: 20px;
       font-weight: bold;
       color: #ff5a5f;
     }
-    .score-number {
-      font-size: 28px;
-      color: #ff5a5f;
+    .team-box .score {
+      font-size: 36px;
       font-weight: bold;
+      color: #ff5a5f;
     }
     .center-timer {
-      font-size: 60px;
+      width: 30%;
+      font-size: 64px;
       font-weight: bold;
       text-align: center;
       color: black;
       text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.2);
-      margin-bottom: 10px;
     }
     .btn-primary {
       background-color: #ff5a5f;
@@ -77,16 +77,16 @@
     .btn-primary:hover {
       background-color: #cc0000;
     }
+    .goal-line {
+      font-size: 13px;
+      color: #444;
+      margin: 4px 0;
+    }
     .section {
       margin-top: 30px;
       background: #f3f3f3;
       padding: 15px;
       border-radius: 8px;
-    }
-    .goal-line {
-      font-size: 13px;
-      color: #444;
-      margin: 4px 0;
     }
     .overlay, .scorer-popup {
       display: none;
@@ -98,7 +98,6 @@
       z-index: 99;
     }
     .scorer-popup {
-      display: none;
       top: 10%;
       left: 50%;
       transform: translateX(-50%);
@@ -155,11 +154,17 @@
     th {
       background-color: #ffe4e1;
     }
+    .control-buttons {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
   </style>
 </head>
 <body>
 
-<div class="overlay" id="overlay" onclick="closePopup()"></div>
+    <div class="overlay" id="overlay" onclick="closePopup()"></div>
 <div class="scorer-popup" id="scorerPopup">
   <div class="close-popup" onclick="closePopup()">×</div>
   <h4>Select Scorer</h4>
@@ -171,28 +176,29 @@
 
 <div class="container">
   <div class="match-header" id="matchTitle">Match 1</div>
-  <div class="center-timer" id="timer">00:00</div>
-  <div style="text-align: center;">
-    <button class="btn-primary" id="timerBtn" onclick="handleTimerClick()">Start Timer</button>
-    <button class="btn-primary" onclick="resetTimer()">Reset Timer</button>
-  </div>
 
-  <div class="score-row">
-    <div class="team-clickable" onclick="triggerScorer('A')">
+  <div class="top-row">
+    <div class="team-box" onclick="triggerScorer('A')">
       <img id="teamAIcon" src="./images/default.png" />
-      <span id="teamAName">Team A</span>
-      <div class="score-number" id="scoreA">0</div>
+      <div class="name" id="teamAName">Team A</div>
+      <div class="score" id="scoreA">0</div>
       <div id="goalLogA"></div>
     </div>
-    <div class="team-clickable" onclick="triggerScorer('B')">
+    <div class="center-timer" id="timer">00:00</div>
+    <div class="team-box" onclick="triggerScorer('B')">
       <img id="teamBIcon" src="./images/default.png" />
-      <span id="teamBName">Team B</span>
-      <div class="score-number" id="scoreB">0</div>
+      <div class="name" id="teamBName">Team B</div>
+      <div class="score" id="scoreB">0</div>
       <div id="goalLogB"></div>
     </div>
   </div>
 
-  <button class="btn-primary" onclick="startNextMatch()">Start Next Match</button>
+  <div class="control-buttons">
+    <button class="btn-primary" id="timerBtn" onclick="handleTimerClick()">Start Timer</button>
+    <button class="btn-primary" onclick="resetTimer()">Reset Timer</button>
+    <button class="btn-primary" onclick="startNextMatch()">Start Next Match</button>
+    <button class="btn-primary" onclick="exportSummary()">Export to WhatsApp</button>
+  </div>
 
   <div class="section">
     <h3>Match Results</h3>
@@ -208,8 +214,6 @@
     <h3>Live Standings</h3>
     <div id="standingsTable"></div>
   </div>
-
-  <button class="btn-primary" onclick="exportSummary()">Export to WhatsApp</button>
 </div>
 
 <script>
@@ -301,22 +305,19 @@ function triggerScorer(side) {
   const idxA = teamNames.indexOf(teamA);
   const idxB = teamNames.indexOf(teamB);
 
-  const playersA = teamPlayers[idxA] || [];
-  const playersB = teamPlayers[idxB] || [];
-
   const scoringTeam = side === 'A' ? teamA : teamB;
-const opponentTeam = side === 'A' ? teamB : teamA;
-const scoringIdx = side === 'A' ? idxA : idxB;
-const opponentIdx = side === 'A' ? idxB : idxA;
+  const opponentTeam = side === 'A' ? teamB : teamA;
+  const scoringIdx = side === 'A' ? idxA : idxB;
+  const opponentIdx = side === 'A' ? idxB : idxA;
 
-document.getElementById("teamACol").textContent = scoringTeam;
-document.getElementById("teamBCol").textContent = opponentTeam;
+  document.getElementById("teamACol").textContent = scoringTeam;
+  document.getElementById("teamBCol").textContent = opponentTeam;
 
-document.getElementById("playersA").innerHTML = (teamPlayers[scoringIdx] || []).map(p =>
-  `<button onclick="addGoal('${scoringTeam}', '${p}', false)">${p}</button>`).join("");
+  document.getElementById("playersA").innerHTML = (teamPlayers[scoringIdx] || []).map(p =>
+    `<button onclick="addGoal('${scoringTeam}', '${p}', false)">${p}</button>`).join("");
 
-document.getElementById("playersB").innerHTML = (teamPlayers[opponentIdx] || []).map(p =>
-  `<button onclick="addGoal('${scoringTeam}', '${p}', true)">${p} (OG)</button>`).join("");
+  document.getElementById("playersB").innerHTML = (teamPlayers[opponentIdx] || []).map(p =>
+    `<button onclick="addGoal('${scoringTeam}', '${p}', true)">${p} (OG)</button>`).join("");
 
   document.getElementById("overlay").style.display = "block";
   document.getElementById("scorerPopup").style.display = "block";
@@ -407,58 +408,45 @@ function updateStandings(tA, tB, gA, gB) {
 }
 
 function exportSummary() {
-  saveCurrentMatch(); // Save last match if not already
+  saveCurrentMatch();
 
   const venue = sessionStorage.getItem("venue") || "futbola court";
   const date = sessionStorage.getItem("date") || new Date().toLocaleDateString();
 
-  //let message = `⚽ Thank you for joining futbola at ${venue} on ${date}!\n\n`;
-  let message = `⚽ Thank you for joining futbola!`;
-
-  // Match results
-  message += `📋 *Match Results*\n`;
+  let msg = `⚽ Thank you for joining futbola!📋 *Match Results*\n`;
   matchResults.forEach((r, i) => {
-    message += `Match ${i + 1}: ${r.tA} ${r.gA} - ${r.gB} ${r.tB}\n`;
+    msg += `Match ${i + 1}: ${r.tA} ${r.gA} - ${r.gB} ${r.tB}\n`;
   });
 
-  // Top scorers
   const tally = {};
   allGoals.forEach(g => {
     if (!g.isOG) tally[g.player] = (tally[g.player] || 0) + 1;
   });
-
-  const sortedScorers = Object.entries(tally).sort((a, b) => b[1] - a[1]);
-  if (sortedScorers.length > 0) {
-    message += `\n⚽ *Top Scorers*\n`;
-    sortedScorers.forEach(([name, goals], i) => {
+  const top = Object.entries(tally).sort((a, b) => b[1] - a[1]);
+  msg += `\n🎯 *Top Scorers*\n`;
+  if (top.length > 0) {
+    top.forEach(([name, count], i) => {
       const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : "•";
-      message += `${medal} ${name} – ${goals}\n`;
+      msg += `${medal} ${name} – ${count}\n`;
     });
   } else {
-    message += `\n⚽ *Top Scorers*\nNo goals recorded yet.\n`;
+    msg += "No goals recorded yet.\n";
   }
 
-  // Standings
-  const rows = Object.entries(standings).map(([team, s]) => ({
-    team, ...s, GD: s.GF - s.GA
-  }));
-  rows.sort((a, b) =>
-    b.Pts - a.Pts || b.GD - a.GD || b.GF - a.GF || a.team.localeCompare(b.team)
-  );
+  const rows = Object.entries(standings).map(([team, s]) => ({ team, ...s, GD: s.GF - s.GA }))
+    .sort((a, b) => b.Pts - a.Pts || b.GD - a.GD || b.GF - a.GF);
 
-  message += `\n🏆 *Group Table*\n`;
-  message += `# Team        MP  W D L  Pts\n`;
+  msg += `\n🏆 *Group Table*\n# Team        MP  W D L  Pts\n`;
   rows.forEach((r, i) => {
-    const rankEmoji = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i + 1}.`;
-    const paddedName = r.team.padEnd(11, ' ');
-    message += `${rankEmoji} ${paddedName} ${r.MP}  ${r.W} ${r.D} ${r.L}   ${r.Pts}\n`;
+    const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i + 1}.`;
+    const name = r.team.padEnd(11, ' ');
+    msg += `${medal} ${name} ${r.MP}  ${r.W} ${r.D} ${r.L}   ${r.Pts}\n`;
   });
 
-  navigator.clipboard.writeText(message).then(() =>
-    alert("Copied WhatsApp summary to clipboard 📋. Paste and share the love 💬!")
+  navigator.clipboard.writeText(msg).then(() =>
+    alert("Copied WhatsApp summary to clipboard 📋. Paste and share the vibes 💬!")
   );
 }
-
 
 updateTimerDisplay();
 startNextMatch();
