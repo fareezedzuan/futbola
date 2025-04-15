@@ -180,6 +180,13 @@
       font-size: 18px;
       font-weight: bold;
     }
+    .editable {
+      cursor: pointer;
+      font-weight: bold;
+      color: #ff5a5f;
+      margin: 0 3px;
+    }
+
   </style>
 </head>
 <body>
@@ -474,6 +481,47 @@ function exportSummary() {
   navigator.clipboard.writeText(message).then(() =>
     alert("Copied WhatsApp summary to clipboard 📋. Paste and share the vibes 💬!")
   );
+}
+
+function renderGoalLog() {
+  const tA = document.getElementById("teamAName").textContent;
+  const tB = document.getElementById("teamBName").textContent;
+  const logA = {}, logB = {};
+
+  currentGoals.forEach((g, index) => {
+    const teamLog = g.team === tA ? logA : logB;
+    const name = g.isOG ? `${g.player} (OG)` : g.player;
+    if (!teamLog[name]) teamLog[name] = [];
+    teamLog[name].push({ time: g.time, index });
+  });
+
+  document.getElementById("goalLogA").innerHTML = Object.entries(logA)
+    .map(([p, items]) =>
+      `<div class='goal-line'>${p} ` +
+      items.map(i => `<span class="editable" onclick="editGoal(${i.index})">${i.time}</span>`).join(", ") +
+      `</div>`).join("");
+
+  document.getElementById("goalLogB").innerHTML = Object.entries(logB)
+    .map(([p, items]) =>
+      `<div class='goal-line'>${p} ` +
+      items.map(i => `<span class="editable" onclick="editGoal(${i.index})">${i.time}</span>`).join(", ") +
+      `</div>`).join("");
+}
+
+function editGoal(index) {
+  const goal = currentGoals[index];
+  const options = prompt(`Edit or delete goal:\n1. Change scorer name\n2. Delete goal\nCurrent: ${goal.player} (${goal.time})`, "1");
+
+  if (options === "2") {
+    currentGoals.splice(index, 1);
+    renderGoalLog();
+  } else if (options === "1") {
+    const newName = prompt("Enter new name:", goal.player);
+    if (newName && newName.trim() !== "") {
+      currentGoals[index].player = newName.trim();
+      renderGoalLog();
+    }
+  }
 }
 
 
