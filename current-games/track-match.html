@@ -412,7 +412,8 @@ function exportSummary() {
   const venue = sessionStorage.getItem("venue") || "futbola court";
   const date = sessionStorage.getItem("date") || new Date().toLocaleDateString();
 
-  let message = `⚽ Thank you for joining futbola at ${venue} on ${date}!\n\n`;
+  //let message = `⚽ Thank you for joining futbola at ${venue} on ${date}!\n\n`;
+  let message = `⚽ Thank you for joining futbola!`;
 
   // Match results
   message += `📋 *Match Results*\n`;
