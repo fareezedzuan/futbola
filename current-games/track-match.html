@@ -437,12 +437,12 @@ function exportSummary() {
   const venue = sessionStorage.getItem("venue") || "futbola court";
   const date = sessionStorage.getItem("date") || new Date().toLocaleDateString();
 
-   let message = `⚽ Thank you for joining futbola!`;
+  let message = `⚽ Thank you for joining futbola!\n`;
 
   // Match results
   message += `📋 *Match Results*\n`;
   matchResults.forEach((r, i) => {
-    msg += `Match ${i + 1}: ${r.tA} ${r.gA} - ${r.gB} ${r.tB}\n`;
+    message += `Match ${i + 1}: ${r.tA} ${r.gA} - ${r.gB} ${r.tB}\n`;
   });
 
   const tally = {};
@@ -450,30 +450,32 @@ function exportSummary() {
     if (!g.isOG) tally[g.player] = (tally[g.player] || 0) + 1;
   });
   const top = Object.entries(tally).sort((a, b) => b[1] - a[1]);
-  msg += `\n🎯 *Top Scorers*\n`;
+
+  message += `\n🎯 *Top Scorers*\n`;
   if (top.length > 0) {
     top.forEach(([name, count], i) => {
       const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : "•";
-      msg += `${medal} ${name} – ${count}\n`;
+      message += `${medal} ${name} – ${count}\n`;
     });
   } else {
-    msg += "No goals recorded yet.\n";
+    message += "No goals recorded yet.\n";
   }
 
   const rows = Object.entries(standings).map(([team, s]) => ({ team, ...s, GD: s.GF - s.GA }))
     .sort((a, b) => b.Pts - a.Pts || b.GD - a.GD || b.GF - a.GF);
 
-  msg += `\n🏆 *Group Table*\n# Team        MP  W D L  Pts\n`;
+  message += `\n🏆 *Group Table*\n# Team        MP  W D L  Pts\n`;
   rows.forEach((r, i) => {
     const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i + 1}.`;
     const name = r.team.padEnd(11, ' ');
-    msg += `${medal} ${name} ${r.MP}  ${r.W} ${r.D} ${r.L}   ${r.Pts}\n`;
+    message += `${medal} ${name} ${r.MP}  ${r.W} ${r.D} ${r.L}   ${r.Pts}\n`;
   });
 
-  navigator.clipboard.writeText(msg).then(() =>
+  navigator.clipboard.writeText(message).then(() =>
     alert("Copied WhatsApp summary to clipboard 📋. Paste and share the vibes 💬!")
   );
 }
+
 
 updateTimerDisplay();
 startNextMatch();
