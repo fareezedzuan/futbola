@@ -304,14 +304,19 @@ function triggerScorer(side) {
   const playersA = teamPlayers[idxA] || [];
   const playersB = teamPlayers[idxB] || [];
 
-  document.getElementById("teamACol").textContent = teamA;
-  document.getElementById("teamBCol").textContent = teamB;
+  const scoringTeam = side === 'A' ? teamA : teamB;
+const opponentTeam = side === 'A' ? teamB : teamA;
+const scoringIdx = side === 'A' ? idxA : idxB;
+const opponentIdx = side === 'A' ? idxB : idxA;
 
-  document.getElementById("playersA").innerHTML = playersA.map(p =>
-    `<button onclick="addGoal('${teamA}', '${p}', false)">${p}</button>`).join("");
+document.getElementById("teamACol").textContent = scoringTeam;
+document.getElementById("teamBCol").textContent = opponentTeam;
 
-  document.getElementById("playersB").innerHTML = playersB.map(p =>
-    `<button onclick="addGoal('${teamA}', '${p}', true)">${p} (OG)</button>`).join("");
+document.getElementById("playersA").innerHTML = (teamPlayers[scoringIdx] || []).map(p =>
+  `<button onclick="addGoal('${scoringTeam}', '${p}', false)">${p}</button>`).join("");
+
+document.getElementById("playersB").innerHTML = (teamPlayers[opponentIdx] || []).map(p =>
+  `<button onclick="addGoal('${scoringTeam}', '${p}', true)">${p} (OG)</button>`).join("");
 
   document.getElementById("overlay").style.display = "block";
   document.getElementById("scorerPopup").style.display = "block";
@@ -402,17 +407,58 @@ function updateStandings(tA, tB, gA, gB) {
 }
 
 function exportSummary() {
-  saveCurrentMatch();
-  let summary = matchResults.map(r => `${r.tA} ${r.gA} - ${r.gB} ${r.tB}`).join("\n");
+  saveCurrentMatch(); // Save last match if not already
+
+  const venue = sessionStorage.getItem("venue") || "futbola court";
+  const date = sessionStorage.getItem("date") || new Date().toLocaleDateString();
+
+  //let message = `⚽ Thank you for joining futbola at ${venue} on ${date}!\n\n`;
+  let message = `⚽ Thank you for joining futbola!`;
+
+  // Match results
+  message += `📋 *Match Results*\n`;
+  matchResults.forEach((r, i) => {
+    message += `Match ${i + 1}: ${r.tA} ${r.gA} - ${r.gB} ${r.tB}\n`;
+  });
+
+  // Top scorers
   const tally = {};
-  allGoals.forEach(g => { if (!g.isOG) tally[g.player] = (tally[g.player] || 0) + 1; });
-  const topScorers = Object.entries(tally).sort((a, b) => b[1] - a[1])
-    .map(([name, count]) => `${name} – ${count}`).join("\n");
-  summary += "\n\nTop Scorers:\n" + topScorers;
-  navigator.clipboard.writeText(summary).then(() =>
-    alert("Copied to clipboard. Paste into WhatsApp.")
+  allGoals.forEach(g => {
+    if (!g.isOG) tally[g.player] = (tally[g.player] || 0) + 1;
+  });
+
+  const sortedScorers = Object.entries(tally).sort((a, b) => b[1] - a[1]);
+  if (sortedScorers.length > 0) {
+    message += `\n⚽ *Top Scorers*\n`;
+    sortedScorers.forEach(([name, goals], i) => {
+      const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : "•";
+      message += `${medal} ${name} – ${goals}\n`;
+    });
+  } else {
+    message += `\n⚽ *Top Scorers*\nNo goals recorded yet.\n`;
+  }
+
+  // Standings
+  const rows = Object.entries(standings).map(([team, s]) => ({
+    team, ...s, GD: s.GF - s.GA
+  }));
+  rows.sort((a, b) =>
+    b.Pts - a.Pts || b.GD - a.GD || b.GF - a.GF || a.team.localeCompare(b.team)
+  );
+
+  message += `\n🏆 *Group Table*\n`;
+  message += `# Team        MP  W D L  Pts\n`;
+  rows.forEach((r, i) => {
+    const rankEmoji = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i + 1}.`;
+    const paddedName = r.team.padEnd(11, ' ');
+    message += `${rankEmoji} ${paddedName} ${r.MP}  ${r.W} ${r.D} ${r.L}   ${r.Pts}\n`;
+  });
+
+  navigator.clipboard.writeText(message).then(() =>
+    alert("Copied WhatsApp summary to clipboard 📋. Paste and share the love 💬!")
   );
 }
+
 
 updateTimerDisplay();
 startNextMatch();
