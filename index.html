@@ -28,7 +28,7 @@
             <li><a href="#home" class="hover:text-orange-400 cursor-pointer">Home</a></li>
             <li><a href="#how-it-works" class="hover:text-orange-400 cursor-pointer">How It Works</a></li>
             <li><a href="#testimonials" class="hover:text-orange-400 cursor-pointer">Testimonials</a></li>
-            <li><a href="#upcoming-games" class="hover:text-orange-400 cursor-pointer">Upcoming Games</a></li>
+            <li><a href="#selected-venues" class="hover:text-orange-400 cursor-pointer">Selected Venues</a></li>
             <li><a href="#contact" class="hover:text-orange-400 cursor-pointer">Contact</a></li>
         </ul>
     </div>
@@ -37,7 +37,7 @@
         <li><a href="#home" class="hover:text-orange-400 cursor-pointer">Home</a></li>
         <li><a href="#how-it-works" class="hover:text-orange-400 cursor-pointer">How It Works</a></li>
         <li><a href="#testimonials" class="hover:text-orange-400 cursor-pointer">Testimonials</a></li>
-        <li><a href="#upcoming-games" class="hover:text-orange-400 cursor-pointer">Upcoming Games</a></li>
+        <li><a href="##selected-venues" class="hover:text-orange-400 cursor-pointer">Selected Venues</a></li>
         <li><a href="#contact" class="hover:text-orange-400 cursor-pointer">Contact</a></li>
     </ul>
 </nav>
@@ -66,34 +66,37 @@
     });
 </script>
 
-   <!-- Hero Section -->
+<!-- Hero Section -->
 <header id="home" class="relative flex items-center justify-center text-black text-center py-32"
-style="background: url('./images/futsalCourtDrone.jpg') center/cover no-repeat;">
-<div class="max-w-3xl mx-auto px-6 rounded-lg py-10">
-    <h1 class="text-5xl text-white font-bold p-2" style="text-shadow: 2px 2px 4px black;">
-        Play <span style="color:darkorange">Football</span>, Your Way
-    </h1>
-    <p class="text-lg mt-4 text-white" style="text-shadow: 2px 2px 4px black;">
-        Looking for games, players, or opponents?<br>
-        Friendly, Competitive, Social — we’ve got you.<br>
-        futbola is your all-in-one football platform and community.
-    </p>
-    <div class="flex flex-col sm:flex-row justify-center gap-4 mt-6">
-        <button onclick="location.href='https://www.futbola.my/render-upcoming'"
-            class="bg-yellow-500 hover:bg-red-400 text-black px-6 py-3 rounded-lg font-bold transition">
-            🎮 Quick Game
-        </button>
-        <button onclick="location.href='https://www.futbola.my/tournaments'"
-            class="bg-white hover:bg-gray-200 text-black px-6 py-3 rounded-lg font-bold transition">
-            🏆 Tournament
-        </button>
-        <button onclick="location.href='https://www.futbola.my/login'"
-            class="bg-transparent border border-white hover:bg-white hover:text-black text-white px-6 py-3 rounded-lg font-bold transition">
-            🔑 Login
-        </button>
+    style="background: url('./images/futsalCourtDrone.jpg') center/cover no-repeat;">
+    <div class="max-w-3xl mx-auto px-6 rounded-lg py-10">
+        <h1 class="text-5xl text-white font-bold p-2" style="text-shadow: 2px 2px 4px black;">
+            Play <span style="color:darkorange">Futsal</span>, Your Way
+        </h1>
+        <p class="text-lg mt-4 text-black font-semibold" style="text-shadow: 2px 2px 4px gray;">
+            Looking for games, players, or opponents?<br>
+            Friendly, Competitive, Social — we’ve got you.<br>
+            futbola is your all-in-one futsal community platform.
+        </p>
+        <div class="flex flex-col sm:flex-row justify-center gap-4 mt-6">
+            <button onclick="location.href='https://www.futbola.my/render-upcoming'"
+            class="bg-gradient-to-r from-purple-500 via-orange-500 to-pink-500 border-2 border-purple-600 text-white px-6 py-3 rounded-lg font-semibold transform transition hover:scale-105 duration-200 shadow-lg">
+                🎮 Quick Game
+            </button>
+
+            <button onclick="location.href='https://www.futbola.my/tournaments'"
+            class="bg-gradient-to-r from-pink-500 via-orange-500 to-purple-500 border-2 border-purple-600 text-white px-6 py-3 rounded-lg font-semibold transform transition hover:scale-105 duration-200 shadow-lg">
+                🏆 Tournament
+            </button>
+
+            <button onclick="location.href='https://www.futbola.my/login'"
+                class="bg-red-500 border-2 border-red-700 text-white px-6 py-3 rounded-lg font-semibold transform transition hover:scale-105 duration-200 shadow-lg">
+                🔑 Login
+            </button>
+        </div>
     </div>
-</div>
 </header>
+
 
 
     <!-- Brand Section -->
@@ -149,25 +152,58 @@ style="background: url('./images/futsalCourtDrone.jpg') center/cover no-repeat;"
         </div>
     </section>
 
-    <!-- Upcoming Games -->
-    <section id="upcoming-games" class="py-16 bg-white text-center">
-        <h2 class="text-4xl font-bold text-black">Upcoming games</h2>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-8 px-10 place-items-center">
-            <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-sm">
-                <h3 class="text-xl font-semibold text-black">Bangi Uptown Sports</h3>
-                <img src="./images/bangi.jfif" class="mt-4 mx-auto object-cover w-[225px] h-[150px] rounded-md" alt="BangiCourt" />
-                <p class="text-black">11/4/2025 Friday</p>
-                <p class="text-black">11:00PM-12:30AM</p>
-                <p class="text-lg font-semibold text-black">RM15 - Pay Later</p>
-                <a href="https://book.stripe.com/aEU4jJaYtcGTbf28wF" target="_blank">
-                    <button class="mt-4 bg-yellow-500 hover:bg-red-400 text-black px-6 py-3 rounded-lg font-bold transition">
-                        Book now
-                    </button>
-                </a>
-            </div>
+<!-- Selected Venues -->
+<section id="selected-venues" class="py-16 bg-white text-center">
+    <h2 class="text-4xl font-bold text-black">Selected Venues</h2>
+    <p class="text-lg text-gray-600 mt-2 mb-10">Our trusted futsal locations, powered by futbola</p>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-10 place-items-center">
+        <!-- Venue Card: Bangi Uptown Sports -->
+        <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-sm border border-gray-200">
+            <h3 class="text-xl font-semibold text-black mb-2">Uptown Sports Bangi</br>Running Weekly</h3>
+            <img src="./images/bangi.jfif" class="mb-4 mx-auto object-cover w-[225px] h-[150px] rounded-md" alt="Uptown Bangi" />
+            <p class="text-sm text-gray-600">📍 Seksyen 1, Bandar Baru Bangi</p>
+            <p class="text-sm text-gray-600 mt-1">⏰ Open daily</p>
+            <!--<button class="mt-4 bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500 text-white px-6 py-2 rounded-lg font-semibold hover:scale-105 transition">
+                Book With futbola
+            </button>-->
         </div>
-    </section>
+
+        <!-- Future cards can go here -->
+        <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-sm border border-gray-200">
+            <h3 class="text-xl font-semibold text-black mb-2">Kompleks Futsal Presint 18</br>Coming Soon</h3>
+            <img src="./images/P18.jpg" class="mb-4 mx-auto object-cover w-[225px] h-[150px] rounded-md" alt="Uptown Bangi" />
+            <p class="text-sm text-gray-600">📍 Presint 18, WP Putrajaya</p>
+            <p class="text-sm text-gray-600 mt-1">⏰ Open daily</p>
+            <!--<button class="mt-4 bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500 text-white px-6 py-2 rounded-lg font-semibold hover:scale-105 transition">
+                Book With futbola
+            </button>-->
+        </div>
+
+        <!-- Future cards can go here -->
+        <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-sm border border-gray-200">
+            <h3 class="text-xl font-semibold text-black mb-2">TSI Sports Arena Cyberjaya</br>Coming Soon</h3>
+            <img src="./images/TSI.jfif" class="mb-4 mx-auto object-cover w-[225px] h-[150px] rounded-md" alt="Uptown Bangi" />
+            <p class="text-sm text-gray-600">📍 Cyber 6, Cyberjaya</p>
+            <p class="text-sm text-gray-600 mt-1">⏰ Open daily</p>
+            <!--<button class="mt-4 bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500 text-white px-6 py-2 rounded-lg font-semibold hover:scale-105 transition">
+                Book With futbola
+            </button>-->
+        </div>
+    </div>
+
+    <!-- CTA for venue partnership -->
+    <div class="mt-16">
+        <p class="text-lg text-black font-semibold">Own a futsal court? Hosting social futsal game?</p>
+        <p class="text-sm text-gray-600 mb-4">Let us power your bookings system and make your job easier.</p>
+        <a href="https://www.futbola.my/partnership" class="inline-block">
+            <button class="bg-red-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-800 transition">
+                📬 Partner With Us
+            </button>
+        </a>
+    </div>
+</section>
+
 
 <!-- Footer -->
 <footer id="contact" class="bg-yellow-200 text-black p-10 mt-16" style="background-image: url('./images/backgroundOrangeGradient.jpg');">
@@ -188,7 +224,7 @@ style="background: url('./images/futsalCourtDrone.jpg') center/cover no-repeat;"
             <h3 class="font-bold text-lg">Quick Links</h3>
             <ul class="mt-2 space-y-1">
                 <li><a href="#how-it-works" class="hover:text-orange-400">How It Works</a></li>
-                <li><a href="#upcoming-games" class="hover:text-orange-400">Upcoming Games</a></li>
+                <li><a href="##selected-venues" class="hover:text-orange-400">Selected Venues</a></li>
                 <li><a href="#testimonials" class="hover:text-orange-400">Testimonials</a></li>
                 <li><a href="#contact" class="hover:text-orange-400">Contact Us</a></li>
             </ul>
@@ -209,7 +245,7 @@ style="background: url('./images/futsalCourtDrone.jpg') center/cover no-repeat;"
         <div>
             <h3 class="font-bold text-lg">Follow Us</h3>
             <div class="mt-2 flex justify-center md:justify-start space-x-4">
-                <a href="https://instagram.com/futbolamy2u" target="_blank">
+                <a href="https://www.instagram.com/futbola_my/" target="_blank">
                     <img src="./images/instagramIcon.png" width="30" height="30" alt="Instagram">
                 </a>
                 <a href="https://wa.me/60126210204?text=Hi,%20I%20want%20to%20chat%20with%20futbola"  target="_blank">
