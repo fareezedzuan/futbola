@@ -48,7 +48,11 @@
 
     .team-block img {
       height: 100px;
+      max-width: 80%;     /* Prevent image from stretching too wide */
       margin-bottom: 10px;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
     }
 
     .team-block span {
@@ -72,13 +76,19 @@
     .timer-block {
       width: 35%;
       text-align: center;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
     }
 
     .center-timer {
-      font-size: clamp(40px, 10vw, 100px); /* min, preferred, max */
+      font-size: clamp(24px, 7vw, 80px); /* Shrinks better on phones */
       font-weight: bold;
       color: black;
       text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.2);
+      line-height: 1; /* Prevent weird spacing */
+      white-space: nowrap;
     }
 
     .btn-row {
@@ -201,8 +211,8 @@
 
   <div class="main-display">
     <div class="team-block" onclick="triggerScorer('A')">
-      <img id="teamAIcon" src="./images/default.png" /></br>
-      <span id="teamAName"></br>Team A</span>
+      <img id="teamAIcon" src="./images/default.png" />
+      <span id="teamAName">Team A</span>
       <div class="score-number" id="scoreA">0</div>
       <div class="goal-log" id="goalLogA"></div>
     </div>
@@ -210,8 +220,8 @@
       <div class="center-timer" id="timer">00:00</div>
     </div>
     <div class="team-block" onclick="triggerScorer('B')">
-      <img id="teamBIcon" src="./images/default.png" /></br>
-      <span id="teamBName"></br>Team B</span>
+      <img id="teamBIcon" src="./images/default.png" />
+      <span id="teamBName">Team B</span>
       <div class="score-number" id="scoreB">0</div>
       <div class="goal-log" id="goalLogB"></div>
     </div>
