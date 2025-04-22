@@ -130,7 +130,7 @@
   <div class="container">
     <h2>Set Up Game</h2>
 
-    <label for="gameSelect">Select Game (within next 3 days):</label>
+    <label for="gameSelect">Select Game (within next 7 days):</label>
     <select id="gameSelect">
       <option value="">-- Loading games... --</option>
     </select>
@@ -181,9 +181,57 @@
     </div>
   </div>
 
+  <div id="jerseyModal" class="popup" style="display:none;">
+    <h3 id="jerseyModalTitle">Set Jersey</h3>
+    <input type="number" id="jerseyInput" min="0" max="99" placeholder="0 - 99" class="mt-2" />
+    <div class="popup-footer">
+      <button onclick="saveJersey()">✅ Save</button>
+      <button onclick="closeJerseyModal()">❌ Cancel</button>
+    </div>
+  </div>
+  
+
   <script>
     let allPlayers = [];
     let activePlayers = [];
+
+    let selectedPlayerName = "";
+
+    function openJerseyModal(name) {
+      selectedPlayerName = name;
+      document.getElementById("jerseyModalTitle").textContent = `Set Jersey for ${name}`;
+      document.getElementById("jerseyInput").value = "";
+      document.getElementById("jerseyModal").style.display = "block";
+    }
+
+    function closeJerseyModal() {
+      selectedPlayerName = "";
+      document.getElementById("jerseyModal").style.display = "none";
+    }
+
+    async function saveJersey() {
+      const jersey = parseInt(document.getElementById("jerseyInput").value);
+      const gameId = document.getElementById("gameSelect").value;
+
+      if (!selectedPlayerName || isNaN(jersey)) return alert("Invalid input");
+
+      const res = await fetch('/api/update-booking', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ game_id: gameId, name: selectedPlayerName, jersey_number: jersey })
+      });
+
+      const result = await res.json();
+      if (result.success) {
+        // Update locally
+        const p = activePlayers.find(p => p.name === selectedPlayerName);
+        if (p) p.jersey = jersey;
+        closeJerseyModal();
+        generatePlayerAssignment(); // refresh jersey number shown
+      } else {
+        alert("Failed to save jersey number");
+      }
+    }
 
     async function fetchGames() {
       const res = await fetch("/api/get-upcoming-games");
@@ -191,13 +239,13 @@
       const select = document.getElementById("gameSelect");
       select.innerHTML = '<option value="">-- Select Game --</option>';
       const today = new Date();
-      const threeDaysLater = new Date();
+      const sevenDaysLater = new Date();
       today.setHours(0, 0, 0, 0);
-      threeDaysLater.setDate(today.getDate() + 3);
-      threeDaysLater.setHours(23, 59, 59, 999);
+      sevenDaysLater.setDate(today.getDate() + 7;
+      sevenDaysLater.setHours(23, 59, 59, 999);
       data.games.forEach(game => {
         const gameDate = new Date(game.game_date + "T00:00:00");
-        if (gameDate >= today && gameDate <= threeDaysLater) {
+        if (gameDate >= today && gameDate <= sevenDaysLater) {
           const option = document.createElement("option");
           option.value = game.id;
           option.textContent = `${game.venue} - ${game.game_date} ${game.start_time}`;
@@ -209,7 +257,12 @@
     async function fetchPlayers(gameId) {
       const res = await fetch(`/api/get-bookings?game_id=${gameId}`);
       const data = await res.json();
-      allPlayers = data.bookings.filter(b => b.status === 'confirmed').map(b => b.name);
+      allPlayers = data.bookings
+  .filter(b => b.status === 'confirmed')
+  .map(b => ({
+    name: b.name,
+    jersey: b.jersey_number || ""
+  }));
       activePlayers = [...allPlayers];
       updateRemoveDropdown();
       generatePlayerAssignment();
@@ -242,8 +295,13 @@
         activePlayers.forEach(player => {
           const box = document.createElement("div");
           box.className = "player-box";
-          box.textContent = player.slice(0, 15);
-          box.dataset.name = player;
+          box.innerHTML = `
+  <div>${player.name.slice(0, 15)}</div>
+  <div class="text-xs mt-1">🎽 ${player.jersey || '--'}</div>
+  <button class="text-blue-500 underline text-xs mt-1" onclick="openJerseyModal('${player.name}')">Set</button>
+`;
+box.dataset.name = player.name;
+box.dataset.jersey = player.jersey || "";
           box.onclick = () => box.classList.toggle("selected");
           grid.appendChild(box);
         });
