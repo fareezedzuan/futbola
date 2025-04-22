@@ -209,28 +209,16 @@
       document.getElementById("jerseyModal").style.display = "none";
     }
 
-    async function saveJersey() {
+    function saveJersey() {
       const jersey = parseInt(document.getElementById("jerseyInput").value);
-      const gameId = document.getElementById("gameSelect").value;
-
       if (!selectedPlayerName || isNaN(jersey)) return alert("Invalid input");
 
-      const res = await fetch('/api/update-booking', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ game_id: gameId, name: selectedPlayerName, jersey_number: jersey })
-      });
+      // Update jersey number locally
+      const player = activePlayers.find(p => p.name === selectedPlayerName);
+      if (player) player.jersey = jersey;
 
-      const result = await res.json();
-      if (result.success) {
-        // Update locally
-        const p = activePlayers.find(p => p.name === selectedPlayerName);
-        if (p) p.jersey = jersey;
-        closeJerseyModal();
-        generatePlayerAssignment(); // refresh jersey number shown
-      } else {
-        alert("Failed to save jersey number");
-      }
+      closeJerseyModal();
+      generatePlayerAssignment(); // Show updated jersey number
     }
 
     async function fetchGames() {
