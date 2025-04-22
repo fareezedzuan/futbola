@@ -374,6 +374,7 @@
 
     for (let i = 0; i < count; i++) {
       const name = document.getElementById(`team${i}`).value.trim();
+      teamNames.push(name); // ✅ This ensures teamNames gets filled properly
       const grid = document.querySelectorAll(".player-grid")[i];
       const selected = Array.from(grid.children)
       .filter(b => b.classList.contains("selected"))
@@ -405,7 +406,7 @@
     // Then continue to game
     sessionStorage.setItem("gameId", gameId);
     sessionStorage.setItem("teamNames", JSON.stringify(teamNames));
-    sessionStorage.setItem("teamPlayers", JSON.stringify(teamPlayers));
+    sessionStorage.setItem("teamPlayers", JSON.stringify(teamPlayers)); // this one must match teamNames.length
     sessionStorage.setItem("duration", duration);
     window.location.href = "track-match.html";
 }
