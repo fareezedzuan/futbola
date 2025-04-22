@@ -304,8 +304,9 @@
         activePlayers.forEach(player => {
           const box = document.createElement("div");
           box.className = "player-box";
-          box.dataset.name = player.name;
+          box.dataset.name = player.name || player;
           box.dataset.jersey = player.jersey || "";
+          box.textContent = `${player.jersey ? `🎽 ${player.jersey} ` : ''}${typeof player === 'string' ? player : player.name}`.slice(0, 15);
 
           box.innerHTML = `
             <div>${player.name.slice(0, 15)}</div>
@@ -377,8 +378,11 @@
       const grid = document.querySelectorAll(".player-grid")[i];
       const selected = Array.from(grid.children)
         .filter(b => b.classList.contains("selected"))
-        .map(b => b.dataset.name);
-      teamNames.push(name);
+        .map(b => {
+          const name = b.dataset.name;
+          const jersey = b.dataset.jersey ? parseInt(b.dataset.jersey) : null;
+          return { name, jersey };
+        });
       teamPlayers.push(selected);
     }
 
