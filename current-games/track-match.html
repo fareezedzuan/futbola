@@ -263,7 +263,11 @@
 // You already have all this working beautifully – just stitch into this layout.
 const duration = parseInt(sessionStorage.getItem("duration")) || 7;
 const teamNames = JSON.parse(sessionStorage.getItem("teamNames") || "[]");
-const teamPlayers = JSON.parse(sessionStorage.getItem("teamPlayers") || "[]");
+const teamPlayersRaw = JSON.parse(sessionStorage.getItem("teamPlayers") || "[]");
+
+// Extract only names for backwards compatibility
+const teamPlayers = teamPlayersRaw.map(team => team.map(p => p.name));
+
 
 let matchNumber = 0;
 if (!teamNames || teamNames.length < 2) {
