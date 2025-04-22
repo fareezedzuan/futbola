@@ -289,7 +289,7 @@
       if (!teamCount || activePlayers.length === 0) return;
       for (let i = 0; i < teamCount; i++) {
         const label = document.createElement("label");
-        label.textContent = `Assign players to Team ${i + 1}:`;
+        label.textContent = `Assign players to Team ${String.fromCharCode(65 + i)}:`;
         const grid = document.createElement("div");
         grid.className = "player-grid";
         activePlayers.forEach(player => {
