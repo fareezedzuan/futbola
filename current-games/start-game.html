@@ -241,7 +241,7 @@
       const today = new Date();
       const sevenDaysLater = new Date();
       today.setHours(0, 0, 0, 0);
-      sevenDaysLater.setDate(today.getDate() + 7;
+      sevenDaysLater.setDate(today.getDate() + 7);
       sevenDaysLater.setHours(23, 59, 59, 999);
       data.games.forEach(game => {
         const gameDate = new Date(game.game_date + "T00:00:00");
