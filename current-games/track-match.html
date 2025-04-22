@@ -361,10 +361,10 @@ function triggerScorer(side) {
   document.getElementById("teamBCol").textContent = opponentTeam;
 
   document.getElementById("playersA").innerHTML = (teamPlayers[scoringIdx] || []).map(p =>
-    `<button onclick="addGoal('${scoringTeam}', '${p}', false)">${p}</button>`).join("");
+  `<button onclick="addGoal('${scoringTeam}', '${p.name}', false)">${p.name} ${p.jersey ? `( #${p.jersey} )` : ''}</button>`).join("");
 
   document.getElementById("playersB").innerHTML = (teamPlayers[opponentIdx] || []).map(p =>
-    `<button onclick="addGoal('${scoringTeam}', '${p}', true)">${p} (OG)</button>`).join("");
+  `<button onclick="addGoal('${scoringTeam}', '${p.name}', true)">${p.name} ${p.jersey ? `( #${p.jersey} )` : ''} (OG)</button>`).join("");
 
   document.getElementById("overlay").style.display = "block";
   document.getElementById("scorerPopup").style.display = "block";
