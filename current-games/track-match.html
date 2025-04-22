@@ -374,15 +374,15 @@ function triggerScorer(side) {
   document.getElementById("teamACol").textContent = scoringTeam;
   document.getElementById("teamBCol").textContent = opponentTeam;
 
-  document.getElementById("playersA").innerHTML = (teamPlayers[scoringIdx] || []).map(p =>
-  `<button onclick="addGoal('${scoringTeam}', '${typeof p === 'object' ? p.name : p}', false)">
-     ${typeof p === 'object' ? `${p.name} ${p.jersey ? `( #${p.jersey} )` : ''}` : p}
+  document.getElementById("playersA").innerHTML = (teamPlayersRaw[scoringIdx] || []).map(p =>
+  `<button onclick="addGoal('${scoringTeam}', '${p.name}', false)">
+     ${p.name}${p.jersey ? ` (#${p.jersey})` : ""}
    </button>`).join("");
 
-   document.getElementById("playersB").innerHTML = (teamPlayers[opponentIdx] || []).map(p =>
-  `<button onclick="addGoal('${scoringTeam}', '${typeof p === 'object' ? p.name : p}', true)">
-     ${typeof p === 'object' ? `${p.name} ${p.jersey ? `( #${p.jersey} )` : ''}` : p} (OG)
-   </button>`).join("");
+  document.getElementById("playersB").innerHTML = (teamPlayersRaw[opponentIdx] || []).map(p =>
+    `<button onclick="addGoal('${scoringTeam}', '${p.name}', true)">
+      ${p.name}${p.jersey ? ` (#${p.jersey})` : ""} (OG)
+    </button>`).join("");
 
   document.getElementById("overlay").style.display = "block";
   document.getElementById("scorerPopup").style.display = "block";
