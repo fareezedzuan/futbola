@@ -262,6 +262,8 @@ let currentGoals = [];
 let matchResults = [];
 let standings = {};
 let allGoals = [];
+let matchAlreadySaved = false;
+
 
 function generateRoundRobin(teams) {
   const rounds = [], t = [...teams];
@@ -331,6 +333,7 @@ function startNextMatch() {
   document.getElementById("teamAIcon").src = `./images/${teamA}.png`;
   document.getElementById("teamBIcon").src = `./images/${teamB}.png`;
   matchNumber++;
+  matchAlreadySaved = false;
 }
 
 function triggerScorer(side) {
@@ -394,6 +397,9 @@ function renderGoalLog() {
 }
 
 function saveCurrentMatch() {
+  if (matchAlreadySaved) return; // ✅ Prevent double save
+  matchAlreadySaved = true;
+
   const tA = document.getElementById("teamAName").textContent;
   const tB = document.getElementById("teamBName").textContent;
   const gA = parseInt(document.getElementById("scoreA").textContent);
