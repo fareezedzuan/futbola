@@ -386,15 +386,15 @@
 
     function removePlayer() {
       const name = document.getElementById("removePlayerSelect").value;
-      activePlayers = activePlayers.filter(p => p !== name);
+      activePlayers = activePlayers.filter(p => p.name !== name);
       updateRemoveDropdown();
       generatePlayerAssignment();
     }
 
     function addPlayer() {
       const name = document.getElementById("newPlayerName").value.trim();
-      if (name && !activePlayers.includes(name)) {
-        activePlayers.push(name);
+      if (name && !activePlayers.some(p => p.name === name)) {
+        activePlayers.push({ name: name, jersey: "" });
         updateRemoveDropdown();
         generatePlayerAssignment();
         document.getElementById("newPlayerName").value = "";
@@ -406,8 +406,8 @@
       sel.innerHTML = "";
       activePlayers.forEach(p => {
         const opt = document.createElement("option");
-        opt.value = p;
-        opt.textContent = p;
+        opt.value = p.name;
+        opt.textContent = p.name; // ✅ show name, not object
         sel.appendChild(opt);
       });
     }
