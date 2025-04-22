@@ -337,26 +337,47 @@
       document.getElementById("popup").style.display = "block";
     }
 
-    function startGame() {
-      const count = parseInt(document.getElementById("teamCount").value);
-      const gameId = document.getElementById("gameSelect").value;
-      const duration = parseInt(document.getElementById("duration").value);
-      const teamNames = [], teamPlayers = [];
+    async function startGame() {
+    const count = parseInt(document.getElementById("teamCount").value);
+    const gameId = document.getElementById("gameSelect").value;
+    const duration = parseInt(document.getElementById("duration").value);
+    const teamNames = [], teamPlayers = [];
 
-      for (let i = 0; i < count; i++) {
-        const name = document.getElementById(`team${i}`).value.trim();
-        const grid = document.querySelectorAll(".player-grid")[i];
-        const selected = Array.from(grid.children).filter(b => b.classList.contains("selected")).map(b => b.dataset.name);
-        teamNames.push(name);
-        teamPlayers.push(selected);
-      }
-
-      sessionStorage.setItem("gameId", gameId);
-      sessionStorage.setItem("teamNames", JSON.stringify(teamNames));
-      sessionStorage.setItem("teamPlayers", JSON.stringify(teamPlayers));
-      sessionStorage.setItem("duration", duration);
-      window.location.href = "track-match.html";
+    for (let i = 0; i < count; i++) {
+      const name = document.getElementById(`team${i}`).value.trim();
+      const grid = document.querySelectorAll(".player-grid")[i];
+      const selected = Array.from(grid.children)
+        .filter(b => b.classList.contains("selected"))
+        .map(b => b.dataset.name);
+      teamNames.push(name);
+      teamPlayers.push(selected);
     }
+
+    // ✅ Save all jersey numbers before starting game
+    await Promise.all(
+      activePlayers.map(p => {
+        if (p.jersey !== undefined && p.jersey !== "") {
+          return fetch('/api/update-booking', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              game_id: gameId,
+              name: p.name,
+              jersey_number: p.jersey
+            })
+          });
+        }
+      })
+    );
+
+    // Then continue to game
+    sessionStorage.setItem("gameId", gameId);
+    sessionStorage.setItem("teamNames", JSON.stringify(teamNames));
+    sessionStorage.setItem("teamPlayers", JSON.stringify(teamPlayers));
+    sessionStorage.setItem("duration", duration);
+    window.location.href = "track-match.html";
+}
+
 
     function toggleEditControls() {
       const el = document.getElementById("editControls");
