@@ -7,6 +7,16 @@
     <link rel="icon" href="./images/futbola-favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
     <script defer src="/_vercel/insights/script.js"></script>
+    <style>
+        .testimonyContainer {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      text-align: center;
+      border-top: 5px solid #ff5a5f;
+    }
+        </style>
 </head>
 <body class="font-sans bg-white text-black">
 
@@ -72,12 +82,12 @@
     style="background: url('./images/futsalCourtDrone.jpg') center/cover no-repeat;">
     <div class="max-w-3xl mx-auto px-6 rounded-lg py-10">
         <h1 class="text-5xl text-white font-bold p-2" style="text-shadow: 2px 2px 4px black;">
-            Play <span style="color:darkorange">Futsal</span>, Your Way
+            Enjoy <span style="color:darkorange">Futsal</span>, Your Way
         </h1>
-        <p class="text-lg mt-4 text-black font-bold" style="text-shadow: 2px 2px 4px gray;">
+        <p class="text-lg mt-4 text-black font-bold" style="text-shadow: 2px 2px 4px white;">
             Looking for games, players, or opponents?<br>
             Friendly, Competitive, Social — we’ve got you.<br>
-            futbola is your all-in-one futsal community platform.
+            <span style="color: red">futbola</span> is your all-in-one futsal community platform.
         </p>
         <div class="flex flex-col sm:flex-row justify-center gap-4 mt-6">
             <button onclick="location.href='https://www.futbola.my/render-upcoming'"
@@ -102,95 +112,124 @@
 
     <!-- Brand Section -->
     <section class="text-center py-16 px-8" style="background-image: url('./images/backgroundOrangeGradient.jpg');">
-        <h2 class="text-4xl font-bold text-black">The futbola way of kicking ball</h2>
-        <p class="mt-6 text-lg max-w-3xl mx-auto">
-        Life happens—graduation, moving cities, job change and family commitments—and suddenly, your "professional" footballer dream fades away. But who says you can't play anymore?
-        </p>
-        <p class="mt-4 text-lg max-w-3xl mx-auto">
-        At futbola, getting back on the pitch is effortless. With our hassle-free system, you just need to book a game nearby, show up, and kick ball with fellow footballers!
-        </p>
-        <p class="mt-6 text-xl font-semibold text-orange-500"><span style="color:black">Book. Kick. Repeat.</span></p>
+        <h2 class="text-4xl font-bold text-black">The <span style="color: red">futbola</span> way of kicking ball</h2>
+            <p class="mt-6 text-lg max-w-3xl mx-auto">
+                futbola isn’t just about a booking service — it’s about connecting the entire futsal community. Whether you play solo, lead a team, run tournaments, coach, or manage a court, we brings it all together under one roof.
+            </p>
+            <p class="mt-4 text-lg max-w-3xl mx-auto">
+            From casual kickabouts to serious tournaments, from booking systems to real-time match tools — we are your all-in-one platform for playing, organizing, and growing the game.
+            </p>
+            <p class="mt-6 text-xl font-bold bg-gradient-to-r from-purple-500 via-orange-500 to-pink-500 bg-clip-text text-transparent">
+                Connect. Compete. Celebrate.
+              </p>
     </section>
 
-    <!-- How It Works -->
-    <section id="how-it-works" class="py-16 bg-white text-center" >
-        <h2 class="text-4xl font-bold text-black">How it works</h2>
-        <div class="flex flex-col md:flex-row justify-center items-center mt-8 space-y-6 md:space-y-0 md:space-x-12">
-            <div class="text-center max-w-xs">
-                <img src="./images/selectDoodle.webp" class="mx-auto mb-4" alt="Calendar" />
-                <!--<p class="text-lg">1. Pick a Game</p> -->
-            </div>
-            <div class="text-center max-w-xs">
-                <img src="./images/bookDoodle.webp" class="mx-auto mb-4" alt="Player" />
-                <!--<p class="text-lg">2. Book Your Spot</p>-->
-            </div>
-            <div class="text-center max-w-xs">
-                <img src="./images/playDoodle.webp" class="mx-auto mb-4" alt="Stadium" />
-                <!--<p class="text-lg">3. Show Up & Play</p>-->
-            </div>
+    <!-- How It Works Section -->
+    <section id="how-it-works" class="py-16 bg-white text-center">
+        <h2 class="text-4xl font-bold text-black mb-10">How It Works</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8 px-10">
+          
+          <!-- Play a Game -->
+          <div class="bg-white p-6 rounded-lg shadow-md">
+            <div class="text-5xl mb-2">🕹️</div>
+            <h3 class="text-xl font-bold text-black">Join a Game</h3>
+            <p class="mt-2 text-gray-600">Solo or squad — book a spot and play nearby.</p>
+          </div>
+      
+          <!-- Host or Join Tournament -->
+          <div class="bg-white p-6 rounded-lg shadow-md">
+            <div class="text-5xl mb-2">🏆</div>
+            <h3 class="text-xl font-bold text-black">Compete in Tournaments</h3>
+            <p class="mt-2 text-gray-600">Join, host, and follow every match like a pro.</p>
+          </div>
+      
+          <!-- Manage Team -->
+          <div class="bg-white p-6 rounded-lg shadow-md">
+            <div class="text-5xl mb-2">👥</div>
+            <h3 class="text-xl font-bold text-black">Manage My Futbola</h3>
+            <p class="mt-2 text-gray-600">Handle team profiles, bookings, and stats.</p>
+          </div>
+      
+          <!-- Collaborate -->
+          <div class="bg-white p-6 rounded-lg shadow-md">
+            <div class="text-5xl mb-2">🤝</div>
+            <h3 class="text-xl font-bold text-black">Collaborate With Us</h3>
+            <p class="mt-2 text-gray-600">Venue? League? Coach? Let’s grow together.</p>
+          </div>
+      
         </div>
-    </section>
+      </section>
+      
 
-    <!-- Testimonials -->
-    <section id="testimonials" class="py-16 text-center bg-white" >
-        <h2 class="text-4xl font-bold text-black">What players say</h2>
-        <div class="flex justify-center items-center mt-8 space-x-6">
-            <div class="bg-yellow-200 p-6 rounded-lg shadow-lg max-w-xs">
-                <img src="./images/blueLock.jfif" class="mx-auto rounded-full" alt="User" />
-                <p class="mt-4 italic">"Great platform to find and play football whenever I want!"</p>
-                <p class="mt-2 font-semibold">- Mr F</p>
-            </div>
-            <div class="bg-yellow-200 p-6 rounded-lg shadow-lg max-w-xs">
-                <img src="./images/Totoro.jpg" class="mx-auto rounded-full" alt="User" />
-                <p class="mt-4 italic">"Easy booking and fun games every time!"</p>
-                <p class="mt-2 font-semibold">- Mr H</p>
-            </div>
-            <div class="bg-yellow-200 p-6 rounded-lg shadow-lg max-w-xs">
-                <img src="./images/face.webp" class="mx-auto rounded-full" alt="User" />
-                <p class="mt-4 italic">"Met amazing footballers through futbola!"</p>
-                <p class="mt-2 font-semibold">- Bro Z</p>
-            </div>
-        </div>
-    </section>
+<!-- Testimonials Section Styled Like Login Boxes -->
+<section id="testimonials" style="background-image: url('./images/backgroundOrangeGradient.jpg');" class="py-16 text-center flex flex-col items-center">
+    <h2 class="text-3xl font-bold text-[#702963] mb-10">What players say</h2>
+  
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-6 max-w-6xl">
+  
+      <!-- Testimonial 1 -->
+      <div class="testimonyContainer">
+        <img src="./images/beko.png" class="mx-auto w-24 h-24 object-cover rounded-full" alt="User" />
+        <p class="mt-4 italic">"Same like Kojin Sanka concept in Japan. No need to find player, just book, come, play and pay."</p>
+        <p class="mt-4 font-semibold text-gray-800">– Sir Hazmi –</p>
+      </div>
+  
+      <!-- Testimonial 2 -->
+      <div class="testimonyContainer">
+        <img src="./images/mansoor.jpg" class="mx-auto w-24 h-24 object-cover rounded-full" alt="User" />
+        <p class="mt-4 italic">"I bring my friends from Uni and played with different people in mixed team. Competitive yet fun!"</p>
+        <p class="mt-4 font-semibold text-gray-800">– Bro Mansoor –</p>
+      </div>
+  
+      <!-- Testimonial 3 -->
+      <div class="testimonyContainer">
+        <img src="./images/aiman.png" class="mx-auto w-24 h-24 object-cover rounded-full" alt="User" />
+        <p class="mt-4 italic">"Lama tak main futsal sebab takde opponent. Boleh improve team dan maintain fitness."</p>
+        <p class="mt-4 font-semibold text-gray-800">– Team Aiman –</p>
+      </div>
+  
+    </div>
+  </section>
+  
 
 <!-- Selected Venues -->
 <section id="selected-venues" class="py-16 bg-white text-center">
     <h2 class="text-4xl font-bold text-black">Selected Venues</h2>
     <p class="text-lg text-gray-600 mt-2 mb-10">Our trusted futsal locations, powered by futbola</p>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-10 place-items-center">
-        <!-- Venue Card: Bangi Uptown Sports -->
-        <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-sm border border-gray-200">
-            <h3 class="text-xl font-semibold text-black mb-2">Uptown Sports Bangi</br>Running Weekly</h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-10 items-stretch">
+        <!-- Venue Card -->
+        <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-sm border border-gray-200 flex flex-col justify-between h-full">
+          <div>
+            <h3 class="text-xl font-semibold text-black mb-2">Uptown Sports Bangi</h3>
+            <p class="text-lg text-gray-600 mt-2 mb-10">Running Weekly</p>
             <img src="./images/bangi.jfif" class="mb-4 mx-auto object-cover w-[225px] h-[150px] rounded-md" alt="Uptown Bangi" />
-            <p class="text-sm text-gray-600">📍 Seksyen 1, Bandar Baru Bangi</p>
-            <p class="text-sm text-gray-600 mt-1">⏰ Open daily</p>
-            <!--<button class="mt-4 bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500 text-white px-6 py-2 rounded-lg font-semibold hover:scale-105 transition">
-                Book With futbola
-            </button>-->
+          </div>
+          <p class="text-sm text-gray-600 mt-auto">📍 Seksyen 1, Bandar Baru Bangi</p>
         </div>
-
-        <!-- Future cards can go here -->
-        <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-sm border border-gray-200">
-            <h3 class="text-xl font-semibold text-black mb-2">Kompleks Futsal Presint 18</br>Coming Soon</h3>
-            <img src="./images/P18.jpg" class="mb-4 mx-auto object-cover w-[225px] h-[150px] rounded-md" alt="Uptown Bangi" />
-            <p class="text-sm text-gray-600">📍 Presint 18, WP Putrajaya</p>
-            <p class="text-sm text-gray-600 mt-1">⏰ Open daily</p>
-            <!--<button class="mt-4 bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500 text-white px-6 py-2 rounded-lg font-semibold hover:scale-105 transition">
-                Book With futbola
-            </button>-->
+      
+        <!-- Card 2 -->
+        <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-sm border border-gray-200 flex flex-col justify-between h-full">
+          <div>
+            <h3 class="text-xl font-semibold text-black mb-2">Kompleks Futsal Presint 18</h3>
+            <p class="text-lg text-gray-600 mt-2 mb-10">Coming Soon</p>
+            <img src="./images/P18.jpg" class="mb-4 mx-auto object-cover w-[225px] h-[150px] rounded-md" alt="P18" />
+          </div>
+          <p class="text-sm text-gray-600 mt-auto">📍 Presint 18, WP Putrajaya</p>
         </div>
-
-        <!-- Future cards can go here -->
-        <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-sm border border-gray-200">
-            <h3 class="text-xl font-semibold text-black mb-2">TSI Sports Arena Cyberjaya</br>Coming Soon</h3>
-            <img src="./images/TSI.jfif" class="mb-4 mx-auto object-cover w-[225px] h-[150px] rounded-md" alt="Uptown Bangi" />
-            <p class="text-sm text-gray-600">📍 Cyber 6, Cyberjaya</p>
-            <p class="text-sm text-gray-600 mt-1">⏰ Open daily</p>
-            <!--<button class="mt-4 bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500 text-white px-6 py-2 rounded-lg font-semibold hover:scale-105 transition">
-                Book With futbola
-            </button>-->
+      
+        <!-- Card 3 -->
+        <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-sm border border-gray-200 flex flex-col justify-between h-full">
+          <div>
+            <h3 class="text-xl font-semibold text-black mb-2">TSI Sports Arena Cyberjaya</h3>
+            <p class="text-lg text-gray-600 mt-2 mb-10">Coming Soon</p>
+            <img src="./images/TSI.jfif" class="mb-4 mx-auto object-cover w-[225px] h-[150px] rounded-md" alt="TSI Cyberjaya" />
+          </div>
+          <p class="text-sm text-gray-600 mt-auto">📍 Cyber 6, Cyberjaya</p>
         </div>
+      </div>
+      
     </div>
 
     <!-- CTA for venue partnership -->
