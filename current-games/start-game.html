@@ -314,14 +314,19 @@ box.dataset.jersey = player.jersey || "";
       const count = parseInt(document.getElementById("teamCount").value);
       const shuffled = [...activePlayers].sort(() => Math.random() - 0.5);
       const teams = Array.from({ length: count }, () => []);
+
       shuffled.forEach((p, i) => teams[i % count].push(p));
+
       const grids = document.querySelectorAll(".player-grid");
       grids.forEach((grid, i) => {
         Array.from(grid.children).forEach(box => {
-          box.classList.toggle("selected", teams[i].includes(box.dataset.name));
+          const playerName = box.dataset.name;
+          const match = teams[i].find(p => p.name === playerName);
+          box.classList.toggle("selected", !!match);
         });
       });
     }
+
 
     function confirmStartGame() {
       const count = parseInt(document.getElementById("teamCount").value);
