@@ -396,6 +396,18 @@ function renderGoalLog() {
     .map(([p, times]) => `<div class='goal-line'>${p} ${times.join(", ")}</div>`).join("");
 }
 
+function updateLiveScoreboard() {
+  const teamA = document.getElementById("teamAName").textContent;
+  const teamB = document.getElementById("teamBName").textContent;
+
+  const scoreA = currentGoals.filter(g => g.team === teamA).length;
+  const scoreB = currentGoals.filter(g => g.team === teamB).length;
+
+  document.getElementById("scoreA").textContent = scoreA;
+  document.getElementById("scoreB").textContent = scoreB;
+}
+
+
 function saveCurrentMatch() {
   if (matchAlreadySaved) return; // ✅ Prevent double save
   matchAlreadySaved = true;
@@ -524,9 +536,11 @@ function deleteGoal(index) {
   if (confirm("Delete this goal?")) {
     currentGoals.splice(index, 1);
     renderGoalLog();
+    updateLiveScoreboard(); // ✅ Add this
     openEditGoals(); // Refresh popup
   }
 }
+
 
 function editGoal(index) {
   const newPlayer = prompt("Enter new player name:", currentGoals[index].player);
@@ -539,6 +553,7 @@ function editGoal(index) {
   currentGoals[index].time = newTime;
 
   renderGoalLog();
+  updateLiveScoreboard(); // ✅ Add this
   openEditGoals(); // Refresh popup
 }
 
