@@ -376,10 +376,13 @@
       const name = document.getElementById(`team${i}`).value.trim();
       const grid = document.querySelectorAll(".player-grid")[i];
       const selected = Array.from(grid.children)
-        .filter(b => b.classList.contains("selected"))
-        .map(b => b.dataset.name);
-      teamNames.push(name);
-      teamPlayers.push(selected);
+      .filter(b => b.classList.contains("selected"))
+      .map(b => {
+        const name = b.dataset.name;
+        const jersey = b.dataset.jersey ? parseInt(b.dataset.jersey) : null;
+        return { name, jersey };
+      });
+    teamPlayers.push(selected);
     }
 
     // ✅ Save all jersey numbers before starting game
