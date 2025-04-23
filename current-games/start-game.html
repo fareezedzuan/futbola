@@ -324,8 +324,9 @@
           box.innerHTML = `
             <div>${player.name.slice(0, 15)}</div>
             <div class="text-xs mt-1">🎽 ${player.jersey || '--'}</div>
-            <button class="text-blue-500 underline text-xs mt-1" onclick="event.stopPropagation(); openJerseyModal('${player.name}')">Set</button>
+            <button class="text-blue-500 underline text-xs mt-1" onclick="event.stopPropagation(); openJerseyPopup(${i}, ${activePlayers.indexOf(player)})">Set</button>
           `;
+          
 
           // ✅ Re-apply selection
           if (previousSelections[i] && previousSelections[i].includes(player.name)) {
