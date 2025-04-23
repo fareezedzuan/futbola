@@ -210,6 +210,16 @@
   </div>
 </div>
 
+<div class="overlay" id="confirmOverlay" onclick="cancelScorerConfirm()"></div>
+<div class="scorer-popup" id="confirmScorerPopup">
+  <div class="close-popup" onclick="cancelScorerConfirm()">×</div>
+  <h4 id="confirmScorerText">Confirm goal by:</h4>
+  <div style="text-align: center; margin-top: 10px;">
+    <button class="btn-primary" onclick="confirmScorerAdd()">✅ Confirm</button>
+    <button class="btn-primary" onclick="cancelScorerConfirm()">❌ Cancel</button>
+  </div>
+</div>
+
 <div class="container">
   <audio id="alarmSound" src="./audio/timer-alarm.mp3" preload="auto"></audio>
 
@@ -300,6 +310,10 @@ let matchResults = [];
 let standings = {};
 let allGoals = [];
 let matchAlreadySaved = false;
+let pendingScorer = null;
+let pendingTeam = null;
+let pendingIsOG = false;
+
 
 
 function generateRoundRobin(teams) {
@@ -404,14 +418,17 @@ function triggerScorer(side) {
   document.getElementById("teamBCol").textContent = opponentTeam;
 
   document.getElementById("playersA").innerHTML = (teamPlayersRaw[scoringIdx] || []).map(p =>
-  `<button onclick="addGoal('${scoringTeam}', '${p.name}', false)">
+  `<button onclick="promptScorerConfirm('${scoringTeam}', '${p.name}', false)">
      ${p.name}${p.jersey ? ` (#${p.jersey})` : ""}
-   </button>`).join("");
+   </button>`
+).join("");
 
-  document.getElementById("playersB").innerHTML = (teamPlayersRaw[opponentIdx] || []).map(p =>
-    `<button onclick="addGoal('${scoringTeam}', '${p.name}', true)">
-      ${p.name}${p.jersey ? ` (#${p.jersey})` : ""} (OG)
-    </button>`).join("");
+document.getElementById("playersB").innerHTML = (teamPlayersRaw[opponentIdx] || []).map(p =>
+  `<button onclick="promptScorerConfirm('${scoringTeam}', '${p.name}', true)">
+     ${p.name}${p.jersey ? ` (#${p.jersey})` : ""} (OG)
+   </button>`
+).join("");
+
 
   document.getElementById("overlay").style.display = "block";
   document.getElementById("scorerPopup").style.display = "block";
@@ -614,6 +631,30 @@ function editGoal(index) {
   openEditGoals(); // Refresh popup
 }
 
+function promptScorerConfirm(team, player, isOG) {
+  pendingScorer = player;
+  pendingTeam = team;
+  pendingIsOG = isOG;
+
+  document.getElementById("confirmScorerText").textContent = 
+    `Confirm goal by: ${player}${isOG ? " (OG)" : ""}?`;
+
+  document.getElementById("confirmOverlay").style.display = "block";
+  document.getElementById("confirmScorerPopup").style.display = "block";
+}
+
+function confirmScorerAdd() {
+  addGoal(pendingTeam, pendingScorer, pendingIsOG);
+  cancelScorerConfirm();
+}
+
+function cancelScorerConfirm() {
+  document.getElementById("confirmOverlay").style.display = "none";
+  document.getElementById("confirmScorerPopup").style.display = "none";
+  pendingScorer = null;
+  pendingTeam = null;
+  pendingIsOG = false;
+}
 
 updateTimerDisplay();
 startNextMatch();
