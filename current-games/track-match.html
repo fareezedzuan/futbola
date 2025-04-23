@@ -361,6 +361,32 @@
       color: #000;
     }
 
+    #roundPopup {
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      position: fixed;
+      display: none;
+      background-color: white;
+      padding: 30px;
+      border-radius: 10px;
+      border: 2px solid #ff5a5f;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+      z-index: 200;
+      text-align: center;
+      max-width: 90%;
+      width: 400px;
+    }
+
+    #roundOverlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.4);
+      z-index: 199;
+      display: none;
+    }
   </style>
 </head>
 <body>
@@ -561,13 +587,10 @@ function resetTimer() {
 
 function startNextMatch() {
   if (matchNumber > 0) saveCurrentMatch();
-
   const matchesPerRound = baseMatchups.length;
   if (matchNumber >= matchups.length) {
-    // All scheduled matches done
     if (currentRound < totalRounds) {
-      // Not final round yet
-      document.getElementById("roundPopup").style.display = "block";
+      showRoundPopup();
     } else {
       alert("All matches done!");
     }
@@ -942,11 +965,28 @@ function endGameNow() {
   // Let user stay on screen and export WhatsApp results manually
 }
 
+function closeRoundPopup() {
+  document.getElementById("roundPopup").style.display = "none";
+  document.getElementById("roundOverlay").style.display = "none";
+}
+
+function showRoundPopup() {
+  document.getElementById("roundPopup").style.display = "block";
+  document.getElementById("roundOverlay").style.display = "block";
+}
 
 updateTimerDisplay();
 startNextMatch();
 </script>
+
 <audio id="alarmSound" src="./sounds/timer-alarm.mp3" preload="auto"></audio>
+<div id="roundOverlay" onclick="closeRoundPopup()"></div>
+<div id="roundPopup">
+  <h3>🎯 Round 1 Completed</h3>
+  <p>Do you want to continue to Round 2?</p>
+  <button class="btn-primary" onclick="startNextRound()">✅ Continue to Round 2</button>
+  <button class="btn-primary" onclick="endGameNow()">❌ End Game Now</button>
+</div>
 
 </body>
 </html>
