@@ -589,6 +589,7 @@ function startNextMatch() {
   document.getElementById("teamBIcon").src = `./images/${teamB}.png`;
   matchNumber++;
   matchAlreadySaved = false;
+  checkRoundCompletion();
 }
 
 function triggerScorer(side) {
