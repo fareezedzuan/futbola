@@ -195,7 +195,7 @@
       font-size: 18px;
       font-weight: bold;
     }
-    
+
     .match-card {
       display: flex;
       align-items: center;
@@ -232,6 +232,46 @@
       border-radius: 6px;
       min-width: 64px;
       text-align: center;
+    }
+    .match-result-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: white;
+      border-radius: 10px;
+      padding: 12px 16px;
+      margin: 10px 0;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .team-side {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: bold;
+      color: #702963;
+      font-size: 16px;
+    }
+
+    .team-side.right {
+      justify-content: flex-end;
+    }
+
+    .match-score {
+      font-size: 20px;
+      font-weight: bold;
+      background-color: #702963;
+      color: white;
+      padding: 6px 16px;
+      border-radius: 8px;
+      text-align: center;
+      min-width: 70px;
+    }
+
+    .team-logo {
+      width: 28px;
+      height: 28px;
+      object-fit: contain;
     }
 
   </style>
@@ -299,7 +339,7 @@
   <div class="section">
     <h3>Match Results</h3>
     <div id="matchHistory"></div>
-  </div>
+  </div>  
 
   <div class="section">
     <h3>Top Scorers</h3>
@@ -538,35 +578,21 @@ function saveCurrentMatch() {
 
 function updateMatchHistory() {
   const container = document.getElementById("matchHistory");
-  container.innerHTML = "";
-
-  matchResults.forEach(result => {
-    const card = document.createElement("div");
-    card.className = "match-card";
-
-    const teamA = document.createElement("div");
-    teamA.className = "team";
-    teamA.innerHTML = `
-      <img src="./images/${result.tA}.png" alt="${result.tA}" />
-      <span>${result.tA}</span>
+  container.innerHTML = matchResults.map(r => {
+    return `
+      <div class="match-result-row">
+        <div class="team-side left">
+          <span class="team-name">${r.tA}</span>
+          <img class="team-logo" src="./images/${r.tA}.png" alt="${r.tA}" />
+        </div>
+        <div class="match-score">${r.gA} - ${r.gB}</div>
+        <div class="team-side right">
+          <img class="team-logo" src="./images/${r.tB}.png" alt="${r.tB}" />
+          <span class="team-name">${r.tB}</span>
+        </div>
+      </div>
     `;
-
-    const score = document.createElement("div");
-    score.className = "score-box";
-    score.textContent = `${result.gA} - ${result.gB}`;
-
-    const teamB = document.createElement("div");
-    teamB.className = "team";
-    teamB.innerHTML = `
-      <img src="./images/${result.tB}.png" alt="${result.tB}" />
-      <span>${result.tB}</span>
-    `;
-
-    card.appendChild(teamA);
-    card.appendChild(score);
-    card.appendChild(teamB);
-    container.appendChild(card);
-  });
+  }).join('');
 }
 
 
