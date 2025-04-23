@@ -246,30 +246,6 @@
     let currentPlayerIndex = null;
     let currentTeamIndex = null;
 
-    // function openJerseyModal(name) {
-    //   selectedPlayerName = name;
-    //   document.getElementById("jerseyModalTitle").textContent = `Set Jersey for ${name}`;
-    //   document.getElementById("jerseyInput").value = "";
-    //   document.getElementById("jerseyModal").style.display = "block";
-    // }
-
-    // function closeJerseyModal() {
-    //   selectedPlayerName = "";
-    //   document.getElementById("jerseyModal").style.display = "none";
-    // }
-
-    // function saveJersey() {
-    //   const jersey = parseInt(document.getElementById("jerseyInput").value);
-    //   if (!selectedPlayerName || isNaN(jersey)) return alert("Invalid input");
-
-      // Update jersey number locally
-      const player = activePlayers.find(p => p.name === selectedPlayerName);
-      if (player) player.jersey = jersey;
-
-      closeJerseyModal();
-      generatePlayerAssignment(); // Show updated jersey number
-    }
-
     async function fetchGames() {
       const res = await fetch("/api/get-upcoming-games");
       const data = await res.json();
