@@ -930,14 +930,6 @@ function endGameNow() {
   // Let user stay on screen and export WhatsApp results manually
 }
 
-// ✅ Patch into existing next match flow
-function startNextMatch() {
-  if (matchNumber > 0) saveCurrentMatch();
-  if (matchNumber >= matchups.length) return checkRoundCompletion();
-  // ... existing logic ...
-  matchNumber++;
-  matchAlreadySaved = false;
-}
 
 updateTimerDisplay();
 startNextMatch();
