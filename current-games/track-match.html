@@ -317,6 +317,49 @@
       text-align: right;
     }
 
+    #standingsTable table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      background: #fff;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    #standingsTable th {
+      background: #f4f4f4;
+      font-size: 14px;
+      color: #333;
+      text-align: left;
+      padding: 8px;
+    }
+
+    #standingsTable td {
+      padding: 8px;
+      font-size: 14px;
+      text-align: center;
+      border-bottom: 1px solid #eee;
+    }
+
+    #standingsTable .club {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-align: left;
+      font-weight: bold;
+      color: #702963;
+    }
+
+    .club-logo {
+      width: 24px;
+      height: 24px;
+      object-fit: contain;
+    }
+
+    #standingsTable .points {
+      font-weight: bold;
+      color: #000;
+    }
 
   </style>
 </head>
@@ -676,22 +719,61 @@ function updateLeaderboard() {
 
 function updateStandings(tA, tB, gA, gB) {
   const stats = name => standings[name] ||= { MP: 0, W: 0, D: 0, L: 0, Pts: 0, GF: 0, GA: 0 };
+
   stats(tA).MP++; stats(tB).MP++;
   stats(tA).GF += gA; stats(tA).GA += gB;
   stats(tB).GF += gB; stats(tB).GA += gA;
+
   if (gA > gB) { stats(tA).W++; stats(tB).L++; stats(tA).Pts += 3; }
   else if (gB > gA) { stats(tB).W++; stats(tA).L++; stats(tB).Pts += 3; }
   else { stats(tA).D++; stats(tB).D++; stats(tA).Pts += 1; stats(tB).Pts += 1; }
 
-  const rows = Object.entries(standings).map(([team, s]) => ({ team, ...s, GD: s.GF - s.GA }))
-    .sort((a, b) => b.Pts - a.Pts || b.GD - a.GD || b.GF - a.GF);
+  const rows = Object.entries(standings).map(([team, s]) => ({
+    team, ...s, GD: s.GF - s.GA
+  })).sort((a, b) =>
+    b.Pts - a.Pts || b.GD - a.GD || b.GF - a.GF
+  );
 
-  document.getElementById("standingsTable").innerHTML = `
+  const tableHTML = `
     <table>
-      <tr><th>Team</th><th>MP</th><th>W</th><th>D</th><th>L</th><th>Pts</th><th>GF</th><th>GA</th><th>GD</th></tr>
-      ${rows.map(r => `<tr><td>${r.team}</td><td>${r.MP}</td><td>${r.W}</td><td>${r.D}</td><td>${r.L}</td><td>${r.Pts}</td><td>${r.GF}</td><td>${r.GA}</td><td>${r.GD}</td></tr>`).join("")}
-    </table>`;
+      <thead>
+        <tr>
+          <th>Position</th>
+          <th>Club</th>
+          <th>Played</th>
+          <th>W</th>
+          <th>D</th>
+          <th>L</th>
+          <th>GF</th>
+          <th>GA</th>
+          <th>GD</th>
+          <th>Points</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rows.map((r, i) => `
+          <tr>
+            <td class="pos">${i + 1}</td>
+            <td class="club">
+              <img src="./images/${r.team}.png" class="club-logo" />
+              <span>${r.team}</span>
+            </td>
+            <td>${r.MP}</td>
+            <td>${r.W}</td>
+            <td>${r.D}</td>
+            <td>${r.L}</td>
+            <td>${r.GF}</td>
+            <td>${r.GA}</td>
+            <td>${r.GD}</td>
+            <td class="points">${r.Pts}</td>
+          </tr>`).join("")}
+      </tbody>
+    </table>
+  `;
+
+  document.getElementById("standingsTable").innerHTML = tableHTML;
 }
+
 
 function exportSummary() {
   saveCurrentMatch();
