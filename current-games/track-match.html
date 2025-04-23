@@ -446,6 +446,16 @@
   <div id="editGoalsList"></div>
 </div>
 
+<!-- Add this popup HTML near the end of track-match.html -->
+<div id="roundPopup" class="popup" style="display:none; z-index: 300;">
+  <h3>Round 1 Completed</h3>
+  <p style="text-align:center;">Do you want to continue to Round 2?</p>
+  <div class="popup-footer">
+    <button onclick="startNextRound()">✅ Continue to Round 2</button>
+    <button onclick="endGameNow()">❌ End Game Now</button>
+  </div>
+</div>
+
 <script>
 // Paste your existing JS logic here from the MVP version (match tracking, popup, standings, export, etc.)
 // You already have all this working beautifully – just stitch into this layout.
@@ -478,8 +488,10 @@ let matchAlreadySaved = false;
 let pendingScorer = null;
 let pendingTeam = null;
 let pendingIsOG = false;
-
-
+let totalRounds = parseInt(sessionStorage.getItem("rounds")) || 1;
+let currentRound = 1;
+let baseMatchups = generateRoundRobin(teamNames); // keep base round
+let matchups = [...baseMatchups];
 
 function generateRoundRobin(teams) {
   const rounds = [], t = [...teams];
@@ -896,6 +908,35 @@ function cancelScorerConfirm() {
   pendingScorer = null;
   pendingTeam = null;
   pendingIsOG = false;
+}
+
+function checkRoundCompletion() {
+  const matchesPerRound = baseMatchups.length;
+  if (matchNumber === currentRound * matchesPerRound && currentRound < totalRounds) {
+    document.getElementById("roundPopup").style.display = "block";
+  }
+}
+
+function startNextRound() {
+  currentRound++;
+  const newRound = generateRoundRobin(teamNames);
+  matchups = matchups.concat(newRound);
+  document.getElementById("roundPopup").style.display = "none";
+  startNextMatch();
+}
+
+function endGameNow() {
+  document.getElementById("roundPopup").style.display = "none";
+  // Let user stay on screen and export WhatsApp results manually
+}
+
+// ✅ Patch into existing next match flow
+function startNextMatch() {
+  if (matchNumber > 0) saveCurrentMatch();
+  if (matchNumber >= matchups.length) return checkRoundCompletion();
+  // ... existing logic ...
+  matchNumber++;
+  matchAlreadySaved = false;
 }
 
 updateTimerDisplay();
