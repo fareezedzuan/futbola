@@ -657,6 +657,9 @@ function updateLeaderboard() {
     // ✅ Sanitize for file path
     const teamFile = team.toLowerCase().replace(/ /g, "-");
 
+    console.log(`${name} → team: ${team}, file: ${teamFile}`);//debug purpose
+
+
     return `
       <div class="scorer-row">
         <div class="scorer-pos">${index + 1}</div>
