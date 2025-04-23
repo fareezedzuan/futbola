@@ -276,6 +276,47 @@
       height: 28px;
       object-fit: contain;
     }
+    
+    .scorer-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #eee;
+      padding: 8px 12px;
+      font-size: 16px;
+    }
+
+    .scorer-pos {
+      width: 30px;
+      font-weight: bold;
+      color: #702963;
+      text-align: center;
+    }
+
+    .scorer-player {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-grow: 1;
+    }
+
+    .scorer-player strong {
+      font-weight: 600;
+    }
+
+    .scorer-logo {
+      height: 24px;
+      width: 24px;
+      object-fit: contain;
+    }
+
+    .scorer-goals {
+      font-weight: bold;
+      color: #702963;
+      min-width: 30px;
+      text-align: right;
+    }
+
 
   </style>
 </head>
@@ -346,7 +387,7 @@
 
   <div class="section">
     <h3>Top Scorers</h3>
-    <div id="topScorersList"></div>
+    <div id="topScorersList" class="scorer-list"></div>
   </div>
 
   <div class="section">
