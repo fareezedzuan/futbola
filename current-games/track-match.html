@@ -642,6 +642,7 @@ function updateMatchHistory() {
 
 function updateLeaderboard() {
   const tally = {};
+  const teamFile = team.toLowerCase().replace(/ /g, "-"); // e.g., "Team A" -> "team-a"
   allGoals.forEach(g => {
     if (!g.isOG) tally[g.player] = (tally[g.player] || 0) + 1;
   });
@@ -656,15 +657,16 @@ function updateLeaderboard() {
     const team = player.team || "default"; // fallback to 'default.png' if missing
 
     return `
-      <div class="scorer-row">
-        <div class="scorer-pos">${index + 1}</div>
-        <div class="scorer-player">
-          <strong>${name}</strong>
-          <img class="scorer-logo" src="./images/${team}.png" alt="${team}" />
-        </div>
-        <div class="scorer-goals">${count}</div>
-      </div>
-    `;
+  <div class="scorer-row">
+    <div class="scorer-pos">${index + 1}</div>
+    <div class="scorer-player">
+      <strong>${name}</strong>
+      <img class="scorer-logo" src="./images/${team.toLowerCase().replace(/ /g, "-")}.png" alt="${team}" />
+    </div>
+    <div class="scorer-goals">${count}</div>
+  </div>
+`;
+
   }).join("");
 }
 
