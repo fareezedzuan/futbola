@@ -206,6 +206,14 @@
       </div>
     </div>
 
+    <label for="roundsInput" style="font-weight:bold;">Number of Rounds:</label>
+    <select id="roundsInput" style="margin-left:10px;">
+      <option value="1" selected>1</option>
+      <option value="2">2</option>
+      <option value="3">3</option>
+      <option value="4">4</option>
+    </select>    
+
     <div id="playerAssignment"></div>
     <button onclick="confirmStartGame()">Start Game</button>
   </div>
@@ -429,6 +437,9 @@
 
 
     sessionStorage.setItem("duration", duration);
+    const rounds = parseInt(document.getElementById("roundsInput").value);
+    sessionStorage.setItem("rounds", rounds);
+
     window.location.href = "track-match.html";
 }
 
