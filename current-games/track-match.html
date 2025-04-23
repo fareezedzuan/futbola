@@ -19,14 +19,13 @@
       margin: auto;
       padding: 20px;
     }
-    
+
     .main-display {
     display: flex;
     flex-direction: column;
-    align-items: center;
     background: white;
     padding: 20px;
-    height: 400px;
+    height: 440px;
   }
 
   .match-header {
@@ -35,6 +34,13 @@
     text-align: center;
     color: #702963;
     margin-bottom: 10px;
+    width: 100%;
+  }
+
+  .row-display {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     width: 100%;
   }
 
@@ -206,24 +212,33 @@
 
 <div class="container">
   <audio id="alarmSound" src="./audio/timer-alarm.mp3" preload="auto"></audio>
+
   <div class="main-display">
+    <!-- Match Title should be outside of row for top alignment -->
     <div class="match-header" id="matchTitle">Match 1</div>
-    <div class="team-block" onclick="triggerScorer('A')">
-      <img id="teamAIcon" src="./images/default.png" />
-      <span id="teamAName">Team A</span>
-      <div class="score-number" id="scoreA">0</div>
-      <div class="goal-log" id="goalLogA"></div>
-    </div>
-    <div class="timer-block">
-      <div class="center-timer" id="timer">00:00</div>
-    </div>
-    <div class="team-block" onclick="triggerScorer('B')">
-      <img id="teamBIcon" src="./images/default.png" />
-      <span id="teamBName">Team B</span>
-      <div class="score-number" id="scoreB">0</div>
-      <div class="goal-log" id="goalLogB"></div>
+
+    <div class="row-display">
+      <div class="team-block" onclick="triggerScorer('A')">
+        <img id="teamAIcon" src="./images/default.png" />
+        <span id="teamAName">Team A</span>
+        <div class="score-number" id="scoreA">0</div>
+        <div class="goal-log" id="goalLogA"></div>
+      </div>
+
+      <div class="timer-block">
+        <div class="center-timer" id="timer">00:00</div>
+      </div>
+
+      <div class="team-block" onclick="triggerScorer('B')">
+        <img id="teamBIcon" src="./images/default.png" />
+        <span id="teamBName">Team B</span>
+        <div class="score-number" id="scoreB">0</div>
+        <div class="goal-log" id="goalLogB"></div>
+      </div>
     </div>
   </div>
+</div>
+
 
   <div class="btn-row">
     <button class="btn-primary" id="timerBtn" onclick="handleTimerClick()">Start Timer</button>
