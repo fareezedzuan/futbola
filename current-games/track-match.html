@@ -276,7 +276,7 @@
       height: 28px;
       object-fit: contain;
     }
-    
+
     .scorer-row {
       display: flex;
       align-items: center;
@@ -645,9 +645,27 @@ function updateLeaderboard() {
   allGoals.forEach(g => {
     if (!g.isOG) tally[g.player] = (tally[g.player] || 0) + 1;
   });
+
   const sorted = Object.entries(tally).sort((a, b) => b[1] - a[1]);
-  document.getElementById("topScorersList").innerHTML =
-    sorted.map(([name, count]) => `<p>${name} – ${count}</p>`).join("");
+  const container = document.getElementById("topScorersList");
+
+  container.innerHTML = sorted.map(([name, count], index) => {
+    // Try to find the team from player data
+    const teamEntry = teamPlayersRaw.find(team => team.some(p => p.name === name)) || [];
+    const player = teamEntry.find(p => p.name === name) || {};
+    const team = player.team || "default"; // fallback to 'default.png' if missing
+
+    return `
+      <div class="scorer-row">
+        <div class="scorer-pos">${index + 1}</div>
+        <div class="scorer-player">
+          <strong>${name}</strong>
+          <img class="scorer-logo" src="./images/${team}.png" alt="${team}" />
+        </div>
+        <div class="scorer-goals">${count}</div>
+      </div>
+    `;
+  }).join("");
 }
 
 function updateStandings(tA, tB, gA, gB) {
