@@ -406,7 +406,13 @@
     // Then continue to game
     sessionStorage.setItem("gameId", gameId);
     sessionStorage.setItem("teamNames", JSON.stringify(teamNames));
-    sessionStorage.setItem("teamPlayers", JSON.stringify(teamPlayers)); // this one must match teamNames.length
+          // Attach team name to each player before storing
+      const enrichedPlayers = teamPlayers.map((players, i) =>
+        players.map(p => ({ ...p, team: teamNames[i] }))
+      );
+    sessionStorage.setItem("teamPlayers", JSON.stringify(enrichedPlayers));
+
+
     sessionStorage.setItem("duration", duration);
     window.location.href = "track-match.html";
 }
