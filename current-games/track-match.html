@@ -561,7 +561,19 @@ function resetTimer() {
 
 function startNextMatch() {
   if (matchNumber > 0) saveCurrentMatch();
-  if (matchNumber >= matchups.length) return alert("All matches done!");
+
+  const matchesPerRound = baseMatchups.length;
+  if (matchNumber >= matchups.length) {
+    // All scheduled matches done
+    if (currentRound < totalRounds) {
+      // Not final round yet
+      document.getElementById("roundPopup").style.display = "block";
+    } else {
+      alert("All matches done!");
+    }
+    return;
+  }
+
   resetTimer();
   currentGoals = [];
   document.getElementById("scoreA").textContent = "0";
