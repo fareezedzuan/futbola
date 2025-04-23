@@ -145,6 +145,24 @@
     background-color: #888;
   }
 
+  .jersey-popup {
+  display: none;
+  position: fixed;
+  top: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: white;
+  z-index: 200;
+  padding: 20px;
+  border-radius: 10px;
+  border: 2px solid #ff5a5f;
+  max-height: 70vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  width: 80%;
+  max-width: 600px;
+}
+
   </style>
 </head>
 <body>
@@ -204,7 +222,7 @@
 
   <!-- Jersey Number Popup -->
 <div id="jerseyOverlay" class="overlay" onclick="closeJerseyPopup()"></div>
-<div class="scorer-popup" id="jerseyPopup">
+<div class="jersey-popup" id="jerseyPopup">
   <div class="close-popup" onclick="closeJerseyPopup()">×</div>
   <h4>Select Jersey Number</h4>
   <div class="jersey-grid">
@@ -487,8 +505,8 @@
 
   function selectJersey(number) {
     if (currentPlayerIndex !== null && currentTeamIndex !== null) {
-      teamPlayersRaw[currentTeamIndex][currentPlayerIndex].jersey = number;
-      renderPlayerList(currentTeamIndex); // Assumes this re-renders the list with new jersey number
+      activePlayers[currentPlayerIndex].jersey = number;
+      generatePlayerAssignment(); // Rerender the player boxes
     }
     closeJerseyPopup();
   }
