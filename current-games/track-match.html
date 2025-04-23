@@ -196,6 +196,44 @@
       font-weight: bold;
     }
     
+    .match-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: white;
+      border-radius: 10px;
+      padding: 8px 16px;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    .team {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: bold;
+      font-size: 18px;
+      color: #702963;
+      flex: 1;
+    }
+
+    .team img {
+      height: 28px;
+      width: 28px;
+      object-fit: contain;
+    }
+
+    .score-box {
+      font-size: 20px;
+      font-weight: bold;
+      background: #702963;
+      color: white;
+      padding: 4px 12px;
+      border-radius: 6px;
+      min-width: 64px;
+      text-align: center;
+    }
+
   </style>
 </head>
 <body>
@@ -499,10 +537,38 @@ function saveCurrentMatch() {
 }
 
 function updateMatchHistory() {
-  document.getElementById("matchHistory").innerHTML = matchResults.map(
-    r => `<p>${r.tA} ${r.gA} - ${r.gB} ${r.tB}</p>`
-  ).join("");
+  const container = document.getElementById("matchHistory");
+  container.innerHTML = "";
+
+  matchResults.forEach(result => {
+    const card = document.createElement("div");
+    card.className = "match-card";
+
+    const teamA = document.createElement("div");
+    teamA.className = "team";
+    teamA.innerHTML = `
+      <img src="./images/${result.tA}.png" alt="${result.tA}" />
+      <span>${result.tA}</span>
+    `;
+
+    const score = document.createElement("div");
+    score.className = "score-box";
+    score.textContent = `${result.gA} - ${result.gB}`;
+
+    const teamB = document.createElement("div");
+    teamB.className = "team";
+    teamB.innerHTML = `
+      <img src="./images/${result.tB}.png" alt="${result.tB}" />
+      <span>${result.tB}</span>
+    `;
+
+    card.appendChild(teamA);
+    card.appendChild(score);
+    card.appendChild(teamB);
+    container.appendChild(card);
+  });
 }
+
 
 function updateLeaderboard() {
   const tally = {};
