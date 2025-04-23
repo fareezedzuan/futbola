@@ -639,10 +639,8 @@ function updateMatchHistory() {
   }).join('');
 }
 
-
 function updateLeaderboard() {
   const tally = {};
-  const teamFile = team.toLowerCase().replace(/ /g, "-"); // e.g., "Team A" -> "team-a"
   allGoals.forEach(g => {
     if (!g.isOG) tally[g.player] = (tally[g.player] || 0) + 1;
   });
@@ -651,24 +649,27 @@ function updateLeaderboard() {
   const container = document.getElementById("topScorersList");
 
   container.innerHTML = sorted.map(([name, count], index) => {
-    // Try to find the team from player data
+    // ✅ Find player and team
     const teamEntry = teamPlayersRaw.find(team => team.some(p => p.name === name)) || [];
     const player = teamEntry.find(p => p.name === name) || {};
-    const team = player.team || "default"; // fallback to 'default.png' if missing
+    const team = player.team || "default";
+
+    // ✅ Sanitize for file path
+    const teamFile = team.toLowerCase().replace(/ /g, "-");
 
     return `
-  <div class="scorer-row">
-    <div class="scorer-pos">${index + 1}</div>
-    <div class="scorer-player">
-      <strong>${name}</strong>
-      <img class="scorer-logo" src="./images/${team.toLowerCase().replace(/ /g, "-")}.png" alt="${team}" />
-    </div>
-    <div class="scorer-goals">${count}</div>
-  </div>
-`;
-
+      <div class="scorer-row">
+        <div class="scorer-pos">${index + 1}</div>
+        <div class="scorer-player">
+          <strong>${name}</strong>
+          <img class="scorer-logo" src="./images/${teamFile}.png" alt="${team}" />
+        </div>
+        <div class="scorer-goals">${count}</div>
+      </div>
+    `;
   }).join("");
 }
+
 
 function updateStandings(tA, tB, gA, gB) {
   const stats = name => standings[name] ||= { MP: 0, W: 0, D: 0, L: 0, Pts: 0, GF: 0, GA: 0 };
