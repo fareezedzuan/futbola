@@ -610,9 +610,9 @@ function startNextMatch() {
   document.getElementById("teamBName").textContent = teamB;
   document.getElementById("teamAIcon").src = `./images/${teamA}.png`;
   document.getElementById("teamBIcon").src = `./images/${teamB}.png`;
+  checkRoundCompletion();
   matchNumber++;
   matchAlreadySaved = false;
-  checkRoundCompletion();
 }
 
 function triggerScorer(side) {
