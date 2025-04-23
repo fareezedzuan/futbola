@@ -93,7 +93,7 @@
       color: white;
       border-color: #ff5a5f;
     }
-    .popup {
+    /* .popup {
       display: none;
       position: fixed;
       top: 10%;
@@ -123,7 +123,28 @@
     }
     .popup-footer {
       text-align: center;
-    }
+    } */
+
+    .jersey-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 10px;
+  }
+  .jersey-grid button {
+    padding: 10px;
+    font-size: 18px;
+    font-weight: bold;
+    background-color: #702963;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .remove-btn {
+    background-color: #888;
+  }
+
   </style>
 </head>
 <body>
@@ -181,48 +202,47 @@
     </div>
   </div>
 
-  <div id="jerseyModal" class="popup" style="display:none;">
-    <h3 id="jerseyModalTitle">Set Jersey</h3>
-    <select id="jerseyInput" class="w-full p-2 rounded border">
-      <option value="">-- Select Jersey --</option>
-      <option value="1">1</option>
-      <option value="2">2</option>
-      <option value="3">3</option>
-      <option value="4">4</option>
-      <option value="5">5</option>
-      <option value="6">6</option>
-      <option value="7">7</option>
-      <option value="8">8</option>
-      <option value="9">9</option>
-    </select>     
-    <div class="popup-footer">
-      <button onclick="saveJersey()">✅ Save</button>
-      <button onclick="closeJerseyModal()">❌ Cancel</button>
-    </div>
+  <!-- Jersey Number Popup -->
+<div id="jerseyOverlay" class="overlay" onclick="closeJerseyPopup()"></div>
+<div class="scorer-popup" id="jerseyPopup">
+  <div class="close-popup" onclick="closeJerseyPopup()">×</div>
+  <h4>Select Jersey Number</h4>
+  <div class="jersey-grid">
+    <button onclick="selectJersey(1)">1</button>
+    <button onclick="selectJersey(2)">2</button>
+    <button onclick="selectJersey(3)">3</button>
+    <button onclick="selectJersey(4)">4</button>
+    <button onclick="selectJersey(5)">5</button>
+    <button onclick="selectJersey(6)">6</button>
+    <button onclick="selectJersey(7)">7</button>
+    <button onclick="selectJersey(8)">8</button>
+    <button onclick="selectJersey(9)">9</button>
+    <button onclick="selectJersey(null)" class="remove-btn">Remove</button>
   </div>
-  
+</div>
 
   <script>
     let allPlayers = [];
     let activePlayers = [];
-
     let selectedPlayerName = "";
+    let currentPlayerIndex = null;
+    let currentTeamIndex = null;
 
-    function openJerseyModal(name) {
-      selectedPlayerName = name;
-      document.getElementById("jerseyModalTitle").textContent = `Set Jersey for ${name}`;
-      document.getElementById("jerseyInput").value = "";
-      document.getElementById("jerseyModal").style.display = "block";
-    }
+    // function openJerseyModal(name) {
+    //   selectedPlayerName = name;
+    //   document.getElementById("jerseyModalTitle").textContent = `Set Jersey for ${name}`;
+    //   document.getElementById("jerseyInput").value = "";
+    //   document.getElementById("jerseyModal").style.display = "block";
+    // }
 
-    function closeJerseyModal() {
-      selectedPlayerName = "";
-      document.getElementById("jerseyModal").style.display = "none";
-    }
+    // function closeJerseyModal() {
+    //   selectedPlayerName = "";
+    //   document.getElementById("jerseyModal").style.display = "none";
+    // }
 
-    function saveJersey() {
-      const jersey = parseInt(document.getElementById("jerseyInput").value);
-      if (!selectedPlayerName || isNaN(jersey)) return alert("Invalid input");
+    // function saveJersey() {
+    //   const jersey = parseInt(document.getElementById("jerseyInput").value);
+    //   if (!selectedPlayerName || isNaN(jersey)) return alert("Invalid input");
 
       // Update jersey number locally
       const player = activePlayers.find(p => p.name === selectedPlayerName);
@@ -450,6 +470,28 @@
         sel.appendChild(opt);
       });
     }
+
+    function openJerseyPopup(teamIdx, playerIdx) {
+    currentPlayerIndex = playerIdx;
+    currentTeamIndex = teamIdx;
+    document.getElementById("jerseyOverlay").style.display = "block";
+    document.getElementById("jerseyPopup").style.display = "block";
+  }
+
+  function closeJerseyPopup() {
+    document.getElementById("jerseyOverlay").style.display = "none";
+    document.getElementById("jerseyPopup").style.display = "none";
+    currentPlayerIndex = null;
+    currentTeamIndex = null;
+  }
+
+  function selectJersey(number) {
+    if (currentPlayerIndex !== null && currentTeamIndex !== null) {
+      teamPlayersRaw[currentTeamIndex][currentPlayerIndex].jersey = number;
+      renderPlayerList(currentTeamIndex); // Assumes this re-renders the list with new jersey number
+    }
+    closeJerseyPopup();
+  }
 
     document.getElementById("gameSelect").addEventListener("change", e => {
       if (e.target.value) fetchPlayers(e.target.value);
