@@ -20,19 +20,18 @@
       padding: 20px;
     }
     .match-header {
-      font-size: 28px;
+      font-size: 35px;
       font-weight: bold;
       text-align: center;
       color: #702963;
-      margin-bottom: 20px;
+      margin-bottom: 10px;
     }
 
     .main-display {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      /*height: 300px;*/
-      height: 550px;      
+      height: 450px;      
       background-color: white;
       border: 5px solid orangered;
       box-shadow: 0 4px 8px rgba(0,0,0,0.1);
@@ -208,9 +207,9 @@
 
 <div class="container">
   <audio id="alarmSound" src="./audio/timer-alarm.mp3" preload="auto"></audio>
-  <div class="match-header" id="matchTitle">Match 1</div>
 
   <div class="main-display">
+    <div class="match-header" id="matchTitle">Match 1</div>
     <div class="team-block" onclick="triggerScorer('A')">
       <img id="teamAIcon" src="./images/default.png" />
       <span id="teamAName">Team A</span>
