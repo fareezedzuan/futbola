@@ -5,7 +5,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Track Match - futbola</title>
-  <link rel="icon" href="./images/futbola-favicon.ico" type="image/x-icon">
+  <link rel="icon" href="../images/futbola-favicon.ico" type="image/x-icon">
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -207,6 +207,7 @@
 </div>
 
 <div class="container">
+  <audio id="alarmSound" src="./audio/timer-alarm.mp3" preload="auto"></audio>
   <div class="match-header" id="matchTitle">Match 1</div>
 
   <div class="main-display">
@@ -316,7 +317,16 @@ function handleTimerClick() {
           clearInterval(timer);
           timerRunning = false;
           document.getElementById('timerBtn').textContent = "Start Timer";
+
+          // Play alarm
+          const alarm = document.getElementById("alarmSound");
+          alarm.currentTime = 0;
+          alarm.play();
+
+          // Click anywhere to stop
+          document.body.addEventListener("click", stopAlarmOnce, { once: true });
         }
+
       }
     }, 1000);
   } else {
@@ -329,6 +339,13 @@ function updateTimerDisplay() {
   const min = Math.floor(timeElapsed / 60);
   const sec = timeElapsed % 60;
   document.getElementById("timer").textContent = `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+}
+
+function stopAlarmOnce() {
+  const alarm = document.getElementById("alarmSound");
+  alarm.pause();
+  alarm.currentTime = 0;
+  document.body.removeEventListener("click", stopAlarmOnce);
 }
 
 function resetTimer() {
@@ -589,5 +606,7 @@ function editGoal(index) {
 updateTimerDisplay();
 startNextMatch();
 </script>
+<audio id="alarmSound" src="./sounds/timer-alarm.mp3" preload="auto"></audio>
+
 </body>
 </html>
