@@ -820,7 +820,8 @@ function updateLiveScoreboard() {
 }
 
 
-function saveCurrentMatch() {
+async function saveCurrentMatch() {
+  console.log("Saving match to Supabase...");
   if (matchAlreadySaved) return; // ✅ Prevent double save
   matchAlreadySaved = true;
 
@@ -836,20 +837,20 @@ function saveCurrentMatch() {
   updateStandings(tA, tB, gA, gB);
 
   //Save to supabase after local save
-  // await fetch('/api/save-match-result', {
-  //   method: 'POST',
-  //   headers: { 'Content-Type': 'application/json' },
-  //   body: JSON.stringify({
-  //     game_id: sessionStorage.getItem("gameId"),
-  //     session_id: sessionStorage.getItem("sessionId"),
-  //     match_number: matchNumber,
-  //     team_a: tA,
-  //     team_b: tB,
-  //     score_a: gA,
-  //     score_b: gB,
-  //     goals: currentGoals
-  //   })
-  // });
+  await fetch('/api/save-match-result', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      game_id: sessionStorage.getItem("gameId"),
+      session_id: sessionStorage.getItem("sessionId"),
+      match_number: matchNumber,
+      team_a: tA,
+      team_b: tB,
+      score_a: gA,
+      score_b: gB,
+      goals: currentGoals
+    })
+  });
   
 }
 
