@@ -498,6 +498,7 @@
   </div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script>
 // Paste your existing JS logic here from the MVP version (match tracking, popup, standings, export, etc.)
 // You already have all this working beautifully – just stitch into this layout.
@@ -992,39 +993,40 @@ function showRoundPopup() {
 }
 
 function exportHTMLSummary() {
-  saveCurrentMatch();
+  saveCurrentMatch(); // Ensure final match is saved
+
   const venue = sessionStorage.getItem("venue") || "futbola court";
   const date = sessionStorage.getItem("date") || new Date().toLocaleDateString();
-  const summaryHTML = `
-    <html>
-      <head>
-        <title>futbola Match Summary</title>
-        <style>
-          body { font-family: Arial, sans-serif; padding: 20px; }
-          h2, h3 { color: #702963; text-align: center; }
-          .section { margin-top: 20px; padding: 10px; border-top: 3px solid #ff5a5f; }
-          .match-result-row, .scorer-row { margin: 8px 0; }
-          table { width: 100%; border-collapse: collapse; }
-          th, td { padding: 6px; border: 1px solid #ccc; text-align: center; }
-          th { background: #ffe4e1; }
-        </style>
-      </head>
-      <body>
-        <h2>futbola - ${venue}</h2>
-        <h3>${date}</h3>
-        <div class='section'><h3>Match Results</h3>${document.getElementById("matchHistory").innerHTML}</div>
-        <div class='section'><h3>Top Scorers</h3>${document.getElementById("topScorersList").innerHTML}</div>
-        <div class='section'><h3>Standings</h3>${document.getElementById("standingsTable").innerHTML}</div>
-      </body>
-    </html>
+
+  const matchHTML = document.querySelector(".section").outerHTML;
+  const scorersHTML = document.querySelectorAll(".section")[1].outerHTML;
+  const standingsHTML = document.querySelectorAll(".section")[2].outerHTML;
+
+  const printable = document.createElement("div");
+  printable.innerHTML = `
+    <div style="font-family:Arial,sans-serif; padding:30px; background-image:url('./images/backgroundOrangeGradient.jpg'); background-size:cover;">
+      <div style="background:white; padding:30px; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,0.2); max-width:800px; margin:auto;">
+        <div style='text-align:center; margin-bottom:20px;'>
+          <img src="./images/futbola-logo.png" alt="futbola logo" style="height:60px;"/>
+          <h2 style="margin:10px 0;">futbola - ${venue}</h2>
+          <h3 style="color:#702963;">${date}</h3>
+        </div>
+        ${matchHTML}
+        ${scorersHTML}
+        ${standingsHTML}
+      </div>
+    </div>
   `;
-  const blob = new Blob([summaryHTML], { type: 'text/html' });
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = `futbola_summary_${new Date().toISOString().slice(0,10)}.html`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+
+  const opt = {
+    margin: 0.5,
+    filename: `futbola_summary_${new Date().toISOString().slice(0,10)}.pdf`,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2 },
+    jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+  };
+
+  html2pdf().set(opt).from(printable).save();
 }
 
 updateTimerDisplay();
