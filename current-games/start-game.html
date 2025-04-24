@@ -163,6 +163,31 @@
   max-width: 600px;
 }
 
+#popupContent {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+#popupContent h4 {
+  margin-bottom: 8px;
+  text-align: center;
+  color: #ff5a5f;
+}
+
+#popupContent ul {
+  list-style: none;
+  padding: 0;
+  background: #fdfdfd;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 8px;
+  font-size: 14px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+
   </style>
 </head>
 <body>
@@ -384,7 +409,12 @@
             return `${player.name}${player.jersey ? ` (#${player.jersey})` : ''}`;
           });
 
-        popup.innerHTML += `<h4>${teamName}</h4><ul>${players.map(p => `<li>${p}</li>`).join("")}</ul>`;
+          popup.innerHTML += `
+            <div>
+              <h4>${teamName}</h4>
+              <ul>${players.map(p => `<li>${p}</li>`).join("")}</ul>
+            </div>
+          `;
       }
       document.getElementById("popup").style.display = "block";
     }
