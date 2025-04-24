@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Track Match - futbola</title>
   <link rel="icon" href="../images/futbola-favicon.ico" type="image/x-icon">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -402,6 +403,62 @@
       cursor: pointer;
       margin: 5px;
     }
+
+    #instagramExportDiv {
+      display: none;
+      width: 1080px;
+      height: 1080px;
+      background: linear-gradient(to bottom right, #ffa07a, #ffc0cb);
+      font-family: Arial, sans-serif;
+      padding: 40px;
+      box-sizing: border-box;
+      color: #702963;
+    }
+
+    #instagramExportDiv h2 {
+      text-align: center;
+      font-size: 48px;
+      margin-bottom: 10px;
+    }
+
+    #instagramExportDiv h3 {
+      text-align: center;
+      font-size: 32px;
+      margin-bottom: 20px;
+    }
+
+    #instagramExportDiv .section {
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    #instagramExportDiv table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 24px;
+    }
+    #instagramExportDiv th, #instagramExportDiv td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: center;
+    }
+    #instagramExportDiv .logo {
+      width: 32px;
+      height: 32px;
+      object-fit: contain;
+    }
+
+    #instagramExportDiv .footer-logo {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      opacity: 0.5;
+      width: 100px;
+    }
+
   </style>
 </head>
 <body>
@@ -462,7 +519,7 @@
     <button class="btn-primary" onclick="openEditGoals()">Edit Goals</button>
     <button class="btn-primary" onclick="startNextMatch()">Next Match</button>
     <button class="btn-primary" onclick="exportSummary()">Export WhatsApp</button>
-    <button class="btn-primary" onclick="exportHTMLSummary()">Download Match Summary</button>
+    <button class="btn-primary" onclick="exportToInstagramImage()">Instagram Image</button>
   </div>
 
   <div class="section">
@@ -498,7 +555,25 @@
   </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+!-- Instagram Export Div (hidden for rendering only) -->
+<div id="instagramExportDiv">
+  <h2 id="instaVenue">futbola - Venue</h2>
+  <h3 id="instaDate">Date</h3>
+  <div class="section">
+    <h3>📋 Match Results</h3>
+    <div id="instaMatchResults"></div>
+  </div>
+  <div class="section">
+    <h3>🎯 Top Scorers</h3>
+    <div id="instaTopScorers"></div>
+  </div>
+  <div class="section">
+    <h3>🏆 Standings</h3>
+    <div id="instaStandings"></div>
+  </div>
+  <img class="footer-logo" src="./images/futbola-logo.png" alt="futbola logo" />
+</div>
+
 <script>
 // Paste your existing JS logic here from the MVP version (match tracking, popup, standings, export, etc.)
 // You already have all this working beautifully – just stitch into this layout.
@@ -992,41 +1067,27 @@ function showRoundPopup() {
   document.getElementById("roundOverlay").style.display = "block";
 }
 
-function exportHTMLSummary() {
-  saveCurrentMatch(); // Ensure final match is saved
-
+function exportToInstagramImage() {
   const venue = sessionStorage.getItem("venue") || "futbola court";
   const date = sessionStorage.getItem("date") || new Date().toLocaleDateString();
 
-  const matchHTML = document.querySelector(".section").outerHTML;
-  const scorersHTML = document.querySelectorAll(".section")[1].outerHTML;
-  const standingsHTML = document.querySelectorAll(".section")[2].outerHTML;
+  document.getElementById("instaVenue").textContent = `futbola - ${venue}`;
+  document.getElementById("instaDate").textContent = date;
 
-  const printable = document.createElement("div");
-  printable.innerHTML = `
-    <div style="font-family:Arial,sans-serif; padding:30px; background-image:url('./images/backgroundOrangeGradient.jpg'); background-size:cover;">
-      <div style="background:white; padding:30px; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,0.2); max-width:800px; margin:auto;">
-        <div style='text-align:center; margin-bottom:20px;'>
-          <img src="./images/futbola-logo.png" alt="futbola logo" style="height:60px;"/>
-          <h2 style="margin:10px 0;">futbola - ${venue}</h2>
-          <h3 style="color:#702963;">${date}</h3>
-        </div>
-        ${matchHTML}
-        ${scorersHTML}
-        ${standingsHTML}
-      </div>
-    </div>
-  `;
+  document.getElementById("instaMatchResults").innerHTML = document.getElementById("matchHistory").innerHTML;
+  document.getElementById("instaTopScorers").innerHTML = document.getElementById("topScorersList").innerHTML;
+  document.getElementById("instaStandings").innerHTML = document.getElementById("standingsTable").innerHTML;
 
-  const opt = {
-    margin: 0.5,
-    filename: `futbola_summary_${new Date().toISOString().slice(0,10)}.pdf`,
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2 },
-    jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
-  };
+  const exportDiv = document.getElementById("instagramExportDiv");
+  exportDiv.style.display = "block";
 
-  html2pdf().set(opt).from(printable).save();
+  html2canvas(exportDiv, { width: 1080, height: 1080 }).then(canvas => {
+    const link = document.createElement('a');
+    link.download = `futbola_summary_${new Date().toISOString().slice(0,10)}.png`;
+    link.href = canvas.toDataURL();
+    link.click();
+    exportDiv.style.display = "none";
+  });
 }
 
 updateTimerDisplay();
