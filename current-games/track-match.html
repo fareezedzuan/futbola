@@ -387,6 +387,21 @@
       z-index: 199;
       display: none;
     }
+
+    .btn-row {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .btn-primary {
+      background-color: #ff5a5f;
+      color: white;
+      font-weight: bold;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 5px;
+    }
   </style>
 </head>
 <body>
@@ -447,6 +462,7 @@
     <button class="btn-primary" onclick="openEditGoals()">Edit Goals</button>
     <button class="btn-primary" onclick="startNextMatch()">Next Match</button>
     <button class="btn-primary" onclick="exportSummary()">Export WhatsApp</button>
+    <button class="btn-primary" onclick="exportHTMLSummary()">Download Match Summary</button>
   </div>
 
   <div class="section">
@@ -973,6 +989,42 @@ function closeRoundPopup() {
 function showRoundPopup() {
   document.getElementById("roundPopup").style.display = "block";
   document.getElementById("roundOverlay").style.display = "block";
+}
+
+function exportHTMLSummary() {
+  saveCurrentMatch();
+  const venue = sessionStorage.getItem("venue") || "futbola court";
+  const date = sessionStorage.getItem("date") || new Date().toLocaleDateString();
+  const summaryHTML = `
+    <html>
+      <head>
+        <title>futbola Match Summary</title>
+        <style>
+          body { font-family: Arial, sans-serif; padding: 20px; }
+          h2, h3 { color: #702963; text-align: center; }
+          .section { margin-top: 20px; padding: 10px; border-top: 3px solid #ff5a5f; }
+          .match-result-row, .scorer-row { margin: 8px 0; }
+          table { width: 100%; border-collapse: collapse; }
+          th, td { padding: 6px; border: 1px solid #ccc; text-align: center; }
+          th { background: #ffe4e1; }
+        </style>
+      </head>
+      <body>
+        <h2>futbola - ${venue}</h2>
+        <h3>${date}</h3>
+        <div class='section'><h3>Match Results</h3>${document.getElementById("matchHistory").innerHTML}</div>
+        <div class='section'><h3>Top Scorers</h3>${document.getElementById("topScorersList").innerHTML}</div>
+        <div class='section'><h3>Standings</h3>${document.getElementById("standingsTable").innerHTML}</div>
+      </body>
+    </html>
+  `;
+  const blob = new Blob([summaryHTML], { type: 'text/html' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = `futbola_summary_${new Date().toISOString().slice(0,10)}.html`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }
 
 updateTimerDisplay();

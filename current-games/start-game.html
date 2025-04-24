@@ -439,7 +439,11 @@
     sessionStorage.setItem("duration", duration);
     const rounds = parseInt(document.getElementById("roundsInput").value);
     sessionStorage.setItem("rounds", rounds);
-
+    const selectedGame = document.getElementById("gameSelect");
+    const selectedText = selectedGame.options[selectedGame.selectedIndex].textContent;
+    const [venueText, datetimeText] = selectedText.split(" - ");
+    sessionStorage.setItem("venue", venueText.trim());
+    sessionStorage.setItem("date", datetimeText.trim());
     window.location.href = "track-match.html";
 }
 
