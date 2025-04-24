@@ -410,39 +410,45 @@
       height: 1080px;
       background: linear-gradient(to bottom right, #ffa07a, #ffc0cb);
       font-family: Arial, sans-serif;
-      padding: 40px;
+      padding: 20px 40px;
       box-sizing: border-box;
       color: #702963;
+      position: relative;
     }
 
     #instagramExportDiv h2 {
       text-align: center;
-      font-size: 48px;
-      margin-bottom: 10px;
+      font-size: 44px;
+      margin: 10px 0 5px;
     }
 
     #instagramExportDiv h3 {
       text-align: center;
-      font-size: 32px;
-      margin-bottom: 20px;
+      font-size: 28px;
+      margin: 5px 0 15px;
     }
 
     #instagramExportDiv .section {
       background: white;
       border-radius: 10px;
-      padding: 20px;
-      margin-bottom: 20px;
+      padding: 15px;
+      margin-bottom: 10px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    #instagramExportDiv .section > h3 {
+      margin: 0 0 10px;
+      font-size: 24px;
     }
 
     #instagramExportDiv table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 24px;
+      font-size: 22px;
     }
     #instagramExportDiv th, #instagramExportDiv td {
       border: 1px solid #ccc;
-      padding: 10px;
+      padding: 8px;
       text-align: center;
     }
     #instagramExportDiv .logo {
@@ -455,8 +461,31 @@
       position: absolute;
       bottom: 20px;
       right: 20px;
-      opacity: 0.5;
-      width: 100px;
+      opacity: 0.4;
+      width: 80px;
+    }
+
+    #instaMatchResults, #instaTopScorers {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 10px;
+    }
+
+    #instaMatchResults .match-result-row,
+    #instaTopScorers .scorer-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 20px;
+      background: #fff0f5;
+      padding: 6px 10px;
+      border-radius: 6px;
+    }
+
+    #instaTopScorers .scorer-player {
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
 
   </style>
@@ -555,7 +584,7 @@
   </div>
 </div>
 
-!-- Instagram Export Div (hidden for rendering only) -->
+<!-- Instagram Export Div (hidden for rendering only) -->
 <div id="instagramExportDiv">
   <h2 id="instaVenue">futbola - Venue</h2>
   <h3 id="instaDate">Date</h3>
@@ -1074,8 +1103,13 @@ function exportToInstagramImage() {
   document.getElementById("instaVenue").textContent = `futbola - ${venue}`;
   document.getElementById("instaDate").textContent = date;
 
+  // Copy match results
   document.getElementById("instaMatchResults").innerHTML = document.getElementById("matchHistory").innerHTML;
+
+  // Copy top scorers
   document.getElementById("instaTopScorers").innerHTML = document.getElementById("topScorersList").innerHTML;
+
+  // Copy standings
   document.getElementById("instaStandings").innerHTML = document.getElementById("standingsTable").innerHTML;
 
   const exportDiv = document.getElementById("instagramExportDiv");
