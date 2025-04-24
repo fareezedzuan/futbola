@@ -604,6 +604,11 @@
 </div>
 
 <script>
+
+// Set session ID once
+if (!sessionStorage.getItem("sessionId")) {
+  sessionStorage.setItem("sessionId", Date.now().toString()); // or use a UUID if needed
+}
 // Paste your existing JS logic here from the MVP version (match tracking, popup, standings, export, etc.)
 // You already have all this working beautifully – just stitch into this layout.
 const duration = parseInt(sessionStorage.getItem("duration")) || 7;
@@ -829,6 +834,23 @@ function saveCurrentMatch() {
   updateMatchHistory();
   updateLeaderboard();
   updateStandings(tA, tB, gA, gB);
+
+  //Save to supabase after local save
+  // await fetch('/api/save-match-result', {
+  //   method: 'POST',
+  //   headers: { 'Content-Type': 'application/json' },
+  //   body: JSON.stringify({
+  //     game_id: sessionStorage.getItem("gameId"),
+  //     session_id: sessionStorage.getItem("sessionId"),
+  //     match_number: matchNumber,
+  //     team_a: tA,
+  //     team_b: tB,
+  //     score_a: gA,
+  //     score_b: gB,
+  //     goals: currentGoals
+  //   })
+  // });
+  
 }
 
 function updateMatchHistory() {
