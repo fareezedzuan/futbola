@@ -7,10 +7,17 @@ export default async function handler(req, res) {
 
   const { game_id, session_id, match_number, team_a, team_b, score_a, score_b, goals } = req.body;
 
+  console.log("Received:", { game_id, session_id, match_number, team_a, team_b, score_a, score_b, goals });
+
   const { data, error } = await supabase
     .from('match_results')
     .insert([{ game_id, session_id, match_number, team_a, team_b, score_a, score_b, goals }]);
 
-  if (error) return res.status(400).json({ error });
+  if (error) {
+    console.error("Supabase insert error:", error);
+    return res.status(400).json({ error });
+  }
+
   res.status(200).json({ success: true, data });
 }
+
