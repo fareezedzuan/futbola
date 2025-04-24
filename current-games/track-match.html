@@ -427,7 +427,7 @@
 </div>
 
 <div class="container">
-  <audio id="alarmSound" src="./audio/timer-alarm.mp3" preload="auto"></audio>
+  <audio id="alarmSound" src="./audio/annoying-alarm.wav" preload="auto"></audio>
 
   <div class="main-display">
     <!-- Match Title should be outside of row for top alignment -->
@@ -844,7 +844,7 @@ function exportSummary() {
   const venue = sessionStorage.getItem("venue") || "futbola court";
   const date = sessionStorage.getItem("date") || new Date().toLocaleDateString();
 
-  let message = `⚽ Thank you for joining futbola!\n`;
+  let message = `⚽ *Thank you for joining futbola!*\n📍 *Venue:* ${venue}\n📅 *Date:* ${date}\n\n`;
 
   // Match results
   message += `📋 *Match Results*\n`;
