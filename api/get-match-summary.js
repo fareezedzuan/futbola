@@ -1,4 +1,4 @@
-// /api/get-saved-sessions.js
+// /api/get-match-summary.js
 import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
@@ -6,48 +6,54 @@ const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY
 export default async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).end();
 
+  const { game_id, session_id } = req.query;
+  if (!game_id || !session_id) return res.status(400).json({ error: 'Missing game_id or session_id' });
+
   try {
-    const { data, error } = await supabase
+    const { data: matches, error } = await supabase
       .from('match_results')
-      .select('game_id, session_id')
-      .neq('session_id', '')
-      .order('created_at', { ascending: false });
+      .select('*')
+      .eq('game_id', game_id)
+      .eq('session_id', session_id)
+      .order('match_number');
 
-    if (error) {
-      console.error("Match results fetch error:", error);
-      return res.status(500).json({ error });
+    if (error) throw error;
+
+    const standings = {};
+    const goalTally = {};
+
+    for (const match of matches) {
+      const { team_a, team_b, score_a, score_b, goals = [] } = match;
+
+      const sA = standings[team_a] ||= { team: team_a, MP: 0, W: 0, D: 0, L: 0, GF: 0, GA: 0, Pts: 0 };
+      const sB = standings[team_b] ||= { team: team_b, MP: 0, W: 0, D: 0, L: 0, GF: 0, GA: 0, Pts: 0 };
+
+      sA.MP++; sB.MP++;
+      sA.GF += score_a; sA.GA += score_b;
+      sB.GF += score_b; sB.GA += score_a;
+
+      if (score_a > score_b) { sA.W++; sB.L++; sA.Pts += 3; }
+      else if (score_b > score_a) { sB.W++; sA.L++; sB.Pts += 3; }
+      else { sA.D++; sB.D++; sA.Pts += 1; sB.Pts += 1; }
+
+      goals.forEach(goal => {
+        if (!goal.isOG) {
+          goalTally[goal.player] = (goalTally[goal.player] || 0) + 1;
+        }
+      });
     }
 
-    const uniqueSessions = Array.from(
-      new Map(data.map(d => [`${d.game_id}_${d.session_id}`, d])).values()
-    );
+    const standingsArr = Object.values(standings).map(s => ({ ...s, GD: s.GF - s.GA }))
+      .sort((a, b) => b.Pts - a.Pts || b.GD - a.GD || b.GF - a.GF);
 
-    // Get game info for all unique game_ids
-    const gameIds = [...new Set(uniqueSessions.map(s => s.game_id))];
-    const { data: gamesData, error: gamesError } = await supabase
-      .from('games')
-      .select('id, venue, game_date, start_time')
-      .in('id', gameIds);
+    const topScorers = Object.entries(goalTally)
+      .map(([player, goals]) => ({ player, goals }))
+      .sort((a, b) => b.goals - a.goals);
 
-    if (gamesError) {
-      console.error("Games fetch error:", gamesError);
-      return res.status(500).json({ error: gamesError });
-    }
+    res.status(200).json({ matches, standings: standingsArr, top_scorers: topScorers });
 
-    // Merge game info with session info
-    const sessionsWithDetails = uniqueSessions.map(s => {
-      const game = gamesData.find(g => g.id === s.game_id);
-      return {
-        ...s,
-        venue: game?.venue || 'Unknown',
-        game_date: game?.game_date,
-        start_time: game?.start_time
-      };
-    });
-
-    res.status(200).json({ sessions: sessionsWithDetails });
   } catch (err) {
-    console.error("Unexpected error in get-saved-sessions:", err);
-    res.status(500).json({ error: "Unexpected error", details: err.message });
+    console.error('Summary error:', err);
+    res.status(500).json({ error: 'Failed to load summary', details: err.message });
   }
 }
