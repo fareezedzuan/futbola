@@ -103,6 +103,127 @@
     .section h3 {
       color: #702963;
     }
+
+    body {
+      font-family: Arial, sans-serif;
+      background-image: url('./images/backgroundOrangeGradient.jpg');
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1000px;
+      margin: auto;
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      border-top: 5px solid #ff5a5f;
+    }
+    h2 {
+      color: #702963;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    select {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 20px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+    .btn-row {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .btn-primary {
+      background-color: #ff5a5f;
+      color: white;
+      font-weight: bold;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      margin: 5px;
+      cursor: pointer;
+    }
+    .section h3 {
+      color: #702963;
+    }
+    #instagramExportDiv {
+      display: none;
+      width: 1080px;
+      height: 1080px;
+      background: linear-gradient(to bottom right, #ffa07a, #ffc0cb);
+      font-family: Arial, sans-serif;
+      padding: 20px 40px;
+      box-sizing: border-box;
+      color: #702963;
+      position: relative;
+    }
+    #instagramExportDiv h2 {
+      text-align: center;
+      font-size: 44px;
+      margin: 10px 0 5px;
+    }
+    #instagramExportDiv h3 {
+      text-align: center;
+      font-size: 28px;
+      margin: 5px 0 15px;
+    }
+    #instagramExportDiv .section {
+      background: white;
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    #instagramExportDiv .section > h3 {
+      margin: 0 0 10px;
+      font-size: 24px;
+    }
+    #instagramExportDiv table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 22px;
+    }
+    #instagramExportDiv th, #instagramExportDiv td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: center;
+    }
+    #instagramExportDiv .logo {
+      width: 32px;
+      height: 32px;
+      object-fit: contain;
+    }
+    #instagramExportDiv .footer-logo {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      opacity: 0.4;
+      width: 80px;
+    }
+    #instaMatchResults, #instaTopScorers {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 10px;
+    }
+    #instaMatchResults .match-result-row,
+    #instaTopScorers .scorer-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 20px;
+      background: #fff0f5;
+      padding: 6px 10px;
+      border-radius: 6px;
+    }
+    #instaTopScorers .scorer-player {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
   </style>
 </head>
 <body>
@@ -113,10 +234,28 @@
     </select>
     <div class="btn-row">
       <button class="btn-primary" onclick="exportHTML()">Export as HTML</button>
-      <button class="btn-primary" onclick="exportInstagram()">Export as IG</button>
+      <button class="btn-primary" onclick="exportToInstagramImage()">Export as IG</button>
       <button class="btn-primary" onclick="exportWhatsApp()">Export as WA</button>
     </div>
     <div id="resultDisplay"></div>
+  </div>
+
+  <div id="instagramExportDiv">
+    <h2 id="instaVenue">futbola - Venue</h2>
+    <h3 id="instaDate">Date</h3>
+    <div class="section">
+      <h3>📋 Match Results</h3>
+      <div id="instaMatchResults"></div>
+    </div>
+    <div class="section">
+      <h3>🎯 Top Scorers</h3>
+      <div id="instaTopScorers"></div>
+    </div>
+    <div class="section">
+      <h3>🏆 Standings</h3>
+      <div id="instaStandings"></div>
+    </div>
+    <img class="footer-logo" src="./images/futbola-logo.png" alt="futbola logo" />
   </div>
 
   <script>
@@ -198,120 +337,41 @@
     }
 
     function exportHTML() {
-        const content = document.querySelector(".container").innerHTML;
-        const styles = `
-            <style>
-            body {
-                font-family: Arial, sans-serif;
-                background: white;
-                margin: 0;
-                padding: 20px;
-            }
-            h2 {
-                text-align: center;
-                color: #702963;
-            }
-            .match-result-row, .scorer-row {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                background: #fff;
-                border-radius: 10px;
-                padding: 12px 16px;
-                margin: 10px 0;
-                box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-            }
-            .team-side {
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                font-weight: bold;
-                color: #702963;
-                font-size: 16px;
-            }
-            .match-score {
-                font-size: 20px;
-                font-weight: bold;
-                background-color: #702963;
-                color: white;
-                padding: 6px 16px;
-                border-radius: 8px;
-                text-align: center;
-                min-width: 70px;
-            }
-            .team-logo, .scorer-logo {
-                width: 28px;
-                height: 28px;
-                object-fit: contain;
-            }
-            .scorer-player {
-                display: flex;
-                align-items: center;
-                gap: 10px;
-                flex-grow: 1;
-            }
-            .scorer-pos {
-                width: 30px;
-                font-weight: bold;
-                color: #702963;
-                text-align: center;
-            }
-            .scorer-goals {
-                font-weight: bold;
-                color: #702963;
-                min-width: 30px;
-                text-align: right;
-            }
-            table {
-                width: 100%;
-                border-collapse: collapse;
-                margin-top: 10px;
-            }
-            th, td {
-                border: 1px solid #ccc;
-                padding: 8px;
-                text-align: center;
-            }
-            th {
-                background-color: #ffe4e1;
-            }
-            .section h3 {
-                color: #702963;
-            }
-            </style>
-        `;
-
-        const html = `
-            <!DOCTYPE html>
-            <html>
-            <head>
-            <meta charset="UTF-8">
-            <title>Futbola Game Summary</title>
-            ${styles}
-            </head>
-            <body>
-            <div class="container">
-                <h2>futbola - Game Summary</h2>
-                ${content}
-            </div>
-            </body>
-            </html>
-        `;
-
-        const blob = new Blob([html], { type: 'text/html' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = 'futbola_summary.html';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-        }
-
-    function exportInstagram() {
-      alert("📸 IG export coming soon!");
+      const html = document.documentElement.outerHTML;
+      const blob = new Blob([html], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'futbola_summary.html';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
     }
+
+    function exportToInstagramImage() {
+      const venue = document.getElementById("gameSelect").selectedOptions[0]?.textContent?.split(" - ")[0] || "futbola court";
+      const date = document.getElementById("gameSelect").selectedOptions[0]?.textContent?.split(" - ")[1] || new Date().toLocaleDateString();
+
+      document.getElementById("instaVenue").textContent = `futbola - ${venue}`;
+      document.getElementById("instaDate").textContent = date;
+
+      document.getElementById("instaMatchResults").innerHTML = document.getElementById("resultDisplay").querySelector(".section:nth-of-type(1)").innerHTML;
+      document.getElementById("instaTopScorers").innerHTML = document.getElementById("resultDisplay").querySelector(".section:nth-of-type(2)").innerHTML;
+      document.getElementById("instaStandings").innerHTML = document.getElementById("resultDisplay").querySelector(".section:nth-of-type(3)").innerHTML;
+
+      const exportDiv = document.getElementById("instagramExportDiv");
+      exportDiv.style.display = "block";
+
+      html2canvas(exportDiv, { width: 1080, height: 1080 }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = `futbola_summary_${new Date().toISOString().slice(0,10)}.png`;
+        link.href = canvas.toDataURL();
+        link.click();
+        exportDiv.style.display = "none";
+      });
+    }
+
     function exportWhatsApp() {
       alert("💬 WA export coming soon!");
     }
