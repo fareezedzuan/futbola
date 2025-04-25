@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>View Results - futbola</title>
+  <link rel="icon" href="./images/futbola-favicon.ico" type="image/x-icon">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-image: url('./images/backgroundOrangeGradient.jpg');
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1000px;
+      margin: auto;
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      border-top: 5px solid #ff5a5f;
+    }
+    h2 {
+      color: #702963;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    select {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 20px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+    .btn-row {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .btn-primary {
+      background-color: #ff5a5f;
+      color: white;
+      font-weight: bold;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      margin: 5px;
+      cursor: pointer;
+    }
+    .section {
+      background: #f8f8f8;
+      padding: 20px;
+      border-radius: 10px;
+      margin-top: 20px;
+    }
+    .section h3 {
+      margin-top: 0;
+      color: #702963;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: center;
+    }
+    th {
+      background-color: #ffe4e1;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>futbola - View Game Results</h2>
+    <select id="gameSelect">
+      <option value="">-- Select a Game --</option>
+    </select>
+    <div class="btn-row">
+      <button class="btn-primary" onclick="exportHTML()">Export as HTML</button>
+      <button class="btn-primary" onclick="exportInstagram()">Export as IG</button>
+      <button class="btn-primary" onclick="exportWhatsApp()">Export as WA</button>
+    </div>
+    <div id="resultDisplay">
+      <!-- Results will be dynamically inserted here -->
+    </div>
+  </div>
+
+  <script>
+    async function loadGames() {
+      const res = await fetch('/api/get-recent-games');
+      const data = await res.json();
+      const dropdown = document.getElementById("gameSelect");
+      data.games.forEach(game => {
+        const option = document.createElement("option");
+        option.value = game.id;
+        option.textContent = `${game.venue} - ${game.game_date} ${game.start_time}`;
+        dropdown.appendChild(option);
+      });
+    }
+
+    document.getElementById("gameSelect").addEventListener("change", e => {
+      if (e.target.value) loadGameResult(e.target.value);
+    });
+
+    async function loadGameResult(gameId) {
+      // Placeholder for now, fetch match_results by gameId later
+      document.getElementById("resultDisplay").innerHTML = `
+        <div class="section">
+          <h3>📋 Match Results</h3>
+          <p>Match data for Game ID: ${gameId} will be shown here.</p>
+        </div>
+        <div class="section">
+          <h3>🎯 Top Scorers</h3>
+          <p>Scorer list here.</p>
+        </div>
+        <div class="section">
+          <h3>🏆 Standings</h3>
+          <p>Live table here.</p>
+        </div>
+      `;
+    }
+
+    function exportHTML() {
+      alert("📄 HTML export coming soon!");
+    }
+    function exportInstagram() {
+      alert("📸 IG export coming soon!");
+    }
+    function exportWhatsApp() {
+      alert("💬 WA export coming soon!");
+    }
+
+    loadGames();
+  </script>
+</body>
+</html>
