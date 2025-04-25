@@ -198,17 +198,116 @@
     }
 
     function exportHTML() {
-      const html = document.documentElement.outerHTML;
-      const blob = new Blob([html], { type: 'text/html' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = 'futbola_summary.html';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-    }
+        const content = document.querySelector(".container").innerHTML;
+        const styles = `
+            <style>
+            body {
+                font-family: Arial, sans-serif;
+                background: white;
+                margin: 0;
+                padding: 20px;
+            }
+            h2 {
+                text-align: center;
+                color: #702963;
+            }
+            .match-result-row, .scorer-row {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                background: #fff;
+                border-radius: 10px;
+                padding: 12px 16px;
+                margin: 10px 0;
+                box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+            }
+            .team-side {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                font-weight: bold;
+                color: #702963;
+                font-size: 16px;
+            }
+            .match-score {
+                font-size: 20px;
+                font-weight: bold;
+                background-color: #702963;
+                color: white;
+                padding: 6px 16px;
+                border-radius: 8px;
+                text-align: center;
+                min-width: 70px;
+            }
+            .team-logo, .scorer-logo {
+                width: 28px;
+                height: 28px;
+                object-fit: contain;
+            }
+            .scorer-player {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                flex-grow: 1;
+            }
+            .scorer-pos {
+                width: 30px;
+                font-weight: bold;
+                color: #702963;
+                text-align: center;
+            }
+            .scorer-goals {
+                font-weight: bold;
+                color: #702963;
+                min-width: 30px;
+                text-align: right;
+            }
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 10px;
+            }
+            th, td {
+                border: 1px solid #ccc;
+                padding: 8px;
+                text-align: center;
+            }
+            th {
+                background-color: #ffe4e1;
+            }
+            .section h3 {
+                color: #702963;
+            }
+            </style>
+        `;
+
+        const html = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+            <meta charset="UTF-8">
+            <title>Futbola Game Summary</title>
+            ${styles}
+            </head>
+            <body>
+            <div class="container">
+                <h2>futbola - Game Summary</h2>
+                ${content}
+            </div>
+            </body>
+            </html>
+        `;
+
+        const blob = new Blob([html], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'futbola_summary.html';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        }
 
     function exportInstagram() {
       alert("📸 IG export coming soon!");
