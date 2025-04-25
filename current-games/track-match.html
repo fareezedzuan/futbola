@@ -820,6 +820,7 @@ function updateLiveScoreboard() {
 }
 
 async function saveCurrentMatch() {
+  console.log("Saving match to Supabase...");
   if (matchAlreadySaved) return; // ✅ Prevent double save
   matchAlreadySaved = true;
 
@@ -834,35 +835,45 @@ async function saveCurrentMatch() {
   updateLeaderboard();
   updateStandings(tA, tB, gA, gB);
 
-  const payload = {
-    game_id: sessionStorage.getItem("gameId"),
-    session_id: sessionStorage.getItem("sessionId"),
-    match_number: matchNumber,
-    team_a: tA,
-    team_b: tB,
-    score_a: gA,
-    score_b: gB,
-    goals: currentGoals
-  };
-
-  console.log("📤 Sending match result to Supabase:", payload);
-
+  // ✅ Replaced block starts here
   try {
+    console.log("📤 Sending match result to Supabase:", {
+      game_id: sessionStorage.getItem("gameId"),
+      session_id: sessionStorage.getItem("sessionId"),
+      match_number: matchNumber,
+      team_a: tA,
+      team_b: tB,
+      score_a: gA,
+      score_b: gB,
+      goals: currentGoals
+    });
+
     const res = await fetch('/api/save-match-result', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      body: JSON.stringify({
+        game_id: sessionStorage.getItem("gameId"),
+        session_id: sessionStorage.getItem("sessionId"),
+        match_number: matchNumber,
+        team_a: tA,
+        team_b: tB,
+        score_a: gA,
+        score_b: gB,
+        goals: currentGoals
+      })
     });
 
-    const result = await res.json();
-    console.log("✅ Supabase response:", result);
-
     if (!res.ok) {
-      console.error(`❌ Supabase returned error ${res.status}:`, result);
+      const errorText = await res.text();
+      throw new Error(`Server returned ${res.status}: ${errorText}`);
     }
+
+    const json = await res.json();
+    console.log("✅ Saved to Supabase:", json);
   } catch (err) {
     console.error("❌ Network or server error while saving match:", err);
   }
+  // ✅ Replaced block ends here
 }
 
 
