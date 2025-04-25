@@ -819,9 +819,7 @@ function updateLiveScoreboard() {
   document.getElementById("scoreB").textContent = scoreB;
 }
 
-
 async function saveCurrentMatch() {
-  console.log("Saving match to Supabase...");
   if (matchAlreadySaved) return; // ✅ Prevent double save
   matchAlreadySaved = true;
 
@@ -836,23 +834,37 @@ async function saveCurrentMatch() {
   updateLeaderboard();
   updateStandings(tA, tB, gA, gB);
 
-  //Save to supabase after local save
-  await fetch('/api/save-match-result', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      game_id: sessionStorage.getItem("gameId"),
-      session_id: sessionStorage.getItem("sessionId"),
-      match_number: matchNumber,
-      team_a: tA,
-      team_b: tB,
-      score_a: gA,
-      score_b: gB,
-      goals: currentGoals
-    })
-  });
-  
+  const payload = {
+    game_id: sessionStorage.getItem("gameId"),
+    session_id: sessionStorage.getItem("sessionId"),
+    match_number: matchNumber,
+    team_a: tA,
+    team_b: tB,
+    score_a: gA,
+    score_b: gB,
+    goals: currentGoals
+  };
+
+  console.log("📤 Sending match result to Supabase:", payload);
+
+  try {
+    const res = await fetch('/api/save-match-result', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    const result = await res.json();
+    console.log("✅ Supabase response:", result);
+
+    if (!res.ok) {
+      console.error(`❌ Supabase returned error ${res.status}:`, result);
+    }
+  } catch (err) {
+    console.error("❌ Network or server error while saving match:", err);
+  }
 }
+
 
 function updateMatchHistory() {
   const container = document.getElementById("matchHistory");
