@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>View Results - futbola</title>
   <link rel="icon" href="./images/futbola-favicon.ico" type="image/x-icon">
+  <link rel="stylesheet" href="./style.css">
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -146,38 +147,17 @@
     }
 
     function exportHTML() {
-        const content = document.querySelector('.container').innerHTML;
-        const fullHTML = `
-            <!DOCTYPE html>
-            <html>
-            <head>
-            <meta charset="UTF-8">
-            <title>futbola Match Summary</title>
-            <style>
-                body { font-family: Arial, sans-serif; background: #fffaf0; padding: 40px; }
-                h2 { text-align: center; color: #702963; }
-                .section { background: #f8f8f8; padding: 20px; border-radius: 10px; margin-top: 20px; }
-                .section h3 { margin-top: 0; color: #702963; }
-                table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-                th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
-                th { background-color: #ffe4e1; }
-            </style>
-            </head>
-            <body>
-            <h2>futbola - Match Summary</h2>
-            ${document.getElementById("resultDisplay").innerHTML}
-            </body>
-            </html>
-        `;
-
-        const blob = new Blob([fullHTML], { type: 'text/html' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = "futbola_summary.html";
-        link.click();
-        URL.revokeObjectURL(url);
-        }
+      const html = document.documentElement.outerHTML;
+      const blob = new Blob([html], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'futbola_summary.html';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
 
     function exportInstagram() {
       alert("📸 IG export coming soon!");
