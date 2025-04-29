@@ -331,12 +331,12 @@
 
     function getTeamLogo(colorName) {
       const logos = {
-        Red: "./images/red.png",
-        Green: "./images/green.png",
-        Yellow: "./images/yellow.png",
-        White: "./images/white.png"
+        Red: "../images/red.png",
+        Green: "../images/green.png",
+        Yellow: "../images/yellow.png",
+        White: "../images/white.png"
       };
-      return logos[colorName] || "./images/default.png"; // fallback default logo if color not found
+      return logos[colorName] || "../images/default.png"; // fallback default logo if color not found
     }
 
     function generatePlayerAssignment() {
