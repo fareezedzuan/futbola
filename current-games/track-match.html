@@ -1279,10 +1279,9 @@ function exportToInstagramImage() {
 }
 
 function skipMatch() {
-  console.log("⏭️ skipMatch()");
-  console.log("  matchNumber =", matchNumber);
-  console.log("  currentMatchups =", JSON.stringify(currentMatchups));
-  
+  console.log("⏭️ skipMatch(): matchNumber =", matchNumber);
+  console.log("📦 currentMatchups:", JSON.stringify(currentMatchups));
+
   if (matchNumber >= currentMatchups.length) {
     alert("No matches left to skip.");
     return;
@@ -1291,9 +1290,11 @@ function skipMatch() {
   const skipped = currentMatchups.splice(matchNumber, 1)[0];
   currentMatchups.push(skipped);
 
+  // ✅ Fix: Mark as match already in progress
+  matchInProgress = true; 
+
   loadMatch(matchNumber);
   updateMatchHistory();
-  
   matchAlreadySaved = false;
 }
 
