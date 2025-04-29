@@ -1,3 +1,4 @@
+@ -1,1298 +1,1300 @@
 <!-- track-match.html (MVP landscape layout version) -->
 <!DOCTYPE html>
 <html lang="en">
@@ -595,7 +596,6 @@
     <button class="btn-primary" onclick="resetTimer()">Reset Timer</button>
     <button class="btn-primary" onclick="openEditGoals()">Edit Goals</button>
     <button class="btn-primary" onclick="startNextMatch()">Next Match</button>
-    <button class="btn-primary" onclick="skipMatch()">Skip Match</button>
     <button class="btn-primary" onclick="exportSummary()">Export WhatsApp</button>
     <button class="btn-primary" onclick="exportToInstagramImage()">Instagram Image</button>
   </div>
@@ -693,12 +693,10 @@ let totalRounds = parseInt(sessionStorage.getItem("rounds")) || 1;
 let currentRound = 1;
 let baseMatchups = generateRoundRobin(teamNames); // keep base round
 let matchups = [...baseMatchups];
-let currentMatchups = [...matchups];
 let alarmTimeout;
 let alarmScheduledTime = 0; // when the alarm is supposed to trigger
 let alarmStartTimestamp = null; // when timer starts
-let justSkipped = false;
-let matchInProgress = false;
+
 
 function generateRoundRobin(teams) {
   const rounds = [], t = [...teams];
@@ -815,19 +813,9 @@ function resetTimer() {
 }
 
 function startNextMatch() {
-  console.log("➡️ startNextMatch()");
-  console.log("  matchNumber =", matchNumber);
-  console.log("  matchInProgress =", matchInProgress);
-  console.log("  currentMatchups =", JSON.stringify(currentMatchups));
-
-  if (matchInProgress) {
-    saveCurrentMatch();
-    matchNumber++;
-  } else {
-    matchInProgress = true; 
-  }
-
-  if (matchNumber >= currentMatchups.length) {
+  if (matchNumber > 0) saveCurrentMatch();
+  const matchesPerRound = baseMatchups.length;
+  if (matchNumber >= matchups.length) {
     if (currentRound < totalRounds) {
       showRoundPopup();
     } else {
@@ -836,9 +824,25 @@ function startNextMatch() {
     return;
   }
 
-  loadMatch(matchNumber);
+  resetTimer();
+  currentGoals = [];
+  document.getElementById("scoreA").textContent = "0";
+  document.getElementById("scoreB").textContent = "0";
+  document.getElementById("goalLogA").innerHTML = "";
+  document.getElementById("goalLogB").innerHTML = "";
+
+  const [teamA, teamB] = matchups[matchNumber];
+  document.getElementById("matchTitle").textContent = `Match ${matchNumber + 1}`;
+  document.getElementById("teamAName").textContent = teamA;
+  document.getElementById("teamBName").textContent = teamB;
+  document.getElementById("teamAIcon").src = getTeamLogo(teamA);
+  document.getElementById("teamBIcon").src = getTeamLogo(teamB);
+
+  updateMatchHistory();
+
   checkRoundCompletion();
-  updateMatchHistory(); // 👈 Ensure match schedule always appears
+  matchNumber++;
+  matchAlreadySaved = false;
 }
 
 function triggerScorer(side) {
@@ -980,17 +984,14 @@ function updateMatchHistory() {
   const container = document.getElementById("matchHistory");
   container.innerHTML = "";
 
-  baseMatchups.forEach((match, index) => {
+  // Loop through all scheduled matches (matchups array)
+  matchups.forEach((match, index) => {
     const [teamA, teamB] = match;
 
-    // Try find if matchResults has result matching this teamA vs teamB
-    const result = matchResults.find(r => 
-      (r.tA === teamA && r.tB === teamB) || 
-      (r.tA === teamB && r.tB === teamA)
-    );
-
-    const gA = result ? result.gA : "–";
-    const gB = result ? result.gB : "–";
+    // Check if result exists
+    const result = matchResults[index];
+    const gA = result ? result.gA : "";
+    const gB = result ? result.gB : "";
 
     container.innerHTML += `
       <div class="match-result-row">
@@ -998,7 +999,7 @@ function updateMatchHistory() {
           <img class="team-logo" src="${getTeamLogo(teamA)}" alt="${teamA}" />
           <span class="team-name">${teamA}</span>
         </div>
-        <div class="match-score">${gA} - ${gB}</div>
+        <div class="match-score">${gA !== "" ? gA : "–"} - ${gB !== "" ? gB : "–"}</div>
         <div class="team-side right">
           <span class="team-name">${teamB}</span>
           <img class="team-logo" src="${getTeamLogo(teamB)}" alt="${teamB}" />
@@ -1234,7 +1235,7 @@ function checkRoundCompletion() {
 function startNextRound() {
   currentRound++;
   const newRound = generateRoundRobin(teamNames);
-  currentMatchups = currentMatchups.concat(generateRoundRobin(teamNames));
+  matchups = matchups.concat(newRound);
   document.getElementById("roundPopup").style.display = "none";
   startNextMatch();
 }
@@ -1282,46 +1283,8 @@ function exportToInstagramImage() {
   });
 }
 
-function skipMatch() {
-  console.log("⏭️ skipMatch(): matchNumber =", matchNumber);
-  console.log("📦 currentMatchups:", JSON.stringify(currentMatchups));
-
-  if (matchNumber >= currentMatchups.length) {
-    alert("No matches left to skip.");
-    return;
-  }
-
-  const skipped = currentMatchups.splice(matchNumber, 1)[0];
-  currentMatchups.push(skipped);
-
-  // ✅ Fix: Mark as match already in progress
-  matchInProgress = true; 
-
-  loadMatch(matchNumber);
-  updateMatchHistory();
-  matchAlreadySaved = false;
-}
-
-function loadMatch(index) {
-  console.log("🎯 loadMatch() index =", index);
-  
-  resetTimer();
-  currentGoals = [];
-  document.getElementById("scoreA").textContent = "0";
-  document.getElementById("scoreB").textContent = "0";
-  document.getElementById("goalLogA").innerHTML = "";
-  document.getElementById("goalLogB").innerHTML = "";
-
-  const [teamA, teamB] = currentMatchups[index];
-  document.getElementById("matchTitle").textContent = `Match ${index + 1}`;
-  document.getElementById("teamAName").textContent = teamA;
-  document.getElementById("teamBName").textContent = teamB;
-  document.getElementById("teamAIcon").src = getTeamLogo(teamA);
-  document.getElementById("teamBIcon").src = getTeamLogo(teamB);
-}
-
 updateTimerDisplay();
-loadMatch(matchNumber); // ✅ Only displays, doesn't increase matchNumber
+startNextMatch();
 </script>
 
 <!-- <audio id="alarmSound" src="../audio/annoying-alarm.wav" preload="auto"></audio> -->
