@@ -814,6 +814,9 @@ function resetTimer() {
 }
 
 function startNextMatch() {
+  console.log("➡️ startNextMatch(): matchNumber =", matchNumber);
+console.log("📦 currentMatchups:", JSON.stringify(currentMatchups));
+
   if (matchNumber > 0) saveCurrentMatch();
 
   if (matchNumber >= currentMatchups.length) {
@@ -1269,6 +1272,8 @@ function exportToInstagramImage() {
 }
 
 function skipMatch() {
+  console.log("⏭️ skipMatch(): matchNumber =", matchNumber);
+
   if (matchNumber >= currentMatchups.length) {
     alert("No matches left to skip.");
     return;
