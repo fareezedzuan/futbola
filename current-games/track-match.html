@@ -838,6 +838,7 @@ function startNextMatch() {
 
   loadMatch(matchNumber);
   checkRoundCompletion();
+  updateMatchHistory(); // 👈 Ensure match schedule always appears
 }
 
 function triggerScorer(side) {
