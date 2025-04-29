@@ -842,7 +842,6 @@ function startNextMatch() {
   updateMatchHistory();
 
   checkRoundCompletion();
-  matchNumber++;
   matchAlreadySaved = false;
   matchNumber++;
 }
@@ -1286,16 +1285,15 @@ function exportToInstagramImage() {
 }
 
 function skipMatch() {
-  if (matchNumber >= matchups.length) {
+  if (matchNumber >= currentMatchups.length) {
     alert("No matches left to skip.");
     return;
   }
 
-  // Move current match to end
-  const skipped = matchups.splice(matchNumber, 1)[0];
-  matchups.push(skipped);
+  const skipped = currentMatchups.splice(matchNumber, 1)[0];
+  currentMatchups.push(skipped);
 
-  // Keep matchNumber the same (stay on same index)
+  // Do NOT increment matchNumber — just reload the new match at the same index
   resetTimer();
   currentGoals = [];
   document.getElementById("scoreA").textContent = "0";
@@ -1303,14 +1301,14 @@ function skipMatch() {
   document.getElementById("goalLogA").innerHTML = "";
   document.getElementById("goalLogB").innerHTML = "";
 
-  const [teamA, teamB] = matchups[matchNumber];
+  const [teamA, teamB] = currentMatchups[matchNumber];
   document.getElementById("matchTitle").textContent = `Match ${matchNumber + 1}`;
   document.getElementById("teamAName").textContent = teamA;
   document.getElementById("teamBName").textContent = teamB;
   document.getElementById("teamAIcon").src = getTeamLogo(teamA);
   document.getElementById("teamBIcon").src = getTeamLogo(teamB);
 
-  updateMatchHistory(); // 🛠 refresh order
+  updateMatchHistory();
   matchAlreadySaved = false;
 }
 
