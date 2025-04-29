@@ -979,9 +979,15 @@ function updateMatchHistory() {
   const container = document.getElementById("matchHistory");
   container.innerHTML = "";
 
-  currentMatchups.forEach((match, index) => {
+  baseMatchups.forEach((match, index) => {
     const [teamA, teamB] = match;
-    const result = matchResults[index];
+
+    // Try find if matchResults has result matching this teamA vs teamB
+    const result = matchResults.find(r => 
+      (r.tA === teamA && r.tB === teamB) || 
+      (r.tA === teamB && r.tB === teamA)
+    );
+
     const gA = result ? result.gA : "–";
     const gB = result ? result.gB : "–";
 
