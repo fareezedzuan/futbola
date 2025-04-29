@@ -278,6 +278,7 @@
     let selectedPlayerName = "";
     let currentPlayerIndex = null;
     let currentTeamIndex = null;
+    const teamColors = ["Red", "White", "Green", "Yellow", "Black", "Orange"];
 
     async function fetchGames() {
       const res = await fetch("/api/get-upcoming-games");
@@ -322,11 +323,12 @@
         const input = document.createElement("input");
         input.type = "text";
         input.id = `team${i}`;
-        input.value = `Team ${String.fromCharCode(65 + i)}`;
+        input.value = teamColors[i] || `Team ${String.fromCharCode(65 + i)}`;
         teamInputs.appendChild(input);
       }
       generatePlayerAssignment();
     }
+
 
     function generatePlayerAssignment() {
       const container = document.getElementById("playerAssignment");
