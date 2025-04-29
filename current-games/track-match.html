@@ -488,6 +488,54 @@
       gap: 6px;
     }
 
+    .match-result-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: white;
+      border-radius: 10px;
+      padding: 10px 16px;
+      margin: 10px 0;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .team-side {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: bold;
+      color: #702963;
+      font-size: 18px;
+      flex: 1;
+    }
+
+    .team-side.left {
+      justify-content: flex-start;
+    }
+
+    .team-side.right {
+      justify-content: flex-end;
+    }
+
+    .match-score {
+      font-size: 22px;
+      font-weight: bold;
+      background-color: #702963;
+      color: white;
+      padding: 8px 18px;
+      border-radius: 12px;
+      min-width: 70px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .team-logo {
+      width: 28px;
+      height: 28px;
+      object-fit: contain;
+    }
+
+
   </style>
 </head>
 <body>
@@ -945,13 +993,13 @@ function updateMatchHistory() {
     container.innerHTML += `
       <div class="match-result-row">
         <div class="team-side left">
-          <span class="team-name">${teamA}</span>
           <img class="team-logo" src="${getTeamLogo(teamA)}" alt="${teamA}" />
+          <span class="team-name">${teamA}</span>
         </div>
         <div class="match-score">${gA !== "" ? gA : "–"} - ${gB !== "" ? gB : "–"}</div>
         <div class="team-side right">
-          <img class="team-logo" src="${getTeamLogo(teamB)}" alt="${teamB}" />
           <span class="team-name">${teamB}</span>
+          <img class="team-logo" src="${getTeamLogo(teamB)}" alt="${teamB}" />
         </div>
       </div>
     `;
