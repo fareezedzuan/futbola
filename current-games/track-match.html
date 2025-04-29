@@ -660,6 +660,17 @@ function generateRoundRobin(teams) {
   return rounds;
 }
 
+function getTeamLogo(colorName) {
+  const logos = {
+    Red: "../images/red.png",
+    Blue: "../images/blue.png",
+    Green: "../images/green.png",
+    Yellow: "../images/yellow.png",
+    White: "../images/white.png"
+  };
+  return logos[colorName] || "../images/default.png"; // fallback
+}
+
 function handleTimerClick() {
   if (!timerRunning) {
     timerRunning = true;
@@ -766,8 +777,9 @@ function startNextMatch() {
   document.getElementById("matchTitle").textContent = `Match ${matchNumber + 1}`;
   document.getElementById("teamAName").textContent = teamA;
   document.getElementById("teamBName").textContent = teamB;
-  document.getElementById("teamAIcon").src = `./images/${teamA}.png`;
-  document.getElementById("teamBIcon").src = `./images/${teamB}.png`;
+  document.getElementById("teamAIcon").src = getTeamLogo(teamA);
+  document.getElementById("teamBIcon").src = getTeamLogo(teamB);
+
   checkRoundCompletion();
   matchNumber++;
   matchAlreadySaved = false;
@@ -916,11 +928,11 @@ function updateMatchHistory() {
       <div class="match-result-row">
         <div class="team-side left">
           <span class="team-name">${r.tA}</span>
-          <img class="team-logo" src="./images/${r.tA}.png" alt="${r.tA}" />
+          <img class="team-logo" src="${getTeamLogo(r.tA)}" alt="${r.tA}" />
         </div>
         <div class="match-score">${r.gA} - ${r.gB}</div>
         <div class="team-side right">
-          <img class="team-logo" src="./images/${r.tB}.png" alt="${r.tB}" />
+          <img class="team-logo" src="${getTeamLogo(r.tB)}" alt="${r.tB}" />
           <span class="team-name">${r.tB}</span>
         </div>
       </div>
@@ -1001,7 +1013,7 @@ function updateStandings(tA, tB, gA, gB) {
           <tr>
             <td class="pos">${i + 1}</td>
             <td class="club">
-              <img src="./images/${r.team}.png" class="club-logo" />
+              <img src="${getTeamLogo(r.team)}" class="club-logo" />
               <span>${r.team}</span>
             </td>
             <td>${r.MP}</td>
