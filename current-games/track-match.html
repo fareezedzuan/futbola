@@ -979,14 +979,11 @@ function updateMatchHistory() {
   const container = document.getElementById("matchHistory");
   container.innerHTML = "";
 
-  // Loop through all scheduled matches (matchups array)
   currentMatchups.forEach((match, index) => {
     const [teamA, teamB] = match;
-
-    // Check if result exists
     const result = matchResults[index];
-    const gA = result ? result.gA : "";
-    const gB = result ? result.gB : "";
+    const gA = result ? result.gA : "–";
+    const gB = result ? result.gB : "–";
 
     container.innerHTML += `
       <div class="match-result-row">
@@ -994,7 +991,7 @@ function updateMatchHistory() {
           <img class="team-logo" src="${getTeamLogo(teamA)}" alt="${teamA}" />
           <span class="team-name">${teamA}</span>
         </div>
-        <div class="match-score">${gA !== "" ? gA : "–"} - ${gB !== "" ? gB : "–"}</div>
+        <div class="match-score">${gA} - ${gB}</div>
         <div class="team-side right">
           <span class="team-name">${teamB}</span>
           <img class="team-logo" src="${getTeamLogo(teamB)}" alt="${teamB}" />
