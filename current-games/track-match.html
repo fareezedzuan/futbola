@@ -1310,6 +1310,7 @@ function skipMatch() {
 
   updateMatchHistory();
   matchAlreadySaved = false;
+  matchNumber--; // Compensate for the upcoming matchNumber++ in startNextMatch()
 }
 
 updateTimerDisplay();
