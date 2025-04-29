@@ -837,6 +837,8 @@ function startNextMatch() {
   document.getElementById("teamAIcon").src = getTeamLogo(teamA);
   document.getElementById("teamBIcon").src = getTeamLogo(teamB);
 
+  updateMatchHistory();
+
   checkRoundCompletion();
   matchNumber++;
   matchAlreadySaved = false;
