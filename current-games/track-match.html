@@ -1286,18 +1286,16 @@ function exportToInstagramImage() {
 }
 
 function skipMatch() {
-  if (matchNumber >= currentMatchups.length) {
+  if (matchNumber >= matchups.length) {
     alert("No matches left to skip.");
     return;
   }
 
   // Move current match to end
-  const skippedMatch = currentMatchups.splice(matchNumber, 1)[0];
-  currentMatchups.push(skippedMatch);
+  const skipped = matchups.splice(matchNumber, 1)[0];
+  matchups.push(skipped);
 
-  // 🛠 NO matchNumber++ here!
-
-  // Reset current match without advancing
+  // Keep matchNumber the same (stay on same index)
   resetTimer();
   currentGoals = [];
   document.getElementById("scoreA").textContent = "0";
@@ -1305,15 +1303,15 @@ function skipMatch() {
   document.getElementById("goalLogA").innerHTML = "";
   document.getElementById("goalLogB").innerHTML = "";
 
-  // Reload same matchNumber, now with new teams
-  const [teamA, teamB] = currentMatchups[matchNumber];
+  const [teamA, teamB] = matchups[matchNumber];
   document.getElementById("matchTitle").textContent = `Match ${matchNumber + 1}`;
   document.getElementById("teamAName").textContent = teamA;
   document.getElementById("teamBName").textContent = teamB;
   document.getElementById("teamAIcon").src = getTeamLogo(teamA);
   document.getElementById("teamBIcon").src = getTeamLogo(teamB);
 
-  updateMatchHistory(); // 🛠 Update the list to reflect new order
+  updateMatchHistory(); // 🛠 refresh order
+  matchAlreadySaved = false;
 }
 
 updateTimerDisplay();
