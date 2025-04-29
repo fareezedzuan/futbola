@@ -844,6 +844,7 @@ function startNextMatch() {
   checkRoundCompletion();
   matchNumber++;
   matchAlreadySaved = false;
+  matchNumber++;
 }
 
 function triggerScorer(side) {
@@ -1294,7 +1295,9 @@ function skipMatch() {
   const skippedMatch = currentMatchups.splice(matchNumber, 1)[0];
   currentMatchups.push(skippedMatch);
 
-  // Stay on same matchNumber, just load new match
+  // 🛠 NO matchNumber++ here!
+
+  // Reset current match without advancing
   resetTimer();
   currentGoals = [];
   document.getElementById("scoreA").textContent = "0";
@@ -1302,6 +1305,7 @@ function skipMatch() {
   document.getElementById("goalLogA").innerHTML = "";
   document.getElementById("goalLogB").innerHTML = "";
 
+  // Reload same matchNumber, now with new teams
   const [teamA, teamB] = currentMatchups[matchNumber];
   document.getElementById("matchTitle").textContent = `Match ${matchNumber + 1}`;
   document.getElementById("teamAName").textContent = teamA;
