@@ -817,7 +817,7 @@ function startNextMatch() {
   console.log("➡️ startNextMatch(): matchNumber =", matchNumber);
   console.log("📦 currentMatchups:", JSON.stringify(currentMatchups));
 
-  if (matchNumber > 0) saveCurrentMatch();
+  if (matchNumber > 0 || matchAlreadySaved) saveCurrentMatch();
 
   if (matchNumber >= currentMatchups.length) {
     if (currentRound < totalRounds) {
@@ -831,13 +831,10 @@ function startNextMatch() {
   loadMatch(matchNumber);
   checkRoundCompletion();
 
-  // ✅ Only increment if not skipping
   if (!justSkipped) {
     matchNumber++;
-  } else {
-    console.log("⏩ Skip detected, not incrementing matchNumber");
-    justSkipped = false; // reset flag after skipping
   }
+  justSkipped = false;
 }
 
 function triggerScorer(side) {
