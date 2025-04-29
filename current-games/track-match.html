@@ -632,7 +632,6 @@ if (!teamNames || teamNames.length < 2) {
 
 let timeElapsed = 0, timer = null, timerRunning = false, timerPaused = false;
 let alarmInterval;
-let alarmTimeout;
 let currentGoals = [];
 let matchResults = [];
 let standings = {};
@@ -645,6 +644,10 @@ let totalRounds = parseInt(sessionStorage.getItem("rounds")) || 1;
 let currentRound = 1;
 let baseMatchups = generateRoundRobin(teamNames); // keep base round
 let matchups = [...baseMatchups];
+let alarmTimeout;
+let alarmScheduledTime = 0; // when the alarm is supposed to trigger
+let alarmStartTimestamp = null; // when timer starts
+
 
 function generateRoundRobin(teams) {
   const rounds = [], t = [...teams];
@@ -673,34 +676,51 @@ function getTeamLogo(colorName) {
 
 function handleTimerClick() {
   if (!timerRunning) {
-    timerRunning = true;
-    timerPaused = false;
-    document.getElementById('timerBtn').textContent = "Pause";
-    timer = setInterval(() => {
-      if (!timerPaused) {
-        timeElapsed++;
-        updateTimerDisplay();
-        if (timeElapsed >= duration * 60) {
-          clearInterval(timer);
-          timerRunning = false;
-          document.getElementById('timerBtn').textContent = "Start Timer";
+  timerRunning = true;
+  timerPaused = false;
+  document.getElementById('timerBtn').textContent = "Pause";
+  
+  alarmStartTimestamp = Date.now();
+  alarmScheduledTime = duration * 60 * 1000; // duration in ms
 
-          // Play alarm
-          const alarm = document.getElementById("alarmSound");
-          alarm.currentTime = 0;
-          alarm.play();
+  alarmTimeout = setTimeout(() => {
+    playAlarm();
+  }, alarmScheduledTime);
 
-          // Click anywhere to stop
-          document.body.addEventListener("click", stopAlarmOnce, { once: true });
-        }
-
+  timer = setInterval(() => {
+    if (!timerPaused) {
+      timeElapsed++;
+      updateTimerDisplay();
+      if (timeElapsed >= duration * 60) {
+        clearInterval(timer);
+        timerRunning = false;
+        document.getElementById('timerBtn').textContent = "Start Timer";
       }
-    }, 1000);
+    }
+  }, 1000);
+} else {
+  timerPaused = !timerPaused;
+  document.getElementById('timerBtn').textContent = timerPaused ? "Resume Timer" : "Pause Timer";
+
+  if (timerPaused) {
+    // 🔵 If pausing: clear alarm timeout
+    clearTimeout(alarmTimeout);
   } else {
-    timerPaused = !timerPaused;
-    document.getElementById('timerBtn').textContent = timerPaused ? "Resume Timer" : "Pause Timer";
+    // 🔵 If resuming: re-schedule alarm
+    const now = Date.now();
+    const timePassed = now - alarmStartTimestamp;
+    const remaining = Math.max(alarmScheduledTime - timePassed, 0);
+
+    alarmStartTimestamp = Date.now(); // reset start timestamp
+    alarmScheduledTime = remaining;
+
+    alarmTimeout = setTimeout(() => {
+      playAlarm();
+    }, remaining);
   }
 }
+}
+
 
 function updateTimerDisplay() {
   const min = Math.floor(timeElapsed / 60);
@@ -751,6 +771,7 @@ function resetTimer() {
   timerPaused = false;
   updateTimerDisplay();
   document.getElementById('timerBtn').textContent = "Start Timer";
+  clearTimeout(alarmTimeout);
 }
 
 function startNextMatch() {
