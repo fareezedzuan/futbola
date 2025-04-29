@@ -1314,7 +1314,7 @@ function loadMatch(index) {
 }
 
 updateTimerDisplay();
-startNextMatch();
+loadMatch(matchNumber); // ✅ Only displays, doesn't increase matchNumber
 </script>
 
 <!-- <audio id="alarmSound" src="../audio/annoying-alarm.wav" preload="auto"></audio> -->
