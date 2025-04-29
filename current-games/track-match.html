@@ -693,6 +693,7 @@ let totalRounds = parseInt(sessionStorage.getItem("rounds")) || 1;
 let currentRound = 1;
 let baseMatchups = generateRoundRobin(teamNames); // keep base round
 let matchups = [...baseMatchups];
+let currentMatchups = [...matchups];
 let alarmTimeout;
 let alarmScheduledTime = 0; // when the alarm is supposed to trigger
 let alarmStartTimestamp = null; // when timer starts
@@ -831,7 +832,7 @@ function startNextMatch() {
   document.getElementById("goalLogA").innerHTML = "";
   document.getElementById("goalLogB").innerHTML = "";
 
-  const [teamA, teamB] = matchups[matchNumber];
+  const [teamA, teamB] = currentMatchups[matchNumber];
   document.getElementById("matchTitle").textContent = `Match ${matchNumber + 1}`;
   document.getElementById("teamAName").textContent = teamA;
   document.getElementById("teamBName").textContent = teamB;
@@ -985,7 +986,7 @@ function updateMatchHistory() {
   container.innerHTML = "";
 
   // Loop through all scheduled matches (matchups array)
-  matchups.forEach((match, index) => {
+  currentMatchups.forEach((match, index) => {
     const [teamA, teamB] = match;
 
     // Check if result exists
@@ -1235,7 +1236,7 @@ function checkRoundCompletion() {
 function startNextRound() {
   currentRound++;
   const newRound = generateRoundRobin(teamNames);
-  matchups = matchups.concat(newRound);
+  currentMatchups = currentMatchups.concat(generateRoundRobin(teamNames));
   document.getElementById("roundPopup").style.display = "none";
   startNextMatch();
 }
