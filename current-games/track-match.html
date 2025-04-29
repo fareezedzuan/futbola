@@ -698,6 +698,7 @@ let alarmTimeout;
 let alarmScheduledTime = 0; // when the alarm is supposed to trigger
 let alarmStartTimestamp = null; // when timer starts
 let justSkipped = false;
+let matchInProgress = false;
 
 function generateRoundRobin(teams) {
   const rounds = [], t = [...teams];
@@ -817,7 +818,12 @@ function startNextMatch() {
   console.log("➡️ startNextMatch(): matchNumber =", matchNumber);
   console.log("📦 currentMatchups:", JSON.stringify(currentMatchups));
 
-  if (matchNumber > 0 || matchAlreadySaved) saveCurrentMatch();
+  if (matchInProgress) {
+    saveCurrentMatch();
+    matchNumber++;
+  } else {
+    matchInProgress = true; // Only set TRUE first time page loads
+  }
 
   if (matchNumber >= currentMatchups.length) {
     if (currentRound < totalRounds) {
@@ -830,11 +836,6 @@ function startNextMatch() {
 
   loadMatch(matchNumber);
   checkRoundCompletion();
-
-  if (!justSkipped) {
-    matchNumber++;
-  }
-  justSkipped = false;
 }
 
 function triggerScorer(side) {
@@ -1283,12 +1284,13 @@ function skipMatch() {
     return;
   }
 
-  // Move current match to end of the list
   const skipped = currentMatchups.splice(matchNumber, 1)[0];
   currentMatchups.push(skipped);
 
-  // Re-load match at current index
-  loadMatch(matchNumber);
+  loadMatch(matchNumber); // Reload current index (don't move forward)
+  updateMatchHistory();
+
+  matchAlreadySaved = false;
 }
 
 function loadMatch(index) {
