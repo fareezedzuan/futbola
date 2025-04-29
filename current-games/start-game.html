@@ -329,7 +329,6 @@
       generatePlayerAssignment();
     }
 
-
     function generatePlayerAssignment() {
       const container = document.getElementById("playerAssignment");
 
@@ -345,7 +344,8 @@
 
       for (let i = 0; i < teamCount; i++) {
         const label = document.createElement("label");
-        label.textContent = `Assign players to Team ${String.fromCharCode(65 + i)}:`;
+        const teamName = teamColors[i] || `Team ${String.fromCharCode(65 + i)}`;
+        label.textContent = `Assign players to ${teamName}:`;
 
         const grid = document.createElement("div");
         grid.className = "player-grid";
