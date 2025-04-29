@@ -736,7 +736,6 @@ function stopAlarm() {
   clearInterval(alarmInterval);
   clearTimeout(alarmTimeout);
   const alarm = document.getElementById("alarmSound");
-  alarm.pause();
   alarm.currentTime = 0;
   document.body.removeEventListener("click", stopAlarmOnce);
 }
@@ -966,7 +965,7 @@ function updateLeaderboard() {
         <div class="scorer-pos">${index + 1}</div>
         <div class="scorer-player">
           <strong>${name}</strong>
-          <img class="scorer-logo" src="./images/${teamFile}.png" alt="${team}" />
+          <img class="scorer-logo" src="${getTeamLogo(team)}" alt="${team}" />
         </div>
         <div class="scorer-goals">${count}</div>
       </div>
