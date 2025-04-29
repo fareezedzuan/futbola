@@ -815,8 +815,8 @@ function resetTimer() {
 
 function startNextMatch() {
   if (matchNumber > 0) saveCurrentMatch();
-  const matchesPerRound = baseMatchups.length;
-  if (matchNumber >= matchups.length) {
+
+  if (matchNumber >= currentMatchups.length) {
     if (currentRound < totalRounds) {
       showRoundPopup();
     } else {
@@ -825,27 +825,9 @@ function startNextMatch() {
     return;
   }
 
-  resetTimer();
-  currentGoals = [];
-  document.getElementById("scoreA").textContent = "0";
-  document.getElementById("scoreB").textContent = "0";
-  document.getElementById("goalLogA").innerHTML = "";
-  document.getElementById("goalLogB").innerHTML = "";
-
-  const [teamA, teamB] = currentMatchups[matchNumber];
-  document.getElementById("matchTitle").textContent = `Match ${matchNumber + 1}`;
-  document.getElementById("teamAName").textContent = teamA;
-  document.getElementById("teamBName").textContent = teamB;
-  document.getElementById("teamAIcon").src = getTeamLogo(teamA);
-  document.getElementById("teamBIcon").src = getTeamLogo(teamB);
-
-  updateMatchHistory();
-
+  loadMatch(matchNumber);
   checkRoundCompletion();
-  matchAlreadySaved = false;
-  
-  if (!justSkipped) matchNumber++;
-  justSkipped = false;
+  matchNumber++;
 }
 
 function triggerScorer(side) {
@@ -1292,11 +1274,15 @@ function skipMatch() {
     return;
   }
 
+  // Move current match to end of the list
   const skipped = currentMatchups.splice(matchNumber, 1)[0];
   currentMatchups.push(skipped);
-  justSkipped = true; // ✅ tell startNextMatch() not to increment
 
-  // Reload the same index
+  // Re-load match at current index
+  loadMatch(matchNumber);
+}
+
+function loadMatch(index) {
   resetTimer();
   currentGoals = [];
   document.getElementById("scoreA").textContent = "0";
@@ -1304,8 +1290,8 @@ function skipMatch() {
   document.getElementById("goalLogA").innerHTML = "";
   document.getElementById("goalLogB").innerHTML = "";
 
-  const [teamA, teamB] = currentMatchups[matchNumber];
-  document.getElementById("matchTitle").textContent = `Match ${matchNumber + 1}`;
+  const [teamA, teamB] = currentMatchups[index];
+  document.getElementById("matchTitle").textContent = `Match ${index + 1}`;
   document.getElementById("teamAName").textContent = teamA;
   document.getElementById("teamBName").textContent = teamB;
   document.getElementById("teamAIcon").src = getTeamLogo(teamA);
