@@ -1285,15 +1285,20 @@ function exportToInstagramImage() {
 }
 
 function skipMatch() {
+  // ⛔ prevent overflow
   if (matchNumber >= currentMatchups.length) {
     alert("No matches left to skip.");
     return;
   }
 
-  const skipped = currentMatchups.splice(matchNumber, 1)[0];
-  currentMatchups.push(skipped);
+  // 💡 Remove current match at matchNumber
+  const skippedMatch = currentMatchups.splice(matchNumber, 1)[0];
 
-  // Do NOT increment matchNumber — just reload the new match at the same index
+  // 💡 Push skipped match to end
+  currentMatchups.push(skippedMatch);
+
+  // ❗ DO NOT adjust matchNumber – just replay new match at same index
+  // No increment, no decrement
   resetTimer();
   currentGoals = [];
   document.getElementById("scoreA").textContent = "0";
@@ -1301,7 +1306,7 @@ function skipMatch() {
   document.getElementById("goalLogA").innerHTML = "";
   document.getElementById("goalLogB").innerHTML = "";
 
-  const [teamA, teamB] = currentMatchups[matchNumber];
+  const [teamA, teamB] = currentMatchups[matchNumber]; // same index
   document.getElementById("matchTitle").textContent = `Match ${matchNumber + 1}`;
   document.getElementById("teamAName").textContent = teamA;
   document.getElementById("teamBName").textContent = teamB;
@@ -1310,7 +1315,6 @@ function skipMatch() {
 
   updateMatchHistory();
   matchAlreadySaved = false;
-  matchNumber--; // Compensate for the upcoming matchNumber++ in startNextMatch()
 }
 
 updateTimerDisplay();
