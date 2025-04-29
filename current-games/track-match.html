@@ -631,6 +631,8 @@ if (!teamNames || teamNames.length < 2) {
   }
 
 let timeElapsed = 0, timer = null, timerRunning = false, timerPaused = false;
+let alarmInterval;
+let alarmTimeout;
 let currentGoals = [];
 let matchResults = [];
 let standings = {};
@@ -696,10 +698,40 @@ function updateTimerDisplay() {
 }
 
 function stopAlarmOnce() {
+  playAlarm();
+}
+
+function playAlarm() {
+  const alarm = document.getElementById("alarmSound");
+  alarm.currentTime = 0;
+  alarm.play();
+
+  // Repeat alarm every 4 seconds
+  alarmInterval = setInterval(() => {
+    alarm.currentTime = 0;
+    alarm.play();
+  }, 4000);
+
+  // Stop automatically after 20 seconds
+  alarmTimeout = setTimeout(() => {
+    stopAlarm();
+  }, 20000); // 20,000 milliseconds = 20 seconds
+
+  // Also allow player to click anywhere to stop immediately
+  document.body.addEventListener("click", stopAlarmOnce);
+}
+
+function stopAlarm() {
+  clearInterval(alarmInterval);
+  clearTimeout(alarmTimeout);
   const alarm = document.getElementById("alarmSound");
   alarm.pause();
   alarm.currentTime = 0;
   document.body.removeEventListener("click", stopAlarmOnce);
+}
+
+function stopAlarmOnce() {
+  stopAlarm();
 }
 
 function resetTimer() {
@@ -1174,7 +1206,7 @@ updateTimerDisplay();
 startNextMatch();
 </script>
 
-<audio id="alarmSound" src="../audio/annoying-alarm.wav" preload="auto"></audio>
+<!-- <audio id="alarmSound" src="../audio/annoying-alarm.wav" preload="auto"></audio> -->
 <div id="roundOverlay" onclick="closeRoundPopup()"></div>
 <div id="roundPopup">
   <h3>🎯 Round 1 Completed</h3>
