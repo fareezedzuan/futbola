@@ -815,14 +815,16 @@ function resetTimer() {
 }
 
 function startNextMatch() {
-  console.log("➡️ startNextMatch(): matchNumber =", matchNumber);
-  console.log("📦 currentMatchups:", JSON.stringify(currentMatchups));
+  console.log("➡️ startNextMatch()");
+  console.log("  matchNumber =", matchNumber);
+  console.log("  matchInProgress =", matchInProgress);
+  console.log("  currentMatchups =", JSON.stringify(currentMatchups));
 
   if (matchInProgress) {
     saveCurrentMatch();
     matchNumber++;
   } else {
-    matchInProgress = true; // Only set TRUE first time page loads
+    matchInProgress = true; 
   }
 
   if (matchNumber >= currentMatchups.length) {
@@ -1277,8 +1279,10 @@ function exportToInstagramImage() {
 }
 
 function skipMatch() {
-  console.log("⏭️ skipMatch(): matchNumber =", matchNumber);
-
+  console.log("⏭️ skipMatch()");
+  console.log("  matchNumber =", matchNumber);
+  console.log("  currentMatchups =", JSON.stringify(currentMatchups));
+  
   if (matchNumber >= currentMatchups.length) {
     alert("No matches left to skip.");
     return;
@@ -1287,13 +1291,15 @@ function skipMatch() {
   const skipped = currentMatchups.splice(matchNumber, 1)[0];
   currentMatchups.push(skipped);
 
-  loadMatch(matchNumber); // Reload current index (don't move forward)
+  loadMatch(matchNumber);
   updateMatchHistory();
-
+  
   matchAlreadySaved = false;
 }
 
 function loadMatch(index) {
+  console.log("🎯 loadMatch() index =", index);
+  
   resetTimer();
   currentGoals = [];
   document.getElementById("scoreA").textContent = "0";
@@ -1307,9 +1313,6 @@ function loadMatch(index) {
   document.getElementById("teamBName").textContent = teamB;
   document.getElementById("teamAIcon").src = getTeamLogo(teamA);
   document.getElementById("teamBIcon").src = getTeamLogo(teamB);
-
-  updateMatchHistory();
-  matchAlreadySaved = false;
 }
 
 updateTimerDisplay();
