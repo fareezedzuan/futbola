@@ -329,6 +329,16 @@
       generatePlayerAssignment();
     }
 
+    function getTeamLogo(colorName) {
+      const logos = {
+        Red: "./images/teams/red.png",
+        Green: "./images/teams/green.png",
+        Yellow: "./images/teams/yellow.png",
+        White: "./images/teams/white.png"
+      };
+      return logos[colorName] || "./images/teams/default.png"; // fallback default logo if color not found
+    }
+
     function generatePlayerAssignment() {
       const container = document.getElementById("playerAssignment");
 
@@ -411,12 +421,15 @@
             return `${player.name}${player.jersey ? ` (#${player.jersey})` : ''}`;
           });
 
+          const logoPath = getTeamLogo(teamName);          
           popup.innerHTML += `
-            <div>
+            <div style="margin-bottom:20px; text-align:center;">
+              <img src="${logoPath}" alt="${teamName} Logo" style="height:50px; margin-bottom:5px;"><br/>
               <h4>${teamName}</h4>
               <ul>${players.map(p => `<li>${p}</li>`).join("")}</ul>
             </div>
           `;
+
       }
       document.getElementById("popup").style.display = "block";
     }
