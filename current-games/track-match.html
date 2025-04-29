@@ -697,7 +697,7 @@ let currentMatchups = [...matchups];
 let alarmTimeout;
 let alarmScheduledTime = 0; // when the alarm is supposed to trigger
 let alarmStartTimestamp = null; // when timer starts
-
+let justSkipped = false;
 
 function generateRoundRobin(teams) {
   const rounds = [], t = [...teams];
@@ -843,7 +843,9 @@ function startNextMatch() {
 
   checkRoundCompletion();
   matchAlreadySaved = false;
-  matchNumber++;
+  
+  if (!justSkipped) matchNumber++;
+  justSkipped = false;
 }
 
 function triggerScorer(side) {
@@ -1285,20 +1287,16 @@ function exportToInstagramImage() {
 }
 
 function skipMatch() {
-  // ⛔ prevent overflow
   if (matchNumber >= currentMatchups.length) {
     alert("No matches left to skip.");
     return;
   }
 
-  // 💡 Remove current match at matchNumber
-  const skippedMatch = currentMatchups.splice(matchNumber, 1)[0];
+  const skipped = currentMatchups.splice(matchNumber, 1)[0];
+  currentMatchups.push(skipped);
+  justSkipped = true; // ✅ tell startNextMatch() not to increment
 
-  // 💡 Push skipped match to end
-  currentMatchups.push(skippedMatch);
-
-  // ❗ DO NOT adjust matchNumber – just replay new match at same index
-  // No increment, no decrement
+  // Reload the same index
   resetTimer();
   currentGoals = [];
   document.getElementById("scoreA").textContent = "0";
@@ -1306,7 +1304,7 @@ function skipMatch() {
   document.getElementById("goalLogA").innerHTML = "";
   document.getElementById("goalLogB").innerHTML = "";
 
-  const [teamA, teamB] = currentMatchups[matchNumber]; // same index
+  const [teamA, teamB] = currentMatchups[matchNumber];
   document.getElementById("matchTitle").textContent = `Match ${matchNumber + 1}`;
   document.getElementById("teamAName").textContent = teamA;
   document.getElementById("teamBName").textContent = teamB;
