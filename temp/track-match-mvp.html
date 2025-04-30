@@ -1252,34 +1252,6 @@ function showRoundPopup() {
   document.getElementById("roundOverlay").style.display = "block";
 }
 
-function renderVerticalGrid(data, containerId, renderItem, maxCols = 4) {
-  const total = data.length;
-  const rowsPerCol = Math.ceil(total / maxCols);
-  const columns = Array.from({ length: maxCols }, () => []);
-
-  data.forEach((item, index) => {
-    const colIndex = Math.floor(index / rowsPerCol);
-    if (colIndex < maxCols) {
-      columns[colIndex].push(item);
-    }
-  });
-
-  const container = document.getElementById(containerId);
-  container.innerHTML = '';
-
-  for (let row = 0; row < rowsPerCol; row++) {
-    for (let col = 0; col < maxCols; col++) {
-      const item = columns[col][row];
-      if (item) {
-        const div = document.createElement('div');
-        div.className = containerId === 'topScorersGrid' ? 'scorer-box' : 'result-box';
-        div.innerHTML = renderItem(item, row + col * rowsPerCol); // index if needed
-        container.appendChild(div);
-      }
-    }
-  }
-}
-
 function exportToInstagramImage() {
   const venue = sessionStorage.getItem("venue") || "futbola court";
   const date = sessionStorage.getItem("date") || new Date().toLocaleDateString();
@@ -1287,8 +1259,14 @@ function exportToInstagramImage() {
   document.getElementById("instaVenue").textContent = `futbola - ${venue}`;
   document.getElementById("instaDate").textContent = date;
 
-  // 👇 Use new layout logic instead of raw copy
-  renderInstagramExportGrids();
+  // Copy match results
+  document.getElementById("instaMatchResults").innerHTML = document.getElementById("matchHistory").innerHTML;
+
+  // Copy top scorers
+  document.getElementById("instaTopScorers").innerHTML = document.getElementById("topScorersList").innerHTML;
+
+  // Copy standings
+  document.getElementById("instaStandings").innerHTML = document.getElementById("standingsTable").innerHTML;
 
   const exportDiv = document.getElementById("instagramExportDiv");
   exportDiv.style.display = "block";
