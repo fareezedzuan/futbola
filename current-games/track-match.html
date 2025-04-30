@@ -1280,7 +1280,42 @@ function renderVerticalGrid(data, containerId, renderItem, maxCols = 4) {
   }
 }
 
+function renderInstagramExportGrids() {
+  // TOP SCORERS
+  const tally = {};
+  allGoals.forEach(g => {
+    if (!g.isOG) tally[g.player] = (tally[g.player] || 0) + 1;
+  });
+  const topScorers = Object.entries(tally)
+    .map(([name, goals]) => ({ name, goals }))
+    .sort((a, b) => b.goals - a.goals);
+
+  // Assign rank
+  let rank = 1;
+  for (let i = 0; i < topScorers.length; i++) {
+    if (i > 0 && topScorers[i].goals === topScorers[i - 1].goals) {
+      topScorers[i].rank = topScorers[i - 1].rank;
+    } else {
+      topScorers[i].rank = rank;
+    }
+    rank++;
+  }
+
+  renderVerticalGrid(topScorers, 'topScorersGrid', (p) => `
+    <div class="scorer-rank">#${p.rank}</div>
+    ${p.name}<br>⚽ ${p.goals}
+  `, 4);
+
+  renderVerticalGrid(matchResults, 'matchResultsGrid', (m, i) => `
+    <div class="match-title">Match ${i + 1}: ${m.tA} ${m.gA} - ${m.gB} ${m.tB}</div>
+    <div>${m.goals?.map(g => `${g.player} ${g.time}${g.isOG ? ' (OG)' : ''}`).join('<br>') || '<i>No scorers</i>'}</div>
+  `, 3);
+
+  document.getElementById("instaStandings").innerHTML = document.getElementById("standingsTable").innerHTML;
+}
+
 function exportToInstagramImage() {
+  console.log("📸 exportToInstagramImage triggered");
   const venue = sessionStorage.getItem("venue") || "futbola court";
   const date = sessionStorage.getItem("date") || new Date().toLocaleDateString();
 
