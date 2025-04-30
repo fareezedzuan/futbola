@@ -535,6 +535,21 @@
       object-fit: contain;
     }
 
+    #instagramExportDiv .grid-container {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    #instagramExportDiv .scorer-box,
+    #instagramExportDiv .result-box {
+      background: #fff;
+      border-radius: 8px;
+      padding: 8px;
+      font-size: 20px;
+      text-align: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
 
   </style>
 </head>
@@ -1285,6 +1300,8 @@ function renderVerticalGrid(data, containerId, renderItem, maxCols = 4) {
 }
 
 function renderInstagramExportGrids() {
+  console.log("🎯 topScorersGrid content:", document.getElementById("topScorersGrid").innerHTML);
+console.log("📋 matchResultsGrid content:", document.getElementById("matchResultsGrid").innerHTML);
   // TOP SCORERS
   const tally = {};
   allGoals.forEach(g => {
