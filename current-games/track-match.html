@@ -535,32 +535,6 @@
       object-fit: contain;
     }
 
-  .grid-container {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 8px;
-    margin-top: 10px;
-  }
-
-  .scorer-box, .result-box {
-    background: #f0f0f0;
-    border-radius: 8px;
-    padding: 8px;
-    text-align: center;
-    font-size: 14px;
-  }
-
-  .scorer-rank {
-    font-weight: bold;
-    margin-bottom: 4px;
-    color: #d35400;
-  }
-
-  .match-title {
-    font-weight: bold;
-    color: #2980b9;
-    margin-bottom: 4px;
-  }
 
   </style>
 </head>
@@ -621,6 +595,7 @@
     <button class="btn-primary" onclick="resetTimer()">Reset Timer</button>
     <button class="btn-primary" onclick="openEditGoals()">Edit Goals</button>
     <button class="btn-primary" onclick="startNextMatch()">Next Match</button>
+    <button class="btn-primary" onclick="skipMatch()">Skip Match</button>
     <button class="btn-primary" onclick="exportSummary()">Export WhatsApp</button>
     <button class="btn-primary" onclick="exportToInstagramImage()">Instagram Image</button>
   </div>
@@ -663,12 +638,12 @@
   <h2 id="instaVenue">futbola - Venue</h2>
   <h3 id="instaDate">Date</h3>
   <div class="section">
-    <h3 style="margin-top: 20px;">📋 Match Results</h3>
-    <div id="matchResultsGrid" class="grid-container"></div>
+    <h3>📋 Match Results</h3>
+    <div id="instaMatchResults"></div>
   </div>
   <div class="section">
     <h3>🎯 Top Scorers</h3>
-    <div id="topScorersGrid" class="grid-container"></div>
+    <div id="instaTopScorers"></div>
   </div>
   <div class="section">
     <h3>🏆 Standings</h3>
@@ -718,9 +693,12 @@ let totalRounds = parseInt(sessionStorage.getItem("rounds")) || 1;
 let currentRound = 1;
 let baseMatchups = generateRoundRobin(teamNames); // keep base round
 let matchups = [...baseMatchups];
+let currentMatchups = [...matchups];
 let alarmTimeout;
 let alarmScheduledTime = 0; // when the alarm is supposed to trigger
 let alarmStartTimestamp = null; // when timer starts
+let justSkipped = false;
+let matchInProgress = false;
 
 
 function generateRoundRobin(teams) {
@@ -838,6 +816,19 @@ function resetTimer() {
 }
 
 function startNextMatch() {
+  console.log("➡️ startNextMatch()");
+  console.log("  matchNumber =", matchNumber);
+  console.log("  matchInProgress =", matchInProgress);
+  console.log("  currentMatchups =", JSON.stringify(currentMatchups));
+
+  if (matchInProgress) {
+    saveCurrentMatch();
+    matchNumber++;
+  } else {
+    matchInProgress = true; 
+  }
+
+  if (matchNumber >= currentMatchups.length) {
   if (matchNumber > 0) saveCurrentMatch();
   const matchesPerRound = baseMatchups.length;
   if (matchNumber >= matchups.length) {
@@ -849,6 +840,7 @@ function startNextMatch() {
     return;
   }
 
+  loadMatch(matchNumber);
   resetTimer();
   currentGoals = [];
   document.getElementById("scoreA").textContent = "0";
@@ -866,6 +858,7 @@ function startNextMatch() {
   updateMatchHistory();
 
   checkRoundCompletion();
+  updateMatchHistory(); // 👈 Ensure match schedule always appears
   matchNumber++;
   matchAlreadySaved = false;
 }
@@ -1009,10 +1002,19 @@ function updateMatchHistory() {
   const container = document.getElementById("matchHistory");
   container.innerHTML = "";
 
+  baseMatchups.forEach((match, index) => {
   // Loop through all scheduled matches (matchups array)
   matchups.forEach((match, index) => {
     const [teamA, teamB] = match;
 
+    // Try find if matchResults has result matching this teamA vs teamB
+    const result = matchResults.find(r => 
+      (r.tA === teamA && r.tB === teamB) || 
+      (r.tA === teamB && r.tB === teamA)
+    );
+
+    const gA = result ? result.gA : "–";
+    const gB = result ? result.gB : "–";
     // Check if result exists
     const result = matchResults[index];
     const gA = result ? result.gA : "";
@@ -1024,6 +1026,7 @@ function updateMatchHistory() {
           <img class="team-logo" src="${getTeamLogo(teamA)}" alt="${teamA}" />
           <span class="team-name">${teamA}</span>
         </div>
+        <div class="match-score">${gA} - ${gB}</div>
         <div class="match-score">${gA !== "" ? gA : "–"} - ${gB !== "" ? gB : "–"}</div>
         <div class="team-side right">
           <span class="team-name">${teamB}</span>
@@ -1260,6 +1263,7 @@ function checkRoundCompletion() {
 function startNextRound() {
   currentRound++;
   const newRound = generateRoundRobin(teamNames);
+  currentMatchups = currentMatchups.concat(generateRoundRobin(teamNames));
   matchups = matchups.concat(newRound);
   document.getElementById("roundPopup").style.display = "none";
   startNextMatch();
@@ -1280,39 +1284,6 @@ function showRoundPopup() {
   document.getElementById("roundOverlay").style.display = "block";
 }
 
-function renderInstagramExportGrids() {
-  // Build topScorers from allGoals
-  const tally = {};
-  allGoals.forEach(g => {
-    if (!g.isOG) tally[g.player] = (tally[g.player] || 0) + 1;
-  });
-  const topScorers = Object.entries(tally)
-    .map(([name, goals]) => ({ name, goals }))
-    .sort((a, b) => b.goals - a.goals);
-
-  // Assign ranks
-  let rank = 1;
-  for (let i = 0; i < topScorers.length; i++) {
-    if (i > 0 && topScorers[i].goals === topScorers[i - 1].goals) {
-      topScorers[i].rank = topScorers[i - 1].rank;
-    } else {
-      topScorers[i].rank = rank;
-    }
-    rank++;
-  }
-
-  // Render grids
-  renderVerticalGrid(topScorers, 'topScorersGrid', (p) => `
-    <div class="scorer-rank">#${p.rank}</div>
-    ${p.name}<br>⚽ ${p.goals}
-  `);
-
-  renderVerticalGrid(matchResults, 'matchResultsGrid', (m, i) => `
-    <div class="match-title">Match ${i + 1}: ${m.tA} ${m.gA} - ${m.gB} ${m.tB}</div>
-    <div>${m.goals?.map(g => `${g.player} ${g.time}${g.isOG ? ' (OG)' : ''}`).join('<br>') || '<i>No scorers</i>'}</div>
-  `);
-}
-
 function exportToInstagramImage() {
   const venue = sessionStorage.getItem("venue") || "futbola court";
   const date = sessionStorage.getItem("date") || new Date().toLocaleDateString();
@@ -1320,13 +1291,14 @@ function exportToInstagramImage() {
   document.getElementById("instaVenue").textContent = `futbola - ${venue}`;
   document.getElementById("instaDate").textContent = date;
 
-  // ⛔ REMOVE THESE THREE LINES
-  // document.getElementById("instaMatchResults").innerHTML = document.getElementById("matchHistory").innerHTML;
-  // document.getElementById("instaTopScorers").innerHTML = document.getElementById("topScorersList").innerHTML;
-  // document.getElementById("instaStandings").innerHTML = document.getElementById("standingsTable").innerHTML;
+  // Copy match results
+  document.getElementById("instaMatchResults").innerHTML = document.getElementById("matchHistory").innerHTML;
 
-  // ✅ ADD THIS INSTEAD:
-  renderInstagramExportGrids();  // 👈 this prepares the vertical layout
+  // Copy top scorers
+  document.getElementById("instaTopScorers").innerHTML = document.getElementById("topScorersList").innerHTML;
+
+  // Copy standings
+  document.getElementById("instaStandings").innerHTML = document.getElementById("standingsTable").innerHTML;
 
   const exportDiv = document.getElementById("instagramExportDiv");
   exportDiv.style.display = "block";
@@ -1340,58 +1312,46 @@ function exportToInstagramImage() {
   });
 }
 
-  function renderVerticalGrid(data, containerId, renderItem) {
-    const maxCols = 4;
-    const rowsPerCol = Math.ceil(data.length / maxCols);
-    const columns = Array.from({ length: maxCols }, () => []);
+function skipMatch() {
+  console.log("⏭️ skipMatch(): matchNumber =", matchNumber);
+  console.log("📦 currentMatchups:", JSON.stringify(currentMatchups));
 
-    data.forEach((item, index) => {
-      const colIndex = Math.floor(index / rowsPerCol);
-      if (colIndex < maxCols) {
-        columns[colIndex].push(item);
-      }
-    });
-
-    const container = document.getElementById(containerId);
-    container.innerHTML = '';
-
-    for (let row = 0; row < rowsPerCol; row++) {
-      for (let col = 0; col < maxCols; col++) {
-        const item = columns[col][row];
-        if (item) {
-          const div = document.createElement('div');
-          div.className = containerId === 'topScorersGrid' ? 'scorer-box' : 'result-box';
-          div.innerHTML = renderItem(item);
-          container.appendChild(div);
-        }
-      }
-    }
+  if (matchNumber >= currentMatchups.length) {
+    alert("No matches left to skip.");
+    return;
   }
 
-   // Assign ranks to top scorers
-  topScorers.sort((a, b) => b.goals - a.goals);
-  let rank = 1;
-  for (let i = 0; i < topScorers.length; i++) {
-    if (i > 0 && topScorers[i].goals === topScorers[i - 1].goals) {
-      topScorers[i].rank = topScorers[i - 1].rank;
-    } else {
-      topScorers[i].rank = rank;
-    }
-    rank++;
-  }
+  const skipped = currentMatchups.splice(matchNumber, 1)[0];
+  currentMatchups.push(skipped);
 
-  // Render both grids
-  renderVerticalGrid(topScorers, 'topScorersGrid', (p) => `
-    <div class="scorer-rank">#${p.rank}</div>
-    ${p.name}<br>⚽ ${p.goals}
-  `);
+  // ✅ Fix: Mark as match already in progress
+  matchInProgress = true; 
 
-  renderVerticalGrid(matchResults, 'matchResultsGrid', (m) => `
-    <div class="match-title">${m.match}</div>
-    <div>${m.scorers.length ? m.scorers.join('<br>') : '<i>No scorers</i>'}</div>
-  `);
+  loadMatch(matchNumber);
+  updateMatchHistory();
+  matchAlreadySaved = false;
+}
+
+function loadMatch(index) {
+  console.log("🎯 loadMatch() index =", index);
+  
+  resetTimer();
+  currentGoals = [];
+  document.getElementById("scoreA").textContent = "0";
+  document.getElementById("scoreB").textContent = "0";
+  document.getElementById("goalLogA").innerHTML = "";
+  document.getElementById("goalLogB").innerHTML = "";
+
+  const [teamA, teamB] = currentMatchups[index];
+  document.getElementById("matchTitle").textContent = `Match ${index + 1}`;
+  document.getElementById("teamAName").textContent = teamA;
+  document.getElementById("teamBName").textContent = teamB;
+  document.getElementById("teamAIcon").src = getTeamLogo(teamA);
+  document.getElementById("teamBIcon").src = getTeamLogo(teamB);
+}
 
 updateTimerDisplay();
+loadMatch(matchNumber); // ✅ Only displays, doesn't increase matchNumber
 startNextMatch();
 </script>
 
