@@ -1265,7 +1265,11 @@ function renderVerticalGrid(data, containerId, renderItem, maxCols = 4) {
   });
 
   const container = document.getElementById(containerId);
-  container.innerHTML = '';
+    if (!container) {
+      console.warn(`⚠️ Container not found: ${containerId}`);
+      return;
+    }
+    container.innerHTML = '';
 
   for (let row = 0; row < rowsPerCol; row++) {
     for (let col = 0; col < maxCols; col++) {
@@ -1337,6 +1341,9 @@ function exportToInstagramImage() {
   });
 }
 
+setTimeout(() => {
+  renderInstagramExportGrids();
+}, 50);
 updateTimerDisplay();
 startNextMatch();
 </script>
