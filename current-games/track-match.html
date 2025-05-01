@@ -535,6 +535,12 @@
       object-fit: contain;
     }
 
+    #instagramExportDiv #instaMatchResults, 
+    #instagramExportDiv #instaTopScorers {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr); /* force 4-column layout */
+      gap: 12px;
+    }
 
   </style>
 </head>
