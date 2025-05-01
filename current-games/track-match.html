@@ -535,21 +535,6 @@
       object-fit: contain;
     }
 
-    #instagramExportDiv .grid-container {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
-    }
-
-    #instagramExportDiv .scorer-box,
-    #instagramExportDiv .result-box {
-      background: #fff;
-      border-radius: 8px;
-      padding: 8px;
-      font-size: 20px;
-      text-align: center;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    }
 
   </style>
 </head>
@@ -653,12 +638,12 @@
   <h3 id="instaDate">Date</h3>
   <div class="section">
     <h3>📋 Match Results</h3>
-    <div id="matchResultsGrid" class="grid-container"></div>
+    <div id="instaMatchResults"></div>
   </div>
   <div class="section">
     <h3>🎯 Top Scorers</h3>
-    <div id="topScorersGrid" class="grid-container"></div>
-  </div>  
+    <div id="instaTopScorers"></div>
+  </div>
   <div class="section">
     <h3>🏆 Standings</h3>
     <div id="instaStandings"></div>
@@ -1267,84 +1252,21 @@ function showRoundPopup() {
   document.getElementById("roundOverlay").style.display = "block";
 }
 
-function renderVerticalGrid(data, containerId, renderItem, maxCols = 4) {
-  const total = data.length;
-  const rowsPerCol = Math.ceil(total / maxCols);
-  const columns = Array.from({ length: maxCols }, () => []);
-
-  data.forEach((item, index) => {
-    const colIndex = Math.floor(index / rowsPerCol);
-    if (colIndex < maxCols) {
-      columns[colIndex].push(item);
-    }
-  });
-
-  const container = document.getElementById(containerId);
-    if (!container) {
-      console.warn(`⚠️ Container not found: ${containerId}`);
-      return;
-    }
-    container.innerHTML = '';
-
-  for (let row = 0; row < rowsPerCol; row++) {
-    for (let col = 0; col < maxCols; col++) {
-      const item = columns[col][row];
-      if (item) {
-        const div = document.createElement('div');
-        div.className = containerId === 'topScorersGrid' ? 'scorer-box' : 'result-box';
-        div.innerHTML = renderItem(item, row + col * rowsPerCol); // index if needed
-        container.appendChild(div);
-      }
-    }
-  }
-}
-
-function renderInstagramExportGrids() {
-  console.log("🎯 topScorersGrid content:", document.getElementById("topScorersGrid").innerHTML);
-console.log("📋 matchResultsGrid content:", document.getElementById("matchResultsGrid").innerHTML);
-  // TOP SCORERS
-  const tally = {};
-  allGoals.forEach(g => {
-    if (!g.isOG) tally[g.player] = (tally[g.player] || 0) + 1;
-  });
-  const topScorers = Object.entries(tally)
-    .map(([name, goals]) => ({ name, goals }))
-    .sort((a, b) => b.goals - a.goals);
-
-  // Assign rank
-  let rank = 1;
-  for (let i = 0; i < topScorers.length; i++) {
-    if (i > 0 && topScorers[i].goals === topScorers[i - 1].goals) {
-      topScorers[i].rank = topScorers[i - 1].rank;
-    } else {
-      topScorers[i].rank = rank;
-    }
-    rank++;
-  }
-
-  renderVerticalGrid(topScorers, 'topScorersGrid', (p) => `
-    <div class="scorer-rank">#${p.rank}</div>
-    ${p.name}<br>⚽ ${p.goals}
-  `, 4);
-
-  renderVerticalGrid(matchResults, 'matchResultsGrid', (m, i) => `
-    <div class="match-title">Match ${i + 1}: ${m.tA} ${m.gA} - ${m.gB} ${m.tB}</div>
-    <div>${m.goals?.map(g => `${g.player} ${g.time}${g.isOG ? ' (OG)' : ''}`).join('<br>') || '<i>No scorers</i>'}</div>
-  `, 3);
-
-  document.getElementById("instaStandings").innerHTML = document.getElementById("standingsTable").innerHTML;
-}
-
 function exportToInstagramImage() {
-  console.log("📸 exportToInstagramImage triggered");
   const venue = sessionStorage.getItem("venue") || "futbola court";
   const date = sessionStorage.getItem("date") || new Date().toLocaleDateString();
 
   document.getElementById("instaVenue").textContent = `futbola - ${venue}`;
   document.getElementById("instaDate").textContent = date;
 
-  // 👇 Use new layout logic instead of raw copy
-  renderInstagramExportGrids();
+  // Copy match results
+  document.getElementById("instaMatchResults").innerHTML = document.getElementById("matchHistory").innerHTML;
+
+  // Copy top scorers
+  document.getElementById("instaTopScorers").innerHTML = document.getElementById("topScorersList").innerHTML;
+
+  // Copy standings
+  document.getElementById("instaStandings").innerHTML = document.getElementById("standingsTable").innerHTML;
 
   const exportDiv = document.getElementById("instagramExportDiv");
   exportDiv.style.display = "block";
@@ -1358,9 +1280,6 @@ function exportToInstagramImage() {
   });
 }
 
-setTimeout(() => {
-  renderInstagramExportGrids();
-}, 50);
 updateTimerDisplay();
 startNextMatch();
 </script>
