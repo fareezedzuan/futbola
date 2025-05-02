@@ -43,3 +43,18 @@ document.getElementById("signup-link")?.addEventListener("click", async () => {
     alert("Check your email to confirm your account.");
   }
 });
+
+supabase.auth.getUser().then(({ data: { user }, error }) => {
+  if (error) {
+    console.error("Auth check error:", error.message);
+    return;
+  }
+
+  if (user) {
+    console.log("✅ Logged in as:", user.email);
+    // Optional: Redirect to profile setup
+    window.location.href = "/profile-setup.html";
+  } else {
+    console.log("❌ Not logged in");
+  }
+});
