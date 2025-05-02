@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Profile Setup - Futbola</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-image: url('./images/backgroundOrangeGradient.jpg');
+      margin: 0;
+      padding: 40px;
+      display: flex;
+      justify-content: center;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      max-width: 600px;
+      width: 100%;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      border-top: 5px solid #ff5a5f;
+    }
+    h2 { color: #702963; margin-bottom: 10px; }
+    label { display: block; margin: 10px 0 5px; font-weight: bold; }
+    input, select, textarea {
+      width: 100%; padding: 10px; margin-bottom: 15px;
+      border-radius: 5px; border: 1px solid #ccc; box-sizing: border-box;
+    }
+    .multi-check { display: flex; flex-wrap: wrap; gap: 10px; }
+    .multi-check label { font-weight: normal; }
+    button {
+      background-color: #ff5a5f;
+      color: white; padding: 12px; width: 100%; font-size: 16px;
+      border: none; border-radius: 5px; cursor: pointer;
+    }
+    button:hover { background-color: #e14e51; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h2>Complete Your Player Profile</h2>
+  <p id="user-email" style="font-style: italic; color: gray;"></p>
+
+  <label>Full Name</label>
+  <input type="text" id="full_name" required />
+
+  <label>Jersey Name</label>
+  <input type="text" id="jersey_name" required />
+
+  <label>Phone Number</label>
+  <input type="text" id="phone" required />
+
+  <label>Gender</label>
+  <select id="gender">
+    <option value="">Select</option>
+    <option value="Male">Male</option>
+    <option value="Female">Female</option>
+  </select>
+
+  <label>Date of Birth</label>
+  <input type="date" id="date_of_birth" />
+
+  <label>Location(s) You Play</label>
+  <input type="text" id="location_play" placeholder="e.g. Bangi, Putrajaya" />
+
+  <label>Skill Level</label>
+  <select id="skill_level">
+    <option value="">Select</option>
+    <option value="Beginner">Beginner</option>
+    <option value="Intermediate">Intermediate</option>
+    <option value="Advanced">Advanced</option>
+  </select>
+
+  <label>Preferred Position(s)</label>
+  <div class="multi-check" id="position">
+    <label><input type="checkbox" value="GK" /> GK</label>
+    <label><input type="checkbox" value="DEF" /> DEF</label>
+    <label><input type="checkbox" value="MID" /> MID</label>
+    <label><input type="checkbox" value="FWD" /> FWD</label>
+    <label><input type="checkbox" value="ANY" /> ANY</label>
+  </div>
+
+  <label>Jersey Number</label>
+  <input type="number" id="jersey_number" />
+
+  <label>Avatar Image URL</label>
+  <input type="url" id="avatar_url" placeholder="https://..." />
+
+  <label>Team Name (optional)</label>
+  <input type="text" id="team_name" />
+
+  <label>Availability (Days)</label>
+  <div class="multi-check" id="availability">
+    <label><input type="checkbox" value="Monday" /> Mon</label>
+    <label><input type="checkbox" value="Tuesday" /> Tue</label>
+    <label><input type="checkbox" value="Wednesday" /> Wed</label>
+    <label><input type="checkbox" value="Thursday" /> Thu</label>
+    <label><input type="checkbox" value="Friday" /> Fri</label>
+  </div>
+
+  <button id="saveBtn">Save Profile</button>
+</div>
+
+<script type="module">
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+  const supabase = createClient(
+    'https://kdbqroxhypnadolcxxxc.supabase.co',
+    'your-anon-key-here' // Replace with real anon key
+  );
+
+  let userId = null;
+  const { data: { user }, error } = await supabase.auth.getUser();
+  if (user) {
+    userId = user.id;
+    document.getElementById("user-email").textContent = "Logged in as: " + user.email;
+  } else {
+    alert("Not logged in");
+    window.location.href = "/login.html";
+  }
+
+  document.getElementById("saveBtn").addEventListener("click", async () => {
+    const getChecked = (selector) =>
+      Array.from(document.querySelectorAll(`${selector} input:checked`)).map(cb => cb.value);
+
+    const { error } = await supabase.from("profiles").upsert({
+      id: userId,
+      full_name: document.getElementById("full_name").value,
+      jersey_name: document.getElementById("jersey_name").value,
+      phone: document.getElementById("phone").value,
+      gender: document.getElementById("gender").value,
+      date_of_birth: document.getElementById("date_of_birth").value,
+      location_play: document.getElementById("location_play").value.split(',').map(v => v.trim()),
+      skill_level: document.getElementById("skill_level").value,
+      preferred_position: getChecked("#position"),
+      jersey_number: parseInt(document.getElementById("jersey_number").value),
+      avatar_url: document.getElementById("avatar_url").value,
+      team_name: document.getElementById("team_name").value,
+      availability: getChecked("#availability")
+    });
+
+    if (error) {
+      alert("Failed to save: " + error.message);
+    } else {
+      alert("✅ Profile saved successfully!");
+      window.location.href = "/";
+    }
+  });
+</script>
+</body>
+</html>
