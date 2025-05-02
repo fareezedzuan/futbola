@@ -105,50 +105,67 @@
 </div>
 
 <script type="module">
-  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
-
-  const supabase = createClient(
-    'https://kdbqroxhypnadolcxxxc.supabase.co',
-    'your-anon-key-here' // Replace with real anon key
-  );
-
-  let userId = null;
-  const { data: { user }, error } = await supabase.auth.getUser();
-  if (user) {
-    userId = user.id;
-    document.getElementById("user-email").textContent = "Logged in as: " + user.email;
-  } else {
-    alert("Not logged in");
-    window.location.href = "/login.html";
-  }
-
-  document.getElementById("saveBtn").addEventListener("click", async () => {
-    const getChecked = (selector) =>
-      Array.from(document.querySelectorAll(`${selector} input:checked`)).map(cb => cb.value);
-
-    const { error } = await supabase.from("profiles").upsert({
-      id: userId,
-      full_name: document.getElementById("full_name").value,
-      jersey_name: document.getElementById("jersey_name").value,
-      phone: document.getElementById("phone").value,
-      gender: document.getElementById("gender").value,
-      date_of_birth: document.getElementById("date_of_birth").value,
-      location_play: document.getElementById("location_play").value.split(',').map(v => v.trim()),
-      skill_level: document.getElementById("skill_level").value,
-      preferred_position: getChecked("#position"),
-      jersey_number: parseInt(document.getElementById("jersey_number").value),
-      avatar_url: document.getElementById("avatar_url").value,
-      team_name: document.getElementById("team_name").value,
-      availability: getChecked("#availability")
-    });
-
-    if (error) {
-      alert("Failed to save: " + error.message);
-    } else {
-      alert("✅ Profile saved successfully!");
-      window.location.href = "/";
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+  
+    const supabase = createClient(
+      'https://kdbqroxhypnadolcxxxc.supabase.co',
+      'your-anon-key-here', // Replace with your actual anon key
+      {
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: true
+        }
+      }
+    );
+  
+    // Wait until session is resolved
+    let userId = null;
+    let { data: { user }, error } = await supabase.auth.getUser();
+  
+    // Fallback check using getSession() if user is null
+    if (!user) {
+      const session = await supabase.auth.getSession();
+      user = session.data?.session?.user || null;
     }
-  });
-</script>
+  
+    if (user) {
+      userId = user.id;
+      document.getElementById("user-email").textContent = "Logged in as: " + user.email;
+    } else {
+      // No session found
+      window.location.href = "/login.html";
+    }
+  
+    // Save profile
+    document.getElementById("saveBtn").addEventListener("click", async () => {
+      const getChecked = (selector) =>
+        Array.from(document.querySelectorAll(`${selector} input:checked`)).map(cb => cb.value);
+  
+      const { error } = await supabase.from("profiles").upsert({
+        id: userId,
+        full_name: document.getElementById("full_name").value,
+        jersey_name: document.getElementById("jersey_name").value,
+        phone: document.getElementById("phone").value,
+        gender: document.getElementById("gender").value,
+        date_of_birth: document.getElementById("date_of_birth").value,
+        location_play: document.getElementById("location_play").value.split(',').map(v => v.trim()),
+        skill_level: document.getElementById("skill_level").value,
+        preferred_position: getChecked("#position"),
+        jersey_number: parseInt(document.getElementById("jersey_number").value),
+        avatar_url: document.getElementById("avatar_url").value,
+        team_name: document.getElementById("team_name").value,
+        availability: getChecked("#availability")
+      });
+  
+      if (error) {
+        alert("Failed to save: " + error.message);
+      } else {
+        alert("✅ Profile saved successfully!");
+        window.location.href = "/";
+      }
+    });
+  </script>
+  
 </body>
 </html>
