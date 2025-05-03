@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Player Profile - Futbola</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f7f7f7;
+      margin: 0;
+      padding: 20px;
+    }
+    .profile-container {
+      max-width: 960px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 10px;
+      padding: 30px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      display: grid;
+      grid-template-columns: 250px 1fr;
+      gap: 30px;
+    }
+    .sidebar {
+      text-align: center;
+      border-right: 1px solid #eee;
+    }
+    .sidebar img {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-bottom: 10px;
+    }
+    .sidebar h2 {
+      margin: 0;
+    }
+    .sidebar p {
+      color: #666;
+      font-size: 14px;
+    }
+    .section {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .section h3 {
+      margin-bottom: 5px;
+      border-bottom: 2px solid #ddd;
+      padding-bottom: 5px;
+    }
+    .stats, .availability {
+      display: flex;
+      gap: 20px;
+    }
+    .stat-box {
+      background: #f1f1f1;
+      padding: 10px 20px;
+      border-radius: 8px;
+      text-align: center;
+      flex: 1;
+    }
+    .stat-box strong {
+      font-size: 24px;
+      display: block;
+    }
+    .history-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .history-table th, .history-table td {
+      padding: 8px 10px;
+      border-bottom: 1px solid #eee;
+      text-align: left;
+    }
+    .availability span {
+      background: #d0f0e0;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="profile-container">
+    <div class="sidebar">
+      <img src="/images/default-avatar.png" alt="Player Avatar" />
+      <h2 id="player-name">Michael Clark</h2>
+      <p id="player-position">Goalkeeper</p>
+      <p>Experienced shot-stopper with excellent reflexes.</p>
+      <p><strong>Level:</strong> <span id="player-level">Competitive</span></p>
+      <p><strong>Region:</strong> <span id="player-region">East Region</span></p>
+      <p><strong>Team:</strong> <span id="player-team">FC Thunder</span></p>
+      <p><strong>Age:</strong> <span id="player-age">29</span></p>
+    </div>
+    <div class="section">
+      <div>
+        <h3>Performance</h3>
+        <div class="stats">
+          <div class="stat-box">
+            <strong id="stat-games">22</strong>
+            Matches
+          </div>
+          <div class="stat-box">
+            <strong id="stat-goals">10</strong>
+            Goals
+          </div>
+          <div class="stat-box">
+            <strong id="stat-wins">15</strong>
+            Wins
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h3>Match History</h3>
+        <table class="history-table">
+          <thead>
+            <tr><th>Result</th><th>Score</th><th>Date</th></tr>
+          </thead>
+          <tbody id="match-history">
+            <tr><td>W</td><td>2–1</td><td>04/20/2024</td></tr>
+            <tr><td>D</td><td>1–1</td><td>04/13/2024</td></tr>
+            <tr><td>L</td><td>0–3</td><td>04/09/2024</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div>
+        <h3>Availability</h3>
+        <div class="availability" id="availability-days">
+          <span>Tuesdays</span>
+          <span>Fridays</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
