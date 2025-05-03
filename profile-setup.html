@@ -86,9 +86,6 @@
   <label>Jersey Number</label>
   <input type="number" id="jersey_number" />
 
-  <label>Avatar Image Upload</label>
-  <input type="file" id="avatar_file" accept="image/*" />
-
   <label>Team Name (optional)</label>
   <input type="text" id="team_name" />
 
@@ -107,91 +104,71 @@
 </div>
 
 <script type="module">
-  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+   import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-  const supabase = createClient(
-    'https://kdbqroxhypnadolcxxxc.supabase.co',
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkYnFyb3hoeXBuYWRvbGN4eHhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3MjkwNzYsImV4cCI6MjA1NzMwNTA3Nn0.c7_RVxoFdJNqQ62R3t1emH2Wf4dSsQaunHsHmbQxOBA',
-    {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: true
-      }
+const supabase = createClient(
+  'https://kdbqroxhypnadolcxxxc.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkYnFyb3hoeXBuYWRvbGN4eHhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3MjkwNzYsImV4cCI6MjA1NzMwNTA3Nn0.c7_RVxoFdJNqQ62R3t1emH2Wf4dSsQaunHsHmbQxOBA',
+  {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true
     }
-  );
-
-  let userId = null;
-  let { data: { user }, error } = await supabase.auth.getUser();
-  if (!user) {
-    const session = await supabase.auth.getSession();
-    user = session.data?.session?.user || null;
   }
+);
 
-  if (user) {
-    userId = user.id;
-    document.getElementById("user-email").textContent = "Logged in as: " + user.email;
+let userId = null;
+let { data: { user }, error } = await supabase.auth.getUser();
+if (!user) {
+  const session = await supabase.auth.getSession();
+  user = session.data?.session?.user || null;
+}
+
+if (user) {
+  userId = user.id;
+  document.getElementById("user-email").textContent = "Logged in as: " + user.email;
+} else {
+  window.location.href = "/login.html";
+}
+
+document.getElementById("saveBtn").addEventListener("click", async () => {
+  const getChecked = (selector) =>
+    Array.from(document.querySelectorAll(`${selector} input:checked`)).map(cb => cb.value);
+
+  const { error } = await supabase.from("profiles").upsert({
+    id: userId,
+    full_name: document.getElementById("full_name").value,
+    jersey_name: document.getElementById("jersey_name").value,
+    phone: document.getElementById("phone").value,
+    gender: document.getElementById("gender").value,
+    date_of_birth: document.getElementById("date_of_birth").value,
+    location_play: document.getElementById("location_play").value.split(',').map(v => v.trim()),
+    skill_level: document.getElementById("skill_level").value,
+    preferred_position: getChecked("#position"),
+    jersey_number: parseInt(document.getElementById("jersey_number").value),
+    avatar_url: null, // avatar removed for now
+    team_name: document.getElementById("team_name").value,
+    availability: getChecked("#availability")
+  });
+
+  if (error) {
+    alert("Failed to save: " + error.message);
   } else {
-    window.location.href = "/login.html";
+    alert("✅ Profile saved successfully!");
+    window.location.href = "/";
   }
+});
 
-  async function uploadAvatar(file) {
-    const fileExt = file.name.split('.').pop();
-    const filePath = `avatars/${userId}.${fileExt}`;
-    let { error: uploadError } = await supabase.storage.from('avatars').upload(filePath, file, { upsert: true });
-    if (uploadError) throw uploadError;
-    const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
-    return data.publicUrl;
+supabase.auth.getSession().then(({ data, error }) => {
+  if (error) {
+    console.error("Session fetch failed:", error.message);
+  } else {
+    console.log("🟢 Supabase session data:", data);
   }
+});
 
-  document.getElementById("saveBtn").addEventListener("click", async () => {
-    const getChecked = (selector) =>
-      Array.from(document.querySelectorAll(`${selector} input:checked`)).map(cb => cb.value);
-
-    const avatarFile = document.getElementById("avatar_file").files[0];
-    let avatarUrl = "";
-    if (avatarFile) {
-      try {
-        avatarUrl = await uploadAvatar(avatarFile);
-      } catch (err) {
-        alert("Avatar upload failed: " + err.message);
-        return;
-      }
-    }
-
-    const { error } = await supabase.from("profiles").upsert({
-      id: userId,
-      full_name: document.getElementById("full_name").value,
-      jersey_name: document.getElementById("jersey_name").value,
-      phone: document.getElementById("phone").value,
-      gender: document.getElementById("gender").value,
-      date_of_birth: document.getElementById("date_of_birth").value,
-      location_play: document.getElementById("location_play").value.split(',').map(v => v.trim()),
-      skill_level: document.getElementById("skill_level").value,
-      preferred_position: getChecked("#position"),
-      jersey_number: parseInt(document.getElementById("jersey_number").value),
-      avatar_url: avatarUrl,
-      team_name: document.getElementById("team_name").value,
-      availability: getChecked("#availability")
-    });
-
-    if (error) {
-      alert("Failed to save: " + error.message);
-    } else {
-      alert("✅ Profile saved successfully!");
-      window.location.href = "/";
-    }
-  });
-
-  supabase.auth.getSession().then(({ data, error }) => {
-    if (error) {
-      console.error("Session fetch failed:", error.message);
-    } else {
-      console.log("🟢 Supabase session data:", data);
-    }
-  });
-
-  window.supabase = supabase;
+window.supabase = supabase;
 </script>
 </body>
 </html>
