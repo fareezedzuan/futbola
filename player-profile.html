@@ -4,136 +4,154 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Player Profile - Futbola</title>
-  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="css/style.css" />
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #f7f7f7;
+      background-image: url('./images/backgroundOrangeGradient.jpg');
       margin: 0;
-      padding: 20px;
+      padding: 40px;
+      display: flex;
+      justify-content: center;
     }
-    .profile-container {
-      max-width: 960px;
-      margin: 0 auto;
+    .card {
       background: white;
-      border-radius: 10px;
       padding: 30px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      border-radius: 10px;
+      max-width: 900px;
+      width: 100%;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      border-top: 5px solid #ff5a5f;
       display: grid;
-      grid-template-columns: 250px 1fr;
+      grid-template-columns: 1fr 2fr;
       gap: 30px;
     }
-    .sidebar {
+    .left-section {
       text-align: center;
-      border-right: 1px solid #eee;
     }
-    .sidebar img {
+    .left-section img {
       width: 120px;
       height: 120px;
       border-radius: 50%;
-      object-fit: cover;
+      margin-bottom: 15px;
+    }
+    .left-section h2 {
+      margin: 10px 0 5px;
+    }
+    .left-section p {
+      font-style: italic;
+      color: #555;
+    }
+    .detail-block {
+      margin-bottom: 20px;
+    }
+    .detail-block h3 {
       margin-bottom: 10px;
-    }
-    .sidebar h2 {
-      margin: 0;
-    }
-    .sidebar p {
-      color: #666;
-      font-size: 14px;
-    }
-    .section {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-    }
-    .section h3 {
-      margin-bottom: 5px;
-      border-bottom: 2px solid #ddd;
+      border-bottom: 2px solid #eee;
       padding-bottom: 5px;
     }
-    .stats, .availability {
+    .stats-grid {
       display: flex;
-      gap: 20px;
+      justify-content: space-between;
+      font-size: 16px;
     }
-    .stat-box {
-      background: #f1f1f1;
-      padding: 10px 20px;
-      border-radius: 8px;
-      text-align: center;
-      flex: 1;
+    .availability-toggle {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
     }
-    .stat-box strong {
-      font-size: 24px;
-      display: block;
+    .availability-toggle label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
-    .history-table {
-      width: 100%;
-      border-collapse: collapse;
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 40px;
+      height: 20px;
     }
-    .history-table th, .history-table td {
-      padding: 8px 10px;
-      border-bottom: 1px solid #eee;
-      text-align: left;
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
     }
-    .availability span {
-      background: #d0f0e0;
-      padding: 6px 12px;
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: .4s;
       border-radius: 20px;
-      font-size: 14px;
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 14px;
+      width: 14px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+    input:checked + .slider {
+      background-color: #1e7678;
+    }
+    input:checked + .slider:before {
+      transform: translateX(20px);
+    }
+    .top-bar {
+      text-align: right;
+      margin-bottom: 20px;
+    }
+    .top-bar button {
+      background: #417d7a;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 5px;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
-  <div class="profile-container">
-    <div class="sidebar">
-      <img src="/images/default-avatar.png" alt="Player Avatar" />
-      <h2 id="player-name">Michael Clark</h2>
-      <p id="player-position">Goalkeeper</p>
-      <p>Experienced shot-stopper with excellent reflexes.</p>
-      <p><strong>Level:</strong> <span id="player-level">Competitive</span></p>
-      <p><strong>Region:</strong> <span id="player-region">East Region</span></p>
-      <p><strong>Team:</strong> <span id="player-team">FC Thunder</span></p>
-      <p><strong>Age:</strong> <span id="player-age">29</span></p>
+  <div class="card">
+    <div class="left-section">
+      <img src="./images/default-avatar.png" alt="Player Avatar" />
+      <h2>Michael Clark</h2>
+      <p>Goalkeeper</p>
+      <p><em>Experienced shot-stopper with excellent reflexes.</em></p>
+      <p><strong>Level:</strong> Competitive</p>
+      <p><strong>Region:</strong> East Region</p>
+      <p><strong>Team:</strong> FC Thunder</p>
+      <p><strong>Age:</strong> 29</p>
     </div>
-    <div class="section">
-      <div>
+    <div>
+      <div class="top-bar">
+        <button onclick="window.location.href='profile-setup.html'">Edit Player Profile</button>
+      </div>
+      <div class="detail-block">
         <h3>Performance</h3>
-        <div class="stats">
-          <div class="stat-box">
-            <strong id="stat-games">22</strong>
-            Matches
-          </div>
-          <div class="stat-box">
-            <strong id="stat-goals">10</strong>
-            Goals
-          </div>
-          <div class="stat-box">
-            <strong id="stat-wins">15</strong>
-            Wins
-          </div>
+        <div class="stats-grid">
+          <span>Games Played: <strong>22</strong></span>
+          <span>Goals Scored: <strong>12</strong></span>
+          <span>Matches Won: <strong>14</strong></span>
         </div>
       </div>
-
-      <div>
-        <h3>Match History</h3>
-        <table class="history-table">
-          <thead>
-            <tr><th>Result</th><th>Score</th><th>Date</th></tr>
-          </thead>
-          <tbody id="match-history">
-            <tr><td>W</td><td>2–1</td><td>04/20/2024</td></tr>
-            <tr><td>D</td><td>1–1</td><td>04/13/2024</td></tr>
-            <tr><td>L</td><td>0–3</td><td>04/09/2024</td></tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div>
+      <div class="detail-block">
         <h3>Availability</h3>
-        <div class="availability" id="availability-days">
-          <span>Tuesdays</span>
-          <span>Fridays</span>
+        <div class="availability-toggle">
+          <label>Tuesday <label class="switch"><input type="checkbox" checked><span class="slider"></span></label></label>
+          <label>Friday <label class="switch"><input type="checkbox" checked><span class="slider"></span></label></label>
         </div>
+      </div>
+      <div class="detail-block">
+        <h3>Match History</h3>
+        <p><em>Coming soon: W/D/L breakdown, goal difference, and session logs.</em></p>
       </div>
     </div>
   </div>
