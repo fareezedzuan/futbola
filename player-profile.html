@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Player Profile - Futbola</title>  
   <link rel="icon" href="./images/futbola-favicon.ico" type="image/x-icon">
-  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="/css/style.css" />
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -15,146 +15,132 @@
       display: flex;
       justify-content: center;
     }
-    .card {
+    .container {
       background: white;
       padding: 30px;
       border-radius: 10px;
-      max-width: 900px;
+      max-width: 1000px;
       width: 100%;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
       border-top: 5px solid #ff5a5f;
-      display: grid;
-      grid-template-columns: 1fr 2fr;
+      display: flex;
+      flex-wrap: wrap;
       gap: 30px;
     }
-    .left-section {
-      text-align: center;
+    .left, .middle, .right {
+      flex: 1;
+      min-width: 250px;
     }
-    .left-section img {
+    .avatar {
       width: 120px;
       height: 120px;
       border-radius: 50%;
-      margin-bottom: 15px;
-    }
-    .left-section h2 {
-      margin: 10px 0 5px;
-    }
-    .left-section p {
-      font-style: italic;
-      color: #555;
-    }
-    .detail-block {
-      margin-bottom: 20px;
-    }
-    .detail-block h3 {
+      background: #ccc url('./images/Fareez.jpg') center/cover;
       margin-bottom: 10px;
-      border-bottom: 2px solid #eee;
-      padding-bottom: 5px;
     }
-    .stats-grid {
-      display: flex;
-      justify-content: space-between;
-      font-size: 16px;
+    h2, h3 {
+      margin-bottom: 10px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      text-align: left;
+      padding: 5px 0;
+    }
+    th {
+      font-weight: bold;
     }
     .availability-toggle {
       display: flex;
-      flex-direction: column;
       gap: 10px;
+      margin-top: 10px;
     }
-    .availability-toggle label {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .switch {
-      position: relative;
-      display: inline-block;
-      width: 40px;
-      height: 20px;
-    }
-    .switch input {
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
-    .slider {
-      position: absolute;
-      cursor: pointer;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background-color: #ccc;
-      transition: .4s;
-      border-radius: 20px;
-    }
-    .slider:before {
-      position: absolute;
-      content: "";
-      height: 14px;
-      width: 14px;
-      left: 3px;
-      bottom: 3px;
-      background-color: white;
-      transition: .4s;
-      border-radius: 50%;
-    }
-    input:checked + .slider {
-      background-color: #1e7678;
-    }
-    input:checked + .slider:before {
-      transform: translateX(20px);
-    }
-    .top-bar {
-      text-align: right;
-      margin-bottom: 20px;
-    }
-    .top-bar button {
-      background: #417d7a;
-      color: white;
-      border: none;
-      padding: 10px 15px;
-      border-radius: 5px;
-      cursor: pointer;
+    .pill {
+      background: #eee;
+      padding: 5px 10px;
+      border-radius: 12px;
     }
   </style>
 </head>
 <body>
-  <div class="card">
-    <div class="left-section">
-      <img src="./images/Fareez.jpg" alt="Player Avatar" />
-      <h2>Michael Clark</h2>
-      <p>Goalkeeper</p>
-      <p><em>Experienced shot-stopper with excellent reflexes.</em></p>
-      <p><strong>Level:</strong> Competitive</p>
-      <p><strong>Region:</strong> East Region</p>
-      <p><strong>Team:</strong> FC Thunder</p>
-      <p><strong>Age:</strong> 29</p>
+  <div class="container">
+    <div class="left">
+      <div class="avatar"></div>
+      <h2 id="full_name">Player Name</h2>
+      <p id="bio">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+      <p><strong>Level:</strong> <span id="skill_level"></span></p>
+      <p><strong>Region:</strong> <span id="location"></span></p>
+      <p><strong>Team:</strong> <span id="team_name"></span></p>
+      <p><strong>Age:</strong> <span id="age"></span></p>
     </div>
-    <div>
-      <div class="top-bar">
-        <button onclick="window.location.href='profile-setup.html'">Edit Player Profile</button>
-      </div>
-      <div class="detail-block">
-        <h3>Performance</h3>
-        <div class="stats-grid">
-          <span>Games Played: <strong>22</strong></span>
-          <span>Goals Scored: <strong>12</strong></span>
-          <span>Matches Won: <strong>14</strong></span>
-        </div>
-      </div>
-      <div class="detail-block">
-        <h3>Availability</h3>
-        <div class="availability-toggle">
-          <label>Tuesday <label class="switch"><input type="checkbox" checked><span class="slider"></span></label></label>
-          <label>Friday <label class="switch"><input type="checkbox" checked><span class="slider"></span></label></label>
-        </div>
-      </div>
-      <div class="detail-block">
-        <h3>Match History</h3>
-        <p><em>Coming soon: W/D/L breakdown, goal difference, and session logs.</em></p>
-      </div>
+    <div class="middle">
+      <h3>Performance</h3>
+      <p><strong>Games Played:</strong> <span id="games_played">-</span></p>
+      <p><strong>Goals Scored:</strong> <span id="goals_scored">-</span></p>
+      <p><strong>Matches Won:</strong> <span id="matches_won">-</span></p>
+      <h3 style="margin-top: 30px;">Match History</h3>
+      <table id="match_table">
+        <thead><tr><th>Result</th><th>Score</th><th>Date</th></tr></thead>
+        <tbody><tr><td colspan="3">No match data yet</td></tr></tbody>
+      </table>
+    </div>
+    <div class="right">
+      <h3>Availability</h3>
+      <div id="availability_list" class="availability-toggle"></div>
     </div>
   </div>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+    const supabase = createClient(
+      'https://kdbqroxhypnadolcxxxc.supabase.co',
+      'YOUR-ANON-KEY-HERE'
+    );
+
+    let userId = null;
+    let { data: { user }, error } = await supabase.auth.getUser();
+    if (!user) {
+      const session = await supabase.auth.getSession();
+      user = session.data?.session?.user || null;
+    }
+    if (!user) {
+      window.location.href = '/login.html';
+    } else {
+      userId = user.id;
+    }
+
+    const { data: profile, error: fetchError } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single();
+
+    if (fetchError || !profile) {
+      alert('Failed to fetch profile');
+    } else {
+      document.getElementById('full_name').textContent = profile.full_name || '-';
+      document.getElementById('skill_level').textContent = profile.skill_level || '-';
+      document.getElementById('location').textContent = profile.location_play?.join(', ') || '-';
+      document.getElementById('team_name').textContent = profile.team_name || '-';
+
+      if (profile.date_of_birth) {
+        const birthDate = new Date(profile.date_of_birth);
+        const age = new Date().getFullYear() - birthDate.getFullYear();
+        document.getElementById('age').textContent = age;
+      }
+
+      // Dummy stats
+      document.getElementById('games_played').textContent = '12';
+      document.getElementById('goals_scored').textContent = '8';
+      document.getElementById('matches_won').textContent = '5';
+
+      const availability = profile.availability || [];
+      const availList = document.getElementById('availability_list');
+      availList.innerHTML = availability.map(day => `<span class="pill">${day}</span>`).join('');
+    }
+  </script>
 </body>
 </html>
