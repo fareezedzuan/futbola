@@ -1,146 +1,140 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Player Profile - Futbola</title>  
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Player Profile - Futbola</title>  
   <link rel="icon" href="./images/futbola-favicon.ico" type="image/x-icon">
-  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="css/style.css" />
   <style>
     body {
       font-family: Arial, sans-serif;
       background-image: url('./images/backgroundOrangeGradient.jpg');
       margin: 0;
-      padding: 40px;
+      padding: 30px;
       display: flex;
       justify-content: center;
     }
-    .container {
+    .profile-card {
       background: white;
-      padding: 30px;
-      border-radius: 10px;
-      max-width: 1000px;
+      padding: 25px;
+      border-radius: 15px;
+      max-width: 700px;
       width: 100%;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
       border-top: 5px solid #ff5a5f;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 30px;
     }
-    .left, .middle, .right {
-      flex: 1;
-      min-width: 250px;
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 20px;
     }
     .avatar {
-      width: 120px;
-      height: 120px;
+      width: 100px;
+      height: 100px;
       border-radius: 50%;
-      background: #ccc url('./images/Fareez.jpg') center/cover;
+      object-fit: cover;
+      border: 3px solid #ff5a5f;
+    }
+    .name {
+      font-size: 24px;
+      color: #702963;
+      margin: 0;
+    }
+    .jersey {
+      font-size: 16px;
+      color: #555;
+    }
+    .stats, .details {
+      margin-top: 20px;
+    }
+    .stats div, .details div {
       margin-bottom: 10px;
     }
-    h2, h3 {
-      margin-bottom: 10px;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    th, td {
-      text-align: left;
-      padding: 5px 0;
-    }
-    th {
+    .stat-label {
       font-weight: bold;
-    }
-    .availability-toggle {
-      display: flex;
-      gap: 10px;
-      margin-top: 10px;
-    }
-    .pill {
-      background: #eee;
-      padding: 5px 10px;
-      border-radius: 12px;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="left">
-      <div class="avatar"></div>
-      <h2 id="full_name">Player Name</h2>
-      <p id="bio">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
-      <p><strong>Level:</strong> <span id="skill_level"></span></p>
-      <p><strong>Region:</strong> <span id="location"></span></p>
-      <p><strong>Team:</strong> <span id="team_name"></span></p>
-      <p><strong>Age:</strong> <span id="age"></span></p>
-    </div>
-    <div class="middle">
-      <h3>Performance</h3>
-      <p><strong>Games Played:</strong> <span id="games_played">-</span></p>
-      <p><strong>Goals Scored:</strong> <span id="goals_scored">-</span></p>
-      <p><strong>Matches Won:</strong> <span id="matches_won">-</span></p>
-      <h3 style="margin-top: 30px;">Match History</h3>
-      <table id="match_table">
-        <thead><tr><th>Result</th><th>Score</th><th>Date</th></tr></thead>
-        <tbody><tr><td colspan="3">No match data yet</td></tr></tbody>
-      </table>
-    </div>
-    <div class="right">
-      <h3>Availability</h3>
-      <div id="availability_list" class="availability-toggle"></div>
+<div class="profile-card">
+  <div class="header">
+    <img id="avatar" class="avatar" src="./images/Fareez.jpg" alt="Avatar">
+    <div>
+      <h2 id="fullName" class="name">Player Name</h2>
+      <p id="jerseyName" class="jersey">Jersey Name</p>
     </div>
   </div>
 
-  <script type="module">
-    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+  <div class="stats">
+    <h3>Performance</h3>
+    <div><span class="stat-label">Games Played:</span> <span id="gamesPlayed">0</span></div>
+    <div><span class="stat-label">Goals Scored:</span> <span id="goalsScored">0</span></div>
+    <div><span class="stat-label">Matches Won:</span> <span id="matchesWon">0</span></div>
+  </div>
 
-    const supabase = createClient(
-      'https://kdbqroxhypnadolcxxxc.supabase.co',
-      'YOUR-ANON-KEY-HERE'
-    );
+  <div class="details">
+    <h3>Profile Details</h3>
+    <div><span class="stat-label">Phone:</span> <span id="phone"></span></div>
+    <div><span class="stat-label">Gender:</span> <span id="gender"></span></div>
+    <div><span class="stat-label">Date of Birth:</span> <span id="dob"></span></div>
+    <div><span class="stat-label">Location:</span> <span id="location"></span></div>
+    <div><span class="stat-label">Skill Level:</span> <span id="skill"></span></div>
+    <div><span class="stat-label">Preferred Position:</span> <span id="positions"></span></div>
+    <div><span class="stat-label">Availability:</span> <span id="availability"></span></div>
+    <div><span class="stat-label">Team:</span> <span id="team"></span></div>
+  </div>
 
-    let userId = null;
-    let { data: { user }, error } = await supabase.auth.getUser();
-    if (!user) {
-      const session = await supabase.auth.getSession();
-      user = session.data?.session?.user || null;
+  <div class="details">
+    <h3>Bio</h3>
+    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla et metus nec lorem tincidunt aliquam.</p>
+  </div>
+</div>
+
+<script type="module">
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+  const supabase = createClient(
+    'https://kdbqroxhypnadolcxxxc.supabase.co',
+    'YOUR_ANON_KEY_HERE'
+  );
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    alert("Not logged in");
+    window.location.href = "/login.html";
+  }
+
+  const { data: profile, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', user.id)
+    .single();
+
+  if (error || !profile) {
+    alert("Failed to load profile");
+    console.error(error);
+  } else {
+    document.getElementById("fullName").textContent = profile.full_name;
+    document.getElementById("jerseyName").textContent = profile.jersey_name;
+    document.getElementById("phone").textContent = profile.phone;
+    document.getElementById("gender").textContent = profile.gender;
+    document.getElementById("dob").textContent = profile.date_of_birth;
+    document.getElementById("location").textContent = profile.location_play?.join(', ');
+    document.getElementById("skill").textContent = profile.skill_level;
+    document.getElementById("positions").textContent = profile.preferred_position?.join(', ');
+    document.getElementById("availability").textContent = profile.availability?.join(', ');
+    document.getElementById("team").textContent = profile.team_name || "-";
+
+    if (profile.avatar_url) {
+      document.getElementById("avatar").src = profile.avatar_url;
     }
-    if (!user) {
-      window.location.href = '/login.html';
-    } else {
-      userId = user.id;
-    }
+  }
 
-    const { data: profile, error: fetchError } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single();
-
-    if (fetchError || !profile) {
-      alert('Failed to fetch profile');
-    } else {
-      document.getElementById('full_name').textContent = profile.full_name || '-';
-      document.getElementById('skill_level').textContent = profile.skill_level || '-';
-      document.getElementById('location').textContent = profile.location_play?.join(', ') || '-';
-      document.getElementById('team_name').textContent = profile.team_name || '-';
-
-      if (profile.date_of_birth) {
-        const birthDate = new Date(profile.date_of_birth);
-        const age = new Date().getFullYear() - birthDate.getFullYear();
-        document.getElementById('age').textContent = age;
-      }
-
-      // Dummy stats
-      document.getElementById('games_played').textContent = '12';
-      document.getElementById('goals_scored').textContent = '8';
-      document.getElementById('matches_won').textContent = '5';
-
-      const availability = profile.availability || [];
-      const availList = document.getElementById('availability_list');
-      availList.innerHTML = availability.map(day => `<span class="pill">${day}</span>`).join('');
-    }
-  </script>
+  // Placeholder stats - replace with real stats later
+  document.getElementById("gamesPlayed").textContent = "12";
+  document.getElementById("goalsScored").textContent = "8";
+  document.getElementById("matchesWon").textContent = "6";
+</script>
 </body>
 </html>
