@@ -17,7 +17,7 @@ document.getElementById("google-login").addEventListener("click", async () => {
   const { error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: 'https://futbola-fareezedzuans-projects.vercel.app/login.html'
+      redirectTo: 'https://www.futbola.my/profile-setup.html' // ✅ Updated to custom domain
     }
   });
   if (error) {
