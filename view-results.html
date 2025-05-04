@@ -1,237 +1,171 @@
+<!-- view-results.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>View Results - futbola</title>
   <link rel="icon" href="./images/futbola-favicon.ico" type="image/x-icon">
-  <link rel="stylesheet" href="./style.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-image: url('./images/backgroundOrangeGradient.jpg');
-      margin: 0;
-      padding: 20px;
-    }
-    .container {
-      max-width: 1000px;
-      margin: auto;
-      background: white;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      border-top: 5px solid #ff5a5f;
-    }
-    h2 {
-      color: #702963;
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    select, button {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 20px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      font-size: 16px;
-    }
+    /* Paste your existing styles here */
+    /* Only additions below this line */
     .btn-primary {
       background-color: #ff5a5f;
       color: white;
       font-weight: bold;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
       cursor: pointer;
+      margin: 5px;
     }
-    .section {
-      background: #f3f3f3;
-      padding: 15px;
-      border-radius: 8px;
-      margin-top: 20px;
+
+    #instagramExportDiv {
+      display: none;
+      width: 1080px;
+      height: 1080px;
+      background: linear-gradient(to bottom right, #ffa07a, #ffc0cb);
+      font-family: Arial, sans-serif;
+      padding: 20px 40px;
+      box-sizing: border-box;
+      color: #702963;
+      position: relative;
     }
-    .match-result-row {
-      display: grid;
-      grid-template-columns: 1fr auto 1fr;
-      align-items: center;
+
+    #instagramExportDiv h2 {
+      text-align: center;
+      font-size: 44px;
+      margin: 10px 0 5px;
+    }
+
+    #instagramExportDiv h3 {
+      text-align: center;
+      font-size: 28px;
+      margin: 5px 0 15px;
+    }
+
+    #instagramExportDiv .section {
       background: white;
       border-radius: 10px;
-      margin: 10px 0;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-      height: 60px;
-      padding: 0 16px;
+      padding: 15px;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
-    .team-side {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-weight: bold;
-      color: #702963;
-      font-size: 18px;
+
+    #instagramExportDiv .section > h3 {
+      margin: 0 0 10px;
+      font-size: 24px;
     }
-    .match-score {
-      font-size: 22px;
-      font-weight: bold;
-      background-color: #702963;
-      color: white;
-      padding: 8px 18px;
-      border-radius: 12px;
-      min-width: 70px;
-      text-align: center;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      line-height: 1;
-      height: 40px;
-    }
-    .team-logo {
-      width: 28px;
-      height: 28px;
-      object-fit: contain;
-    }
-    .scorer-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-bottom: 1px solid #eee;
-      padding: 8px 12px;
-      font-size: 16px;
-    }
-    .scorer-player {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-grow: 1;
-    }
-    .scorer-goals {
-      font-weight: bold;
-      color: #702963;
-    }
-    .standings-table {
+
+    #instagramExportDiv table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 10px;
+      font-size: 22px;
     }
 
-    .standings-table th, .standings-table td {
-      padding: 8px 10px;
+    #instagramExportDiv th, #instagramExportDiv td {
+      border: 1px solid #ccc;
+      padding: 8px;
       text-align: center;
-      font-size: 15px;
     }
 
-    .standings-table th {
-      background-color: #702963;
-      color: white;
+    #instagramExportDiv .logo {
+      width: 32px;
+      height: 32px;
+      object-fit: contain;
     }
 
-    .standings-table tr:nth-child(even) {
-      background-color: #f9f9f9;
+    #instagramExportDiv .footer-logo {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      opacity: 0.4;
+      width: 80px;
     }
 
-    .standings-table td .team-side {
+    #instaMatchResults, #instaTopScorers {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 10px;
+    }
+
+    #instaTopScorers .scorer-player {
       display: flex;
       align-items: center;
-      gap: 8px;
-      justify-content: flex-start;
+      gap: 6px;
     }
-
   </style>
 </head>
 <body>
-  <div class="container">
-    <h2>futbola - View Game Results</h2>
-    <select id="gameSelect">
-      <option value="">-- Select a Game --</option>
-    </select>
-    <button class="btn-primary" onclick="loadSelectedGame()">Load</button>
-    <div id="matchResults" class="section">
-      <h3>📋 Match Results</h3>
-    </div>
-    <div id="topScorers" class="section">
-      <h3>🎯 Top Scorers</h3>
-    </div>
-    <div id="standings" class="section">
-      <h3>🏆 Standings</h3>
-    </div>
-  </div>
-<script>
-window.addEventListener('DOMContentLoaded', loadGames);
 
-async function loadGames() {
-  const res = await fetch('/api/get-saved-sessions');
-  const data = await res.json();
-  const dropdown = document.getElementById("gameSelect");
-  data.sessions.forEach(session => {
-    const option = document.createElement("option");
-    option.value = `${session.game_id}|${session.session_id}`;
-    option.textContent = `${session.venue} - ${session.game_date} ${session.start_time}`;
-    dropdown.appendChild(option);
+<div class="container">
+  <h2>Match Results</h2>
+
+  <!-- Your existing results content -->
+  <div id="matchResults">
+    <!-- Dynamically generated results go here -->
+  </div>
+
+  <h2>Top Scorers</h2>
+  <div id="topScorersList"></div>
+
+  <h2>Standings</h2>
+  <div id="standingsTable"></div>
+
+  <!-- 🔴 Instagram Export Button -->
+  <div style="text-align:center; margin-top:20px;">
+    <button class="btn-primary" onclick="exportToInstagramImage()">Instagram Image</button>
+  </div>
+</div>
+
+<!-- 🔴 Hidden Instagram Export Div -->
+<div id="instagramExportDiv">
+  <h2 id="instaVenue">futbola - Venue</h2>
+  <h3 id="instaDate">Date</h3>
+
+  <div class="section">
+    <h3>📋 Match Results</h3>
+    <div id="instaMatchResults"></div>
+  </div>
+
+  <div class="section">
+    <h3>🎯 Top Scorers</h3>
+    <div id="instaTopScorers"></div>
+  </div>
+
+  <div class="section">
+    <h3>🏆 Standings</h3>
+    <div id="instaStandings"></div>
+  </div>
+
+  <img class="footer-logo" src="./images/futbola-logo.png" alt="futbola logo" />
+</div>
+
+<script>
+function exportToInstagramImage() {
+  const venue = sessionStorage.getItem("venue") || "futbola court";
+  const date = sessionStorage.getItem("date") || new Date().toLocaleDateString();
+
+  document.getElementById("instaVenue").textContent = `futbola - ${venue}`;
+  document.getElementById("instaDate").textContent = date;
+
+  document.getElementById("instaMatchResults").innerHTML = document.getElementById("matchResults").innerHTML;
+  document.getElementById("instaTopScorers").innerHTML = document.getElementById("topScorersList").innerHTML;
+  document.getElementById("instaStandings").innerHTML = document.getElementById("standingsTable").innerHTML;
+
+  const exportDiv = document.getElementById("instagramExportDiv");
+  exportDiv.style.display = "block";
+
+  html2canvas(exportDiv, { width: 1080, height: 1080 }).then(canvas => {
+    const link = document.createElement('a');
+    link.download = `futbola_results_${new Date().toISOString().slice(0,10)}.png`;
+    link.href = canvas.toDataURL();
+    link.click();
+    exportDiv.style.display = "none";
   });
 }
-
-async function loadSelectedGame() {
-  const val = document.getElementById("gameSelect").value;
-  if (!val) return;
-  const [game_id, session_id] = val.split("|");
-  const res = await fetch(`/api/get-match-summary?game_id=${game_id}&session_id=${session_id}`);
-  const data = await res.json();
-
-  document.getElementById("matchResults").innerHTML = `
-    <h3>📋 Match Results</h3>
-    ${data.matches.map(m => `
-      <div class="match-result-row">
-        <div class="team-side left">
-          <img class="team-logo" src="./images/${m.team_a.toLowerCase().replace(/ /g, '-')}.png">
-          <span>${m.team_a}</span>
-        </div>
-        <div class="match-score">${m.score_a} - ${m.score_b}</div>
-        <div class="team-side right">
-          <span>${m.team_b}</span>
-          <img class="team-logo" src="./images/${m.team_b.toLowerCase().replace(/ /g, '-')}.png">
-        </div>
-      </div>`).join('')}`;
-
-  document.getElementById("topScorers").innerHTML = `
-    <h3>🎯 Top Scorers</h3>
-    ${data.top_scorers.map((p, i) => `
-      <div class="scorer-row">
-        <div>${i + 1}.</div>
-        <div class="scorer-player">
-          <img class="team-logo" src="./images/${p.team.toLowerCase().replace(/ /g, '-')}.png">
-          <strong>${p.player}</strong>
-        </div>
-        <div class="scorer-goals">${p.goals}</div>
-      </div>`).join('')}`;
-
-  document.getElementById("standings").innerHTML = `
-    <h3>🏆 Standings</h3>
-    <table class="standings-table">
-      <thead>
-        <tr>
-          <th>Pos</th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>Pts</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${data.standings.map((s, i) => `
-          <tr>
-            <td>${i + 1}</td>
-            <td>
-              <div class="team-side">
-                <img class="team-logo" src="./images/${s.team.toLowerCase().replace(/ /g, '-')}.png">
-                <span>${s.team}</span>
-              </div>
-            </td>
-            <td>${s.MP}</td>
-            <td>${s.W}</td>
-            <td>${s.D}</td>
-            <td>${s.L}</td>
-            <td>${s.GF}</td>
-            <td>${s.GA}</td>
-            <td>${s.GD}</td>
-            <td>${s.Pts}</td>
-          </tr>`).join('')}
-      </tbody>
-    </table>`;
-
-}
 </script>
+
 </body>
 </html>
