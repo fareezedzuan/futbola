@@ -96,45 +96,57 @@
 
   const supabase = createClient(
     'https://kdbqroxhypnadolcxxxc.supabase.co',
-    'YOUR_ANON_KEY_HERE'
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkYnFyb3hoeXBuYWRvbGN4eHhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3MjkwNzYsImV4cCI6MjA1NzMwNTA3Nn0.c7_RVxoFdJNqQ62R3t1emH2Wf4dSsQaunHsHmbQxOBA',
+    {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true
+      }
+    }
   );
 
-  const { data: { user } } = await supabase.auth.getUser();
+  let { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    const { data: sessionData } = await supabase.auth.getSession();
+    user = sessionData?.session?.user;
+  }
+
   if (!user) {
     alert("Not logged in");
     window.location.href = "/login.html";
-  }
-
-  const { data: profile, error } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .single();
-
-  if (error || !profile) {
-    alert("Failed to load profile");
-    console.error(error);
   } else {
-    document.getElementById("fullName").textContent = profile.full_name;
-    document.getElementById("jerseyName").textContent = profile.jersey_name;
-    document.getElementById("phone").textContent = profile.phone;
-    document.getElementById("gender").textContent = profile.gender;
-    document.getElementById("dob").textContent = profile.date_of_birth;
-    document.getElementById("location").textContent = profile.location_play?.join(', ');
-    document.getElementById("skill").textContent = profile.skill_level;
-    document.getElementById("positions").textContent = profile.preferred_position?.join(', ');
-    document.getElementById("availability").textContent = profile.availability?.join(', ');
-    document.getElementById("team").textContent = profile.team_name || "-";
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single();
 
-    if (profile.avatar_url) {
-      document.getElementById("avatar").src = profile.avatar_url;
+    if (error || !profile) {
+      alert("Failed to load profile");
+      console.error(error);
+    } else {
+      document.getElementById("fullName").textContent = profile.full_name;
+      document.getElementById("jerseyName").textContent = profile.jersey_name;
+      document.getElementById("phone").textContent = profile.phone;
+      document.getElementById("gender").textContent = profile.gender;
+      document.getElementById("dob").textContent = profile.date_of_birth;
+      document.getElementById("location").textContent = profile.location_play?.join(', ');
+      document.getElementById("skill").textContent = profile.skill_level;
+      document.getElementById("positions").textContent = profile.preferred_position?.join(', ');
+      document.getElementById("availability").textContent = profile.availability?.join(', ');
+      document.getElementById("team").textContent = profile.team_name || "-";
+
+      if (profile.avatar_url) {
+        document.getElementById("avatar").src = profile.avatar_url;
+      }
     }
-  }
 
-  // Placeholder stats - replace with real stats later
-  document.getElementById("gamesPlayed").textContent = "12";
-  document.getElementById("goalsScored").textContent = "8";
-  document.getElementById("matchesWon").textContent = "6";
+    // Example placeholder stats
+    document.getElementById("gamesPlayed").textContent = "12";
+    document.getElementById("goalsScored").textContent = "8";
+    document.getElementById("matchesWon").textContent = "6";
+  }
 </script>
 </body>
 </html>
