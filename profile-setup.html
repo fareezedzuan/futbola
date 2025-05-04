@@ -104,71 +104,79 @@
 </div>
 
 <script type="module">
-   import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-const supabase = createClient(
-  'https://kdbqroxhypnadolcxxxc.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkYnFyb3hoeXBuYWRvbGN4eHhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3MjkwNzYsImV4cCI6MjA1NzMwNTA3Nn0.c7_RVxoFdJNqQ62R3t1emH2Wf4dSsQaunHsHmbQxOBA',
-  {
-    auth: {
-      persistSession: true,
-      autoRefreshToken: true,
-      detectSessionInUrl: true
+  const supabase = createClient(
+    'https://kdbqroxhypnadolcxxxc.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkYnFyb3hoeXBuYWRvbGN4eHhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3MjkwNzYsImV4cCI6MjA1NzMwNTA3Nn0.c7_RVxoFdJNqQ62R3t1emH2Wf4dSsQaunHsHmbQxOBA',
+    {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true
+      }
     }
+  );
+
+  const { data: { user }, error } = await supabase.auth.getUser();
+
+  if (!user) {
+    window.location.href = "/login.html";
+  } else {
+    document.getElementById("user-email").textContent = "Logged in as: " + user.email;
   }
-);
 
-let userId = null;
-let { data: { user }, error } = await supabase.auth.getUser();
-if (!user) {
-  const { data: sessionData } = await supabase.auth.getSession();
-  user = sessionData?.session?.user || null;
-}
+  // Pre-fill if existing profile found
+  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single();
+  if (profile) {
+    document.getElementById("full_name").value = profile.full_name || "";
+    document.getElementById("jersey_name").value = profile.jersey_name || "";
+    document.getElementById("phone").value = profile.phone || "";
+    document.getElementById("gender").value = profile.gender || "";
+    document.getElementById("date_of_birth").value = profile.date_of_birth || "";
+    document.getElementById("location_play").value = (profile.location_play || []).join(", ");
+    document.getElementById("skill_level").value = profile.skill_level || "";
+    document.getElementById("jersey_number").value = profile.jersey_number || "";
+    document.getElementById("team_name").value = profile.team_name || "";
 
-if (user) {
-  userId = user.id;
-  document.getElementById("user-email").textContent = "Logged in as: " + user.email;
-} else {
-  window.location.href = "/login.html";
-}
+    (profile.preferred_position || []).forEach(pos => {
+      const checkbox = document.querySelector(`#position input[value='${pos}']`);
+      if (checkbox) checkbox.checked = true;
+    });
 
-document.getElementById("saveBtn").addEventListener("click", async () => {
-  const getChecked = (selector) =>
-    Array.from(document.querySelectorAll(`${selector} input:checked`)).map(cb => cb.value);
+    (profile.availability || []).forEach(day => {
+      const checkbox = document.querySelector(`#availability input[value='${day}']`);
+      if (checkbox) checkbox.checked = true;
+    });
+  }
 
-  const { error } = await supabase.from("profiles").upsert({
-    id: userId,
-    full_name: document.getElementById("full_name").value,
-    jersey_name: document.getElementById("jersey_name").value,
-    phone: document.getElementById("phone").value,
-    gender: document.getElementById("gender").value,
-    date_of_birth: document.getElementById("date_of_birth").value,
-    location_play: document.getElementById("location_play").value.split(',').map(v => v.trim()),
-    skill_level: document.getElementById("skill_level").value,
-    preferred_position: getChecked("#position"),
-    jersey_number: parseInt(document.getElementById("jersey_number").value),
-    avatar_url: null, // avatar removed for now
-    team_name: document.getElementById("team_name").value,
-    availability: getChecked("#availability")
+  document.getElementById("saveBtn").addEventListener("click", async () => {
+    const getChecked = (selector) =>
+      Array.from(document.querySelectorAll(`${selector} input:checked`)).map(cb => cb.value);
+
+    const { error } = await supabase.from("profiles").upsert({
+      id: user.id,
+      full_name: document.getElementById("full_name").value,
+      jersey_name: document.getElementById("jersey_name").value,
+      phone: document.getElementById("phone").value,
+      gender: document.getElementById("gender").value,
+      date_of_birth: document.getElementById("date_of_birth").value,
+      location_play: document.getElementById("location_play").value.split(',').map(v => v.trim()),
+      skill_level: document.getElementById("skill_level").value,
+      preferred_position: getChecked("#position"),
+      jersey_number: parseInt(document.getElementById("jersey_number").value),
+      avatar_url: null,
+      team_name: document.getElementById("team_name").value,
+      availability: getChecked("#availability")
+    });
+
+    if (error) {
+      alert("Failed to save: " + error.message);
+    } else {
+      alert("✅ Profile saved successfully!");
+      window.location.href = "/";
+    }
   });
-
-  if (error) {
-    alert("Failed to save: " + error.message);
-  } else {
-    alert("✅ Profile saved successfully!");
-    window.location.href = "/";
-  }
-});
-
-supabase.auth.getSession().then(({ data, error }) => {
-  if (error) {
-    console.error("Session fetch failed:", error.message);
-  } else {
-    console.log("🟢 Supabase session data:", data);
-  }
-});
-
-window.supabase = supabase;
 </script>
 </body>
 </html>
