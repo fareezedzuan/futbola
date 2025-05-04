@@ -102,6 +102,34 @@
       font-weight: bold;
       color: #702963;
     }
+    .standings-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+
+    .standings-table th, .standings-table td {
+      padding: 8px 10px;
+      text-align: center;
+      font-size: 15px;
+    }
+
+    .standings-table th {
+      background-color: #702963;
+      color: white;
+    }
+
+    .standings-table tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+
+    .standings-table td .team-side {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      justify-content: flex-start;
+    }
+
   </style>
 </head>
 <body>
@@ -172,24 +200,34 @@ async function loadSelectedGame() {
 
   document.getElementById("standings").innerHTML = `
     <h3>🏆 Standings</h3>
-    <table><thead><tr><th>Pos</th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>Pts</th></tr></thead><tbody>
-    ${data.standings.map((s, i) => `
-      <tr>
-        <td>${i + 1}</td>
-        <td class="team-side">
-          <img class="team-logo" src="./images/${s.team.toLowerCase().replace(/ /g, '-')}.png">
-          <span>${s.team}</span>
-        </td>
-        <td>${s.MP}</td>
-        <td>${s.W}</td>
-        <td>${s.D}</td>
-        <td>${s.L}</td>
-        <td>${s.GF}</td>
-        <td>${s.GA}</td>
-        <td>${s.GD}</td>
-        <td>${s.Pts}</td>
-      </tr>`).join('')}
-    </tbody></table>`;
+    <table class="standings-table">
+      <thead>
+        <tr>
+          <th>Pos</th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>Pts</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${data.standings.map((s, i) => `
+          <tr>
+            <td>${i + 1}</td>
+            <td>
+              <div class="team-side">
+                <img class="team-logo" src="./images/${s.team.toLowerCase().replace(/ /g, '-')}.png">
+                <span>${s.team}</span>
+              </div>
+            </td>
+            <td>${s.MP}</td>
+            <td>${s.W}</td>
+            <td>${s.D}</td>
+            <td>${s.L}</td>
+            <td>${s.GF}</td>
+            <td>${s.GA}</td>
+            <td>${s.GD}</td>
+            <td>${s.Pts}</td>
+          </tr>`).join('')}
+      </tbody>
+    </table>`;
+
 }
 </script>
 </body>
