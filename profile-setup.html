@@ -121,8 +121,8 @@ const supabase = createClient(
 let userId = null;
 let { data: { user }, error } = await supabase.auth.getUser();
 if (!user) {
-  const session = await supabase.auth.getSession();
-  user = session.data?.session?.user || null;
+  const { data: sessionData } = await supabase.auth.getSession();
+  user = sessionData?.session?.user || null;
 }
 
 if (user) {
