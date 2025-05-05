@@ -301,23 +301,34 @@ function exportToWhatsApp() {
 }
 
 function exportToInstagramImage() {
-  const venue = document.getElementById("gameSelect").options[document.getElementById("gameSelect").selectedIndex]?.textContent || "futbola match";
-  const date = new Date().toLocaleDateString();
+  const venueText = document.querySelector("#gameSelect option:checked")?.textContent || "futbola session";
+  const [venue, rest] = venueText.split(" - ");
+  const [date, time] = (rest || "").split(" ");
 
-  document.getElementById("instaVenue").textContent = `futbola - ${venue}`;
-  document.getElementById("instaDate").textContent = date;
+  document.getElementById("instaVenue").textContent = `futbola - ${venue || "Unknown Venue"}`;
+  document.getElementById("instaDate").textContent = `${date || "Date"} ${time || ""}`;
 
-  // Copy sections
-  document.getElementById("instaMatchResults").innerHTML = document.getElementById("matchResults").innerHTML;
-  document.getElementById("instaTopScorers").innerHTML = document.getElementById("topScorers").innerHTML;
-  document.getElementById("instaStandings").innerHTML = document.getElementById("standings").innerHTML;
+  // Match Results
+  const matchResults = document.getElementById("matchResults").querySelectorAll(".match-result-row");
+  const matchHTML = Array.from(matchResults).map(row => `<div class="match-result-row">${row.innerHTML}</div>`).join('');
+  document.getElementById("instaMatchResults").innerHTML = matchHTML;
 
+  // Top Scorers
+  const scorerRows = document.getElementById("topScorers").querySelectorAll(".scorer-row");
+  const scorerHTML = Array.from(scorerRows).map(row => `<div class="scorer-row">${row.innerHTML}</div>`).join('');
+  document.getElementById("instaTopScorers").innerHTML = scorerHTML;
+
+  // Standings Table
+  const tableHTML = document.getElementById("standings").querySelector("table")?.outerHTML || "";
+  document.getElementById("instaStandings").innerHTML = tableHTML;
+
+  // Show + export
   const exportDiv = document.getElementById("instagramExportDiv");
   exportDiv.style.display = "block";
 
   html2canvas(exportDiv, { width: 1080, height: 1080 }).then(canvas => {
-    const link = document.createElement('a');
-    link.download = `futbola_instagram_${new Date().toISOString().slice(0,10)}.png`;
+    const link = document.createElement("a");
+    link.download = `futbola_instagram_${new Date().toISOString().slice(0, 10)}.png`;
     link.href = canvas.toDataURL();
     link.click();
     exportDiv.style.display = "none";
