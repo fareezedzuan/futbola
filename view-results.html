@@ -214,6 +214,10 @@
 <script>
 window.addEventListener('DOMContentLoaded', loadGames);
 
+let matchResultsData = [];
+let topScorers = {};
+let standings = [];
+
 async function loadGames() {
   const res = await fetch('/api/get-saved-sessions');
   const data = await res.json();
@@ -232,6 +236,30 @@ async function loadSelectedGame() {
   const [game_id, session_id] = val.split("|");
   const res = await fetch(`/api/get-match-summary?game_id=${game_id}&session_id=${session_id}`);
   const data = await res.json();
+
+  matchResultsData = data.matches;
+
+topScorers = {};
+data.top_scorers.forEach(p => {
+  if (topScorers[p.player]) {
+    topScorers[p.player] += p.goals;
+  } else {
+    topScorers[p.player] = p.goals;
+  }
+});
+
+standings = data.standings.map(s => ({
+  name: s.team,
+  p: s.MP,
+  w: s.W,
+  d: s.D,
+  l: s.L,
+  gf: s.GF,
+  ga: s.GA,
+  gd: s.GD,
+  points: s.Pts
+}));
+
 
   document.getElementById("matchResults").innerHTML = `
     <h3>📋 Match Results</h3>
