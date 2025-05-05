@@ -142,7 +142,7 @@
       <option value="">-- Select a Game --</option>
     </select>
     <button class="btn-primary" onclick="loadSelectedGame()">Load</button>
-    <button class="btn-primary" style="background-color:#25D366;">Export to WhatsApp 📤</button>
+    <button class="btn-primary" style="background-color:#25D366;" onclick="exportToWhatsApp()">Export to WhatsApp 📤</button>
     <button class="btn-primary" style="background-color:#C13584;">Instagram Post 📸</button>
     <div id="matchResults" class="section">
       <h3>📋 Match Results</h3>
@@ -234,6 +234,60 @@ async function loadSelectedGame() {
     </table>`;
 
 }
+
+function exportToWhatsApp() {
+  const gameSelect = document.getElementById("gameSelect");
+  const selectedText = gameSelect.options[gameSelect.selectedIndex]?.textContent || "futbola match";
+
+  let message = `⚽ *futbola - Thank you for joining!*\n📍 *Game:* ${selectedText}\n\n`;
+
+  // Match Results
+  const matchRows = document.querySelectorAll("#matchResults .match-result-row");
+  if (matchRows.length) {
+    message += `📋 *Match Results*\n`;
+    matchRows.forEach((row, i) => {
+      const teamA = row.querySelector(".team-side.left .team-name")?.textContent || "Team A";
+      const score = row.querySelector(".match-score")?.textContent || "-";
+      const teamB = row.querySelector(".team-side.right .team-name")?.textContent || "Team B";
+      message += `Match ${i + 1}: ${teamA} ${score} ${teamB}\n`;
+    });
+  }
+
+  // Top Scorers
+  const scorerRows = document.querySelectorAll("#topScorers .scorer-row");
+  message += `\n🎯 *Top Scorers*\n`;
+  if (scorerRows.length) {
+    scorerRows.forEach((row, i) => {
+      const name = row.querySelector(".scorer-player strong")?.textContent || "-";
+      const goals = row.querySelector(".scorer-goals")?.textContent || "0";
+      const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : "•";
+      message += `${medal} ${name} – ${goals}\n`;
+    });
+  } else {
+    message += "No goals recorded yet.\n";
+  }
+
+  // Standings
+  const tableRows = document.querySelectorAll("#standings table tbody tr");
+  message += `\n🏆 *Group Table*\n# Team        MP  W D L  Pts\n`;
+  tableRows.forEach((row, i) => {
+    const cells = row.querySelectorAll("td");
+    const team = cells[1]?.innerText.trim() || "-";
+    const MP = cells[2]?.innerText || "0";
+    const W = cells[3]?.innerText || "0";
+    const D = cells[4]?.innerText || "0";
+    const L = cells[5]?.innerText || "0";
+    const Pts = cells[9]?.innerText || "0";
+    const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i + 1}.`;
+    const name = team.padEnd(11, ' ');
+    message += `${medal} ${name} ${MP}  ${W} ${D} ${L}   ${Pts}\n`;
+  });
+
+  navigator.clipboard.writeText(message).then(() =>
+    alert("📋 WhatsApp summary copied to clipboard! Paste and share the vibes 💬")
+  );
+}
+
 </script>
 </body>
 </html>
