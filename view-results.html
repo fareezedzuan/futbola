@@ -329,13 +329,13 @@ function exportToWhatsApp() {
 
   // Match Results
   message += `📋 *Match Results*\n`;
-  matchResultsData.forEach((match, index) => {
-    const teamA = match.teamA?.name || "Team A";
-    const teamB = match.teamB?.name || "Team B";
-    const scoreA = match.scoreA ?? "-";
-    const scoreB = match.scoreB ?? "-";
-    message += `Match ${index + 1}: ${teamA} ${scoreA} - ${scoreB} ${teamB}\n`;
-  });
+    matchResultsData.forEach((match, index) => {
+      const teamA = match.team_a || "Team A";
+      const teamB = match.team_b || "Team B";
+      const scoreA = match.score_a ?? "-";
+      const scoreB = match.score_b ?? "-";
+      message += `⚔️ Match ${index + 1}: ${teamA} ${scoreA} - ${scoreB} ${teamB}\n`;
+    });
 
   // Top Scorers
   message += `\n🎯 *Top Scorers*\n`;
