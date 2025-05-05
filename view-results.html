@@ -141,9 +141,9 @@
     <select id="gameSelect">
       <option value="">-- Select a Game --</option>
     </select>
-    <button class="btn-primary" onclick="loadSelectedGame()">Load</button>
+    <button class="btn-primary" onclick="loadSelectedGame()">Load Match Results 📂</button>
     <button class="btn-primary" style="background-color:#25D366;" onclick="exportToWhatsApp()">Export to WhatsApp 📤</button>
-    <button class="btn-primary" style="background-color:#C13584;">Instagram Post 📸</button>
+    <button class="btn-primary" style="background-color:#C13584;" onclick="exportToInstagramImage()">Instagram Post 📸</button>
     <div id="matchResults" class="section">
       <h3>📋 Match Results</h3>
     </div>
@@ -288,6 +288,50 @@ function exportToWhatsApp() {
   );
 }
 
+function exportToInstagramImage() {
+  const venue = document.getElementById("gameSelect").options[document.getElementById("gameSelect").selectedIndex]?.textContent || "futbola match";
+  const date = new Date().toLocaleDateString();
+
+  document.getElementById("instaVenue").textContent = `futbola - ${venue}`;
+  document.getElementById("instaDate").textContent = date;
+
+  // Copy sections
+  document.getElementById("instaMatchResults").innerHTML = document.getElementById("matchResults").innerHTML;
+  document.getElementById("instaTopScorers").innerHTML = document.getElementById("topScorers").innerHTML;
+  document.getElementById("instaStandings").innerHTML = document.getElementById("standings").innerHTML;
+
+  const exportDiv = document.getElementById("instagramExportDiv");
+  exportDiv.style.display = "block";
+
+  html2canvas(exportDiv, { width: 1080, height: 1080 }).then(canvas => {
+    const link = document.createElement('a');
+    link.download = `futbola_instagram_${new Date().toISOString().slice(0,10)}.png`;
+    link.href = canvas.toDataURL();
+    link.click();
+    exportDiv.style.display = "none";
+  });
+}
+
 </script>
+
+<!-- Hidden Instagram Export Div -->
+<div id="instagramExportDiv" style="display: none; width: 1080px; height: 1080px; background: linear-gradient(to bottom right, #ffa07a, #ffc0cb); font-family: Arial, sans-serif; padding: 20px 40px; box-sizing: border-box; color: #702963; position: relative;">
+  <h2 id="instaVenue">futbola - Venue</h2>
+  <h3 id="instaDate">Date</h3>
+  <div class="section">
+    <h3>📋 Match Results</h3>
+    <div id="instaMatchResults"></div>
+  </div>
+  <div class="section">
+    <h3>🎯 Top Scorers</h3>
+    <div id="instaTopScorers"></div>
+  </div>
+  <div class="section">
+    <h3>🏆 Standings</h3>
+    <div id="instaStandings"></div>
+  </div>
+  <img class="footer-logo" src="./images/futbola-logo.png" alt="futbola logo" style="position:absolute; bottom:20px; right:20px; opacity:0.4; width:80px;" />
+</div>
+
 </body>
 </html>
