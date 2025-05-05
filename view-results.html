@@ -135,8 +135,8 @@
 
     #instaMatchResults {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
+      grid-template-columns: repeat(3, 1fr); /* 3-column layout */
+      gap: 8px 12px; /* Adjusted spacing */
     }
     
     #instaTopScorers {
@@ -167,6 +167,11 @@
   font-size: 28px;
   margin: 0 0 20px;
   font-weight: 500;
+}
+
+#instagramExportDiv .section {
+  max-height: 320px; /* Adjust based on total expected rows */
+  overflow-y: auto;
 }
 
   </style>
@@ -357,6 +362,13 @@ function exportToInstagramImage() {
     link.click();
     exportDiv.style.display = "none";
   });
+
+  const matchCount = matchResults.length;
+if (matchCount > 9) {
+  document.querySelectorAll('#instaMatchResults .match-result-row').forEach(el => {
+    el.style.fontSize = '18px';  // Smaller for tight layouts
+  });
+}
 }
 
 </script>
