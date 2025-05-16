@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Player Profile - Futbola</title>  
+  <link rel="icon" href="./images/futbola-favicon.ico" type="image/x-icon">
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-image: url('./images/backgroundOrangeGradient.jpg');
+      margin: 0;
+      padding: 30px;
+      display: flex;
+      justify-content: center;
+    }
+    .profile-card {
+      background: white;
+      padding: 25px;
+      border-radius: 15px;
+      max-width: 700px;
+      width: 100%;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      border-top: 5px solid #ff5a5f;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .avatar {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid #ff5a5f;
+    }
+    .name {
+      font-size: 24px;
+      color: #702963;
+      margin: 0;
+    }
+    .jersey {
+      font-size: 16px;
+      color: #555;
+    }
+    .stats, .details {
+      margin-top: 20px;
+    }
+    .stats div, .details div {
+      margin-bottom: 10px;
+    }
+    .stat-label {
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+<div class="profile-card">
+  <div class="header">
+    <img id="avatar" class="avatar" src="./images/Fareez.jpg" alt="Avatar">
+    <div>
+      <h2 id="fullName" class="name">Player Name</h2>
+      <p id="jerseyName" class="jersey">Jersey Name</p>
+    </div>
+  </div>
+
+  <div class="stats">
+    <h3>Performance</h3>
+    <div><span class="stat-label">Games Played:</span> <span id="gamesPlayed">0</span></div>
+    <div><span class="stat-label">Goals Scored:</span> <span id="goalsScored">0</span></div>
+    <div><span class="stat-label">Matches Won:</span> <span id="matchesWon">0</span></div>
+  </div>
+
+  <div class="details">
+    <h3>Profile Details</h3>
+    <div><span class="stat-label">Phone:</span> <span id="phone"></span></div>
+    <div><span class="stat-label">Gender:</span> <span id="gender"></span></div>
+    <div><span class="stat-label">Date of Birth:</span> <span id="dob"></span></div>
+    <div><span class="stat-label">Location:</span> <span id="location"></span></div>
+    <div><span class="stat-label">Skill Level:</span> <span id="skill"></span></div>
+    <div><span class="stat-label">Preferred Position:</span> <span id="positions"></span></div>
+    <div><span class="stat-label">Availability:</span> <span id="availability"></span></div>
+    <div><span class="stat-label">Team:</span> <span id="team"></span></div>
+  </div>
+
+  <div class="details">
+    <h3>Bio</h3>
+    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla et metus nec lorem tincidunt aliquam.</p>
+  </div>
+</div>
+
+<script type="module">
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+  const supabase = createClient(
+    'https://kdbqroxhypnadolcxxxc.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkYnFyb3hoeXBuYWRvbGN4eHhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3MjkwNzYsImV4cCI6MjA1NzMwNTA3Nn0.c7_RVxoFdJNqQ62R3t1emH2Wf4dSsQaunHsHmbQxOBA',
+    {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true
+      }
+    }
+  );
+
+  let { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    const { data: sessionData } = await supabase.auth.getSession();
+    user = sessionData?.session?.user;
+  }
+
+  if (!user) {
+    alert("Not logged in");
+    window.location.href = "/login.html";
+  } else {
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single();
+
+    if (error || !profile) {
+      alert("Failed to load profile");
+      console.error(error);
+    } else {
+      document.getElementById("fullName").textContent = profile.full_name;
+      document.getElementById("jerseyName").textContent = profile.jersey_name;
+      document.getElementById("phone").textContent = profile.phone;
+      document.getElementById("gender").textContent = profile.gender;
+      document.getElementById("dob").textContent = profile.date_of_birth;
+      document.getElementById("location").textContent = profile.location_play?.join(', ');
+      document.getElementById("skill").textContent = profile.skill_level;
+      document.getElementById("positions").textContent = profile.preferred_position?.join(', ');
+      document.getElementById("availability").textContent = profile.availability?.join(', ');
+      document.getElementById("team").textContent = profile.team_name || "-";
+
+      if (profile.avatar_url) {
+        document.getElementById("avatar").src = profile.avatar_url;
+      }
+    }
+
+    // Example placeholder stats
+    document.getElementById("gamesPlayed").textContent = "12";
+    document.getElementById("goalsScored").textContent = "8";
+    document.getElementById("matchesWon").textContent = "6";
+  }
+</script>
+</body>
+</html>
