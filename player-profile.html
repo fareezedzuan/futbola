@@ -11,83 +11,144 @@
       font-family: Arial, sans-serif;
       background-image: url('./images/backgroundOrangeGradient.jpg');
       margin: 0;
-      padding: 30px;
+      padding: 20px;
       display: flex;
       justify-content: center;
     }
     .profile-card {
       background: white;
-      padding: 25px;
+      padding: 20px;
       border-radius: 15px;
       max-width: 700px;
       width: 100%;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
       border-top: 5px solid #ff5a5f;
     }
+
+    .layer {
+      margin-bottom: 30px;
+    }
+
     .header {
       display: flex;
       align-items: center;
-      gap: 20px;
+      gap: 15px;
     }
     .avatar {
-      width: 100px;
-      height: 100px;
+      width: 90px;
+      height: 90px;
       border-radius: 50%;
       object-fit: cover;
-      border: 3px solid #ff5a5f;
+      box-shadow: 0 0 0 3px #fff, 0 0 0 6px #ff5a5f;
     }
     .name {
-      font-size: 24px;
+      font-size: 22px;
       color: #702963;
       margin: 0;
     }
     .jersey {
-      font-size: 16px;
+      font-size: 14px;
+      background: #eee;
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 5px;
       color: #555;
+      margin-top: 4px;
     }
-    .stats, .details {
-      margin-top: 20px;
+
+    .stat-card {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
     }
-    .stats div, .details div {
-      margin-bottom: 10px;
-    }
-    .stat-label {
+    .stat-box {
+      flex: 1 1 30%;
+      background: #f8f8f8;
+      border-radius: 10px;
+      padding: 15px;
+      text-align: center;
       font-weight: bold;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    .stat-box span {
+      display: block;
+      font-size: 20px;
+      color: #ff5a5f;
+      margin-top: 5px;
+    }
+
+    .details div {
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .details i {
+      color: #ff5a5f;
+      min-width: 20px;
+    }
+
+    .bio {
+      background: #f9f9f9;
+      padding: 15px;
+      border-radius: 10px;
+      color: #444;
     }
   </style>
+  <script src="https://kit.fontawesome.com/46f8077b7e.js" crossorigin="anonymous"></script>
 </head>
 <body>
 <div class="profile-card">
-  <div class="header">
+
+  <!-- Layer 1: Identity -->
+  <div class="layer layer-1 header">
     <img id="avatar" class="avatar" src="./images/Fareez.jpg" alt="Avatar">
     <div>
       <h2 id="fullName" class="name">Player Name</h2>
-      <p id="jerseyName" class="jersey">Jersey Name</p>
+      <div id="jerseyName" class="jersey">#10 - FAREEZ</div>
     </div>
   </div>
 
-  <div class="stats">
-    <h3>Performance</h3>
-    <div><span class="stat-label">Games Played:</span> <span id="gamesPlayed">0</span></div>
-    <div><span class="stat-label">Goals Scored:</span> <span id="goalsScored">0</span></div>
-    <div><span class="stat-label">Matches Won:</span> <span id="matchesWon">0</span></div>
+  <!-- Layer 2: Overview -->
+  <div class="layer layer-2 details">
+    <h3>Player Overview</h3>
+    <div><i class="fas fa-phone"></i> <span id="phone"></span></div>
+    <div><i class="fas fa-mars"></i> <span id="gender"></span></div>
+    <div><i class="fas fa-birthday-cake"></i> <span id="dob"></span></div>
+    <div><i class="fas fa-map-marker-alt"></i> <span id="location"></span></div>
+    <div><i class="fas fa-star"></i> <span id="skill"></span></div>
+    <div><i class="fas fa-users"></i> <span id="team"></span></div>
   </div>
 
-  <div class="details">
-    <h3>Profile Details</h3>
-    <div><span class="stat-label">Phone:</span> <span id="phone"></span></div>
-    <div><span class="stat-label">Gender:</span> <span id="gender"></span></div>
-    <div><span class="stat-label">Date of Birth:</span> <span id="dob"></span></div>
-    <div><span class="stat-label">Location:</span> <span id="location"></span></div>
-    <div><span class="stat-label">Skill Level:</span> <span id="skill"></span></div>
-    <div><span class="stat-label">Preferred Position:</span> <span id="positions"></span></div>
-    <div><span class="stat-label">Availability:</span> <span id="availability"></span></div>
-    <div><span class="stat-label">Team:</span> <span id="team"></span></div>
+  <!-- Layer 3: Preferred Position -->
+  <div class="layer layer-3 details">
+    <h3>Preferred Position</h3>
+    <div><i class="fas fa-futbol"></i> <span id="positions">Central Midfielder, Left Winger</span></div>
+    <!-- In future: visual football/futsal pitch -->
   </div>
 
-  <div class="details">
+  <!-- Layer 4: Stats -->
+  <div class="layer layer-4">
+    <h3>Performance Stats</h3>
+    <div class="stat-card">
+      <div class="stat-box">Games<span id="gamesPlayed">0</span></div>
+      <div class="stat-box">Goals<span id="goalsScored">0</span></div>
+      <div class="stat-box">Wins<span id="matchesWon">0</span></div>
+    </div>
+  </div>
+
+  <!-- Layer 5: Availability -->
+  <div class="layer layer-5 details">
+    <h3>Availability</h3>
+    <div><i class="fas fa-clock"></i> <span id="availability"></span></div>
+    <!-- Future: toggle UI per day -->
+  </div>
+
+  <!-- Bio Section -->
+  <div class="layer bio">
     <h3>Bio</h3>
-    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla et metus nec lorem tincidunt aliquam.</p>
+    <p id="bio">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Passionate creator and midfield maestro.</p>
   </div>
 </div>
 
@@ -127,7 +188,7 @@
       console.error(error);
     } else {
       document.getElementById("fullName").textContent = profile.full_name;
-      document.getElementById("jerseyName").textContent = profile.jersey_name;
+      document.getElementById("jerseyName").textContent = `#${profile.jersey_number || "10"} - ${profile.jersey_name}`;
       document.getElementById("phone").textContent = profile.phone;
       document.getElementById("gender").textContent = profile.gender;
       document.getElementById("dob").textContent = profile.date_of_birth;
@@ -136,13 +197,14 @@
       document.getElementById("positions").textContent = profile.preferred_position?.join(', ');
       document.getElementById("availability").textContent = profile.availability?.join(', ');
       document.getElementById("team").textContent = profile.team_name || "-";
+      document.getElementById("bio").textContent = profile.bio || "-";
 
       if (profile.avatar_url) {
         document.getElementById("avatar").src = profile.avatar_url;
       }
     }
 
-    // Example placeholder stats
+    // Placeholder stat values
     document.getElementById("gamesPlayed").textContent = "12";
     document.getElementById("goalsScored").textContent = "8";
     document.getElementById("matchesWon").textContent = "6";
