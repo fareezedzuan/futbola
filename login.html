@@ -1,106 +1,214 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Login - Futbola</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Player Profile - Futbola</title>  
   <link rel="icon" href="./images/futbola-favicon.ico" type="image/x-icon">
   <link rel="stylesheet" href="css/style.css" />
   <style>
     body {
       font-family: Arial, sans-serif;
       background-image: url('./images/backgroundOrangeGradient.jpg');
+      margin: 0;
+      padding: 20px;
       display: flex;
       justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      margin: 0;
     }
-
-    .container {
+    .profile-card {
       background: white;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-      text-align: center;
-      max-width: 420px;
+      padding: 20px;
+      border-radius: 15px;
+      max-width: 700px;
       width: 100%;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
       border-top: 5px solid #ff5a5f;
     }
 
-    h2 {
+    .layer {
+      margin-bottom: 30px;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    .avatar {
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      object-fit: cover;
+      box-shadow: 0 0 0 3px #fff, 0 0 0 6px #ff5a5f;
+    }
+    .name {
+      font-size: 22px;
       color: #702963;
+      margin: 0;
     }
-
-    p {
-      font-size: 16px;
-      margin-bottom: 20px;
-    }
-
-    button, input {
-      font-size: 16px;
-      padding: 12px;
-      width: 100%;
-      margin: 8px 0;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-      box-sizing: border-box;
-    }
-
-    button {
-      background-color: #ff5a5f;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background-color: #e14e51;
-    }
-
-    .google-btn {
-      background-color: #4285F4;
-    }
-
-    .google-btn:hover {
-      background-color: #357ae8;
-    }
-
-    .small-link {
+    .jersey {
       font-size: 14px;
+      background: #eee;
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 5px;
+      color: #555;
+      margin-top: 4px;
     }
 
-    .small-link a {
-      color: #702963;
-      text-decoration: none;
+    .stat-card {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .stat-box {
+      flex: 1 1 30%;
+      background: #f8f8f8;
+      border-radius: 10px;
+      padding: 15px;
+      text-align: center;
       font-weight: bold;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    .stat-box span {
+      display: block;
+      font-size: 20px;
+      color: #ff5a5f;
+      margin-top: 5px;
     }
 
-    .small-link a:hover {
-      text-decoration: underline;
+    .details div {
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .details i {
+      color: #ff5a5f;
+      min-width: 20px;
+    }
+
+    .bio {
+      background: #f9f9f9;
+      padding: 15px;
+      border-radius: 10px;
+      color: #444;
     }
   </style>
+  <script src="https://kit.fontawesome.com/46f8077b7e.js" crossorigin="anonymous"></script>
 </head>
 <body>
-  <div class="container">
-    <h2>🔐 Login to Futbola</h2>
-    <p>Book games, manage teams, and track stats</p>
+<div class="profile-card">
 
-    <button id="google-login" class="google-btn">Login with Google</button>
-
-    <hr style="margin: 20px 0;" />
-
-    <form id="email-login-form">
-      <input type="email" id="email" placeholder="Email" required />
-      <input type="password" id="password" placeholder="Password" required />
-      <button type="submit">Login with Email</button>
-    </form>
-
-    <p class="small-link">Don't have an account? <a href="#" id="signup-link">Sign up here</a></p>
+  <!-- Layer 1: Identity -->
+  <div class="layer layer-1 header">
+    <img id="avatar" class="avatar" src="./images/Fareez.jpg" alt="Avatar">
+    <div>
+      <h2 id="fullName" class="name">Player Name</h2>
+      <div id="jerseyName" class="jersey">#10 - FAREEZ</div>
+    </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-  <script src="js/supabaseClient.js"></script>
-  <script type="module" src="js/auth.js"></script>
+  <!-- Layer 2: Overview -->
+  <div class="layer layer-2 details">
+    <h3>Player Overview</h3>
+    <div><i class="fas fa-phone"></i> <span id="phone"></span></div>
+    <div><i class="fas fa-mars"></i> <span id="gender"></span></div>
+    <div><i class="fas fa-birthday-cake"></i> <span id="dob"></span></div>
+    <div><i class="fas fa-map-marker-alt"></i> <span id="location"></span></div>
+    <div><i class="fas fa-star"></i> <span id="skill"></span></div>
+    <div><i class="fas fa-users"></i> <span id="team"></span></div>
+  </div>
+
+  <!-- Layer 3: Preferred Position -->
+  <div class="layer layer-3 details">
+    <h3>Preferred Position</h3>
+    <div><i class="fas fa-futbol"></i> <span id="positions">Central Midfielder, Left Winger</span></div>
+    <!-- In future: visual football/futsal pitch -->
+  </div>
+
+  <!-- Layer 4: Stats -->
+  <div class="layer layer-4">
+    <h3>Performance Stats</h3>
+    <div class="stat-card">
+      <div class="stat-box">Games<span id="gamesPlayed">0</span></div>
+      <div class="stat-box">Goals<span id="goalsScored">0</span></div>
+      <div class="stat-box">Wins<span id="matchesWon">0</span></div>
+    </div>
+  </div>
+
+  <!-- Layer 5: Availability -->
+  <div class="layer layer-5 details">
+    <h3>Availability</h3>
+    <div><i class="fas fa-clock"></i> <span id="availability"></span></div>
+    <!-- Future: toggle UI per day -->
+  </div>
+
+  <!-- Bio Section -->
+  <div class="layer bio">
+    <h3>Bio</h3>
+    <p id="bio">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Passionate creator and midfield maestro.</p>
+  </div>
+</div>
+
+<script type="module">
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+  const supabase = createClient(
+    'https://kdbqroxhypnadolcxxxc.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkYnFyb3hoeXBuYWRvbGN4eHhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3MjkwNzYsImV4cCI6MjA1NzMwNTA3Nn0.c7_RVxoFdJNqQ62R3t1emH2Wf4dSsQaunHsHmbQxOBA',
+    {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true
+      }
+    }
+  );
+
+  let { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    const { data: sessionData } = await supabase.auth.getSession();
+    user = sessionData?.session?.user;
+  }
+
+  if (!user) {
+    alert("Not logged in");
+    window.location.href = "/login.html";
+  } else {
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single();
+
+    if (error || !profile) {
+      alert("Failed to load profile");
+      console.error(error);
+    } else {
+      document.getElementById("fullName").textContent = profile.full_name;
+      document.getElementById("jerseyName").textContent = `#${profile.jersey_number || "10"} - ${profile.jersey_name}`;
+      document.getElementById("phone").textContent = profile.phone;
+      document.getElementById("gender").textContent = profile.gender;
+      document.getElementById("dob").textContent = profile.date_of_birth;
+      document.getElementById("location").textContent = profile.location_play?.join(', ');
+      document.getElementById("skill").textContent = profile.skill_level;
+      document.getElementById("positions").textContent = profile.preferred_position?.join(', ');
+      document.getElementById("availability").textContent = profile.availability?.join(', ');
+      document.getElementById("team").textContent = profile.team_name || "-";
+      document.getElementById("bio").textContent = profile.bio || "-";
+
+      if (profile.avatar_url) {
+        document.getElementById("avatar").src = profile.avatar_url;
+      }
+    }
+
+    // Placeholder stat values
+    document.getElementById("gamesPlayed").textContent = "12";
+    document.getElementById("goalsScored").textContent = "8";
+    document.getElementById("matchesWon").textContent = "6";
+  }
+</script>
 </body>
 </html>
