@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Futbola Player Profile</title>
   <link rel="icon" href="./images/futbola-favicon.ico" type="image/x-icon" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link rel="stylesheet" href="css/style.css" />
-  <script src="https://kit.fontawesome.com/46f8077b7e.js" crossorigin="anonymous"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -222,7 +222,6 @@
   } else {
     const getOrDash = (val) => val ?? '-';
 
-    document.getElementById("jerseyName").textContent = getOrDash(profile.jersey_name);
     document.getElementById("bio").textContent = getOrDash(profile.bio);
 
     document.getElementById("fullNameView").textContent = getOrDash(profile.full_name);
