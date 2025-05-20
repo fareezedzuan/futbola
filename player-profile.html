@@ -204,27 +204,26 @@
   const fields = ["fullName", "phone", "dob", "location", "skill", "team", "availability"];
 
 const toggleButton = document.getElementById("toggleMode");
-  toggleButton.addEventListener("click", async () => {
-    const editMode = toggleButton.textContent === "Edit";
-    toggleButton.textContent = editMode ? "Save" : "Edit";
+let isEditMode = false;
 
-  const editMode = document.getElementById("fullNameEdit").style.display !== "block";
+toggleButton.addEventListener("click", async () => {
+  isEditMode = !isEditMode;
+  toggleButton.textContent = isEditMode ? "Save" : "Edit";
 
-  const updatedProfile = {}; // collect changes to save
-
+  const updatedProfile = {};
   const fields = ["fullName", "phone", "dob", "location", "skill", "team", "availability"];
 
   for (const id of fields) {
     const view = document.getElementById(id + "View");
     const edit = document.getElementById(id + "Edit");
 
-    if (editMode) {
-      // Enter edit mode
-      edit.value = view.textContent;
+    if (isEditMode) {
+      // Switch to edit mode
+      edit.value = view.textContent.trim();
       view.style.display = "none";
       edit.style.display = "block";
     } else {
-      // Leave edit mode — update view and save changes
+      // Switch to view mode and save changes
       const newValue = edit.value.trim();
       view.textContent = newValue || "-";
       view.style.display = "block";
@@ -245,8 +244,8 @@ const toggleButton = document.getElementById("toggleMode");
     }
   }
 
-  // Save to Supabase
-  if (Object.keys(updatedProfile).length > 0) {
+  // Only save when exiting edit mode
+  if (!isEditMode && Object.keys(updatedProfile).length > 0) {
     const { error } = await supabase
       .from('profiles')
       .update(updatedProfile)
