@@ -200,23 +200,60 @@
 
   const fields = ["fullName", "phone", "dob", "location", "skill", "team", "availability"];
 
-  document.getElementById("toggleMode").addEventListener("click", () => {
-    const editMode = document.getElementById("fullNameEdit").style.display !== "block";
-    fields.forEach(id => {
-      const view = document.getElementById(id + "View");
-      const edit = document.getElementById(id + "Edit");
-      if (editMode) {
-        edit.value = view.textContent;
-        view.style.display = "none";
-        edit.style.display = "block";
+document.getElementById("toggleMode").addEventListener("click", async () => {
+  const editMode = document.getElementById("fullNameEdit").style.display !== "block";
+
+  const updatedProfile = {}; // collect changes to save
+
+  const fields = ["fullName", "phone", "dob", "location", "skill", "team", "availability"];
+
+  for (const id of fields) {
+    const view = document.getElementById(id + "View");
+    const edit = document.getElementById(id + "Edit");
+
+    if (editMode) {
+      // Enter edit mode
+      edit.value = view.textContent;
+      view.style.display = "none";
+      edit.style.display = "block";
+    } else {
+      // Leave edit mode — update view and save changes
+      const newValue = edit.value.trim();
+      view.textContent = newValue || "-";
+      view.style.display = "block";
+      edit.style.display = "none";
+
+      // Handle arrays
+      if (id === "location" || id === "availability") {
+        updatedProfile[id === "location" ? "location_play" : "availability"] =
+          newValue ? newValue.split(',').map(x => x.trim()) : [];
+      } else if (id === "dob") {
+        updatedProfile["date_of_birth"] = newValue || null;
       } else {
-        view.textContent = edit.value;
-        view.style.display = "block";
-        edit.style.display = "none";
-        console.log(`[Auto-save] ${id}: ${edit.value}`); // TODO: implement upsert here
+        updatedProfile[id === "fullName" ? "full_name" :
+                       id === "skill" ? "skill_level" :
+                       id === "team" ? "team_name" :
+                       id] = newValue || null;
       }
-    });
-  });
+    }
+  }
+
+  // Save to Supabase
+  if (Object.keys(updatedProfile).length > 0) {
+    const { error } = await supabase
+      .from('profiles')
+      .update(updatedProfile)
+      .eq('id', user.id);
+
+    if (error) {
+      alert("Failed to save profile.");
+      console.error("Supabase update error:", error);
+    } else {
+      console.log("✅ Profile updated:", updatedProfile);
+    }
+  }
+});
+
 </script>
 </body>
 </html>
