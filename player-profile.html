@@ -52,6 +52,12 @@
       font-style: italic;
       color: #444;
     }
+    .jersey-full {
+      font-size: 24px;
+      font-weight: bold;
+      color: #702963;
+      margin: 0;
+    }
     .edit-field {
       padding: 6px;
       border-radius: 5px;
@@ -91,44 +97,13 @@
   </div>
 
   <!-- Header -->
-  <div style="display: flex; align-items: center;">
-    <img id="avatar" class="avatar" src="./images/default-avatar.jpg" alt="Avatar">
-    <div class="name-block">
-      <h3 id="jerseyName" class="name">FAREEZ</h3>
-      <p id="bio" class="bio">Short player quote or fun fact here.</p>
+    <div style="display: flex; align-items: center;">
+      <img id="avatar" class="avatar" src="./images/Fareez.jpg" alt="Avatar">
+      <div class="name-block">
+        <h3 id="jerseyFull" class="jersey-full">FAREEZ 10</h3>
+        <p id="bio" class="bio">Short player quote or fun fact here.</p>
+      </div>
     </div>
-
-    <!-- Jersey Name -->
-      <div class="field-row">
-        <div class="field-label">Jersey Name</div>
-        <div class="field-view" id="jerseyNameView">-</div>
-        <input class="field-edit" id="jerseyNameEdit" />
-      </div>
-
-      <!-- Jersey Number -->
-      <div class="field-row">
-        <div class="field-label">Jersey Number</div>
-        <div class="field-view" id="jerseyNumberView">-</div>
-        <input class="field-edit" id="jerseyNumberEdit" type="number" min="1" max="99" />
-      </div>
-
-      <!-- Bio -->
-      <div class="field-row">
-        <div class="field-label">Bio</div>
-        <div class="field-view" id="bioView">-</div>
-        <input class="field-edit" id="bioEdit" />
-      </div>
-
-      <!-- Gender -->
-      <div class="field-row">
-        <div class="field-label">Gender</div>
-        <div class="field-view" id="genderView">-</div>
-        <select class="field-edit" id="genderEdit">
-          <option value="">-</option>
-          <option value="Male">Male</option>
-          <option value="Female">Female</option>
-        </select>
-      </div>
   </div>
 
   <hr>
@@ -153,6 +128,17 @@
       <div class="field-view" id="dobView">-</div>
       <input class="field-edit" id="dobEdit" />
     </div>
+
+    <!-- Gender -->
+      <div class="field-row">
+        <div class="field-label">Gender</div>
+        <div class="field-view" id="genderView">-</div>
+        <select class="field-edit" id="genderEdit">
+          <option value="">-</option>
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+        </select>
+      </div>
 
     <div class="field-row">
       <div class="field-label">Location</div>
