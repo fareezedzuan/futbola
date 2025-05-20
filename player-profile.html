@@ -97,6 +97,38 @@
       <h3 id="jerseyName" class="name">FAREEZ</h3>
       <p id="bio" class="bio">Short player quote or fun fact here.</p>
     </div>
+
+    <!-- Jersey Name -->
+      <div class="field-row">
+        <div class="field-label">Jersey Name</div>
+        <div class="field-view" id="jerseyNameView">-</div>
+        <input class="field-edit" id="jerseyNameEdit" />
+      </div>
+
+      <!-- Jersey Number -->
+      <div class="field-row">
+        <div class="field-label">Jersey Number</div>
+        <div class="field-view" id="jerseyNumberView">-</div>
+        <input class="field-edit" id="jerseyNumberEdit" type="number" min="1" max="99" />
+      </div>
+
+      <!-- Bio -->
+      <div class="field-row">
+        <div class="field-label">Bio</div>
+        <div class="field-view" id="bioView">-</div>
+        <input class="field-edit" id="bioEdit" />
+      </div>
+
+      <!-- Gender -->
+      <div class="field-row">
+        <div class="field-label">Gender</div>
+        <div class="field-view" id="genderView">-</div>
+        <select class="field-edit" id="genderEdit">
+          <option value="">-</option>
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+        </select>
+      </div>
   </div>
 
   <hr>
@@ -191,6 +223,10 @@
     document.getElementById("fullNameView").textContent = getOrDash(profile.full_name);
     document.getElementById("phoneView").textContent = getOrDash(profile.phone);
     document.getElementById("dobView").textContent = getOrDash(profile.date_of_birth);
+    document.getElementById("jerseyNameView").textContent = getOrDash(profile.jersey_name);
+    document.getElementById("jerseyNumberView").textContent = profile.jersey_number ?? "-";
+    document.getElementById("bioView").textContent = getOrDash(profile.bio);
+    document.getElementById("genderView").textContent = getOrDash(profile.gender);
     document.getElementById("locationView").textContent = profile.location_play?.join(', ') || '-';
     document.getElementById("skillView").textContent = getOrDash(profile.skill_level);
     document.getElementById("teamView").textContent = getOrDash(profile.team_name);
@@ -211,7 +247,7 @@ toggleButton.addEventListener("click", async () => {
   toggleButton.textContent = isEditMode ? "Save" : "Edit";
 
   const updatedProfile = {};
-  const fields = ["fullName", "phone", "dob", "location", "skill", "team", "availability"];
+  const fields = ["fullName", "phone", "dob", "location", "skill", "team", "availability", "jerseyName", "jerseyNumber", "bio", "gender"];
 
   for (const id of fields) {
     const view = document.getElementById(id + "View");
@@ -236,10 +272,16 @@ toggleButton.addEventListener("click", async () => {
       } else if (id === "dob") {
         updatedProfile["date_of_birth"] = newValue || null;
       } else {
-        updatedProfile[id === "fullName" ? "full_name" :
-                       id === "skill" ? "skill_level" :
-                       id === "team" ? "team_name" :
-                       id] = newValue || null;
+          updatedProfile[
+            id === "fullName" ? "full_name" :
+            id === "jerseyName" ? "jersey_name" :
+            id === "jerseyNumber" ? "jersey_number" :
+            id === "bio" ? "bio" :
+            id === "skill" ? "skill_level" :
+            id === "team" ? "team_name" :
+            id === "gender" ? "gender" :
+            id
+          ] = newValue || null;
       }
     }
   }
