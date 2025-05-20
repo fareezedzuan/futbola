@@ -1,155 +1,156 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My Player Profile - Futbola</title>  
-  <link rel="icon" href="./images/futbola-favicon.ico" type="image/x-icon">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Futbola Player Profile</title>
   <link rel="stylesheet" href="css/style.css" />
+  <script src="https://kit.fontawesome.com/46f8077b7e.js" crossorigin="anonymous"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background-image: url('./images/backgroundOrangeGradient.jpg');
+      background: linear-gradient(to bottom right, #ff5a5f, #ffa07a);
       margin: 0;
       padding: 20px;
       display: flex;
       justify-content: center;
     }
-    .profile-card {
+    .profile-container {
       background: white;
-      padding: 20px;
-      border-radius: 15px;
+      border-radius: 12px;
       max-width: 700px;
       width: 100%;
+      padding: 20px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      border-top: 5px solid #ff5a5f;
     }
-
-    .layer {
-      margin-bottom: 30px;
-    }
-
-    .header {
+    .top-bar {
       display: flex;
+      justify-content: space-between;
       align-items: center;
-      gap: 15px;
+      margin-bottom: 20px;
     }
     .avatar {
       width: 90px;
       height: 90px;
       border-radius: 50%;
       object-fit: cover;
-      box-shadow: 0 0 0 3px #fff, 0 0 0 6px #ff5a5f;
+      box-shadow: 0 0 0 3px #fff, 0 0 0 5px #ff5a5f;
+    }
+    .name-block {
+      margin-left: 15px;
     }
     .name {
       font-size: 22px;
-      color: #702963;
       margin: 0;
+      color: #702963;
     }
-    .jersey {
-      font-size: 14px;
-      background: #eee;
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 5px;
-      color: #555;
-      margin-top: 4px;
-    }
-
-    .stat-card {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-    .stat-box {
-      flex: 1 1 30%;
-      background: #f8f8f8;
-      border-radius: 10px;
-      padding: 15px;
-      text-align: center;
-      font-weight: bold;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-    }
-    .stat-box span {
-      display: block;
-      font-size: 20px;
-      color: #ff5a5f;
-      margin-top: 5px;
-    }
-
-    .details div {
-      margin-bottom: 10px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .details i {
-      color: #ff5a5f;
-      min-width: 20px;
-    }
-
     .bio {
-      background: #f9f9f9;
-      padding: 15px;
-      border-radius: 10px;
+      margin-top: 5px;
+      font-style: italic;
       color: #444;
     }
+    .edit-field {
+      padding: 6px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      width: 100%;
+    }
+    .field-row {
+      margin-bottom: 15px;
+    }
+    .field-label {
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
+    .privacy-icon {
+      margin-left: 8px;
+      color: #999;
+      cursor: pointer;
+    }
+    .field-view, .field-edit {
+      display: none;
+    }
+    .stat-box {
+      background: #f6f6f6;
+      padding: 15px;
+      border-radius: 10px;
+      text-align: center;
+      font-weight: bold;
+      margin: 10px 0;
+    }
   </style>
-  <script src="https://kit.fontawesome.com/46f8077b7e.js" crossorigin="anonymous"></script>
 </head>
 <body>
-<div class="profile-card">
+<div class="profile-container">
+  <div class="top-bar">
+    <h2>My Profile</h2>
+    <button id="toggleMode">Edit</button>
+  </div>
 
-  <!-- Layer 1: Identity -->
-  <div class="layer layer-1 header">
-    <img id="avatar" class="avatar" src="./images/Fareez.jpg" alt="Avatar">
-    <div>
-      <h2 id="fullName" class="name">Player Name</h2>
-      <div id="jerseyName" class="jersey">#10 - FAREEZ</div>
+  <!-- Header -->
+  <div style="display: flex; align-items: center;">
+    <img id="avatar" class="avatar" src="./images/default-avatar.jpg" alt="Avatar">
+    <div class="name-block">
+      <h3 id="jerseyName" class="name">FAREEZ</h3>
+      <p id="bio" class="bio">Short player quote or fun fact here.</p>
     </div>
   </div>
 
-  <!-- Layer 2: Overview -->
-  <div class="layer layer-2 details">
-    <h3>Player Overview</h3>
-    <div><i class="fas fa-phone"></i> <span id="phone"></span></div>
-    <div><i class="fas fa-mars"></i> <span id="gender"></span></div>
-    <div><i class="fas fa-birthday-cake"></i> <span id="dob"></span></div>
-    <div><i class="fas fa-map-marker-alt"></i> <span id="location"></span></div>
-    <div><i class="fas fa-star"></i> <span id="skill"></span></div>
-    <div><i class="fas fa-users"></i> <span id="team"></span></div>
-  </div>
+  <hr>
 
-  <!-- Layer 3: Preferred Position -->
-  <div class="layer layer-3 details">
-    <h3>Preferred Position</h3>
-    <div><i class="fas fa-futbol"></i> <span id="positions">Central Midfielder, Left Winger</span></div>
-    <!-- In future: visual football/futsal pitch -->
-  </div>
+  <!-- Overview Section -->
+  <div id="profileFields">
 
-  <!-- Layer 4: Stats -->
-  <div class="layer layer-4">
-    <h3>Performance Stats</h3>
-    <div class="stat-card">
-      <div class="stat-box">Games<span id="gamesPlayed">0</span></div>
-      <div class="stat-box">Goals<span id="goalsScored">0</span></div>
-      <div class="stat-box">Wins<span id="matchesWon">0</span></div>
+    <div class="field-row">
+      <div class="field-label">Full Name <i class="fas fa-eye privacy-icon"></i></div>
+      <div class="field-view" id="fullNameView">-</div>
+      <input class="field-edit" id="fullNameEdit" />
     </div>
+
+    <div class="field-row">
+      <div class="field-label">Phone <i class="fas fa-user-shield privacy-icon"></i></div>
+      <div class="field-view" id="phoneView">-</div>
+      <input class="field-edit" id="phoneEdit" />
+    </div>
+
+    <div class="field-row">
+      <div class="field-label">Date of Birth <i class="fas fa-lock privacy-icon"></i></div>
+      <div class="field-view" id="dobView">-</div>
+      <input class="field-edit" id="dobEdit" />
+    </div>
+
+    <div class="field-row">
+      <div class="field-label">Location</div>
+      <div class="field-view" id="locationView">-</div>
+      <input class="field-edit" id="locationEdit" />
+    </div>
+
+    <div class="field-row">
+      <div class="field-label">Skill Level</div>
+      <div class="field-view" id="skillView">-</div>
+      <input class="field-edit" id="skillEdit" />
+    </div>
+
+    <div class="field-row">
+      <div class="field-label">Team</div>
+      <div class="field-view" id="teamView">-</div>
+      <input class="field-edit" id="teamEdit" />
+    </div>
+
+    <div class="field-row">
+      <div class="field-label">Availability</div>
+      <div class="field-view" id="availabilityView">-</div>
+      <input class="field-edit" id="availabilityEdit" />
+    </div>
+
   </div>
 
-  <!-- Layer 5: Availability -->
-  <div class="layer layer-5 details">
-    <h3>Availability</h3>
-    <div><i class="fas fa-clock"></i> <span id="availability"></span></div>
-    <!-- Future: toggle UI per day -->
-  </div>
+  <hr>
 
-  <!-- Bio Section -->
-  <div class="layer bio">
-    <h3>Bio</h3>
-    <p id="bio">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Passionate creator and midfield maestro.</p>
-  </div>
+  <!-- Stats -->
+  <div class="stat-box">Matches Played: <span id="matches">12</span></div>
+  <div class="stat-box">Goals Scored: <span id="goals">8</span></div>
+  <div class="stat-box">Best Player Nominations: <span id="noms">2</span></div>
 </div>
 
 <script type="module">
@@ -157,58 +158,65 @@
 
   const supabase = createClient(
     'https://kdbqroxhypnadolcxxxc.supabase.co',
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkYnFyb3hoeXBuYWRvbGN4eHhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3MjkwNzYsImV4cCI6MjA1NzMwNTA3Nn0.c7_RVxoFdJNqQ62R3t1emH2Wf4dSsQaunHsHmbQxOBA',
-    {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: true
-      }
-    }
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkYnFyb3hoeXBuYWRvbGN4eHhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3MjkwNzYsImV4cCI6MjA1NzMwNTA3Nn0.c7_RVxoFdJNqQ62R3t1emH2Wf4dSsQaunHsHmbQxOBA'
   );
 
-  let { data: { user } } = await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
     const { data: sessionData } = await supabase.auth.getSession();
-    user = sessionData?.session?.user;
-  }
-
-  if (!user) {
-    alert("Not logged in");
-    window.location.href = "/login.html";
-  } else {
-    const { data: profile, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', user.id)
-      .single();
-
-    if (error || !profile) {
-      alert("Failed to load profile");
-      console.error(error);
-    } else {
-      document.getElementById("fullName").textContent = profile.full_name;
-      document.getElementById("jerseyName").textContent = `#${profile.jersey_number || "10"} - ${profile.jersey_name}`;
-      document.getElementById("phone").textContent = profile.phone;
-      document.getElementById("gender").textContent = profile.gender;
-      document.getElementById("dob").textContent = profile.date_of_birth;
-      document.getElementById("location").textContent = profile.location_play?.join(', ');
-      document.getElementById("skill").textContent = profile.skill_level;
-      document.getElementById("positions").textContent = profile.preferred_position?.join(', ');
-      document.getElementById("availability").textContent = profile.availability?.join(', ');
-      document.getElementById("team").textContent = profile.team_name || "-";
-      document.getElementById("bio").textContent = profile.bio || "-";
-
-      if (profile.avatar_url) {
-        document.getElementById("avatar").src = profile.avatar_url;
-      }
+    if (!sessionData?.session?.user) {
+      alert("Not logged in");
+      window.location.href = "/login.html";
     }
-
-    // Placeholder stat values
-    document.getElementById("gamesPlayed").textContent = "12";
-    document.getElementById("goalsScored").textContent = "8";
-    document.getElementById("matchesWon").textContent = "6";
   }
+
+  const { data: profile, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', user.id)
+    .single();
+
+  if (error || !profile) {
+    alert("Failed to load profile");
+    console.error(error);
+  } else {
+    const getOrDash = (val) => val ?? '-';
+
+    document.getElementById("jerseyName").textContent = getOrDash(profile.jersey_name);
+    document.getElementById("bio").textContent = getOrDash(profile.bio);
+
+    document.getElementById("fullNameView").textContent = getOrDash(profile.full_name);
+    document.getElementById("phoneView").textContent = getOrDash(profile.phone);
+    document.getElementById("dobView").textContent = getOrDash(profile.date_of_birth);
+    document.getElementById("locationView").textContent = profile.location_play?.join(', ') || '-';
+    document.getElementById("skillView").textContent = getOrDash(profile.skill_level);
+    document.getElementById("teamView").textContent = getOrDash(profile.team_name);
+    document.getElementById("availabilityView").textContent = profile.availability?.join(', ') || '-';
+
+    if (profile.avatar_url) {
+      document.getElementById("avatar").src = profile.avatar_url;
+    }
+  }
+
+  const fields = ["fullName", "phone", "dob", "location", "skill", "team", "availability"];
+
+  document.getElementById("toggleMode").addEventListener("click", () => {
+    const editMode = document.getElementById("fullNameEdit").style.display !== "block";
+    fields.forEach(id => {
+      const view = document.getElementById(id + "View");
+      const edit = document.getElementById(id + "Edit");
+      if (editMode) {
+        edit.value = view.textContent;
+        view.style.display = "none";
+        edit.style.display = "block";
+      } else {
+        view.textContent = edit.value;
+        view.style.display = "block";
+        edit.style.display = "none";
+        console.log(`[Auto-save] ${id}: ${edit.value}`); // TODO: implement upsert here
+      }
+    });
+  });
 </script>
 </body>
 </html>
