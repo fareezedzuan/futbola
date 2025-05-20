@@ -4,17 +4,20 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Futbola Player Profile</title>
+  <link rel="icon" href="./images/futbola-favicon.ico" type="image/x-icon" />
   <link rel="stylesheet" href="css/style.css" />
   <script src="https://kit.fontawesome.com/46f8077b7e.js" crossorigin="anonymous"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: linear-gradient(to bottom right, #ff5a5f, #ffa07a);
+      background-image: url('./images/backgroundOrangeGradient.jpg'); /* reuse your usual one */
+      background-size: cover;
       margin: 0;
       padding: 20px;
       display: flex;
       justify-content: center;
     }
+
     .profile-container {
       background: white;
       border-radius: 12px;
@@ -200,7 +203,11 @@
 
   const fields = ["fullName", "phone", "dob", "location", "skill", "team", "availability"];
 
-document.getElementById("toggleMode").addEventListener("click", async () => {
+const toggleButton = document.getElementById("toggleMode");
+  toggleButton.addEventListener("click", async () => {
+    const editMode = toggleButton.textContent === "Edit";
+    toggleButton.textContent = editMode ? "Save" : "Edit";
+
   const editMode = document.getElementById("fullNameEdit").style.display !== "block";
 
   const updatedProfile = {}; // collect changes to save
