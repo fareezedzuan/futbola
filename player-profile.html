@@ -209,9 +209,6 @@
     document.getElementById("fullNameView").textContent = getOrDash(profile.full_name);
     document.getElementById("phoneView").textContent = getOrDash(profile.phone);
     document.getElementById("dobView").textContent = getOrDash(profile.date_of_birth);
-    document.getElementById("jerseyNameView").textContent = getOrDash(profile.jersey_name);
-    document.getElementById("jerseyNumberView").textContent = profile.jersey_number ?? "-";
-    document.getElementById("bioView").textContent = getOrDash(profile.bio);
     document.getElementById("genderView").textContent = getOrDash(profile.gender);
     document.getElementById("locationView").textContent = profile.location_play?.join(', ') || '-';
     document.getElementById("skillView").textContent = getOrDash(profile.skill_level);
@@ -222,8 +219,6 @@
       document.getElementById("avatar").src = profile.avatar_url;
     }
   }
-
-  const fields = ["fullName", "phone", "dob", "location", "skill", "team", "availability"];
 
 const toggleButton = document.getElementById("toggleMode");
 let isEditMode = false;
@@ -284,6 +279,8 @@ toggleButton.addEventListener("click", async () => {
       console.error("Supabase update error:", error);
     } else {
       console.log("✅ Profile updated:", updatedProfile);
+      document.getElementById("jerseyFull").textContent =
+      `${updatedProfile.jersey_name ?? profile.jersey_name} ${updatedProfile.jersey_number ?? profile.jersey_number}`;
     }
   }
 });
