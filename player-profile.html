@@ -33,15 +33,13 @@
       margin-bottom: 16px;
     }
     .top-heading {
-        font-size: 36px;
-        color: #702963;
-        display: flex;
-        align-items: center;
-        justify-content: center; /* center content inside the heading */
-        gap: 8px;
-        margin: 0;
-        width: 100%;
-      }
+      font-size: 36px;
+      color: #702963;
+      display: inline-flex; /* <- inline-flex instead of flex */
+      align-items: center;
+      gap: 8px;
+      margin: 0 auto;
+    }
     .avatar {
       width: 90px;
       height: 90px;
@@ -146,7 +144,7 @@
 <div class="profile-container">
     <div class="top-bar">
       <h2 class="top-heading">
-        My Profile
+        Profile
         <button id="toggleMode" title="Edit"><i class="fas fa-pen-to-square"></i></button>
       </h2>
     </div>
