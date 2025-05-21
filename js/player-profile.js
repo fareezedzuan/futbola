@@ -39,21 +39,43 @@ async function loadProfile(id) {
 function populateFields(profile) {
   const vis = profile.privacy_settings || {};
   const isOwnProfile = window.location.pathname.includes("player-profile.html");
+
   const show = (field, value) => {
-    const el = document.getElementById(field + "View");
-    if (!el) return;
+  const el = document.getElementById(field + "View");
+  if (!el) return;
 
-    const setting = vis[field];
+  const setting = vis[field];
+  const icon = document.getElementById("icon_" + field);
 
-    if (isOwnProfile || setting === "public" || !setting) {
-      el.textContent = value ?? "-";
-    } else if (field === "dob" && setting === "range") {
-      const age = getAgeFromDOB(value);
-      el.textContent = age ? getAgeRange(age) : "-";
-    } else {
-      el.textContent = "-";
+  if (isOwnProfile || setting === "public" || !setting) {
+    el.textContent = value ?? "-";
+    if (icon) {
+      if (setting === "private") {
+        icon.textContent = "🔒";
+        icon.title = "Private";
+      } else {
+        icon.textContent = "👁️";
+        icon.title = "Public";
+      }
     }
-  };
+
+  } else if (field === "dob" && setting === "range") {
+    const age = getAgeFromDOB(value);
+    el.textContent = age ? getAgeRange(age) : "-";
+    if (icon) {
+      icon.textContent = "👁️";
+      icon.title = "Age Range";
+    }
+
+  } else {
+    el.textContent = "-";
+    if (icon) {
+      icon.textContent = "🔒";
+      icon.title = "Private";
+    }
+  }
+};
+
 
   show("fullName", profile.full_name);
   show("phone", profile.phone);
