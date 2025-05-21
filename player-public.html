@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Futbola Player</title>
   <link rel="icon" href="./images/futbola-favicon.ico" type="image/x-icon" />
-  <link rel="stylesheet" href="css/style.css" />
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -83,8 +82,8 @@
     <div class="header-row">
       <img id="avatar" class="avatar" src="./images/default-avatar.png" alt="Avatar" />
       <div>
-        <h3 id="jerseyFull" class="jersey-full">FAREEZ 10</h3>
-        <p id="bio" class="bio">Player quote or bio</p>
+        <h3 id="jerseyFull" class="jersey-full">-</h3>
+        <p id="bio" class="bio">-</p>
       </div>
     </div>
 
@@ -100,6 +99,73 @@
     </div>
   </div>
 
-  <script type="module" src="js/player-public.js"></script>
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+    const supabase = createClient(
+      'https://kdbqroxhypnadolcxxxc.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkYnFyb3hoeXBuYWRvbGN4eHhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3MjkwNzYsImV4cCI6MjA1NzMwNTA3Nn0.c7_RVxoFdJNqQ62R3t1emH2Wf4dSsQaunHsHmbQxOBA'
+    );
+
+    const params = new URLSearchParams(window.location.search);
+    const userId = params.get("id");
+    if (!userId) {
+      alert("Missing player ID");
+    } else {
+      loadPublicProfile(userId);
+    }
+
+    async function loadPublicProfile(id) {
+      const { data: profile, error } = await supabase.from('profiles').select('*').eq('id', id).single();
+      if (error || !profile) return alert("Failed to load profile");
+
+      const vis = profile.privacy_settings || {};
+      const show = (key, val) => {
+        const el = document.getElementById(key + "View");
+        const setting = vis[key];
+        if (!el) return;
+
+        if (setting === 'private') {
+          el.textContent = "-";
+        } else if (key === 'dob' && setting === 'range') {
+          el.textContent = getAgeRange(getAgeFromDOB(val));
+        } else if (key === 'availability' && Array.isArray(val)) {
+          el.innerHTML = val.map(day => `<span class="chip">${day}</span>`).join('');
+        } else if (Array.isArray(val)) {
+          el.textContent = val.join(', ');
+        } else {
+          el.textContent = val ?? "-";
+        }
+      };
+
+      document.getElementById("jerseyFull").textContent = `${profile.jersey_name ?? ''} ${profile.jersey_number ?? ''}`.trim();
+      document.getElementById("bio").textContent = profile.bio ?? "-";
+      if (profile.avatar_url) {
+        document.getElementById("avatar").src = profile.avatar_url;
+      }
+
+      show("fullName", profile.full_name);
+      show("phone", profile.phone);
+      show("dob", profile.date_of_birth);
+      show("gender", profile.gender);
+      show("location", profile.location_play);
+      show("skill", profile.skill_level);
+      show("team", profile.team_name);
+      show("availability", profile.availability);
+    }
+
+    function getAgeFromDOB(dobStr) {
+      if (!dobStr) return null;
+      const dob = new Date(dobStr);
+      const diff = Date.now() - dob.getTime();
+      return Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25));
+    }
+
+    function getAgeRange(age) {
+      if (age < 20) return "<20";
+      const base = Math.floor(age / 5) * 5;
+      return `${base}-${base + 4}`;
+    }
+  </script>
 </body>
 </html>
