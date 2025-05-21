@@ -47,8 +47,13 @@ function populateFields(profile) {
   const setting = vis[field];
   const icon = document.getElementById("icon_" + field);
 
-  if (isOwnProfile || setting === "public" || !setting) {
+if (isOwnProfile || setting === "public" || !setting) {
+  if (field === "availability" && Array.isArray(value)) {
+    el.innerHTML = value.map(day => `<span class="chip">${day}</span>`).join('');
+  } else {
     el.textContent = value ?? "-";
+  }
+
     if (icon) {
       if (setting === "private") {
         icon.textContent = "🔒";
@@ -84,7 +89,7 @@ function populateFields(profile) {
   show("location", profile.location_play?.join(', '));
   show("skill", profile.skill_level);
   show("team", profile.team_name);
-  show("availability", profile.availability?.join(', '));
+  show("availability", profile.availability);
 
   document.getElementById("jerseyFull").textContent = `${profile.jersey_name ?? ''} ${profile.jersey_number ?? ''}`.trim();
   document.getElementById("bio").textContent = profile.bio ?? '-';
@@ -178,7 +183,7 @@ function setupEditToggle(profile) {
       Object.assign(profile, updated);
       document.getElementById("jerseyFull").textContent = `${profile.jersey_name ?? ''} ${profile.jersey_number ?? ''}`.trim();
       document.getElementById("bio").textContent = profile.bio ?? '-';
-      
+
       document.getElementById("availabilityView").textContent = (updated.availability || []).join(', ') || '-';
 
     }
