@@ -168,7 +168,7 @@ function setupEditToggle(profile) {
         ...getVisibilitySettings()
       };
       console.log("🧪 Final payload before save:", updated);
-      
+
       const { error } = await supabase.from('profiles').update(updated).eq('id', profile.id);
       if (error) return alert("Save failed");
       Object.assign(profile, updated);
@@ -209,17 +209,20 @@ function assignUpdate(updated, id, value) {
     jerseyNumber: "jersey_number",
     bio: "bio"
   };
-    if (id === 'availability') {
-      const container = document.getElementById("availabilityEditContainer");
-      const checked = Array.from(container.querySelectorAll("input[type=checkbox]"))
-        .filter(cb => cb.checked)
-        .map(cb => cb.value);
-      updated[map[id]] = checked;
-    } else {
-      updated[map[id]] = value || null;
-    }
-
+  
+  if (id === 'availability') {
+    const container = document.getElementById("availabilityEditContainer");
+    const checked = Array.from(container.querySelectorAll("input[type=checkbox]"))
+      .filter(cb => cb.checked)
+      .map(cb => cb.value);
+    updated[map[id]] = checked;
+  } else if (id === 'jerseyNumber') {
+    updated[map[id]] = value ? parseInt(value) : null;
+  } else {
+    updated[map[id]] = value || null;
+  }
 }
+
 
 function getVisibilitySettings() {
   const keys = ["fullName", "phone", "dob", "gender", "location", "skill", "team", "availability"];
