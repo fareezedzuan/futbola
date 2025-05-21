@@ -233,8 +233,17 @@
     <div class="field-row">
       <div class="field-label">Availability</div>
       <div class="field-view" id="availabilityView">-</div>
-      <span class="visibility-icon" id="icon_availability">👁️</span>
-      <input class="field-edit" id="availabilityEdit" />
+
+      <div class="field-edit" id="availabilityEditContainer" style="display: none;">
+        <label><input type="checkbox" value="Monday" /> Monday</label><br>
+        <label><input type="checkbox" value="Tuesday" /> Tuesday</label><br>
+        <label><input type="checkbox" value="Wednesday" /> Wednesday</label><br>
+        <label><input type="checkbox" value="Thursday" /> Thursday</label><br>
+        <label><input type="checkbox" value="Friday" /> Friday</label><br>
+        <label><input type="checkbox" value="Saturday" /> Saturday</label><br>
+        <label><input type="checkbox" value="Sunday" /> Sunday</label>
+      </div>
+
       <select class="field-edit" id="visibility_availability">
         <option value="public">Public</option>
         <option value="private">Private</option>
