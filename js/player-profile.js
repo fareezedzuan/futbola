@@ -43,17 +43,21 @@ function populateFields(profile) {
     const el = document.getElementById(field + "View");
     if (!el) return;
 
-    const setting = vis[field];
-    if (isOwnProfile || !setting || setting === "public") {
-      if (field === 'dob' && setting === 'range') {
-        const age = getAgeFromDOB(value);
-        el.textContent = age ? getAgeRange(age) : "-";
-      } else {
+    if (el) {
+      if (isOwnProfile) {
         el.textContent = value ?? "-";
+      } else {
+        const setting = vis[field];
+        if (setting === "private") return;
+        if (field === 'dob' && setting === 'range') {
+          const age = getAgeFromDOB(value);
+          el.textContent = age ? getAgeRange(age) : "-";
+        } else {
+          el.textContent = value ?? "-";
+        }
       }
-    } else {
-      el.textContent = "-";
     }
+
   };
 
   show("fullName", profile.full_name);
