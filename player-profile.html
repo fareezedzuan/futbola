@@ -227,7 +227,6 @@
   } else {
     const getOrDash = (val) => val ?? '-';
 
-    document.getElementById("bio").textContent =  updatedProfile.bio ?? profile.bio ?? "-";
     document.getElementById("fullNameView").textContent = getOrDash(profile.full_name);
     document.getElementById("phoneView").textContent = getOrDash(profile.phone);
     document.getElementById("dobView").textContent = getOrDash(profile.date_of_birth);
