@@ -322,9 +322,10 @@ toggleButton.addEventListener("click", async () => {
     "availability", "jerseyName", "jerseyNumber", "bio", "gender"
   ];
 
+  document.querySelectorAll('.visibility-dropdown').forEach(el => el.remove());
+
   for (const id of fields) {
     // Remove any previously added visibility dropdowns (to avoid duplication)
-    document.querySelectorAll('.visibility-dropdown').forEach(el => el.remove());
     const view = document.getElementById(id + "View");
     const edit = document.getElementById(id + "Edit");
 
@@ -375,6 +376,7 @@ toggleButton.addEventListener("click", async () => {
   if (!isEditMode && Object.keys(updatedProfile).length > 0) {
     updatedProfile.privacy_settings = getVisibilitySettingsFromUI();
     console.log("👁️ visibility settings:", getVisibilitySettingsFromUI());
+    
     const { error } = await supabase
       .from('profiles')
       .update(updatedProfile)
