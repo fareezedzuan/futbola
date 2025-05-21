@@ -257,15 +257,19 @@ toggleButton.addEventListener("click", async () => {
 
     if (isEditMode) {
       // Switch to edit mode
-      edit.value = view?.textContent.trim() || '';
-      view.style.display = "none";
-      edit.style.display = "block";
+      eedit.value = view?.textContent.trim() || '';
+      if (view) view.style.display = "none";
+      if (edit) edit.style.display = "block";
     } else {
       // Switch to view mode and save changes
       const newValue = edit.value.trim();
-      view.textContent = newValue || "-";
-      view.style.display = "block";
-      edit.style.display = "none";
+      if (view) {
+        view.textContent = newValue || "-";
+        view.style.display = "block";
+      }
+      if (edit) {
+        edit.style.display = "none";
+      } 
 
       // Handle arrays
       if (id === "location" || id === "availability") {
