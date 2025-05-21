@@ -371,7 +371,7 @@ avatarInput.addEventListener("change", async (event) => {
   if (!file) return;
 
   const fileExt = file.name.split('.').pop();
-  const filePath = `avatars/${user.id}.${fileExt}`;
+  const filePath = `${user.id}.${fileExt}`;
 
   // Upload to Supabase Storage
   const { error: uploadError } = await supabase.storage
