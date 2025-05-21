@@ -266,10 +266,17 @@
     document.getElementById("skillView").textContent = getOrDash(profile.skill_level);
     document.getElementById("teamView").textContent = getOrDash(profile.team_name);
     document.getElementById("availabilityView").textContent = profile.availability?.join(', ') || '-';
+    document.getElementById("jerseyFull").textContent = `${profile.jersey_name ?? ''} ${profile.jersey_number ?? ''}`.trim();
+    document.getElementById("bio").textContent = profile.bio ?? '-';
 
     if (profile.avatar_url) {
       document.getElementById("avatar").src = profile.avatar_url;
     }
+
+    // 👇 This will make all field-view divs visible immediately
+    document.querySelectorAll('.field-view').forEach(el => {
+      el.style.display = 'block';
+    });
   }
 
 const toggleButton = document.getElementById("toggleMode");
