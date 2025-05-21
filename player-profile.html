@@ -275,11 +275,10 @@
     };
 
     const showIfPublic = (field, value) => {
-      if (visibility[field] === 'public') {
-        document.getElementById(`${field}View`).textContent = value ?? '-';
-      } else {
-        document.getElementById(`${field}View`).textContent = '🔒';
-      }
+      const el = document.getElementById(`${field}View`);
+      if (!el) return;
+
+      el.textContent = value ?? '-';
     };
 
     showIfPublic('fullName', profile.full_name);
@@ -291,23 +290,7 @@
     showIfPublic('availability', profile.availability?.join(', '));
 
     // Special logic for DOB
-    if (visibility.dob === 'real') {
-      document.getElementById("dobView").textContent = profile.date_of_birth ?? '-';
-    } else if (visibility.dob === 'range') {
-      const year = new Date(profile.date_of_birth).getFullYear();
-      const currentYear = new Date().getFullYear();
-      const age = currentYear - year;
-      let range = '-';
-      if (age < 20) range = 'Below 20';
-      else if (age <= 24) range = '20–24';
-      else if (age <= 29) range = '25–29';
-      else if (age <= 34) range = '30–34';
-      else if (age <= 39) range = '35–39';
-      else range = '40+';
-      document.getElementById("dobView").textContent = range;
-    } else {
-      document.getElementById("dobView").textContent = '🔒';
-    }
+    document.getElementById("dobView").textContent = profile.date_of_birth ?? '-';
 
     // Always show bio and jersey
     document.getElementById("jerseyFull").textContent = `${profile.jersey_name ?? ''} ${profile.jersey_number ?? ''}`.trim();
