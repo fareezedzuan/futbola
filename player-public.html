@@ -4,46 +4,66 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Futbola Player</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="icon" href="./images/futbola-favicon.ico" type="image/x-icon" />
+  <link rel="stylesheet" href="css/style.css" />
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: linear-gradient(to right, #ffe6e6, #fff0f5);
+      background-image: url('./images/backgroundOrangeGradient.jpg');
+      background-size: cover;
+      margin: 0;
       padding: 20px;
       display: flex;
       justify-content: center;
     }
-    .container {
+    .profile-container {
       background: white;
-      padding: 24px;
       border-radius: 12px;
-      max-width: 600px;
+      max-width: 700px;
       width: 100%;
-      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .top-heading {
+      font-size: 36px;
+      color: #702963;
+      text-align: center;
+      margin-bottom: 20px;
     }
     .avatar {
-      width: 100px;
-      height: 100px;
+      width: 90px;
+      height: 90px;
       border-radius: 50%;
       object-fit: cover;
-      margin-bottom: 16px;
-      box-shadow: 0 0 0 4px white, 0 0 0 6px #ff5a5f;
+      box-shadow: 0 0 0 3px #fff, 0 0 0 5px #ff5a5f;
+      margin-right: 16px;
     }
-    h2 {
-      margin: 0;
+    .header-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .jersey-full {
+      font-size: 24px;
+      font-weight: bold;
       color: #702963;
+      margin: 0;
     }
     .bio {
+      margin-top: 5px;
       font-style: italic;
-      color: #555;
-      margin-bottom: 20px;
+      color: #444;
+    }
+    .field-row {
+      margin-top: 14px;
     }
     .field-label {
       font-weight: bold;
-      margin-top: 10px;
+      margin-bottom: 4px;
+      color: #333;
     }
     .field-value {
-      margin-bottom: 10px;
+      font-size: 16px;
     }
     .chip {
       display: inline-block;
@@ -58,93 +78,28 @@
   </style>
 </head>
 <body>
-  <div class="container" id="profileContainer">
-    <center>
-      <img id="avatar" class="avatar" src="./images/default-avatar.png" />
-      <h2 id="jerseyFull">Player Name</h2>
-      <p class="bio" id="bio">Loading...</p>
-    </center>
-    <div id="fields"></div>
+  <div class="profile-container">
+    <h2 class="top-heading">Player Profile</h2>
+    <div class="header-row">
+      <img id="avatar" class="avatar" src="./images/default-avatar.png" alt="Avatar" />
+      <div>
+        <h3 id="jerseyFull" class="jersey-full">FAREEZ 10</h3>
+        <p id="bio" class="bio">Player quote or bio</p>
+      </div>
+    </div>
+
+    <div id="publicFields">
+      <div class="field-row"><div class="field-label">Full Name</div><div id="fullNameView" class="field-value">-</div></div>
+      <div class="field-row"><div class="field-label">Phone</div><div id="phoneView" class="field-value">-</div></div>
+      <div class="field-row"><div class="field-label">Date of Birth</div><div id="dobView" class="field-value">-</div></div>
+      <div class="field-row"><div class="field-label">Gender</div><div id="genderView" class="field-value">-</div></div>
+      <div class="field-row"><div class="field-label">Location</div><div id="locationView" class="field-value">-</div></div>
+      <div class="field-row"><div class="field-label">Skill Level</div><div id="skillView" class="field-value">-</div></div>
+      <div class="field-row"><div class="field-label">Team</div><div id="teamView" class="field-value">-</div></div>
+      <div class="field-row"><div class="field-label">Availability</div><div id="availabilityView" class="field-value">-</div></div>
+    </div>
   </div>
 
-  <script type="module">
-    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
-    const supabase = createClient(
-      'https://kdbqroxhypnadolcxxxc.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkYnFyb3hoeXBuYWRvbGN4eHhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3MjkwNzYsImV4cCI6MjA1NzMwNTA3Nn0.c7_RVxoFdJNqQ62R3t1emH2Wf4dSsQaunHsHmbQxOBA'
-    );
-
-    const params = new URLSearchParams(location.search);
-    const userId = params.get('id');
-
-    if (!userId) {
-      alert("No player ID provided.");
-    } else {
-      const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).single();
-      if (error || !data) {
-        alert("Failed to load profile.");
-      } else {
-        renderProfile(data);
-      }
-    }
-
-    function renderProfile(profile) {
-      document.getElementById("jerseyFull").textContent = `${profile.jersey_name ?? ''} ${profile.jersey_number ?? ''}`.trim();
-      document.getElementById("bio").textContent = profile.bio ?? '-';
-      if (profile.avatar_url) {
-        document.getElementById("avatar").src = profile.avatar_url;
-      }
-
-      const vis = profile.privacy_settings || {};
-      const fields = [
-        { id: 'fullName', label: 'Full Name', value: profile.full_name },
-        { id: 'phone', label: 'Phone', value: profile.phone },
-        { id: 'dob', label: 'Date of Birth', value: profile.date_of_birth },
-        { id: 'gender', label: 'Gender', value: profile.gender },
-        { id: 'location', label: 'Location', value: (profile.location_play || []).join(', ') },
-        { id: 'skill', label: 'Skill Level', value: profile.skill_level },
-        { id: 'team', label: 'Team', value: profile.team_name },
-        { id: 'availability', label: 'Availability', value: profile.availability || [] }
-      ];
-
-      const container = document.getElementById("fields");
-      fields.forEach(field => {
-        const setting = vis[field.id];
-        let display = "-";
-
-        if (setting === "private") return;
-
-        if (field.id === "dob" && setting === "range") {
-          const age = getAgeFromDOB(field.value);
-          display = age ? getAgeRange(age) : "-";
-        } else if (field.id === "availability") {
-          display = field.value.length
-            ? field.value.map(day => `<span class="chip">${day}</span>`).join('')
-            : "-";
-        } else {
-          display = field.value || "-";
-        }
-
-        const html = `
-          <div class="field-label">${field.label}</div>
-          <div class="field-value">${display}</div>
-        `;
-        container.insertAdjacentHTML("beforeend", html);
-      });
-    }
-
-    function getAgeFromDOB(dobStr) {
-      if (!dobStr) return null;
-      const dob = new Date(dobStr);
-      const diff = Date.now() - dob.getTime();
-      return Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25));
-    }
-
-    function getAgeRange(age) {
-      if (age < 20) return "<20";
-      const base = Math.floor(age / 5) * 5;
-      return `${base}-${base + 4}`;
-    }
-  </script>
+  <script type="module" src="js/player-public.js"></script>
 </body>
 </html>
