@@ -38,24 +38,19 @@ async function loadProfile(id) {
 
 function populateFields(profile) {
   const vis = profile.privacy_settings || {};
+  const isOwnProfile = window.location.pathname.includes("player-profile.html");
   const show = (field, value) => {
-    const setting = vis[field];
     const el = document.getElementById(field + "View");
     if (!el) return;
-    // Always show everything to the logged-in user
-    if (window.location.pathname.includes("player-profile.html")) {
+
+    const setting = vis[field];
+    if (isOwnProfile || !setting || setting === "public") {
       el.textContent = value ?? "-";
-      return;
-    }
-
-    // Apply privacy setting only for public view
-    if (setting === "private") return;
-
-    if (field === 'dob' && setting === 'range') {
+    } else if (field === 'dob' && setting === 'range') {
       const age = getAgeFromDOB(value);
       el.textContent = age ? getAgeRange(age) : "-";
     } else {
-      el.textContent = value ?? "-";
+      el.textContent = "-";
     }
   };
 
@@ -77,6 +72,7 @@ function populateFields(profile) {
 
   document.querySelectorAll('.field-view').forEach(el => el.style.display = 'block');
 }
+}
 
 function setupEditToggle(profile) {
   const toggleBtn = document.getElementById("toggleMode");
@@ -88,7 +84,7 @@ function setupEditToggle(profile) {
     toggleBtn.classList.toggle('save-mode', isEdit);
 
     const fields = ["fullName", "phone", "dob", "gender", "location", "skill", "team", "availability", "jerseyName", "jerseyNumber", "bio"];
-    const updated = {};
+    const updated = { ...profile };
 
     for (const id of fields) {
       const view = document.getElementById(id + "View");
@@ -112,7 +108,10 @@ function setupEditToggle(profile) {
     }
 
     if (!isEdit && Object.keys(updated).length > 0) {
-      updated.privacy_settings = getVisibilitySettings();
+      updated.privacy_settings = {
+        ...profile.privacy_settings,
+        ...getVisibilitySettings()
+      };
       const { error } = await supabase.from('profiles').update(updated).eq('id', profile.id);
       if (error) return alert("Save failed");
       Object.assign(profile, updated);
