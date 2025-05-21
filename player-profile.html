@@ -114,15 +114,20 @@
     #toggleMode {
       background: none;
       border: none;
-      color: #702963;
-      font-size: 18px;
+      color: #888; /* subtle neutral */
+      font-size: 16px;
       cursor: pointer;
-      margin-left: auto;
+      padding: 0;
+      margin: 0;
       transition: color 0.2s ease;
     }
 
     #toggleMode:hover {
-      color: #8a3b6d;
+      color: #555;
+    }
+
+    #toggleMode.save-mode {
+      color: #2e7d32; /* a fresh green */
     }
 
     .top-bar {
@@ -141,8 +146,10 @@
 <body>
 <div class="profile-container">
   <div class="top-bar">
-    <h2>My Profile</h2>
-    <button id="toggleMode" title="Edit"><i class="fas fa-pen-to-square"></i></button>
+    <h2 style="display: flex; align-items: center; gap: 8px;">
+      My Profile
+      <button id="toggleMode" title="Edit"><i class="fas fa-pen-to-square"></i></button>
+    </h2>
   </div>
 
   <!-- Header -->
@@ -276,6 +283,7 @@ toggleButton.addEventListener("click", async () => {
   toggleButton.innerHTML = isEditMode
   ? '<i class="fas fa-check"></i>'
   : '<i class="fas fa-pen-to-square"></i>';
+  toggleButton.classList.toggle('save-mode', isEditMode);
 
   const updatedProfile = {};
   const fields = [
