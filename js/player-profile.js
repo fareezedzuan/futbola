@@ -127,10 +127,32 @@ function setupEditToggle(profile) {
           view?.style.setProperty("display", "none");
           edit.style.display = "block";
         }
+
+      if (id === 'availability') {
+        const container = document.getElementById("availabilityEditContainer");
+        if (container) {
+          container.style.display = "block";
+          const checkboxes = container.querySelectorAll("input[type=checkbox]");
+          checkboxes.forEach(cb => {
+            cb.checked = (profile.availability || []).includes(cb.value);
+          });
+        }
+      }
+
         if (vis) vis.style.display = "inline-block";
       } else {
         const value = edit?.value.trim() ?? "";
         if (edit) edit.style.display = "none";
+
+        if (id === 'availability') {
+          const container = document.getElementById("availabilityEditContainer");
+          const checked = Array.from(container.querySelectorAll("input[type=checkbox]"))
+            .filter(cb => cb.checked)
+            .map(cb => cb.value);
+          updated.availability = checked;
+          container.style.display = "none";
+        }
+
         if (vis) vis.style.display = "none";
         if (view) {
           view.textContent = value || "-";
@@ -185,11 +207,16 @@ function assignUpdate(updated, id, value) {
     jerseyNumber: "jersey_number",
     bio: "bio"
   };
-  if (id === 'location' || id === 'availability') {
-    updated[map[id]] = value ? value.split(',').map(v => v.trim()) : [];
-  } else {
-    updated[map[id]] = value || null;
-  }
+    if (id === 'availability') {
+      const container = document.getElementById("availabilityEditContainer");
+      const checked = Array.from(container.querySelectorAll("input[type=checkbox]"))
+        .filter(cb => cb.checked)
+        .map(cb => cb.value);
+      updated[map[id]] = checked;
+    } else {
+      updated[map[id]] = value || null;
+    }
+
 }
 
 function getVisibilitySettings() {
