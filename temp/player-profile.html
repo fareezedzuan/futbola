@@ -1,94 +1,232 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My Player Profile - Futbola</title>  
-  <link rel="icon" href="./images/futbola-favicon.ico" type="image/x-icon">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Futbola Player Profile</title>
+  <link rel="icon" href="./images/futbola-favicon.ico" type="image/x-icon" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link rel="stylesheet" href="css/style.css" />
   <style>
     body {
       font-family: Arial, sans-serif;
-      background-image: url('./images/backgroundOrangeGradient.jpg');
+      background-image: url('./images/backgroundOrangeGradient.jpg'); /* reuse your usual one */
+      background-size: cover;
       margin: 0;
-      padding: 30px;
+      padding: 20px;
       display: flex;
       justify-content: center;
     }
-    .profile-card {
+
+    .profile-container {
       background: white;
-      padding: 25px;
-      border-radius: 15px;
+      border-radius: 12px;
       max-width: 700px;
       width: 100%;
+      padding: 20px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      border-top: 5px solid #ff5a5f;
     }
-    .header {
+    .top-bar {
       display: flex;
+      justify-content: center;
       align-items: center;
-      gap: 20px;
+      margin-bottom: 16px;
+    }
+    .top-heading {
+      font-size: 36px;
+      color: #702963;
+      display: inline-flex; /* <- inline-flex instead of flex */
+      align-items: center;
+      gap: 8px;
+      margin: 0 auto;
     }
     .avatar {
-      width: 100px;
-      height: 100px;
+      width: 90px;
+      height: 90px;
       border-radius: 50%;
       object-fit: cover;
-      border: 3px solid #ff5a5f;
+      box-shadow: 0 0 0 3px #fff, 0 0 0 5px #ff5a5f;
+    }
+    .name-block {
+      flex: 1;
+      min-width: 0;
+      margin-left: 15px;
+      overflow-wrap: break-word;
     }
     .name {
+      font-size: 22px;
+      margin: 0;
+      color: #702963;
+    }
+    .bio {
+      margin-top: 5px;
+      font-style: italic;
+      color: #444;
+    }
+    .jersey-full {
       font-size: 24px;
+      font-weight: bold;
       color: #702963;
       margin: 0;
     }
-    .jersey {
-      font-size: 16px;
+    .edit-field {
+      padding: 6px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      width: 100%;
+    }
+    .field-row {
+      margin-bottom: 15px;
+    }
+    .field-label {
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
+    .privacy-icon {
+      margin-left: 8px;
+      color: #999;
+      cursor: pointer;
+    }
+    .field-view, .field-edit {
+      display: none;
+    }
+    .stat-box {
+      background: #f6f6f6;
+      padding: 15px;
+      border-radius: 10px;
+      text-align: center;
+      font-weight: bold;
+      margin: 10px 0;
+    }
+
+    @media (max-width: 600px) {
+      .avatar {
+        width: 70px;
+        height: 70px;
+      }
+
+      .jersey-full {
+        font-size: 20px;
+      }
+
+      .top-bar {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+    #jerseyNameEdit, #jerseyNumberEdit {
+      width: 48%;
+      margin-top: 6px;
+    }
+
+    #toggleMode {
+      background: none;
+      border: none;
+      color: #888;
+      font-size: 18px;
+      cursor: pointer;
+      padding: 0;
+      margin: 0;
+      transition: color 0.2s ease;
+    }
+
+    #toggleMode.save-mode {
+      color: #2e7d32;
+    }
+
+    #toggleMode:hover {
       color: #555;
     }
-    .stats, .details {
-      margin-top: 20px;
-    }
-    .stats div, .details div {
-      margin-bottom: 10px;
-    }
-    .stat-label {
-      font-weight: bold;
-    }
+
   </style>
 </head>
 <body>
-<div class="profile-card">
-  <div class="header">
-    <img id="avatar" class="avatar" src="./images/Fareez.jpg" alt="Avatar">
-    <div>
-      <h2 id="fullName" class="name">Player Name</h2>
-      <p id="jerseyName" class="jersey">Jersey Name</p>
+<div class="profile-container">
+    <div class="top-bar">
+      <h2 class="top-heading">
+        Profile
+        <button id="toggleMode" title="Edit"><i class="fas fa-pen-to-square"></i></button>
+      </h2>
     </div>
+
+  <!-- Header -->
+    <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 12px; max-width: 100%;">
+      <img id="avatar" class="avatar" src="./images/Fareez.jpg" alt="Avatar">
+      <div class="name-block">
+        <h3 id="jerseyFull" class="jersey-full">FAREEZ 10</h3>
+        <p id="bio" class="bio">Short player quote or fun fact here.</p>
+        <input class="field-edit" id="bioEdit" placeholder="Write a short bio or quote..." />
+        <input class="field-edit" id="jerseyNameEdit" placeholder="Jersey Name" />
+        <input class="field-edit" id="jerseyNumberEdit" type="number" placeholder="Jersey #" min="0" max="99" />
+      </div>
+    </div>
+
+  <hr>
+
+  <!-- Overview Section -->
+  <div id="profileFields">
+
+    <div class="field-row">
+      <div class="field-label">Full Name <i class="fas fa-eye privacy-icon"></i></div>
+      <div class="field-view" id="fullNameView">-</div>
+      <input class="field-edit" id="fullNameEdit" />
+    </div>
+
+    <div class="field-row">
+      <div class="field-label">Phone <i class="fas fa-user-shield privacy-icon"></i></div>
+      <div class="field-view" id="phoneView">-</div>
+      <input class="field-edit" id="phoneEdit" />
+    </div>
+
+    <div class="field-row">
+      <div class="field-label">Date of Birth <i class="fas fa-lock privacy-icon"></i></div>
+      <div class="field-view" id="dobView">-</div>
+      <input class="field-edit" id="dobEdit" />
+    </div>
+
+    <!-- Gender -->
+      <div class="field-row">
+        <div class="field-label">Gender</div>
+        <div class="field-view" id="genderView">-</div>
+        <select class="field-edit" id="genderEdit">
+          <option value="">-</option>
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+        </select>
+      </div>
+
+    <div class="field-row">
+      <div class="field-label">Location</div>
+      <div class="field-view" id="locationView">-</div>
+      <input class="field-edit" id="locationEdit" />
+    </div>
+
+    <div class="field-row">
+      <div class="field-label">Skill Level</div>
+      <div class="field-view" id="skillView">-</div>
+      <input class="field-edit" id="skillEdit" />
+    </div>
+
+    <div class="field-row">
+      <div class="field-label">Team</div>
+      <div class="field-view" id="teamView">-</div>
+      <input class="field-edit" id="teamEdit" />
+    </div>
+
+    <div class="field-row">
+      <div class="field-label">Availability</div>
+      <div class="field-view" id="availabilityView">-</div>
+      <input class="field-edit" id="availabilityEdit" />
+    </div>
+
   </div>
 
-  <div class="stats">
-    <h3>Performance</h3>
-    <div><span class="stat-label">Games Played:</span> <span id="gamesPlayed">0</span></div>
-    <div><span class="stat-label">Goals Scored:</span> <span id="goalsScored">0</span></div>
-    <div><span class="stat-label">Matches Won:</span> <span id="matchesWon">0</span></div>
-  </div>
+  <hr>
 
-  <div class="details">
-    <h3>Profile Details</h3>
-    <div><span class="stat-label">Phone:</span> <span id="phone"></span></div>
-    <div><span class="stat-label">Gender:</span> <span id="gender"></span></div>
-    <div><span class="stat-label">Date of Birth:</span> <span id="dob"></span></div>
-    <div><span class="stat-label">Location:</span> <span id="location"></span></div>
-    <div><span class="stat-label">Skill Level:</span> <span id="skill"></span></div>
-    <div><span class="stat-label">Preferred Position:</span> <span id="positions"></span></div>
-    <div><span class="stat-label">Availability:</span> <span id="availability"></span></div>
-    <div><span class="stat-label">Team:</span> <span id="team"></span></div>
-  </div>
-
-  <div class="details">
-    <h3>Bio</h3>
-    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla et metus nec lorem tincidunt aliquam.</p>
-  </div>
+  <!-- Stats -->
+  <div class="stat-box">Matches Played: <span id="matches">12</span></div>
+  <div class="stat-box">Goals Scored: <span id="goals">8</span></div>
+  <div class="stat-box">Best Player Nominations: <span id="noms">2</span></div>
 </div>
 
 <script type="module">
@@ -96,57 +234,131 @@
 
   const supabase = createClient(
     'https://kdbqroxhypnadolcxxxc.supabase.co',
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkYnFyb3hoeXBuYWRvbGN4eHhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3MjkwNzYsImV4cCI6MjA1NzMwNTA3Nn0.c7_RVxoFdJNqQ62R3t1emH2Wf4dSsQaunHsHmbQxOBA',
-    {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: true
-      }
-    }
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkYnFyb3hoeXBuYWRvbGN4eHhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3MjkwNzYsImV4cCI6MjA1NzMwNTA3Nn0.c7_RVxoFdJNqQ62R3t1emH2Wf4dSsQaunHsHmbQxOBA'
   );
 
-  let { data: { user } } = await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
     const { data: sessionData } = await supabase.auth.getSession();
-    user = sessionData?.session?.user;
+    if (!sessionData?.session?.user) {
+      alert("Not logged in");
+      window.location.href = "/login.html";
+    }
   }
 
-  if (!user) {
-    alert("Not logged in");
-    window.location.href = "/login.html";
+  const { data: profile, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', user.id)
+    .single();
+
+  if (error || !profile) {
+    alert("Failed to load profile");
+    console.error(error);
   } else {
-    const { data: profile, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', user.id)
-      .single();
+    const getOrDash = (val) => val ?? '-';
 
-    if (error || !profile) {
-      alert("Failed to load profile");
-      console.error(error);
-    } else {
-      document.getElementById("fullName").textContent = profile.full_name;
-      document.getElementById("jerseyName").textContent = profile.jersey_name;
-      document.getElementById("phone").textContent = profile.phone;
-      document.getElementById("gender").textContent = profile.gender;
-      document.getElementById("dob").textContent = profile.date_of_birth;
-      document.getElementById("location").textContent = profile.location_play?.join(', ');
-      document.getElementById("skill").textContent = profile.skill_level;
-      document.getElementById("positions").textContent = profile.preferred_position?.join(', ');
-      document.getElementById("availability").textContent = profile.availability?.join(', ');
-      document.getElementById("team").textContent = profile.team_name || "-";
+    document.getElementById("fullNameView").textContent = getOrDash(profile.full_name);
+    document.getElementById("phoneView").textContent = getOrDash(profile.phone);
+    document.getElementById("dobView").textContent = getOrDash(profile.date_of_birth);
+    document.getElementById("genderView").textContent = getOrDash(profile.gender);
+    document.getElementById("locationView").textContent = profile.location_play?.join(', ') || '-';
+    document.getElementById("skillView").textContent = getOrDash(profile.skill_level);
+    document.getElementById("teamView").textContent = getOrDash(profile.team_name);
+    document.getElementById("availabilityView").textContent = profile.availability?.join(', ') || '-';
+    document.getElementById("jerseyFull").textContent = `${profile.jersey_name ?? ''} ${profile.jersey_number ?? ''}`.trim();
+    document.getElementById("bio").textContent = profile.bio ?? '-';
 
-      if (profile.avatar_url) {
-        document.getElementById("avatar").src = profile.avatar_url;
-      }
+    if (profile.avatar_url) {
+      document.getElementById("avatar").src = profile.avatar_url;
     }
 
-    // Example placeholder stats
-    document.getElementById("gamesPlayed").textContent = "12";
-    document.getElementById("goalsScored").textContent = "8";
-    document.getElementById("matchesWon").textContent = "6";
+    // 👇 This will make all field-view divs visible immediately
+    document.querySelectorAll('.field-view').forEach(el => {
+      el.style.display = 'block';
+    });
   }
+
+const toggleButton = document.getElementById("toggleMode");
+let isEditMode = false;
+
+toggleButton.addEventListener("click", async () => {
+  isEditMode = !isEditMode;
+  toggleButton.innerHTML = isEditMode
+  ? '<i class="fas fa-check"></i>'
+  : '<i class="fas fa-pen-to-square"></i>';
+  toggleButton.classList.toggle('save-mode', isEditMode);
+
+  const updatedProfile = {};
+  const fields = [
+    "fullName", "phone", "dob", "location", "skill", "team",
+    "availability", "jerseyName", "jerseyNumber", "bio", "gender"
+  ];
+
+  for (const id of fields) {
+    const view = document.getElementById(id + "View");
+    const edit = document.getElementById(id + "Edit");
+
+    if (isEditMode) {
+      if (edit) {
+        if (id === "jerseyName") edit.value = profile.jersey_name ?? "";
+        else if (id === "jerseyNumber") edit.value = profile.jersey_number ?? "";
+        else if (id === "bio") edit.value = profile.bio ?? "";
+        else edit.value = view?.textContent.trim() || "";
+
+        if (view) view.style.display = "none";
+        edit.style.display = "block";
+      }
+    } else {
+      const newValue = edit?.value.trim() ?? "";
+
+      if (edit) edit.style.display = "none";
+      if (view) {
+        view.textContent = newValue || "-";
+        view.style.display = "block";
+      }
+
+      if (id === "jerseyName") updatedProfile.jersey_name = newValue || null;
+      else if (id === "jerseyNumber") updatedProfile.jersey_number = newValue || null;
+      else if (id === "bio") updatedProfile.bio = newValue || null;
+      else if (id === "location" || id === "availability") {
+        updatedProfile[id === "location" ? "location_play" : "availability"] =
+          newValue ? newValue.split(',').map(x => x.trim()) : [];
+      } else if (id === "dob") {
+        updatedProfile.date_of_birth = newValue || null;
+      } else {
+        updatedProfile[
+          id === "fullName" ? "full_name" :
+          id === "skill" ? "skill_level" :
+          id === "team" ? "team_name" :
+          id === "gender" ? "gender" :
+          id
+        ] = newValue || null;
+      }
+    }
+  }
+
+  if (!isEditMode && Object.keys(updatedProfile).length > 0) {
+    const { error } = await supabase
+      .from('profiles')
+      .update(updatedProfile)
+      .eq('id', user.id);
+
+    if (error) {
+      alert("Failed to save profile.");
+      console.error("Supabase update error:", error);
+    } else {
+      console.log("✅ Profile updated:", updatedProfile);
+
+      document.getElementById("jerseyFull").textContent =
+        `${updatedProfile.jersey_name ?? profile.jersey_name} ${updatedProfile.jersey_number ?? profile.jersey_number}`;
+
+      document.getElementById("bio").textContent =
+        updatedProfile.bio ?? profile.bio ?? "-";
+    }
+  }
+});
+
 </script>
 </body>
 </html>
