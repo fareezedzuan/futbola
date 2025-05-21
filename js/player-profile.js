@@ -45,10 +45,12 @@ function populateFields(profile) {
 
     const setting = vis[field];
     if (isOwnProfile || !setting || setting === "public") {
-      el.textContent = value ?? "-";
-    } else if (field === 'dob' && setting === 'range') {
-      const age = getAgeFromDOB(value);
-      el.textContent = age ? getAgeRange(age) : "-";
+      if (field === 'dob' && setting === 'range') {
+        const age = getAgeFromDOB(value);
+        el.textContent = age ? getAgeRange(age) : "-";
+      } else {
+        el.textContent = value ?? "-";
+      }
     } else {
       el.textContent = "-";
     }
