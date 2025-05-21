@@ -124,8 +124,6 @@
       <img id="avatar" class="avatar" src="./images/Fareez.jpg" alt="Avatar">
       <div class="name-block">
         <h3 id="jerseyFull" class="jersey-full">FAREEZ 10</h3>
-        <div id="jerseyNameView" class="field-view" style="display:none;"></div>
-        <div id="jerseyNumberView" class="field-view" style="display:none;"></div>
         <p id="bio" class="bio">Short player quote or fun fact here.</p>
         <input class="field-edit" id="jerseyNameEdit" placeholder="Jersey Name" />
         <input class="field-edit" id="jerseyNumberEdit" type="number" placeholder="Jersey #" min="0" max="99" />
@@ -229,8 +227,7 @@
   } else {
     const getOrDash = (val) => val ?? '-';
 
-    document.getElementById("bio").textContent = getOrDash(profile.bio);
-
+    document.getElementById("bio").textContent =  updatedProfile.bio ?? profile.bio ?? "-";
     document.getElementById("fullNameView").textContent = getOrDash(profile.full_name);
     document.getElementById("phoneView").textContent = getOrDash(profile.phone);
     document.getElementById("dobView").textContent = getOrDash(profile.date_of_birth);
@@ -306,6 +303,9 @@ toggleButton.addEventListener("click", async () => {
       console.log("✅ Profile updated:", updatedProfile);
       document.getElementById("jerseyFull").textContent =
       `${updatedProfile.jersey_name ?? profile.jersey_name} ${updatedProfile.jersey_number ?? profile.jersey_number}`;
+
+      document.getElementById("bio").textContent =
+      updatedProfile.bio ?? profile.bio ?? "-";
     }
   }
 });
