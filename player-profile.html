@@ -113,6 +113,51 @@
       color: #888;
     }
 
+      .toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 0;
+    max-width: 300px;
+  }
+  .toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 46px;
+    height: 24px;
+  }
+  .toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0;
+    right: 0; bottom: 0;
+    background-color: #ccc;
+    transition: .3s;
+    border-radius: 34px;
+  }
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .3s;
+    border-radius: 50%;
+  }
+  .toggle-switch input:checked + .slider {
+    background-color: #4CAF50;
+  }
+  .toggle-switch input:checked + .slider:before {
+    transform: translateX(22px);
+  }
+
   </style>
 </head>
 <body>
@@ -235,15 +280,15 @@
       <div class="field-view" id="availabilityView">-</div>
       <span class="visibility-icon" id="icon_availability">👁️</span>
 
-      <div class="field-edit" id="availabilityEditContainer" style="display: none;">
-        <label><input type="checkbox" value="Monday" /> Monday</label><br>
-        <label><input type="checkbox" value="Tuesday" /> Tuesday</label><br>
-        <label><input type="checkbox" value="Wednesday" /> Wednesday</label><br>
-        <label><input type="checkbox" value="Thursday" /> Thursday</label><br>
-        <label><input type="checkbox" value="Friday" /> Friday</label><br>
-        <label><input type="checkbox" value="Saturday" /> Saturday</label><br>
-        <label><input type="checkbox" value="Sunday" /> Sunday</label>
-      </div>
+    <div class="field-edit" id="availabilityEditContainer" style="display: none;">
+      <div class="toggle-row"><span>Monday</span><label class="toggle-switch"><input type="checkbox" value="Monday"><span class="slider"></span></label></div>
+      <div class="toggle-row"><span>Tuesday</span><label class="toggle-switch"><input type="checkbox" value="Tuesday"><span class="slider"></span></label></div>
+      <div class="toggle-row"><span>Wednesday</span><label class="toggle-switch"><input type="checkbox" value="Wednesday"><span class="slider"></span></label></div>
+      <div class="toggle-row"><span>Thursday</span><label class="toggle-switch"><input type="checkbox" value="Thursday"><span class="slider"></span></label></div>
+      <div class="toggle-row"><span>Friday</span><label class="toggle-switch"><input type="checkbox" value="Friday"><span class="slider"></span></label></div>
+      <div class="toggle-row"><span>Saturday</span><label class="toggle-switch"><input type="checkbox" value="Saturday"><span class="slider"></span></label></div>
+      <div class="toggle-row"><span>Sunday</span><label class="toggle-switch"><input type="checkbox" value="Sunday"><span class="slider"></span></label></div>
+    </div>
 
       <select class="field-edit" id="visibility_availability">
         <option value="public">Public</option>
