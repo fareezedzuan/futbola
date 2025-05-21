@@ -385,6 +385,8 @@ toggleButton.addEventListener("click", async () => {
     } else {
       console.log("✅ Profile updated:", updatedProfile);
 
+      Object.assign(profile, updatedProfile);
+
       document.getElementById("jerseyFull").textContent =
         `${updatedProfile.jersey_name ?? profile.jersey_name} ${updatedProfile.jersey_number ?? profile.jersey_number}`;
 
