@@ -72,6 +72,14 @@ function populateFields(profile) {
   }
 
   document.querySelectorAll('.field-view').forEach(el => el.style.display = 'block');
+
+  for (const key in vis) {
+    const select = document.getElementById("visibility_" + key);
+    if (select) {
+      select.value = vis[key];
+    }
+  }
+
 }
 
 function setupEditToggle(profile) {
