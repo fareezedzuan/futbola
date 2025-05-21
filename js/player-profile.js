@@ -43,21 +43,16 @@ function populateFields(profile) {
     const el = document.getElementById(field + "View");
     if (!el) return;
 
-    if (el) {
-      if (isOwnProfile) {
-        el.textContent = value ?? "-";
-      } else {
-        const setting = vis[field];
-        if (setting === "private") return;
-        if (field === 'dob' && setting === 'range') {
-          const age = getAgeFromDOB(value);
-          el.textContent = age ? getAgeRange(age) : "-";
-        } else {
-          el.textContent = value ?? "-";
-        }
-      }
-    }
+    const setting = vis[field];
 
+    if (isOwnProfile || setting === "public" || !setting) {
+      el.textContent = value ?? "-";
+    } else if (field === "dob" && setting === "range") {
+      const age = getAgeFromDOB(value);
+      el.textContent = age ? getAgeRange(age) : "-";
+    } else {
+      el.textContent = "-";
+    }
   };
 
   show("fullName", profile.full_name);
@@ -89,7 +84,7 @@ function setupEditToggle(profile) {
     toggleBtn.classList.toggle('save-mode', isEdit);
 
     const fields = ["fullName", "phone", "dob", "gender", "location", "skill", "team", "availability", "jerseyName", "jerseyNumber", "bio"];
-    const updated = {};
+    const updated = { ...profile };
 
     for (const id of fields) {
       const view = document.getElementById(id + "View");
@@ -113,10 +108,10 @@ function setupEditToggle(profile) {
     }
 
     if (!isEdit && Object.keys(updated).length > 0) {
-    const newPrivacy = getVisibilitySettings();
-    if (JSON.stringify(newPrivacy) !== JSON.stringify(profile.privacy_settings)) {
-      updated.privacy_settings = newPrivacy;
-    }
+      updated.privacy_settings = {
+        ...profile.privacy_settings,
+        ...getVisibilitySettings()
+      };
       const { error } = await supabase.from('profiles').update(updated).eq('id', profile.id);
       if (error) return alert("Save failed");
       Object.assign(profile, updated);
