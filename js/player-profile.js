@@ -167,6 +167,8 @@ function setupEditToggle(profile) {
         ...profile.privacy_settings,
         ...getVisibilitySettings()
       };
+      console.log("🧪 Final payload before save:", updated);
+      
       const { error } = await supabase.from('profiles').update(updated).eq('id', profile.id);
       if (error) return alert("Save failed");
       Object.assign(profile, updated);
