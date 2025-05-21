@@ -134,12 +134,109 @@
       </div>
     </div>
     <hr>
-    <div id="profileFields"></div>
+
+    <!-- Profile fields -->
+    <div id="profileFields">
+      <!-- Full Name -->
+      <div class="field-row">
+        <div class="field-label">Full Name</div>
+        <div class="field-view" id="fullNameView">-</div>
+        <input class="field-edit" id="fullNameEdit" />
+        <select class="field-edit" id="visibility_fullName">
+          <option value="public">Public</option>
+          <option value="private">Private</option>
+        </select>
+      </div>
+
+      <!-- Phone -->
+      <div class="field-row">
+        <div class="field-label">Phone</div>
+        <div class="field-view" id="phoneView">-</div>
+        <input class="field-edit" id="phoneEdit" />
+        <select class="field-edit" id="visibility_phone">
+          <option value="public">Public</option>
+          <option value="private">Private</option>
+        </select>
+      </div>
+
+      <!-- Date of Birth -->
+      <div class="field-row">
+        <div class="field-label">Date of Birth</div>
+        <div class="field-view" id="dobView">-</div>
+        <input class="field-edit" id="dobEdit" />
+        <select class="field-edit" id="visibility_dob">
+          <option value="real">Show Age</option>
+          <option value="range">Age Range</option>
+          <option value="private">Private</option>
+        </select>
+      </div>
+
+      <!-- Gender -->
+      <div class="field-row">
+        <div class="field-label">Gender</div>
+        <div class="field-view" id="genderView">-</div>
+        <select class="field-edit" id="genderEdit">
+          <option value="">-</option>
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+        </select>
+        <select class="field-edit" id="visibility_gender">
+          <option value="public">Public</option>
+          <option value="private">Private</option>
+        </select>
+      </div>
+
+      <!-- Location -->
+      <div class="field-row">
+        <div class="field-label">Location</div>
+        <div class="field-view" id="locationView">-</div>
+        <input class="field-edit" id="locationEdit" />
+        <select class="field-edit" id="visibility_location">
+          <option value="public">Public</option>
+          <option value="private">Private</option>
+        </select>
+      </div>
+
+      <!-- Skill Level -->
+      <div class="field-row">
+        <div class="field-label">Skill Level</div>
+        <div class="field-view" id="skillView">-</div>
+        <input class="field-edit" id="skillEdit" />
+        <select class="field-edit" id="visibility_skill">
+          <option value="public">Public</option>
+          <option value="private">Private</option>
+        </select>
+      </div>
+
+      <!-- Team -->
+      <div class="field-row">
+        <div class="field-label">Team</div>
+        <div class="field-view" id="teamView">-</div>
+        <input class="field-edit" id="teamEdit" />
+        <select class="field-edit" id="visibility_team">
+          <option value="public">Public</option>
+          <option value="private">Private</option>
+        </select>
+      </div>
+
+      <!-- Availability -->
+      <div class="field-row">
+        <div class="field-label">Availability</div>
+        <div class="field-view" id="availabilityView">-</div>
+        <input class="field-edit" id="availabilityEdit" />
+        <select class="field-edit" id="visibility_availability">
+          <option value="public">Public</option>
+          <option value="private">Private</option>
+        </select>
+      </div>
+    </div>
+
     <hr>
     <div class="stat-box">Matches Played: <span id="matches">12</span></div>
     <div class="stat-box">Goals Scored: <span id="goals">8</span></div>
     <div class="stat-box">Best Player Nominations: <span id="noms">2</span></div>
   </div>
+
   <script type="module" src="js/player-profile.js"></script>
 </body>
 </html>
