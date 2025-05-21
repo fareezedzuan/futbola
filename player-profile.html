@@ -374,9 +374,10 @@ toggleButton.addEventListener("click", async () => {
     }
 
   if (!isEditMode && Object.keys(updatedProfile).length > 0) {
-    updatedProfile.privacy_settings = getVisibilitySettingsFromUI();
-    console.log("👁️ visibility settings:", getVisibilitySettingsFromUI());
-    
+    const newVisibility = getVisibilitySettingsFromUI();
+    console.log("👁️ visibility settings:", newVisibility);
+    updatedProfile.privacy_settings = newVisibility;
+
     const { error } = await supabase
       .from('profiles')
       .update(updatedProfile)
