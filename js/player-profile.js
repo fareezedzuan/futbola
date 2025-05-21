@@ -6,14 +6,21 @@ const supabase = createClient(
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkYnFyb3hoeXBuYWRvbGN4eHhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3MjkwNzYsImV4cCI6MjA1NzMwNTA3Nn0.c7_RVxoFdJNqQ62R3t1emH2Wf4dSsQaunHsHmbQxOBA'
 );
 
-const user = await getUser();
-if (!user) return;
-const profile = await loadProfile(user.id);
-if (!profile) return;
+(async () => {
+  const user = await getUser();
+  if (!user) {
+    alert("Not logged in");
+    window.location.href = "/login.html";
+    return;
+  }
 
-populateFields(profile);
-setupEditToggle(profile);
-setupAvatarUpload(user.id);
+  const profile = await loadProfile(user.id);
+  if (!profile) return;
+
+  populateFields(profile);
+  setupEditToggle(profile);
+  setupAvatarUpload(user.id);
+})();
 
 function getUser() {
   return supabase.auth.getUser().then(({ data }) => data?.user ?? null);
