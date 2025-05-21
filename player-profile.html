@@ -370,6 +370,17 @@ toggleButton.addEventListener("click", async () => {
 
   // ✅ Show visibility dropdowns once all edit fields are shown
     if (isEditMode) {
+        // Show all edit fields first
+      fields.forEach(id => {
+        const edit = document.getElementById(id + "Edit");
+        const view = document.getElementById(id + "View");
+        if (edit && view) {
+          view.style.display = "none";
+          edit.style.display = "block";
+        }
+      });
+
+      // THEN show visibility dropdowns
       showVisibilitySettings(profile);
     }
 
