@@ -85,7 +85,7 @@ function setupEditToggle(profile) {
     toggleBtn.classList.toggle('save-mode', isEdit);
 
     const fields = ["fullName", "phone", "dob", "gender", "location", "skill", "team", "availability", "jerseyName", "jerseyNumber", "bio"];
-    const updated = { ...profile };
+    const updated = {};
 
     for (const id of fields) {
       const view = document.getElementById(id + "View");
@@ -109,10 +109,10 @@ function setupEditToggle(profile) {
     }
 
     if (!isEdit && Object.keys(updated).length > 0) {
-      updated.privacy_settings = {
-        ...profile.privacy_settings,
-        ...getVisibilitySettings()
-      };
+    const newPrivacy = getVisibilitySettings();
+    if (JSON.stringify(newPrivacy) !== JSON.stringify(profile.privacy_settings)) {
+      updated.privacy_settings = newPrivacy;
+    }
       const { error } = await supabase.from('profiles').update(updated).eq('id', profile.id);
       if (error) return alert("Save failed");
       Object.assign(profile, updated);
