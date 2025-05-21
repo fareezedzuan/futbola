@@ -299,6 +299,8 @@ toggleButton.addEventListener("click", async () => {
   ];
 
   for (const id of fields) {
+    // Remove any previously added visibility dropdowns (to avoid duplication)
+    document.querySelectorAll('.visibility-dropdown').forEach(el => el.remove());
     const view = document.getElementById(id + "View");
     const edit = document.getElementById(id + "Edit");
 
