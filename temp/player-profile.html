@@ -151,7 +151,10 @@
 
   <!-- Header -->
     <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 12px; max-width: 100%;">
-      <img id="avatar" class="avatar" src="./images/Fareez.jpg" alt="Avatar">
+      <label for="avatarUpload">
+        <img id="avatar" class="avatar" src="./images/default-avatar.png" alt="Avatar" style="cursor: pointer;" />
+      </label>
+      <input type="file" id="avatarUpload" accept="image/*" style="display: none;" />
       <div class="name-block">
         <h3 id="jerseyFull" class="jersey-full">FAREEZ 10</h3>
         <p id="bio" class="bio">Short player quote or fun fact here.</p>
@@ -357,6 +360,49 @@ toggleButton.addEventListener("click", async () => {
         updatedProfile.bio ?? profile.bio ?? "-";
     }
   }
+});
+
+// === Avatar Upload Handler ===
+const avatarInput = document.getElementById("avatarUpload");
+const avatarImg = document.getElementById("avatar");
+
+avatarInput.addEventListener("change", async (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const fileExt = file.name.split('.').pop();
+  const filePath = `avatars/${user.id}.${fileExt}`;
+
+  // Upload to Supabase Storage
+  const { error: uploadError } = await supabase.storage
+    .from("avatars")
+    .upload(filePath, file, { upsert: true });
+
+  if (uploadError) {
+    alert("Failed to upload avatar.");
+    console.error(uploadError);
+    return;
+  }
+
+  // Get public URL
+  const { data } = supabase.storage.from("avatars").getPublicUrl(filePath);
+  const avatarUrl = data.publicUrl;
+
+  // Update user profile with avatar_url
+  const { error: updateError } = await supabase
+    .from("profiles")
+    .update({ avatar_url: avatarUrl })
+    .eq("id", user.id);
+
+  if (updateError) {
+    alert("Failed to save avatar.");
+    console.error(updateError);
+    return;
+  }
+
+  // Show new avatar immediately
+  avatarImg.src = avatarUrl;
+  console.log("✅ Avatar updated:", avatarUrl);
 });
 
 </script>
