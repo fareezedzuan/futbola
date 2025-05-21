@@ -261,14 +261,55 @@
   } else {
     const getOrDash = (val) => val ?? '-';
 
-    document.getElementById("fullNameView").textContent = getOrDash(profile.full_name);
-    document.getElementById("phoneView").textContent = getOrDash(profile.phone);
-    document.getElementById("dobView").textContent = getOrDash(profile.date_of_birth);
-    document.getElementById("genderView").textContent = getOrDash(profile.gender);
-    document.getElementById("locationView").textContent = profile.location_play?.join(', ') || '-';
-    document.getElementById("skillView").textContent = getOrDash(profile.skill_level);
-    document.getElementById("teamView").textContent = getOrDash(profile.team_name);
-    document.getElementById("availabilityView").textContent = profile.availability?.join(', ') || '-';
+
+  // Extract all visibility_* fields into a local object
+    const visibility = {
+      fullName: profile.visibility_full_name || 'public',
+      phone: profile.visibility_phone || 'private',
+      gender: profile.visibility_gender || 'private',
+      dob: profile.visibility_dob || 'private',
+      location: profile.visibility_location || 'private',
+      skill: profile.visibility_skill || 'private',
+      team: profile.visibility_team || 'private',
+      availability: profile.visibility_availability || 'private'
+    };
+
+    const showIfPublic = (field, value) => {
+      if (visibility[field] === 'public') {
+        document.getElementById(`${field}View`).textContent = value ?? '-';
+      } else {
+        document.getElementById(`${field}View`).textContent = '🔒';
+      }
+    };
+
+    showIfPublic('fullName', profile.full_name);
+    showIfPublic('phone', profile.phone);
+    showIfPublic('gender', profile.gender);
+    showIfPublic('location', profile.location_play?.join(', '));
+    showIfPublic('skill', profile.skill_level);
+    showIfPublic('team', profile.team_name);
+    showIfPublic('availability', profile.availability?.join(', '));
+
+    // Special logic for DOB
+    if (visibility.dob === 'real') {
+      document.getElementById("dobView").textContent = profile.date_of_birth ?? '-';
+    } else if (visibility.dob === 'range') {
+      const year = new Date(profile.date_of_birth).getFullYear();
+      const currentYear = new Date().getFullYear();
+      const age = currentYear - year;
+      let range = '-';
+      if (age < 20) range = 'Below 20';
+      else if (age <= 24) range = '20–24';
+      else if (age <= 29) range = '25–29';
+      else if (age <= 34) range = '30–34';
+      else if (age <= 39) range = '35–39';
+      else range = '40+';
+      document.getElementById("dobView").textContent = range;
+    } else {
+      document.getElementById("dobView").textContent = '🔒';
+    }
+
+    // Always show bio and jersey
     document.getElementById("jerseyFull").textContent = `${profile.jersey_name ?? ''} ${profile.jersey_number ?? ''}`.trim();
     document.getElementById("bio").textContent = profile.bio ?? '-';
 
