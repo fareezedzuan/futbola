@@ -89,6 +89,7 @@ function setupEditToggle(profile) {
     for (const id of fields) {
       const view = document.getElementById(id + "View");
       const edit = document.getElementById(id + "Edit");
+      const vis = document.getElementById("visibility_" + id);
       if (isEdit) {
         if (edit) {
           const val = getProfileValue(profile, id);
@@ -96,9 +97,11 @@ function setupEditToggle(profile) {
           view?.style.setProperty("display", "none");
           edit.style.display = "block";
         }
+        if (vis) vis.style.display = "inline-block";
       } else {
         const value = edit?.value.trim() ?? "";
         if (edit) edit.style.display = "none";
+        if (vis) vis.style.display = "none";
         if (view) {
           view.textContent = value || "-";
           view.style.display = "block";
