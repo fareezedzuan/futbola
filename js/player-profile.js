@@ -42,7 +42,15 @@ function populateFields(profile) {
     const setting = vis[field];
     const el = document.getElementById(field + "View");
     if (!el) return;
+    // Always show everything to the logged-in user
+    if (window.location.pathname.includes("player-profile.html")) {
+      el.textContent = value ?? "-";
+      return;
+    }
+
+    // Apply privacy setting only for public view
     if (setting === "private") return;
+
     if (field === 'dob' && setting === 'range') {
       const age = getAgeFromDOB(value);
       el.textContent = age ? getAgeRange(age) : "-";
