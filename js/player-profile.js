@@ -74,7 +74,6 @@ function populateFields(profile) {
 
   document.querySelectorAll('.field-view').forEach(el => el.style.display = 'block');
 }
-}
 
 function setupEditToggle(profile) {
   const toggleBtn = document.getElementById("toggleMode");
