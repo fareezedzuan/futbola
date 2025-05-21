@@ -409,6 +409,74 @@ avatarInput.addEventListener("change", async (event) => {
   console.log("✅ Avatar updated:", avatarUrl);
 });
 
+// === Step 1: Extend profile schema in Supabase ===
+// Ensure `profiles` table includes visibility flags, e.g.:
+// - visibility_full_name: 'public' | 'private'
+// - visibility_age: 'real' | 'range' | 'private'
+// - visibility_phone: 'public' | 'private'
+// etc.
+
+// === Step 2: Visibility control setup (JS logic) ===
+const visibilityOptions = {
+  fullName: ['public', 'private'],
+  phone: ['public', 'private'],
+  dob: ['real', 'range', 'private'],
+  gender: ['public', 'private'],
+  location: ['public', 'private'],
+  skill: ['public', 'private'],
+  team: ['public', 'private'],
+  availability: ['public', 'private'],
+  jerseyName: ['public', 'private'],
+  jerseyNumber: ['public', 'private'],
+  bio: ['public', 'private']
+};
+
+// Helper to create visibility dropdowns for each field
+function renderVisibilityControl(field, currentSetting) {
+  const select = document.createElement('select');
+  select.className = 'visibility-dropdown';
+  select.dataset.field = field;
+  visibilityOptions[field].forEach(option => {
+    const opt = document.createElement('option');
+    opt.value = option;
+    opt.textContent = option === 'real' ? 'Real Age' : option === 'range' ? 'Age Range' : option.charAt(0).toUpperCase() + option.slice(1);
+    if (option === currentSetting) opt.selected = true;
+    select.appendChild(opt);
+  });
+  return select;
+}
+
+// In edit mode, insert these next to each input
+function showVisibilitySettings(profile) {
+  Object.keys(visibilityOptions).forEach(field => {
+    const parent = document.getElementById(field + 'Edit')?.parentElement;
+    if (parent) {
+      const control = renderVisibilityControl(field, profile['visibility_' + field] || 'public');
+      parent.appendChild(control);
+    }
+  });
+}
+
+// When saving, collect visibility settings
+function getVisibilitySettingsFromUI() {
+  const selects = document.querySelectorAll('.visibility-dropdown');
+  const settings = {};
+  selects.forEach(sel => {
+    settings['visibility_' + sel.dataset.field] = sel.value;
+  });
+  return settings;
+}
+
+// === Step 3: Add to save logic ===
+// When saving profile, merge visibility into update
+// const updatedProfile = { ...field updates..., ...getVisibilitySettingsFromUI() };
+
+// === Step 4: Public view logic ===
+// When displaying someone else's profile, check:
+// if (profile.visibility_full_name === 'public') { show it }
+// if (profile.visibility_dob === 'range') { calculate range from DOB }
+
+
 </script>
 </body>
 </html>
