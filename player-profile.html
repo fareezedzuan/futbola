@@ -316,13 +316,13 @@ toggleButton.addEventListener("click", async () => {
   : '<i class="fas fa-pen-to-square"></i>';
   toggleButton.classList.toggle('save-mode', isEditMode);
 
+  document.querySelectorAll('.visibility-dropdown').forEach(el => el.remove());
+
   const updatedProfile = {};
   const fields = [
     "fullName", "phone", "dob", "location", "skill", "team",
     "availability", "jerseyName", "jerseyNumber", "bio", "gender"
   ];
-
-  document.querySelectorAll('.visibility-dropdown').forEach(el => el.remove());
 
   for (const id of fields) {
     // Remove any previously added visibility dropdowns (to avoid duplication)
