@@ -170,7 +170,7 @@
   <div id="profileFields">
 
     <div class="field-row">
-      <div class="field-label">Full Name <i class="fas fa-eye privacy-icon"></i></div>
+      <div class="field-label">Full Name</i></div>
       <div class="field-view" id="fullNameView">-</div>
       <input class="field-edit" id="fullNameEdit" />
         <select class="field-edit" id="visibility_fullName">
@@ -180,13 +180,13 @@
     </div>
 
     <div class="field-row">
-      <div class="field-label">Phone <i class="fas fa-user-shield privacy-icon"></i></div>
+      <div class="field-label">Phone</i></div>
       <div class="field-view" id="phoneView">-</div>
       <input class="field-edit" id="phoneEdit" />
     </div>
 
     <div class="field-row">
-      <div class="field-label">Date of Birth <i class="fas fa-lock privacy-icon"></i></div>
+      <div class="field-label">Date of Birth</i></div>
       <div class="field-view" id="dobView">-</div>
       <input class="field-edit" id="dobEdit" />
     </div>
@@ -344,6 +344,11 @@ toggleButton.addEventListener("click", async () => {
       }
     }
   }
+
+  // ✅ Show visibility dropdowns once all edit fields are shown
+    if (isEditMode) {
+      showVisibilitySettings(profile);
+    }
 
   if (!isEditMode && Object.keys(updatedProfile).length > 0) {
     const { error } = await supabase
