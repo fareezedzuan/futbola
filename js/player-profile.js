@@ -178,6 +178,9 @@ function setupEditToggle(profile) {
       Object.assign(profile, updated);
       document.getElementById("jerseyFull").textContent = `${profile.jersey_name ?? ''} ${profile.jersey_number ?? ''}`.trim();
       document.getElementById("bio").textContent = profile.bio ?? '-';
+      
+      document.getElementById("availabilityView").textContent = (updated.availability || []).join(', ') || '-';
+
     }
   });
 }
