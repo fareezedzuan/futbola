@@ -158,7 +158,11 @@ function setupEditToggle(profile) {
           view.textContent = value || "-";
           view.style.display = "block";
         }
+        if (id === 'location') {
+        updated.location_play = value ? value.split(',').map(v => v.trim()) : [];
+      } else if (id !== 'availability') {
         assignUpdate(updated, id, value);
+      }
       }
     }
 
