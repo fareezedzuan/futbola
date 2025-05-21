@@ -114,7 +114,7 @@ function setupEditToggle(profile) {
     toggleBtn.classList.toggle('save-mode', isEdit);
 
     const fields = ["fullName", "phone", "dob", "gender", "location", "skill", "team", "availability", "jerseyName", "jerseyNumber", "bio"];
-    const updated = { ...profile };
+    const updated = {};
 
     for (const id of fields) {
       const view = document.getElementById(id + "View");
