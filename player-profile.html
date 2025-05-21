@@ -124,6 +124,8 @@
       <img id="avatar" class="avatar" src="./images/Fareez.jpg" alt="Avatar">
       <div class="name-block">
         <h3 id="jerseyFull" class="jersey-full">FAREEZ 10</h3>
+        <div id="jerseyNameView" class="field-view" style="display:none;"></div>
+        <div id="jerseyNumberView" class="field-view" style="display:none;"></div>
         <p id="bio" class="bio">Short player quote or fun fact here.</p>
         <input class="field-edit" id="jerseyNameEdit" placeholder="Jersey Name" />
         <input class="field-edit" id="jerseyNumberEdit" type="number" placeholder="Jersey #" min="0" max="99" />
@@ -259,7 +261,7 @@ toggleButton.addEventListener("click", async () => {
 
     if (isEditMode) {
       // Switch to edit mode
-      edit.value = view.textContent.trim();
+      edit.value = view?.textContent.trim() || '';
       view.style.display = "none";
       edit.style.display = "block";
     } else {
