@@ -249,50 +249,54 @@ toggleButton.addEventListener("click", async () => {
   toggleButton.textContent = isEditMode ? "Save" : "Edit";
 
   const updatedProfile = {};
-  const fields = ["fullName", "phone", "dob", "location", "skill", "team", "availability", "jerseyName", "jerseyNumber", "bio", "gender"];
+  const fields = [
+    "fullName", "phone", "dob", "location", "skill", "team",
+    "availability", "jerseyName", "jerseyNumber", "bio", "gender"
+  ];
 
   for (const id of fields) {
     const view = document.getElementById(id + "View");
     const edit = document.getElementById(id + "Edit");
 
     if (isEditMode) {
-      // Switch to edit mode
-      edit.value = view?.textContent.trim() || '';
-      if (view) view.style.display = "none";
-      if (edit) edit.style.display = "block";
-    } else {
-      // Switch to view mode and save changes
-      const newValue = edit.value.trim();
-      if (view) {
-        if (view) view.textContent = newValue || "-";
-        if (view) view.style.display = "block";
-      }
       if (edit) {
-        if (edit) edit.style.display = "none";
-      } 
+        if (id === "jerseyName") edit.value = profile.jersey_name ?? "";
+        else if (id === "jerseyNumber") edit.value = profile.jersey_number ?? "";
+        else if (id === "bio") edit.value = profile.bio ?? "";
+        else edit.value = view?.textContent.trim() || "";
 
-      // Handle arrays
-      if (id === "location" || id === "availability") {
+        if (view) view.style.display = "none";
+        edit.style.display = "block";
+      }
+    } else {
+      const newValue = edit?.value.trim() ?? "";
+
+      if (edit) edit.style.display = "none";
+      if (view) {
+        view.textContent = newValue || "-";
+        view.style.display = "block";
+      }
+
+      if (id === "jerseyName") updatedProfile.jersey_name = newValue || null;
+      else if (id === "jerseyNumber") updatedProfile.jersey_number = newValue || null;
+      else if (id === "bio") updatedProfile.bio = newValue || null;
+      else if (id === "location" || id === "availability") {
         updatedProfile[id === "location" ? "location_play" : "availability"] =
           newValue ? newValue.split(',').map(x => x.trim()) : [];
       } else if (id === "dob") {
-        updatedProfile["date_of_birth"] = newValue || null;
+        updatedProfile.date_of_birth = newValue || null;
       } else {
-          updatedProfile[
-            id === "fullName" ? "full_name" :
-            id === "jerseyName" ? "jersey_name" :
-            id === "jerseyNumber" ? "jersey_number" :
-            id === "bio" ? "bio" :
-            id === "skill" ? "skill_level" :
-            id === "team" ? "team_name" :
-            id === "gender" ? "gender" :
-            id
-          ] = newValue || null;
+        updatedProfile[
+          id === "fullName" ? "full_name" :
+          id === "skill" ? "skill_level" :
+          id === "team" ? "team_name" :
+          id === "gender" ? "gender" :
+          id
+        ] = newValue || null;
       }
     }
   }
 
-  // Only save when exiting edit mode
   if (!isEditMode && Object.keys(updatedProfile).length > 0) {
     const { error } = await supabase
       .from('profiles')
@@ -304,11 +308,12 @@ toggleButton.addEventListener("click", async () => {
       console.error("Supabase update error:", error);
     } else {
       console.log("✅ Profile updated:", updatedProfile);
+
       document.getElementById("jerseyFull").textContent =
-      `${updatedProfile.jersey_name ?? profile.jersey_name} ${updatedProfile.jersey_number ?? profile.jersey_number}`;
+        `${updatedProfile.jersey_name ?? profile.jersey_name} ${updatedProfile.jersey_number ?? profile.jersey_number}`;
 
       document.getElementById("bio").textContent =
-      updatedProfile.bio ?? profile.bio ?? "-";
+        updatedProfile.bio ?? profile.bio ?? "-";
     }
   }
 });
