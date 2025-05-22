@@ -137,9 +137,16 @@
 
         if (setting === 'private') {
           el.textContent = "-";
-        } else if (key === 'dob' && setting === 'range') {
-          el.textContent = getAgeRange(getAgeFromDOB(val));
-        } else if (key === 'availability' && Array.isArray(val)) {
+        }else if (key === 'dob') {
+          const age = getAgeFromDOB(val);
+          if (setting === 'private') {
+            el.textContent = "-";
+          } else if (setting === 'range') {
+            el.textContent = getAgeRange(age);
+          } else {
+            el.textContent = age ? `${age} years old` : "-";
+          }
+        }else if (key === 'availability' && Array.isArray(val)) {
           el.innerHTML = val.map(day => `<span class="chip">${day}</span>`).join('');
         } else if (Array.isArray(val)) {
           el.textContent = val.join(', ');
