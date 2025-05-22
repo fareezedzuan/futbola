@@ -143,12 +143,20 @@ function setupEditToggle(profile) {
           if (container) {
             container.style.display = "block";
             const checkboxes = container.querySelectorAll("input[type=checkbox]");
-            const field = id === "categoryRole" ? "category_role" : id;
+            
+            const keyMap = {
+              futsalPosition: "futsal_position",
+              footballPosition: "football_position",
+              categoryRole: "category_role"
+            };
+            const field = keyMap[id];
+
             checkboxes.forEach(cb => {
               cb.checked = (profile[field] || []).includes(cb.value);
             });
           }
         }
+
         
         // then handle regular <input> and <select>
         if (edit) {
