@@ -48,8 +48,8 @@ function populateFields(profile) {
   const icon = document.getElementById("icon_" + field);
 
 if (isOwnProfile || setting === "public" || !setting) {
-  if (field === "availability" && Array.isArray(value)) {
-    el.innerHTML = value.map(day => `<span class="chip">${day}</span>`).join('');
+  if (Array.isArray(value)) {
+    el.innerHTML = value.map(item => `<span class="chip">${item}</span>`).join('');
   } else {
     el.textContent = value ?? "-";
   }
