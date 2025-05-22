@@ -15,10 +15,11 @@ const supabase = createClient(
   }
 
   // ✅ Set Public View link with user ID
-  const publicLink = document.querySelector("a[href='/player-public.html']");
-  if (publicLink) {
-    publicLink.href = `/public-profile.html?id=${user.id}`;
-  }
+    const publicLink = document.querySelector("a[href='/player-public.html']");
+    if (publicLink) {
+      publicLink.href = `/player-public.html?id=${user.id}`;
+    }
+
 
   const profile = await loadProfile(user.id);
   if (!profile) return;
