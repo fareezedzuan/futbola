@@ -47,10 +47,16 @@ function populateFields(profile) {
   const setting = vis[field];
   const icon = document.getElementById("icon_" + field);
 
-if (isOwnProfile || setting === "public" || !setting) {
+  if (isOwnProfile || setting === "public" || !setting) {
   if (Array.isArray(value)) {
-    el.innerHTML = value.map(item => `<span class="chip">${item}</span>`).join('');
-  } else {
+  const labelMap = {
+    futsalPosition: "Futsal",
+    footballPosition: "Football",
+    categoryRole: "Roles"
+  };
+  const label = labelMap[field] ? `<strong>${labelMap[field]}:</strong><br>` : "";
+  el.innerHTML = label + value.map(item => `<span class="chip">${item}</span>`).join('');
+  }else {
     el.textContent = value ?? "-";
   }
 
