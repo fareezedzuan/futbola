@@ -91,12 +91,15 @@
     <div id="publicFields">
       <div class="field-row"><div class="field-label">Full Name</div><div id="fullNameView" class="field-value">-</div></div>
       <div class="field-row"><div class="field-label">Phone</div><div id="phoneView" class="field-value">-</div></div>
-      <div class="field-row"><div class="field-label">Date of Birth</div><div id="dobView" class="field-value">-</div></div>
+      <div class="field-row"><div class="field-label">Age</div><div id="dobView" class="field-value">-</div></div>
       <div class="field-row"><div class="field-label">Gender</div><div id="genderView" class="field-value">-</div></div>
       <div class="field-row"><div class="field-label">Location</div><div id="locationView" class="field-value">-</div></div>
-      <div class="field-row"><div class="field-label">Skill Level</div><div id="skillView" class="field-value">-</div></div>
+      <div class="field-row"><div class="field-label">Level</div><div id="skillView" class="field-value">-</div></div>
       <div class="field-row"><div class="field-label">Team</div><div id="teamView" class="field-value">-</div></div>
       <div class="field-row"><div class="field-label">Availability</div><div id="availabilityView" class="field-value">-</div></div>
+      <div class="field-row"><div class="field-label">Futsal Position</div><div id="futsalPositionView" class="field-value">-</div></div>
+      <div class="field-row"><div class="field-label">Football Position</div><div id="footballPositionView" class="field-value">-</div></div>
+      <div class="field-row"><div class="field-label">Role</div><div id="categoryRoleView" class="field-value">-</div></div>
     </div>
   </div>
 
@@ -118,7 +121,13 @@
 
     async function loadPublicProfile(id) {
       const { data: profile, error } = await supabase.from('profiles').select('*').eq('id', id).single();
-      if (error || !profile) return alert("Failed to load profile");
+
+      if (error || !profile) {
+        console.error("❌ Supabase error:", error);
+        console.error("👤 Profile not found for ID:", id);
+        alert("Failed to load profile");
+        return;
+      }
 
       const vis = profile.privacy_settings || {};
       const show = (key, val) => {
@@ -153,6 +162,9 @@
       show("skill", profile.skill_level);
       show("team", profile.team_name);
       show("availability", profile.availability);
+      show("futsalPosition", profile.futsal_position);
+      show("footballPosition", profile.football_position);
+      show("categoryRole", profile.category_role);
     }
 
     function getAgeFromDOB(dobStr) {
