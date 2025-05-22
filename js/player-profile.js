@@ -51,7 +51,8 @@ function populateFields(profile) {
   if (Array.isArray(value)) {
   const labelMap = {
     futsalPosition: "Futsal",
-    footballPosition: "Football"
+    footballPosition: "Football",
+    categoryRole: "Roles"
   };
   const label = labelMap[field] ? `<strong>${labelMap[field]}:</strong><br>` : "";
   el.innerHTML = label + value.map(item => `<span class="chip">${item}</span>`).join('');
