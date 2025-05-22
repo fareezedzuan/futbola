@@ -17,7 +17,7 @@ document.getElementById("google-login").addEventListener("click", async () => {
   const { error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: 'https://www.futbola.my/profile-setup.html' // ✅ Updated to custom domain
+      redirectTo: 'https://www.futbola.my/player-profile.html' // ✅ Updated to custom domain
     }
   });
   if (error) {
@@ -35,7 +35,7 @@ document.getElementById("email-login-form")?.addEventListener("submit", async (e
   if (error) {
     alert("Login failed: " + error.message);
   } else {
-    window.location.href = "/profile-setup.html";
+    window.location.href = "/player-profile.html";
   }
 });
 
@@ -63,8 +63,8 @@ supabase.auth.getUser().then(async ({ data: { user }, error }) => {
     console.log("✅ Logged in as:", user.email);
 
     // Avoid redirect loop if already on profile page
-    if (!window.location.pathname.includes("profile-setup.html")) {
-      window.location.href = "/profile-setup.html";
+    if (!window.location.pathname.includes("player-profile.html")) {
+      window.location.href = "/player-profile.html";
     }
   } else {
     console.log("❌ Not logged in");
