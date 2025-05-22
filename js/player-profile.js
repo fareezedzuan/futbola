@@ -14,6 +14,12 @@ const supabase = createClient(
     return;
   }
 
+  // ✅ Set Public View link with user ID
+  const publicLink = document.querySelector("a[href='/public-profile.html']");
+  if (publicLink) {
+    publicLink.href = `/public-profile.html?id=${user.id}`;
+  }
+
   const profile = await loadProfile(user.id);
   if (!profile) return;
 
