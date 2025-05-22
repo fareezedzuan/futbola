@@ -176,15 +176,22 @@ function setupEditToggle(profile) {
         }
 
             // ✅ NEW: save futsal/football/category roles
-    else if (["futsalPosition", "footballPosition", "categoryRole"].includes(id)) {
-      const container = document.getElementById(`${id}EditContainer`);
-      const checked = Array.from(container.querySelectorAll("input[type=checkbox]"))
-        .filter(cb => cb.checked)
-        .map(cb => cb.value);
-      const key = id === "categoryRole" ? "category_role" : id;
-      updated[key] = checked;
-      container.style.display = "none";
-    }
+      else if (["futsalPosition", "footballPosition", "categoryRole"].includes(id)) {
+        const container = document.getElementById(`${id}EditContainer`);
+        const checked = Array.from(container.querySelectorAll("input[type=checkbox]"))
+          .filter(cb => cb.checked)
+          .map(cb => cb.value);
+
+        const keyMap = {
+          futsalPosition: "futsal_position",
+          footballPosition: "football_position",
+          categoryRole: "category_role"
+        };
+        const key = keyMap[id];
+        updated[key] = checked;
+        container.style.display = "none";
+      }
+
 
         if (vis) vis.style.display = "none";
         if (view) {
