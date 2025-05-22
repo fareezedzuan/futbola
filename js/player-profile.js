@@ -90,6 +90,10 @@ if (isOwnProfile || setting === "public" || !setting) {
   show("skill", profile.skill_level);
   show("team", profile.team_name);
   show("availability", profile.availability);
+  show("futsalPosition", profile.futsal_position);
+  show("footballPosition", profile.football_position);
+  show("categoryRole", profile.category_role);
+
 
   document.getElementById("jerseyFull").textContent = `${profile.jersey_name ?? ''} ${profile.jersey_number ?? ''}`.trim();
   document.getElementById("bio").textContent = profile.bio ?? '-';
@@ -118,7 +122,7 @@ function setupEditToggle(profile) {
     toggleBtn.innerHTML = isEdit ? '<i class="fas fa-circle-check"></i>' : '<i class="fas fa-pen-to-square"></i>';
     toggleBtn.classList.toggle('save-mode', isEdit);
 
-    const fields = ["fullName", "phone", "dob", "gender", "location", "skill", "team", "availability", "jerseyName", "jerseyNumber", "bio"];
+    const fields = ["fullName", "phone", "dob", "gender", "location", "skill", "team", "availability", "futsalPosition", "footballPosition", "categoryRole", "jerseyName", "jerseyNumber", "bio"];
     const updated = {};
 
     for (const id of fields) {
@@ -144,6 +148,19 @@ function setupEditToggle(profile) {
         }
       }
 
+          // ✅ NEW: handle futsalPosition, footballPosition, categoryRole
+    else if (["futsalPosition", "footballPosition", "categoryRole"].includes(id)) {
+      const container = document.getElementById(`${id}EditContainer`);
+      if (container) {
+        container.style.display = "block";
+        const checkboxes = container.querySelectorAll("input[type=checkbox]");
+        checkboxes.forEach(cb => {
+          const field = id === "categoryRole" ? "category_role" : id;
+          cb.checked = (profile[field] || []).includes(cb.value);
+        });
+      }
+    }
+
         if (vis) vis.style.display = "inline-block";
       } else {
         const value = edit?.value.trim() ?? "";
@@ -157,6 +174,17 @@ function setupEditToggle(profile) {
           updated.availability = checked;
           container.style.display = "none";
         }
+
+            // ✅ NEW: save futsal/football/category roles
+    else if (["futsalPosition", "footballPosition", "categoryRole"].includes(id)) {
+      const container = document.getElementById(`${id}EditContainer`);
+      const checked = Array.from(container.querySelectorAll("input[type=checkbox]"))
+        .filter(cb => cb.checked)
+        .map(cb => cb.value);
+      const key = id === "categoryRole" ? "category_role" : id;
+      updated[key] = checked;
+      container.style.display = "none";
+    }
 
         if (vis) vis.style.display = "none";
         if (view) {
@@ -201,7 +229,10 @@ function getProfileValue(profile, id) {
     availability: "availability",
     jerseyName: "jersey_name",
     jerseyNumber: "jersey_number",
-    bio: "bio"
+    bio: "bio",
+    futsalPosition: "futsal_position",
+    footballPosition: "football_position",
+    categoryRole: "category_role"
   };
   return profile[map[id]];
 }
@@ -218,7 +249,10 @@ function assignUpdate(updated, id, value) {
     availability: "availability",
     jerseyName: "jersey_name",
     jerseyNumber: "jersey_number",
-    bio: "bio"
+    bio: "bio",
+    futsalPosition: "futsal_position",
+    footballPosition: "football_position",
+    categoryRole: "category_role"
   };
   
   if (id === 'availability') {
@@ -233,6 +267,7 @@ function assignUpdate(updated, id, value) {
     updated[map[id]] = value || null;
   }
 }
+  
 
 
 function getVisibilitySettings() {
