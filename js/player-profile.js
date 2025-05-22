@@ -129,7 +129,22 @@ function setupEditToggle(profile) {
       const view = document.getElementById(id + "View");
       const edit = document.getElementById(id + "Edit");
       const vis = document.getElementById("visibility_" + id);
+
       if (isEdit) {
+        // ✅ handle toggle checkboxes FIRST
+        if (["futsalPosition", "footballPosition", "categoryRole"].includes(id)) {
+          const container = document.getElementById(`${id}EditContainer`);
+          if (container) {
+            container.style.display = "block";
+            const checkboxes = container.querySelectorAll("input[type=checkbox]");
+            const field = id === "categoryRole" ? "category_role" : id;
+            checkboxes.forEach(cb => {
+              cb.checked = (profile[field] || []).includes(cb.value);
+            });
+          }
+        }
+        
+        // then handle regular <input> and <select>
         if (edit) {
           const val = getProfileValue(profile, id);
           edit.value = Array.isArray(val) ? val.join(', ') : val ?? "";
@@ -137,32 +152,38 @@ function setupEditToggle(profile) {
           edit.style.display = "block";
         }
 
-      if (id === 'availability') {
-        const container = document.getElementById("availabilityEditContainer");
-        if (container) {
-          container.style.display = "block";
-          const checkboxes = container.querySelectorAll("input[type=checkbox]");
-          checkboxes.forEach(cb => {
-            cb.checked = (profile.availability || []).includes(cb.value);
-          });
+        if (id === 'availability') {
+          const container = document.getElementById("availabilityEditContainer");
+          if (container) {
+            container.style.display = "block";
+            const checkboxes = container.querySelectorAll("input[type=checkbox]");
+            checkboxes.forEach(cb => {
+              cb.checked = (profile.availability || []).includes(cb.value);
+            });
+          }
         }
-      }
-
-          // ✅ NEW: handle futsalPosition, footballPosition, categoryRole
-    else if (["futsalPosition", "footballPosition", "categoryRole"].includes(id)) {
-      const container = document.getElementById(`${id}EditContainer`);
-      if (container) {
-        container.style.display = "block";
-        const checkboxes = container.querySelectorAll("input[type=checkbox]");
-        checkboxes.forEach(cb => {
-          const field = id === "categoryRole" ? "category_role" : id;
-          cb.checked = (profile[field] || []).includes(cb.value);
-        });
-      }
-    }
 
         if (vis) vis.style.display = "inline-block";
+
       } else {
+        // ✅ save checkboxes
+        if (["futsalPosition", "footballPosition", "categoryRole"].includes(id)) {
+          const container = document.getElementById(`${id}EditContainer`);
+          const checkboxes = Array.from(container.querySelectorAll("input[type=checkbox]"));
+          const checked = checkboxes.filter(cb => cb.checked).map(cb => cb.value);
+
+          const keyMap = {
+            futsalPosition: "futsal_position",
+            footballPosition: "football_position",
+            categoryRole: "category_role"
+          };
+          const key = keyMap[id];
+          updated[key] = checked;
+          container.style.display = "none";
+          console.log(`${key} selected:`, checked); // 👁️ for debug
+        }
+
+        // then save standard inputs
         const value = edit?.value.trim() ?? "";
         if (edit) edit.style.display = "none";
 
@@ -175,36 +196,20 @@ function setupEditToggle(profile) {
           container.style.display = "none";
         }
 
-            // ✅ NEW: save futsal/football/category roles
-      else if (["futsalPosition", "footballPosition", "categoryRole"].includes(id)) {
-        const container = document.getElementById(`${id}EditContainer`);
-        const checked = Array.from(container.querySelectorAll("input[type=checkbox]"))
-          .filter(cb => cb.checked)
-          .map(cb => cb.value);
-
-        const keyMap = {
-          futsalPosition: "futsal_position",
-          footballPosition: "football_position",
-          categoryRole: "category_role"
-        };
-        const key = keyMap[id];
-        updated[key] = checked;
-        container.style.display = "none";
-      }
-
-
         if (vis) vis.style.display = "none";
         if (view) {
           view.textContent = value || "-";
           view.style.display = "block";
         }
+
         if (id === 'location') {
-        updated.location_play = value ? value.split(',').map(v => v.trim()) : [];
-      } else if (id !== 'availability') {
-        assignUpdate(updated, id, value);
-      }
+          updated.location_play = value ? value.split(',').map(v => v.trim()) : [];
+        } else if (id !== 'availability' && !["futsalPosition", "footballPosition", "categoryRole"].includes(id)) {
+          assignUpdate(updated, id, value);
+        }
       }
     }
+
 
     if (!isEdit && Object.keys(updated).length > 0) {
       updated.privacy_settings = {
