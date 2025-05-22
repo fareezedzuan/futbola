@@ -235,6 +235,7 @@ function setupEditToggle(profile) {
       const { error } = await supabase.from('profiles').update(updated).eq('id', profile.id);
       if (error) return alert("Save failed");
       Object.assign(profile, updated);
+      populateFields(profile); // ✅ Add this
       document.getElementById("jerseyFull").textContent = `${profile.jersey_name ?? ''} ${profile.jersey_number ?? ''}`.trim();
       document.getElementById("bio").textContent = profile.bio ?? '-';
       document.getElementById("availabilityView").innerHTML = (updated.availability || []).map(day => `<span class="chip">${day}</span>`).join('') || '-';
@@ -297,7 +298,7 @@ function assignUpdate(updated, id, value) {
 
 
 function getVisibilitySettings() {
-  const keys = ["fullName", "phone", "dob", "gender", "location", "skill", "team", "availability"];
+  const keys = ["fullName", "phone", "dob", "gender", "location", "skill", "team", "availability","futsalPosition", "footballPosition", "categoryRole"];
   const result = {};
   for (const key of keys) {
     const sel = document.getElementById("visibility_" + key);
