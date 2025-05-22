@@ -100,11 +100,18 @@
                 🏆 Tournament
             </button>
 
-            <button onclick="location.href='https://www.futbola.my/login.html'"
+            <!-- <button onclick="location.href='https://www.futbola.my/login.html'"
                 class="bg-red-500 border-2 border-red-700 text-white px-6 py-3 rounded-lg font-semibold transform transition hover:scale-105 duration-200 shadow-lg">
                 🔑 Login
-            </button>
+            </button> -->
+
         </div>
+
+        <!-- Dynamic Login Newly Added -->
+        <div class="flex flex-col sm:flex-row justify-center gap-4 mt-6" id="actionButtons">
+        <!-- Placeholder — will be filled by JS -->
+        </div>
+
     </div>
 </header>
 
@@ -300,6 +307,43 @@
     <!-- Copyright -->
     <p class="text-center text-sm">&copy; 2025 futbola. All Rights Reserved.</p>
 </footer>
+
+<script type="module">
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+  const supabase = createClient(
+    'https://kdbqroxhypnadolcxxxc.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkYnFyb3hoeXBuYWRvbGN4eHhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3MjkwNzYsImV4cCI6MjA1NzMwNTA3Nn0.c7_RVxoFdJNqQ62R3t1emH2Wf4dSsQaunHsHmbQxOBA'
+  );
+
+  const { data: { user } } = await supabase.auth.getUser();
+  const btnContainer = document.getElementById("actionButtons");
+
+  if (user) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('full_name')
+      .eq('id', user.id)
+      .single();
+
+    const firstName = profile?.full_name?.split(" ")[0] ?? "Player";
+    btnContainer.innerHTML = `
+      <div class="text-white text-lg text-center font-semibold">👋 Welcome, ${firstName}</div>
+      <button onclick="location.href='https://www.futbola.my/player-profile.html'"
+        class="bg-purple-600 border-2 border-purple-800 text-white px-6 py-3 rounded-lg font-semibold transform transition hover:scale-105 duration-200 shadow-lg">
+        🧑‍💼 View Profile
+      </button>
+    `;
+  } else {
+    btnContainer.innerHTML = `
+      <button onclick="location.href='https://www.futbola.my/login.html'"
+        class="bg-red-500 border-2 border-red-700 text-white px-6 py-3 rounded-lg font-semibold transform transition hover:scale-105 duration-200 shadow-lg">
+        🔑 Login
+      </button>
+    `;
+  }
+</script>
+
 
 </body>
 </html>
