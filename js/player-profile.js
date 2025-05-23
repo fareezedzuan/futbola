@@ -61,7 +61,7 @@ function getUser() {
 
 async function loadProfile(id) {
   const { data, error } = await supabase.from('profiles').select('*').eq('id', id).single();
-  if (error) {
+  if (error && error.code !== 'PGRST116') { // PGRST116 = No rows found
     alert("Failed to load profile");
     console.error(error);
     return null;
