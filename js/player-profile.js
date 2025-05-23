@@ -14,16 +14,42 @@ const supabase = createClient(
     return;
   }
 
-  // ✅ Set Public View link with user ID
-    const publicLink = document.querySelector("a[href='/player-public.html']");
-    if (publicLink) {
-      publicLink.href = `/player-public.html?id=${user.id}`;
+  const publicLink = document.querySelector("a[href='/player-public.html']");
+  if (publicLink) {
+    publicLink.href = `/player-public.html?id=${user.id}`;
+  }
+
+  // 🧠 Check if profile exists
+  let profile = await loadProfile(user.id);
+
+  // 🔧 Insert default if not found
+  if (!profile) {
+    const { error } = await supabase.from("profiles").insert([{
+      id: user.id,
+      full_name: user.user_metadata.full_name || "Unnamed Player",
+      avatar_url: user.user_metadata.avatar_url || "",
+      privacy_settings: {},
+      availability: [],
+      futsal_position: [],
+      football_position: [],
+      category_role: []
+    }]);
+
+    if (error) {
+      alert("Failed to initialize profile");
+      console.error("Insert error:", error);
+      return;
     }
 
+    // Retry loading after insert
+    profile = await loadProfile(user.id);
+    if (!profile) {
+      alert("Could not load newly created profile.");
+      return;
+    }
+  }
 
-  const profile = await loadProfile(user.id);
-  if (!profile) return;
-
+  // ✅ Proceed as normal
   populateFields(profile);
   setupEditToggle(profile);
   setupAvatarUpload(user.id);
@@ -31,6 +57,43 @@ const supabase = createClient(
 
 function getUser() {
   return supabase.auth.getUser().then(({ data }) => data?.user ?? null);
+}
+
+const profile = await loadProfile(user.id);
+
+if (!profile) {
+  // Insert a blank profile if not exists
+  const { error } = await supabase.from("profiles").insert([{
+    id: user.id,
+    full_name: user.user_metadata.full_name || "Unnamed Player",
+    avatar_url: user.user_metadata.avatar_url || "",
+    privacy_settings: {},
+    availability: [],
+    futsal_position: [],
+    football_position: [],
+    category_role: []
+  }]);
+
+  if (error) {
+    alert("Failed to initialize profile");
+    console.error("Insert error:", error);
+    return;
+  }
+
+  // Then fetch it again
+  const newProfile = await loadProfile(user.id);
+  if (!newProfile) {
+    alert("Could not load newly created profile.");
+    return;
+  }
+
+  populateFields(newProfile);
+  setupEditToggle(newProfile);
+  setupAvatarUpload(user.id);
+} else {
+  populateFields(profile);
+  setupEditToggle(profile);
+  setupAvatarUpload(user.id);
 }
 
 async function loadProfile(id) {
