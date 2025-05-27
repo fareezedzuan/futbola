@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Book Game</title>
+  <link rel="icon" href="./images/futbola-favicon.ico" type="image/x-icon">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-image: url('./images/backgroundOrangeGradient.jpg');
+      padding: 20px;
+      margin: 0;
+    }
+    .game-card {
+      background: white;
+      border-top: 5px solid #ff5a5f;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      margin: 20px auto;
+      max-width: 600px;
+    }
+    .player-avatar {
+      display: inline-block;
+      margin-right: 8px;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+    .player-avatar img {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #ddd;
+    }
+    .guest-name {
+      font-size: 12px;
+      color: #555;
+    }
+    .btn-red {
+      background-color: #ff0000;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-weight: bold;
+      border: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h2 class="text-center text-3xl font-bold text-[#702963] mb-10">📅 Upcoming Games</h2>
+
+  <div id="gameList"></div>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+    const supabase = createClient(
+      'https://kdbqroxhypnadolcxxxc.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkYnFyb3hoeXBuYWRvbGN4eHhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3MjkwNzYsImV4cCI6MjA1NzMwNTA3Nn0.c7_RVxoFdJNqQ62R3t1emH2Wf4dSsQaunHsHmbQxOBA'
+    );
+
+    const { data: { user } } = await supabase.auth.getUser();
+
+    const { data: games, error } = await supabase.from('games').select('*').order('game_date');
+    if (error) return alert("Failed to load games");
+
+    const gameList = document.getElementById('gameList');
+
+    for (const game of games) {
+      const { data: bookings } = await supabase
+        .from('game_bookings')
+        .select('*, profiles(full_name, avatar_url)')
+        .eq('game_id', game.id);
+
+      const bookedPlayersHTML = bookings.map(b => {
+        if (b.player_id && b.profiles) {
+          return `
+            <a href="player-public.html?id=${b.player_id}" class="player-avatar" title="${b.profiles.full_name}">
+              <img src="${b.profiles.avatar_url || './images/default-avatar.png'}" />
+            </a>
+          `;
+        } else {
+          return `<div class="player-avatar guest-name">${b.jersey_name}</div>`;
+        }
+      }).join('');
+
+      const card = document.createElement('div');
+      card.className = 'game-card';
+      card.innerHTML = `
+        <p><strong>📍 Venue:</strong> ${game.venue}</p>
+        <p><strong>📅 Date:</strong> ${game.game_date}</p>
+        <p><strong>🕒 Time:</strong> ${game.start_time} - ${game.end_time}</p>
+        <p><strong>🎮 Style:</strong> ${game.play_style}</p>
+        <p><strong>💰 Price:</strong> RM ${game.price.toFixed(2)}</p>
+        <p><strong>👥 Booked:</strong> ${bookings.length} / ${game.max_players}</p>
+
+        <div class="flex flex-wrap mt-2 mb-4">${bookedPlayersHTML}</div>
+
+        <form class="book-form" data-id="${game.id}">
+          <input type="text" name="jersey_name" placeholder="Jersey Name" class="w-full border p-2 rounded mb-2" required>
+          <button type="submit" class="btn-red w-full">Book Now</button>
+        </form>
+      `;
+      gameList.appendChild(card);
+    }
+
+    document.querySelectorAll('.book-form').forEach(form => {
+      form.addEventListener('submit', async e => {
+        e.preventDefault();
+        const gameId = form.dataset.id;
+        const jerseyName = form.jersey_name.value.trim();
+
+        if (!jerseyName) return alert("Please enter a name");
+
+        const payload = {
+          game_id: gameId,
+          jersey_name: jerseyName,
+          player_id: user?.id ?? null
+        };
+
+        const { error } = await supabase.from('game_bookings').insert([payload]);
+        if (error) return alert("Booking failed");
+        location.reload();
+      });
+    });
+  </script>
+</body>
+</html>
