@@ -718,10 +718,11 @@ function generateRoundRobin(teams) {
 function getTeamLogo(colorName) {
   const logos = {
     Red: "../images/red.png",
-    Blue: "../images/blue.png",
+    White: "../images/white.png",
     Green: "../images/green.png",
-    Yellow: "../images/yellow.png",
-    White: "../images/white.png"
+    Orange: "../images/orange.png",
+    Black: "../images/black.png",
+    Yellow: "../images/yellow.png"
   };
   return logos[colorName] || "../images/default.png"; // fallback
 }
@@ -976,9 +977,28 @@ async function saveCurrentMatch() {
 
     const json = await res.json();
     console.log("✅ Saved to Supabase:", json);
-  } catch (err) {
-    console.error("❌ Network or server error while saving match:", err);
-  }
+    }catch (err) {
+      console.error("❌ Network or server error while saving match:", err);
+
+      const failedData = {
+        game_id: sessionStorage.getItem("gameId"),
+        session_id: sessionStorage.getItem("sessionId"),
+        match_number: matchNumber,
+        team_a: tA,
+        team_b: tB,
+        score_a: gA,
+        score_b: gB,
+        goals: currentGoals,
+        timestamp: Date.now()
+      };
+
+      const existing = JSON.parse(localStorage.getItem("unsyncedMatches") || "[]");
+      existing.push(failedData);
+      localStorage.setItem("unsyncedMatches", JSON.stringify(existing));
+
+      alert(`⚠️ Match ${matchNumber} not saved due to network. Will retry when online.`);
+    }
+
   // ✅ Replaced block ends here
 }
 
@@ -1287,6 +1307,37 @@ function exportToInstagramImage() {
 
 updateTimerDisplay();
 startNextMatch();
+
+window.addEventListener('online', attemptResync);
+
+function attemptResync() {
+  const queue = JSON.parse(localStorage.getItem("unsyncedMatches") || "[]");
+  if (!queue.length) return;
+
+  const remaining = [];
+
+  queue.forEach(async (data) => {
+    try {
+      const res = await fetch('/api/save-match-result', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      if (res.ok) {
+        console.log(`✅ Resynced Match ${data.match_number}`);
+      } else {
+        throw new Error(`Server returned ${res.status}`);
+      }
+    } catch (err) {
+      console.warn(`🔁 Retry failed for Match ${data.match_number}`, err);
+      remaining.push(data); // Keep it for next retry
+    }
+  });
+
+  localStorage.setItem("unsyncedMatches", JSON.stringify(remaining));
+}
+
 </script>
 
 <!-- <audio id="alarmSound" src="../audio/annoying-alarm.wav" preload="auto"></audio> -->
