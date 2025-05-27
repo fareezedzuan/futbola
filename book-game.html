@@ -1,11 +1,11 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Book Game - futbola</title>
+  <title>Book Game - Futbola</title>
   <link rel="icon" href="./images/futbola-favicon.ico" type="image/x-icon">
-  <script type="module" src="./book-game.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -26,7 +26,7 @@
       border-radius: 10px;
       box-shadow: 0 4px 8px rgba(0,0,0,0.1);
       margin-bottom: 30px;
-      max-width: 650px;
+      max-width: 600px;
       margin-left: auto;
       margin-right: auto;
     }
@@ -42,15 +42,15 @@
       color: #ff5a5f;
     }
 
-    .book-form input, .book-form select {
-      width: 48%;
+    .form-section input, .form-section select {
+      width: 100%;
       padding: 8px;
-      margin: 5px 1%;
+      margin: 5px 0;
       border-radius: 5px;
       border: 1px solid #ccc;
     }
 
-    .book-form button {
+    .form-section button {
       width: 100%;
       padding: 10px;
       background-color: #ff0000;
@@ -62,41 +62,135 @@
       margin-top: 10px;
     }
 
-    .book-form button:hover {
+    .form-section button:hover {
       background-color: #cc0000;
     }
 
-    .players-list {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
+    .player-list {
       margin-top: 10px;
     }
 
-    .player-badge {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 5px 10px;
-      background-color: #f0f0f0;
-      border-radius: 20px;
+    .player-avatar {
+      display: inline-block;
+      margin: 4px;
+      text-align: center;
     }
 
-    .player-badge img {
-      width: 24px;
-      height: 24px;
+    .player-avatar img {
+      width: 40px;
+      height: 40px;
       border-radius: 50%;
+      border: 2px solid #ff5a5f;
       object-fit: cover;
+    }
+
+    .player-avatar span {
+      display: block;
+      font-size: 12px;
+      max-width: 60px;
+      overflow-wrap: break-word;
     }
   </style>
 </head>
 <body>
-  <h2>📅 Book Your Game</h2>
+<h2>Book Game</h2>
 
-  <div id="gameList">Loading games...</div>
+<div id="gameContainer"></div>
 
-  <a href="/" style="display: block; width: fit-content; margin: 40px auto 0; background-color: #ff0000; color: white; padding: 12px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">
-    ← Back to Homepage
-  </a>
+<a class="button" href="/"
+  style="display: block; width: fit-content; margin: 40px auto 0; background-color: #ff0000; color: white; padding: 12px 20px; text-decoration: none; border-radius: 5px; font-weight: bold; text-align: center;">
+  ← Back to Homepage
+</a>
+
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+const SUPABASE_URL = 'https://kdbqroxhypnadolcxxxc.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkYnFyb3hoeXBuYWRvbGN4eHhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3MjkwNzYsImV4cCI6MjA1NzMwNTA3Nn0.c7_RVxoFdJNqQ62R3t1emH2Wf4dSsQaunHsHmbQxOBA'; // trimmed for safety
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const container = document.getElementById("gameContainer");
+const { data: userData } = await supabase.auth.getUser();
+const user = userData.user;
+
+const { data: games, error } = await supabase.from("games").select("*").order("game_date", { ascending: true });
+
+if (error) {
+  container.innerHTML = "<p>Error loading games</p>";
+  console.error(error);
+} else {
+  games.forEach(game => {
+    const div = document.createElement("div");
+    div.className = "game-card";
+    div.innerHTML = `
+      <div class="game-info">
+        <p><strong>📍 Venue:</strong> ${game.venue}</p>
+        <p><strong>📅 Date:</strong> ${game.game_date}</p>
+        <p><strong>🕒 Time:</strong> ${game.start_time} - ${game.end_time}</p>
+        <p><strong>🏷️ Level:</strong> ${game.level}</p>
+        <p><strong>🎮 Play Style:</strong> ${game.play_style}</p>
+        <p><strong>💰 Price:</strong> RM ${parseFloat(game.price).toFixed(2)}</p>
+        <p class="availability">Slots: loading...</p>
+      </div>
+      <form class="form-section" onsubmit="event.preventDefault(); bookGame('${game.id}', this)">
+        ${user ? "" : '<input name="jersey_name" placeholder="Enter jersey name" required />'}
+        <button type="submit">✅ Book Now</button>
+      </form>
+      <div class="player-list" id="players-${game.id}"></div>
+    `;
+    container.appendChild(div);
+    loadPlayers(game.id);
+  });
+}
+
+async function loadPlayers(gameId) {
+  const target = document.getElementById("players-" + gameId);
+  const { data, error } = await supabase.from("game_bookings").select("*").eq("game_id", gameId);
+
+  if (error || !data) {
+    target.innerHTML = "<p>Failed to load players</p>";
+    return;
+  }
+
+  const html = data.map(b => {
+    if (b.user_id) {
+      return `<a href="/player-public.html?id=${b.user_id}" class="player-avatar"><img src="${b.avatar_url || './images/orang.png'}" /><span>${b.jersey_name || 'Player'}</span></a>`;
+    } else {
+      return `<div class="player-avatar"><img src="./images/black.png" /><span>${b.jersey_name}</span></div>`;
+    }
+  }).join("");
+
+  target.innerHTML = html;
+  const countEl = target.closest(".game-card").querySelector(".availability");
+  countEl.textContent = `👥 ${data.length} players joined`;
+}
+
+async function bookGame(gameId, form) {
+  const jersey_name = form.jersey_name?.value?.trim();
+
+  if (!user && !jersey_name) {
+    alert("Please enter a jersey name to book as guest.");
+    return;
+  }
+
+  const payload = {
+    game_id: gameId,
+    user_id: user?.id || null,
+    avatar_url: user?.user_metadata?.avatar_url || null,
+    jersey_name: jersey_name || user?.user_metadata?.full_name?.split(" ")[0] || "Player"
+  };
+
+  const { error } = await supabase.from("game_bookings").insert([payload]);
+
+  if (error) {
+    alert("Booking failed.");
+    console.error(error);
+  } else {
+    alert("Booking successful!");
+    loadPlayers(gameId);
+    form.reset();
+  }
+}
+</script>
 </body>
 </html>
