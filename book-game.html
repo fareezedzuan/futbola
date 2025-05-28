@@ -228,7 +228,7 @@ async function bookGame(gameId, form) {
     game_id: gameId,
     user_id: user?.id || null,
     avatar_url: profile?.avatar_url || null,
-    jersey_name: user ? profile?.jersey_name || profile?.full_name || "Player" : jersey_name
+    jersey_name: user ? profile?.jersey_name || "Player" : jersey_name
   };
 
 
