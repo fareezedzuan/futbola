@@ -198,6 +198,7 @@ async function loadPlayers(gameId) {
   countEl.textContent = `👥 ${data.length} players joined`;
 }
 
+console.log(user?.user_metadata?.avatar_url);
 async function bookGame(gameId, form) {
   const jersey_name = form.jersey_name?.value?.trim();
 
@@ -206,11 +207,17 @@ async function bookGame(gameId, form) {
     return;
   }
 
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('full_name, avatar_url')
+    .eq('id', user.id)
+    .single();
+
   const payload = {
     game_id: gameId,
-    user_id: user?.id || null,
-    avatar_url: user?.user_metadata?.avatar_url || null,
-    jersey_name: jersey_name || user?.user_metadata?.full_name?.split(" ")[0] || "Player"
+    user_id: user.id,
+    avatar_url: profile?.avatar_url || null,
+    jersey_name: jersey_name || profile?.full_name?.split(" ")[0] || "Player"
   };
 
   const { error } = await supabase.from("game_bookings").insert([payload]);
