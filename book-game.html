@@ -206,7 +206,7 @@ async function loadPlayers(gameId) {
     const form = target.closest(".game-card").querySelector("form");
     if (form) form.innerHTML = "<p style='color: gray; font-weight: bold;'>⚠️ Booking Full</p>";
   } else {
-    countEl.textContent = `👥 ${count}/${game.max_players} slots used`;
+    countEl.textContent = `👥 ${count}/${game.max_players} slots filled`;
   }
 }
 
