@@ -158,81 +158,96 @@ if (error) {
 
 async function loadPlayers(gameId) {
   const target = document.getElementById("players-" + gameId);
-  const { data, error } = await supabase.from("game_bookings").select("*").eq("game_id", gameId);
 
-  if (error || !data) {
+  const [{ data: bookings, error: bookingError }, { data: game, error: gameError }] = await Promise.all([
+    supabase.from("game_bookings").select("*").eq("game_id", gameId),
+    supabase.from("games").select("max_players").eq("id", gameId).single()
+  ]);
+
+  if (bookingError || gameError || !bookings || !game) {
     target.innerHTML = "<p>Failed to load players</p>";
     return;
   }
 
-  const html = data.map(b => {
-  const initial = (b.jersey_name || 'P')[0].toUpperCase();
-  const label = b.jersey_name || 'Player';
+  const html = bookings.map(b => {
+    const initial = (b.jersey_name || 'P')[0].toUpperCase();
+    const label = b.jersey_name || 'Player';
 
-  if (b.user_id && b.avatar_url) {
-    return `<a href="/player-public.html?id=${b.user_id}" class="player-avatar">
-      <img src="${b.avatar_url}" />
-      <span>${label}</span>
-    </a>`;
-  } else {
-    return `<div class="player-avatar">
-      <div style="
-        width: 40px; height: 40px;
-        border-radius: 50%;
-        background-color: #702963;
-        color: white;
-        font-weight: bold;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: auto;
-      ">${initial}</div>
-      <span>${label}</span>
-    </div>`;
-  }
-
+    if (b.user_id && b.avatar_url) {
+      return `<a href="/player-public.html?id=${b.user_id}" class="player-avatar">
+        <img src="${b.avatar_url}" />
+        <span>${label}</span>
+      </a>`;
+    } else {
+      return `<div class="player-avatar">
+        <div style="
+          width: 40px; height: 40px;
+          border-radius: 50%;
+          background-color: #702963;
+          color: white;
+          font-weight: bold;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin: auto;
+        ">${initial}</div>
+        <span>${label}</span>
+      </div>`;
+    }
   }).join("");
 
   target.innerHTML = html;
+
+  const count = bookings.length;
   const countEl = target.closest(".game-card").querySelector(".availability");
-  countEl.textContent = `👥 ${data.length} players joined`;
+  if (count >= game.max_players) {
+    countEl.textContent = `❌ FULL (${count}/${game.max_players})`;
+    countEl.style.color = "gray";
+    const form = target.closest(".game-card").querySelector("form");
+    if (form) form.innerHTML = "<p style='color: gray; font-weight: bold;'>⚠️ Booking Full</p>";
+  } else {
+    countEl.textContent = `👥 ${count}/${game.max_players} slots used`;
+  }
 }
 
 console.log(user?.user_metadata?.avatar_url);
 
 async function bookGame(gameId, form) {
   const jersey_name = form.jersey_name?.value?.trim();
-
   if (!user && !jersey_name) {
     alert("Please enter a jersey name to book as guest.");
     return;
   }
 
+  // Check current count
+  const [{ data: bookings }, { data: game }] = await Promise.all([
+    supabase.from("game_bookings").select("id").eq("game_id", gameId),
+    supabase.from("games").select("max_players").eq("id", gameId).single()
+  ]);
+
+  if (bookings.length >= game.max_players) {
+    alert("This game is already full.");
+    loadPlayers(gameId);
+    return;
+  }
+
+  // Fetch user profile only if logged in
   let profile = null;
-
   if (user) {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('full_name, avatar_url, jersey_name')
-      .eq('id', user.id)
+    const { data } = await supabase
+      .from("profiles")
+      .select("jersey_name, avatar_url")
+      .eq("id", user.id)
       .single();
-
-    if (error) {
-      console.error("Failed to fetch profile:", error);
-    } else {
-      profile = data;
-    }
+    profile = data;
   }
 
   const payload = {
     game_id: gameId,
     user_id: user?.id || null,
-    avatar_url: profile?.avatar_url || null,
-    jersey_name: user ? profile?.jersey_name || "Player" : jersey_name
+    avatar_url: user ? (profile?.avatar_url || null) : null,
+    jersey_name: user ? (profile?.jersey_name || "Player") : jersey_name
   };
-
-
-  console.log("Booking payload:", payload);
 
   const { error } = await supabase.from("game_bookings").insert([payload]);
 
