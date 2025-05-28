@@ -166,11 +166,31 @@ async function loadPlayers(gameId) {
   }
 
   const html = data.map(b => {
-    if (b.user_id) {
-      return `<a href="/player-public.html?id=${b.user_id}" class="player-avatar"><img src="${b.avatar_url || './images/orang.png'}" /><span>${b.jersey_name || 'Player'}</span></a>`;
-    } else {
-      return `<div class="player-avatar"><img src="./images/black.png" /><span>${b.jersey_name}</span></div>`;
-    }
+  const initial = (b.jersey_name || 'P')[0].toUpperCase();
+  const label = b.jersey_name || 'Player';
+
+  if (b.user_id && b.avatar_url) {
+    return `<a href="/player-public.html?id=${b.user_id}" class="player-avatar">
+      <img src="${b.avatar_url}" />
+      <span>${label}</span>
+    </a>`;
+  } else {
+    return `<div class="player-avatar">
+      <div style="
+        width: 40px; height: 40px;
+        border-radius: 50%;
+        background-color: #702963;
+        color: white;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: auto;
+      ">${initial}</div>
+      <span>${label}</span>
+    </div>`;
+  }
+
   }).join("");
 
   target.innerHTML = html;
