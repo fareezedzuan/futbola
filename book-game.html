@@ -138,14 +138,21 @@ if (error) {
         <p><strong>💰 Price:</strong> RM ${parseFloat(game.price).toFixed(2)}</p>
         <p class="availability">Slots: loading...</p>
       </div>
-      <form class="form-section" onsubmit="event.preventDefault(); bookGame('${game.id}', this)">
+      <form class="form-section" id="form-${game.id}">
         ${user ? "" : '<input name="jersey_name" placeholder="Enter jersey name" required />'}
         <button type="submit">✅ Book Now</button>
       </form>
       <div class="player-list" id="players-${game.id}"></div>
     `;
+
     container.appendChild(div);
     loadPlayers(game.id);
+
+    // ✅ Bind submit listener
+    document.getElementById(`form-${game.id}`)?.addEventListener("submit", (e) => {
+      e.preventDefault();
+      bookGame(game.id, e.target);
+    });
   });
 }
 
