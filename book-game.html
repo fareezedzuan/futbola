@@ -219,19 +219,33 @@ async function bookGame(gameId, form) {
     return;
   }
 
-  // Check current count
+  // 1. Check if full
   const [{ data: bookings }, { data: game }] = await Promise.all([
     supabase.from("game_bookings").select("id").eq("game_id", gameId),
     supabase.from("games").select("max_players").eq("id", gameId).single()
   ]);
-
   if (bookings.length >= game.max_players) {
     alert("This game is already full.");
     loadPlayers(gameId);
     return;
   }
 
-  // Fetch user profile only if logged in
+  // 2. Prevent duplicate booking for registered users
+  if (user) {
+    const { data: existing } = await supabase
+      .from("game_bookings")
+      .select("id")
+      .eq("game_id", gameId)
+      .eq("user_id", user.id)
+      .single();
+
+    if (existing) {
+      alert("You've already booked this game.");
+      return;
+    }
+  }
+
+  // 3. Fetch profile if logged in
   let profile = null;
   if (user) {
     const { data } = await supabase
@@ -242,6 +256,7 @@ async function bookGame(gameId, form) {
     profile = data;
   }
 
+  // 4. Create payload
   const payload = {
     game_id: gameId,
     user_id: user?.id || null,
@@ -260,6 +275,7 @@ async function bookGame(gameId, form) {
     form.reset();
   }
 }
+
 
 </script>
 </body>
