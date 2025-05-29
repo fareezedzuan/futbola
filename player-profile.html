@@ -177,6 +177,36 @@
   width: 100%;
   margin-top: 5px;
 }
+.futbola-btn {
+  font-size: 14px;
+  font-weight: bold;
+  border-radius: 8px;
+  padding: 6px 16px;
+  cursor: pointer;
+  transition: background 0.3s ease, color 0.3s ease;
+  margin-left: 8px;
+  border: none;
+}
+
+.futbola-btn.outline {
+  background: white;
+  color: #ff5a5f;
+  border: 2px solid #ff5a5f;
+}
+
+.futbola-btn.outline:hover {
+  background: #ffeaea;
+}
+
+.futbola-btn.solid {
+  background: #ff5a5f;
+  color: white;
+  border: 2px solid #ff5a5f;
+}
+
+.futbola-btn.solid:hover {
+  background: #e14c50;
+}
 
   </style>
 </head>
@@ -186,12 +216,11 @@
     <a href="/index.html" style="text-decoration: none; color: #555; font-weight: bold;">🏠 Home</a>
     <a href="/player-public.html" style="text-decoration: none; color: #555; font-weight: bold;">🌐 Public View</a>
   </div>
-    <div class="top-bar">
-      <h2 class="top-heading">
-        Profile
-        <button id="toggleMode" title="Edit"><i class="fas fa-pen-to-square"></i></button>
-      </h2>
-    </div>
+<div id="editControls" style="text-align: right; margin-top: 10px;">
+  <button id="editBtn" class="futbola-btn outline">✏️ Edit</button>
+  <button id="saveBtn" class="futbola-btn solid" style="display: none;">✅ Save</button>
+</div>
+
     <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 12px; max-width: 100%;">
       <label for="avatarUpload">
         <img id="avatar" class="avatar" src="./images/default-avatar.png" alt="Avatar" style="cursor: pointer;" />
