@@ -301,11 +301,10 @@ async function bookGame(gameId, form) {
   // 4. Create payload
   const payload = {
     game_id: gameId,
-    user_id: null, // always null for represented players
-    booked_by_user_id: user?.id || null, // person making the booking
-    avatar_url: null, // only player profiles use avatar, guests don’t
-    jersey_name,
-    phone
+    user_id: user?.id || null,
+    avatar_url: user ? (profile?.avatar_url || null) : null,
+    jersey_name: user ? (profile?.jersey_name || "Player") : jersey_name,
+    phone: user ? profile?.phone || null : phone 
   };
 
   const { error } = await supabase.from("game_bookings").insert([payload]);
