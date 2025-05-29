@@ -161,10 +161,11 @@ if (error) {
   </div>
   <form class="form-section" id="form-${game.id}">
     ${user ? `
-      <label style="display: flex; align-items: center; font-size: 14px; margin-bottom: 5px;">
-        <input type="checkbox" name="selfBooking" checked style="margin-right: 6px; vertical-align: middle;" />
-        I am playing
-      </label>
+<div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+  <input type="checkbox" name="selfBooking" checked style="margin: 0;" />
+  <span style="font-size: 14px;">I am playing</span>
+</div>
+
 
       <div class="guest-fields" style="display: none;">
         <input name="jersey_name" placeholder="Enter player's jersey name" />
