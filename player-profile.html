@@ -169,6 +169,14 @@
   border-radius: 12px;
   font-weight: 500;
 }
+.field-edit select {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 16px;
+  width: 100%;
+  margin-top: 5px;
+}
 
   </style>
 </head>
@@ -230,7 +238,25 @@
       <div class="field-label">Date of Birth</div>
       <div class="field-view" id="dobView">-</div>
       <span class="visibility-icon" id="icon_dob">👁️</span>
-      <input class="field-edit" id="dobEdit" />
+      <div class="field-edit" id="dobEditContainer">
+        <select id="dobDay" style="width: 32%; margin-right: 2%;">
+          <option value="">Day</option>
+          ${[...Array(31)].map((_, i) => `<option value="${i + 1}">${i + 1}</option>`).join('')}
+        </select>
+        <select id="dobMonth" style="width: 32%; margin-right: 2%;">
+          <option value="">Month</option>
+          ${["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
+            .map((m, i) => `<option value="${i + 1}">${m}</option>`).join('')}
+        </select>
+        <select id="dobYear" style="width: 32%;">
+          <option value="">Year</option>
+          ${[...Array(70)].map((_, i) => {
+            const year = new Date().getFullYear() - i;
+            return `<option value="${year}">${year}</option>`;
+          }).join('')}
+        </select>
+      </div>
+
       <select class="field-edit" id="visibility_dob">
         <option value="real">Show Age</option>
         <option value="range">Age Range</option>
@@ -271,7 +297,13 @@
       <div class="field-label">Skill Level</div>
       <div class="field-view" id="skillView">-</div>
       <span class="visibility-icon" id="icon_skill">👁️</span>
-      <input class="field-edit" id="skillEdit" />
+      <select class="field-edit" id="skillEdit">
+        <option value="5">🌟 Top player—one of the best on the field!</option>
+        <option value="4">🔥 Key team player—always making an impact!</option>
+        <option value="3">⚽ Solid player—can hold your own in a game!</option>
+        <option value="2">😃 Love football—not the most skillful but always ready to play!</option>
+        <option value="1">👶 Just starting—no worries, everyone begins somewhere!</option>
+      </select>
       <select class="field-edit" id="visibility_skill">
         <option value="public">Public</option>
         <option value="private">Private</option>
