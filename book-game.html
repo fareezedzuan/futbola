@@ -261,15 +261,23 @@ async function loadPlayers(gameId) {
 console.log(user?.user_metadata?.avatar_url);
 
 async function bookGame(gameId, form) {
+  const selfBooking = form.selfBooking?.checked;
   const jersey_name = form.jersey_name?.value?.trim();
   const phone = form.phone?.value?.trim();
 
+  // 🚫 For guests, jersey_name and phone required
   if (!user && (!jersey_name || !phone)) {
     alert("Please enter both jersey name and phone number.");
     return;
   }
 
-  // 1. Check if full
+  // 🚫 For user booking someone else, fields required
+  if (user && !selfBooking && (!jersey_name || !phone)) {
+    alert("Please enter guest name and phone.");
+    return;
+  }
+
+  // ✅ Check if game full
   const [{ data: bookings }, { data: game }] = await Promise.all([
     supabase.from("game_bookings").select("id").eq("game_id", gameId),
     supabase.from("games").select("max_players").eq("id", gameId).single()
@@ -280,8 +288,8 @@ async function bookGame(gameId, form) {
     return;
   }
 
-  // 2. Check duplicate booking
-  if (user) {
+  // ✅ Check duplicate
+  if (user && selfBooking) {
     const { data: existing } = await supabase
       .from("game_bookings")
       .select("id")
@@ -305,9 +313,9 @@ async function bookGame(gameId, form) {
     }
   }
 
-  // 3. Fetch profile if logged in
+  // ✅ Fetch profile if needed
   let profile = null;
-  if (user) {
+  if (user && selfBooking) {
     const { data } = await supabase
       .from("profiles")
       .select("jersey_name, avatar_url, phone")
@@ -316,12 +324,19 @@ async function bookGame(gameId, form) {
     profile = data;
   }
 
-  // 4. Create payload
-  const payload = {
+  // ✅ Build payload
+  const payload = user && selfBooking ? {
     game_id: gameId,
-    user_id: null, // always null for represented players
-    booked_by_user_id: user?.id || null, // person making the booking
-    avatar_url: null, // only player profiles use avatar, guests don’t
+    user_id: user.id,
+    booked_by_user_id: user.id,
+    avatar_url: profile?.avatar_url || null,
+    jersey_name: profile?.jersey_name || "Player",
+    phone: profile?.phone || null
+  } : {
+    game_id: gameId,
+    user_id: null,
+    booked_by_user_id: user?.id || null,
+    avatar_url: null,
     jersey_name,
     phone
   };
@@ -337,6 +352,7 @@ async function bookGame(gameId, form) {
     form.reset();
   }
 }
+
 
 </script>
 </body>
