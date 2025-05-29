@@ -222,22 +222,20 @@ function setupEditToggle(profile) {
 
         
         // then handle regular <input> and <select>
-      if (id === 'dob') {
-        const dob = profile.date_of_birth;
-        if (dob) {
-          const [year, month, day] = dob.split('-');
-          document.getElementById("dobDay").value = parseInt(day);
-          document.getElementById("dobMonth").value = parseInt(month);
-          document.getElementById("dobYear").value = parseInt(year);
-        }
-        view?.style.setProperty("display", "none");
-        document.getElementById("dobEditContainer").style.display = "flex";
-      } else if (edit) {
-        const val = getProfileValue(profile, id);
-        edit.value = Array.isArray(val) ? val.join(', ') : val ?? "";
-        view?.style.setProperty("display", "none");
-        edit.style.display = "block";
-      }
+if (id === 'dob') {
+  const day = document.getElementById("dobDay").value;
+  const month = document.getElementById("dobMonth").value;
+  const year = document.getElementById("dobYear").value;
+
+  if (day && month && year) {
+    updated.date_of_birth = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+    console.log("✅ Saving DOB:", updated.date_of_birth);
+  } else {
+    console.log("⚠️ DOB not saved — incomplete");
+  }
+
+  document.getElementById("dobEditContainer").style.display = "none";
+}
 
 
         if (id === 'availability') {
