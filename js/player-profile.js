@@ -296,6 +296,9 @@ function setupEditToggle(profile) {
           document.getElementById("dobEditContainer").style.display = "none";
         }
 
+        console.log("Saving DOB:", updated.date_of_birth);
+
+
 
         if (vis) vis.style.display = "none";
         if (view) {
