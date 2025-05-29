@@ -157,10 +157,8 @@
           el.innerHTML = val.map(day => `<span class="chip">${day}</span>`).join('');
         } else if (Array.isArray(val)) {
           el.textContent = val.join(', ');
-        } else if (key === 'skill') {
-          el.textContent = mapSkillLevel(val);
         } else {
-          el.textContent = val ? val : "";
+          el.textContent = val ?? "-";
         }
       };
 
