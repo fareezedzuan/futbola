@@ -155,6 +155,8 @@
           }
         }else if (key === 'availability' && Array.isArray(val)) {
           el.innerHTML = val.map(day => `<span class="chip">${day}</span>`).join('');
+        } else if (key === 'skill') {
+          el.textContent = mapSkillLevel(val);
         } else if (Array.isArray(val)) {
           el.textContent = val.join(', ');
         } else {
@@ -204,6 +206,7 @@
         default: return "";
       }
     }
+    
 
   </script>
 </body>
