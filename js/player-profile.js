@@ -369,7 +369,7 @@ function assignUpdate(updated, id, value) {
   const map = {
     fullName: "full_name",
     phone: "phone",
-    dob: "date_of_birth",
+    dob: "date_of_birth", // ← keep this in map, but skip below
     gender: "gender",
     location: "location_play",
     skill: "skill_level",
@@ -382,7 +382,9 @@ function assignUpdate(updated, id, value) {
     footballPosition: "football_position",
     categoryRole: "category_role"
   };
-  
+
+  if (id === 'dob') return; // ✅ Don't overwrite DOB set earlier
+
   if (id === 'availability') {
     const container = document.getElementById("availabilityEditContainer");
     const checked = Array.from(container.querySelectorAll("input[type=checkbox]"))
@@ -395,8 +397,6 @@ function assignUpdate(updated, id, value) {
     updated[map[id]] = value || null;
   }
 }
-  
-
 
 function getVisibilitySettings() {
   const keys = ["fullName", "phone", "dob", "gender", "location", "skill", "team", "availability","futsalPosition", "footballPosition", "categoryRole"];
