@@ -220,34 +220,29 @@ function setupEditToggle(profile) {
           }
         }
 
-        
-        // then handle regular <input> and <select>
-if (id === 'dob') {
-  const day = document.getElementById("dobDay").value;
-  const month = document.getElementById("dobMonth").value;
-  const year = document.getElementById("dobYear").value;
-
-  if (day && month && year) {
-    updated.date_of_birth = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-    console.log("✅ Saving DOB:", updated.date_of_birth);
-  } else {
-    console.log("⚠️ DOB not saved — incomplete");
-  }
-
-  document.getElementById("dobEditContainer").style.display = "none";
-}
-
-
-        if (id === 'availability') {
-          const container = document.getElementById("availabilityEditContainer");
-          if (container) {
-            container.style.display = "block";
-            const checkboxes = container.querySelectorAll("input[type=checkbox]");
-            checkboxes.forEach(cb => {
-              cb.checked = (profile.availability || []).includes(cb.value);
-            });
-          }
+      if (id === 'availability') {
+        const container = document.getElementById("availabilityEditContainer");
+        if (container) {
+          container.style.display = "block";
+          const checkboxes = container.querySelectorAll("input[type=checkbox]");
+          checkboxes.forEach(cb => {
+            cb.checked = (profile.availability || []).includes(cb.value);
+          });
         }
+      }
+
+      if (id === 'dob') {
+        const dob = profile.date_of_birth;
+        if (dob) {
+          const [year, month, day] = dob.split('-');
+          document.getElementById("dobDay").value = parseInt(day);
+          document.getElementById("dobMonth").value = parseInt(month);
+          document.getElementById("dobYear").value = parseInt(year);
+        }
+        if (view) view.style.display = "none";
+        document.getElementById("dobEditContainer").style.display = "flex";
+      }
+
 
         if (vis) vis.style.display = "inline-block";
 
