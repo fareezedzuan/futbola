@@ -188,7 +188,7 @@ function setupEditToggle(profile) {
 
   toggleBtn.addEventListener("click", async () => {
     isEdit = !isEdit;
-    toggleBtn.innerHTML = isEdit ? '<i class="fas fa-circle-check"></i>' : '<i class="fas fa-pen-to-square"></i>';
+    toggleBtn.textContent = isEdit ? "✅ Save" : "✏️ Edit";
     toggleBtn.classList.toggle('save-mode', isEdit);
 
     const fields = ["fullName", "phone", "dob", "gender", "location", "skill", "team", "availability", "futsalPosition", "footballPosition", "categoryRole", "jerseyName", "jerseyNumber", "bio"];
