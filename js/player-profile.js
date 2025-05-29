@@ -284,21 +284,26 @@ function setupEditToggle(profile) {
           container.style.display = "none";
         }
 
-      if (id === 'dob') {
-        const day = document.getElementById("dobDay")?.value;
-        const month = document.getElementById("dobMonth")?.value;
-        const year = document.getElementById("dobYear")?.value;
+        if (id === 'dob') {
+          const daySel = document.getElementById("dobDay");
+          const monthSel = document.getElementById("dobMonth");
+          const yearSel = document.getElementById("dobYear");
 
-        if (day && month && year) {
-          updated.date_of_birth = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-          console.log("✅ Saving DOB:", updated.date_of_birth);
-        } else {
-          console.log("⚠️ Incomplete or missing DOB input — skipping update");
+          if (daySel && monthSel && yearSel && daySel.value && monthSel.value && yearSel.value) {
+            const day = daySel.value.padStart(2, '0');
+            const month = monthSel.value.padStart(2, '0');
+            const year = yearSel.value;
+
+            updated.date_of_birth = `${year}-${month}-${day}`;
+            console.log("✅ Saving DOB:", updated.date_of_birth);
+          } else {
+            // Don't save or overwrite
+            console.log("⚠️ DOB selectors missing or empty — skipping DOB update");
+          }
+
+          const dobContainer = document.getElementById("dobEditContainer");
+          if (dobContainer) dobContainer.style.display = "none";
         }
-
-        document.getElementById("dobEditContainer").style.display = "none";
-      }
-
 
 
         console.log("Saving DOB:", updated.date_of_birth);
