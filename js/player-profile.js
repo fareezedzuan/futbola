@@ -291,10 +291,14 @@ function setupEditToggle(profile) {
 
           if (day && month && year) {
             updated.date_of_birth = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+          } else {
+            // ❌ Don't overwrite DOB with null just because it's not selected
+            delete updated.date_of_birth;
           }
 
           document.getElementById("dobEditContainer").style.display = "none";
         }
+
 
         console.log("Saving DOB:", updated.date_of_birth);
 
