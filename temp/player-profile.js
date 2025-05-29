@@ -220,8 +220,17 @@ function setupEditToggle(profile) {
           }
         }
 
-        
-        // then handle regular <input> and <select>
+      if (id === 'availability') {
+        const container = document.getElementById("availabilityEditContainer");
+        if (container) {
+          container.style.display = "block";
+          const checkboxes = container.querySelectorAll("input[type=checkbox]");
+          checkboxes.forEach(cb => {
+            cb.checked = (profile.availability || []).includes(cb.value);
+          });
+        }
+      }
+
       if (id === 'dob') {
         const dob = profile.date_of_birth;
         if (dob) {
@@ -230,26 +239,10 @@ function setupEditToggle(profile) {
           document.getElementById("dobMonth").value = parseInt(month);
           document.getElementById("dobYear").value = parseInt(year);
         }
-        view?.style.setProperty("display", "none");
+        if (view) view.style.display = "none";
         document.getElementById("dobEditContainer").style.display = "flex";
-      } else if (edit) {
-        const val = getProfileValue(profile, id);
-        edit.value = Array.isArray(val) ? val.join(', ') : val ?? "";
-        view?.style.setProperty("display", "none");
-        edit.style.display = "block";
       }
 
-
-        if (id === 'availability') {
-          const container = document.getElementById("availabilityEditContainer");
-          if (container) {
-            container.style.display = "block";
-            const checkboxes = container.querySelectorAll("input[type=checkbox]");
-            checkboxes.forEach(cb => {
-              cb.checked = (profile.availability || []).includes(cb.value);
-            });
-          }
-        }
 
         if (vis) vis.style.display = "inline-block";
 
@@ -332,8 +325,7 @@ function setupEditToggle(profile) {
       };
       console.log("🧪 Final payload before save:", updated);
 
-      const merged = { ...profile, ...updated };
-      const { error } = await supabase.from('profiles').update(merged).eq('id', profile.id);
+      const { error } = await supabase.from('profiles').update(updated).eq('id', profile.id);
       if (error) return alert("Save failed");
       Object.assign(profile, updated);
       populateFields(profile); // ✅ Add this
