@@ -284,20 +284,21 @@ function setupEditToggle(profile) {
           container.style.display = "none";
         }
 
-        if (id === 'dob') {
-          const day = document.getElementById("dobDay").value;
-          const month = document.getElementById("dobMonth").value;
-          const year = document.getElementById("dobYear").value;
+      if (id === 'dob') {
+        const day = document.getElementById("dobDay")?.value;
+        const month = document.getElementById("dobMonth")?.value;
+        const year = document.getElementById("dobYear")?.value;
 
-          if (day && month && year) {
-            updated.date_of_birth = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-          } else {
-            // ❌ Don't overwrite DOB with null just because it's not selected
-            delete updated.date_of_birth;
-          }
-
-          document.getElementById("dobEditContainer").style.display = "none";
+        if (day && month && year) {
+          updated.date_of_birth = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+          console.log("✅ Saving DOB:", updated.date_of_birth);
+        } else {
+          console.log("⚠️ Incomplete or missing DOB input — skipping update");
         }
+
+        document.getElementById("dobEditContainer").style.display = "none";
+      }
+
 
 
         console.log("Saving DOB:", updated.date_of_birth);
