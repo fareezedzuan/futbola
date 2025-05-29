@@ -137,32 +137,38 @@
       }
 
       const vis = profile.privacy_settings || {};
+
       const show = (key, val) => {
         const el = document.getElementById(key + "View");
+        const row = el?.closest(".field-row");
         const setting = vis[key];
-        if (!el) return;
+        if (!el || !row) return;
 
-        if (setting === 'private') {
-          el.textContent = "-";
-        }else if (key === 'dob') {
+        if (setting === "private") {
+          row.style.display = "none"; // 👈 completely hide row
+          return;
+        }
+
+        if (key === "dob") {
           const age = getAgeFromDOB(val);
-          if (setting === 'private') {
-            el.textContent = "-";
-          } else if (setting === 'range') {
+          if (setting === "range") {
             el.textContent = getAgeRange(age);
           } else {
             el.textContent = age ? `${age} years old` : "-";
           }
-        }else if (key === 'availability' && Array.isArray(val)) {
-          el.innerHTML = val.map(day => `<span class="chip">${day}</span>`).join('');
-        } else if (key === 'skill') {
+        } else if (key === "skill") {
           el.textContent = mapSkillLevel(val);
+        } else if (key === "availability" && Array.isArray(val)) {
+          el.innerHTML = val.map(day => `<span class="chip">${day}</span>`).join("");
         } else if (Array.isArray(val)) {
-          el.textContent = val.join(', ');
+          el.textContent = val.join(", ");
         } else {
           el.textContent = val ?? "-";
         }
+
+        row.style.display = "block"; // 👈 ensure visible if not private
       };
+
 
       document.getElementById("jerseyFull").textContent = `${profile.jersey_name ?? ''} ${profile.jersey_number ?? ''}`.trim();
       document.getElementById("bio").textContent = profile.bio ?? "-";
