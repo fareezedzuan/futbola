@@ -151,6 +151,37 @@ function populateFields(profile) {
 
 }
 
+function populateDOBSelectors() {
+  const daySelect = document.getElementById("dobDay");
+  const monthSelect = document.getElementById("dobMonth");
+  const yearSelect = document.getElementById("dobYear");
+
+  // Day options
+  daySelect.innerHTML = '<option value="">Day</option>';
+  for (let i = 1; i <= 31; i++) {
+    daySelect.innerHTML += `<option value="${i}">${i}</option>`;
+  }
+
+  // Month options
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  monthSelect.innerHTML = '<option value="">Month</option>';
+  months.forEach((m, i) => {
+    monthSelect.innerHTML += `<option value="${i + 1}">${m}</option>`;
+  });
+
+  // Year options
+  const currentYear = new Date().getFullYear();
+  yearSelect.innerHTML = '<option value="">Year</option>';
+  for (let y = currentYear; y >= currentYear - 70; y--) {
+    yearSelect.innerHTML += `<option value="${y}">${y}</option>`;
+  }
+}
+
+// Call it once on page load:
+populateDOBSelectors();
+
+
 function setupEditToggle(profile) {
   const toggleBtn = document.getElementById("toggleMode");
   let isEdit = false;

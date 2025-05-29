@@ -239,22 +239,12 @@
       <div class="field-view" id="dobView">-</div>
       <span class="visibility-icon" id="icon_dob">👁️</span>
       <div class="field-edit" id="dobEditContainer">
-        <select id="dobDay" style="width: 32%; margin-right: 2%;">
-          <option value="">Day</option>
-          ${[...Array(31)].map((_, i) => `<option value="${i + 1}">${i + 1}</option>`).join('')}
-        </select>
-        <select id="dobMonth" style="width: 32%; margin-right: 2%;">
-          <option value="">Month</option>
-          ${["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
-            .map((m, i) => `<option value="${i + 1}">${m}</option>`).join('')}
-        </select>
-        <select id="dobYear" style="width: 32%;">
-          <option value="">Year</option>
-          ${[...Array(70)].map((_, i) => {
-            const year = new Date().getFullYear() - i;
-            return `<option value="${year}">${year}</option>`;
-          }).join('')}
-        </select>
+        <div class="field-edit" id="dobEditContainer">
+          <select id="dobDay" style="width: 32%; margin-right: 2%;"></select>
+          <select id="dobMonth" style="width: 32%; margin-right: 2%;"></select>
+          <select id="dobYear" style="width: 32%;"></select>
+        </div>
+
       </div>
 
       <select class="field-edit" id="visibility_dob">
