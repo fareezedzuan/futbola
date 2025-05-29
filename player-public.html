@@ -193,6 +193,18 @@
       const base = Math.floor(age / 5) * 5;
       return `${base}-${base + 4}`;
     }
+
+    function mapSkillLevel(level) {
+      switch (parseInt(level)) {
+        case 1: return "Beginner";
+        case 2: return "Casual";
+        case 3: return "Intermediate";
+        case 4: return "Advanced";
+        case 5: return "Elite";
+        default: return "";
+      }
+    }
+
   </script>
 </body>
 </html>
