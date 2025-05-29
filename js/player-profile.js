@@ -125,7 +125,7 @@ function populateFields(profile) {
   show("dob", profile.date_of_birth);
   show("gender", profile.gender);
   show("location", profile.location_play?.join(', '));
-  show("skill", profile.skill_level);
+  show("skill", mapSkillLevel(profile.skill_level));
   show("team", profile.team_name);
   show("availability", profile.availability);
   show("futsalPosition", profile.futsal_position);
@@ -392,3 +392,15 @@ function setupAvatarUpload(userId) {
     await supabase.from("profiles").update({ avatar_url: url }).eq("id", userId);
   });
 }
+
+function mapSkillLevel(level) {
+  switch (parseInt(level)) {
+    case 1: return "Beginner";
+    case 2: return "Casual";
+    case 3: return "Intermediate";
+    case 4: return "Advanced";
+    case 5: return "Elite";
+    default: return "-";
+  }
+}
+
