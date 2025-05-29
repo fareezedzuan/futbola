@@ -28,7 +28,7 @@ const supabase = createClient(
       id: user.id,
       full_name: user.user_metadata.full_name || "Unnamed Player",
       avatar_url: user.user_metadata.avatar_url || "",
-      privacy_settings: {},
+      privacy_settings: {gender: "private"},
       availability: [],
       futsal_position: [],
       football_position: [],
