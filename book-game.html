@@ -139,7 +139,10 @@ if (error) {
         <p class="availability">Slots: loading...</p>
       </div>
       <form class="form-section" id="form-${game.id}">
-        ${user ? "" : '<input name="jersey_name" placeholder="Enter jersey name" required />'}
+        ${user ? "" : `
+          <input name="jersey_name" placeholder="Enter jersey name" required />
+          <input name="phone" placeholder="Enter phone number" type="tel" required />
+        `}
         <button type="submit">✅ Book Now</button>
       </form>
       <div class="player-list" id="players-${game.id}"></div>
@@ -214,8 +217,10 @@ console.log(user?.user_metadata?.avatar_url);
 
 async function bookGame(gameId, form) {
   const jersey_name = form.jersey_name?.value?.trim();
-  if (!user && !jersey_name) {
-    alert("Please enter a jersey name to book as guest.");
+  const phone = form.phone?.value?.trim();
+
+  if (!user && (!jersey_name || !phone)) {
+    alert("Please enter both jersey name and phone number.");
     return;
   }
 
@@ -230,7 +235,7 @@ async function bookGame(gameId, form) {
     return;
   }
 
-  // 2. Prevent duplicate booking for registered users
+  // 2. Check duplicate booking
   if (user) {
     const { data: existing } = await supabase
       .from("game_bookings")
@@ -238,9 +243,19 @@ async function bookGame(gameId, form) {
       .eq("game_id", gameId)
       .eq("user_id", user.id)
       .single();
-
     if (existing) {
       alert("You've already booked this game.");
+      return;
+    }
+  } else {
+    const { data: existingGuest } = await supabase
+      .from("game_bookings")
+      .select("id")
+      .eq("game_id", gameId)
+      .eq("phone", phone)
+      .single();
+    if (existingGuest) {
+      alert("This phone number has already booked this game.");
       return;
     }
   }
@@ -261,7 +276,8 @@ async function bookGame(gameId, form) {
     game_id: gameId,
     user_id: user?.id || null,
     avatar_url: user ? (profile?.avatar_url || null) : null,
-    jersey_name: user ? (profile?.jersey_name || "Player") : jersey_name
+    jersey_name: user ? (profile?.jersey_name || "Player") : jersey_name,
+    phone: user ? null : phone
   };
 
   const { error } = await supabase.from("game_bookings").insert([payload]);
@@ -275,7 +291,6 @@ async function bookGame(gameId, form) {
     form.reset();
   }
 }
-
 
 </script>
 </body>
