@@ -138,11 +138,17 @@ if (error) {
         <p><strong>💰 Price:</strong> RM ${parseFloat(game.price).toFixed(2)}</p>
         <p class="availability">Slots: loading...</p>
       </div>
-      <form class="form-section" id="form-${game.id}">
-        ${user ? "" : `
-          <input name="jersey_name" placeholder="Enter jersey name" required />
-          <input name="phone" placeholder="Enter phone number" type="tel" required />
-        `}
+
+    <form class="form-section" id="form-${game.id}">
+      ${user ? "" : `
+        <input name="jersey_name" placeholder="Enter jersey name" required />
+        <input name="phone" placeholder="Enter phone number" type="tel" required />
+        <p style="font-size: 13px; margin-top: 10px;">
+          Want to save your profile and track your games?
+          <a href="/login.html" style="color: #702963; font-weight: bold;">Register here</a>.
+        </p>
+      `}
+      
         <button type="submit">✅ Book Now</button>
       </form>
       <div class="player-list" id="players-${game.id}"></div>
