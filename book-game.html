@@ -161,9 +161,19 @@ if (error) {
       </div>
 
     <form class="form-section" id="form-${game.id}">
-      ${user ? "" : `
+      ${user ? `
+        <label style="font-size: 14px; display: block; margin-bottom: 5px;">
+          <input type="checkbox" name="selfBooking" checked />
+          I am playing
+        </label>
+        <div class="guest-fields" style="display: none;">
+          <input name="jersey_name" placeholder="Enter player's jersey name" />
+          <input name="phone" placeholder="Enter player's phone number" type="tel" />
+        </div>
+      ` : `
         <input name="jersey_name" placeholder="Enter jersey name" required />
         <input name="phone" placeholder="Enter phone number" type="tel" required />
+
         <p style="font-size: 13px; margin-top: 10px;">
           Want to save your profile and track your games?
           <a href="/login.html" style="color: #702963; font-weight: bold;">Register here</a>.
