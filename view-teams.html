@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>View Teams - Futbola</title>
+  <link rel="icon" href="./images/futbola-favicon.ico" type="image/x-icon">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" />
+</head>
+<body class="bg-gray-100 font-sans">
+  <div class="container mx-auto px-4 py-6">
+    <h1 class="text-3xl font-bold text-center mb-6">Available Teams</h1>
+
+    <div class="flex justify-center mb-6">
+      <a href="/create-team.html" class="bg-green-500 text-white px-5 py-3 rounded-lg font-semibold hover:bg-green-600 transition">
+        ➕ Create Team
+      </a>
+    </div>
+
+    <div id="teamList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <!-- Teams will be injected here -->
+    </div>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+    const supabase = createClient(
+      'https://kdbqroxhypnadolcxxxc.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkYnFyb3hoeXBuYWRvbGN4eHhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3MjkwNzYsImV4cCI6MjA1NzMwNTA3Nn0.c7_RVxoFdJNqQ62R3t1emH2Wf4dSsQaunHsHmbQxOBA'
+    );
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) window.location.href = "/login.html";
+
+    const { data: teams, error } = await supabase
+      .from("teams")
+      .select("id, name, logo_url, level, location, match_day")
+      .eq("is_public", true);
+
+    const teamList = document.getElementById("teamList");
+
+    if (error) {
+      teamList.innerHTML = `<p class="text-red-500">Failed to load teams.</p>`;
+      console.error(error);
+    } else if (teams.length === 0) {
+      teamList.innerHTML = `<p class="text-gray-600">No public teams yet. Be the first to create one!</p>`;
+    } else {
+      teams.forEach(team => {
+        const card = document.createElement("div");
+        card.className = "bg-white shadow-lg rounded-lg p-4 text-center";
+
+        card.innerHTML = `
+          <img src="${team.logo_url || './images/futbolaLogoOnly.png'}" alt="Team Logo" class="w-20 h-20 object-cover mx-auto mb-2 rounded-full">
+          <h2 class="text-xl font-bold">${team.name}</h2>
+          <p class="text-sm text-gray-600 mb-1">Level: ${team.level}</p>
+          <p class="text-sm text-gray-600 mb-1">Location: ${team.location || 'Not set'}</p>
+          <p class="text-sm text-gray-600 mb-2">Match Days: ${(team.match_day || []).join(', ') || 'Not set'}</p>
+          <a href="/team-dashboard.html?id=${team.id}" class="mt-2 inline-block text-blue-600 font-semibold hover:underline">View Team</a>
+        `;
+
+        teamList.appendChild(card);
+      });
+    }
+  </script>
+</body>
+</html>
