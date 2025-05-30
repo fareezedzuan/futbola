@@ -132,17 +132,5 @@
     </form>
     <div id="message"></div>
   </div>
-
-  <script>
-    const logoUpload = document.getElementById('logoUpload');
-    const logoPreview = document.getElementById('logoPreview');
-
-    logoUpload.addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      if (file) {
-        logoPreview.src = URL.createObjectURL(file);
-      }
-    });
-  </script>
 </body>
 </html>
