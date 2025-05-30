@@ -114,11 +114,27 @@ const container = document.getElementById("gameContainer");
 const { data: userData } = await supabase.auth.getUser();
 const user = userData.user;
 
+const logoutContainer = document.getElementById("logoutContainer");
+
 if (user) {
-  document.getElementById("logoutContainer").innerHTML = `...`;
+  logoutContainer.innerHTML = `
+    <button id="logoutBtn" style="
+      background-color: #702963;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+    ">🚪 Logout</button>
+  `;
+
+  document.getElementById("logoutBtn").addEventListener("click", async () => {
+    await supabase.auth.signOut();
+    location.reload(); // or window.location.href = "/"
+  });
 } else {
-  // 🔧 Add this inside your <script type="module"> block
-  document.getElementById("logoutContainer").innerHTML = `
+  logoutContainer.innerHTML = `
     <a href="/login.html" style="
       color: #702963;
       font-weight: bold;
@@ -131,18 +147,6 @@ if (user) {
   `;
 }
 
-if (user) {
-  document.getElementById("logoutContainer").innerHTML = `
-    <button id="logoutBtn" style="
-      background-color: #702963;
-      color: white;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      font-weight: bold;
-    ">🚪 Logout</button>
-  `;
 
   document.getElementById("logoutBtn").addEventListener("click", async () => {
     await supabase.auth.signOut();
