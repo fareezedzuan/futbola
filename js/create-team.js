@@ -11,12 +11,15 @@ document.addEventListener("DOMContentLoaded", () => {
   const logoInput = document.getElementById("logoUpload");
   const logoPreview = document.getElementById("logoPreview");
 
-  logoInput.addEventListener("change", (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      logoPreview.src = URL.createObjectURL(file);
-    }
-  });
+console.log("Logo upload listener active");
+
+logoInput.addEventListener("change", (e) => {
+  const file = e.target.files[0];
+  console.log("Selected file:", file);
+  if (file) {
+    logoPreview.src = URL.createObjectURL(file);
+  }
+});
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
