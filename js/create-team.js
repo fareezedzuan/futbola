@@ -30,8 +30,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const location = document.getElementById("location")?.value?.trim() || "";
     const file = logoInput.files[0];
 
-    // Get match day selections
-    const matchDayInputs = document.querySelectorAll('#matchDay input[type="checkbox"]');
+    // Get match day toggle selections
+    const matchDayInputs = document.querySelectorAll('#matchDay .toggle input[type="checkbox"]');
     const matchDays = Array.from(matchDayInputs)
       .filter(input => input.checked)
       .map(input => input.value);
