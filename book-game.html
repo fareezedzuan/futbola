@@ -115,6 +115,23 @@ const { data: userData } = await supabase.auth.getUser();
 const user = userData.user;
 
 if (user) {
+  document.getElementById("logoutContainer").innerHTML = `...`;
+} else {
+  // 🔧 Add this inside your <script type="module"> block
+  document.getElementById("logoutContainer").innerHTML = `
+    <a href="/login.html" style="
+      color: #702963;
+      font-weight: bold;
+      text-decoration: none;
+      padding: 10px 20px;
+      border: 2px solid #702963;
+      border-radius: 5px;
+      display: inline-block;
+    ">🔐 Log In</a>
+  `;
+}
+
+if (user) {
   document.getElementById("logoutContainer").innerHTML = `
     <button id="logoutBtn" style="
       background-color: #702963;
