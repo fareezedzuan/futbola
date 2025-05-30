@@ -26,17 +26,19 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  teamList.innerHTML = teams.map(team => `
-    <div class="bg-white p-6 rounded-lg shadow-md border-t-4 border-red-500 text-center">
-      <div class="flex items-center space-x-4">
-        <img src="${team.logo_url || './images/default-team.png'}" alt="logo" class="w-14 h-14 rounded-full object-cover border">
-        <div>
-          <h3 class="text-xl font-bold text-black">${team.name}</h3>
-          <p class="text-sm text-gray-600">${team.location || "Location unknown"} — ${team.level || "Social"}</p>
-          <p class="text-sm text-gray-500 mt-1">${team.match_day?.join(", ") || "No preferred days set"}</p>
-        </div>
+teamList.innerHTML = teams.map(team => `
+  <div class="flex bg-white rounded-lg shadow-md border-t-4 border-red-500 p-4 items-center space-x-4">
+    <img src="${team.logo_url || './images/default-team.png'}" alt="logo" class="w-16 h-16 rounded-full object-cover border" />
+    <div class="flex-1">
+      <div class="flex justify-between items-center">
+        <h3 class="text-lg font-bold text-black">${team.name}</h3>
+        <a href="/team-dashboard.html?id=${team.id}" class="text-sm text-blue-600 font-semibold hover:underline">View Profile</a>
       </div>
-      <a href="/team-dashboard.html?id=${team.id}" class="inline-block mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">View</a>
+      <p class="text-sm text-gray-600">Level: ${team.level || "Social"}</p>
+      <p class="text-sm text-gray-600">Location: ${team.location || "Unknown"}</p>
+      <p class="text-sm text-gray-600">Match Days: ${(team.match_day || []).join(', ') || "Not set"}</p>
     </div>
-  `).join("");
+  </div>
+`).join("");
+
 });
