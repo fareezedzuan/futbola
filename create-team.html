@@ -28,6 +28,16 @@
       width: 100%;
       max-width: 450px;
       border-top: 8px solid #e63946;
+      position: relative;
+    }
+
+    .home-icon {
+      position: absolute;
+      top: 15px;
+      left: 15px;
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
     }
 
     h2 {
@@ -96,6 +106,7 @@
 </head>
 <body>
   <div class="container">
+    <a href="index.html"><img src="./images/home-icon.png" alt="Home" class="home-icon"></a>
     <h2>Create Your Team</h2>
     <form id="createTeamForm">
       <label for="teamName">Team Name:</label>
