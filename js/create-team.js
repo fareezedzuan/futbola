@@ -21,6 +21,21 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  // Setup toggle listeners for match days
+  const selectedDays = new Set();
+  document.querySelectorAll('.day-toggle').forEach(el => {
+    el.addEventListener('click', () => {
+      const day = el.dataset.day;
+      if (selectedDays.has(day)) {
+        selectedDays.delete(day);
+        el.classList.remove('active');
+      } else {
+        selectedDays.add(day);
+        el.classList.add('active');
+      }
+    });
+  });
+
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
@@ -30,11 +45,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const location = document.getElementById("location")?.value?.trim() || "";
     const file = logoInput.files[0];
 
-    // Get match day toggle selections
-    const matchDayInputs = document.querySelectorAll('#matchDay .toggle input[type="checkbox"]');
-    const matchDays = Array.from(matchDayInputs)
-      .filter(input => input.checked)
-      .map(input => input.value);
+    // Get selected match days from toggle set
+    const matchDays = [...selectedDays];
 
     const user = await supabase.auth.getUser();
     const userId = user?.data?.user?.id;
@@ -64,17 +76,15 @@ document.addEventListener("DOMContentLoaded", () => {
       logoUrl = publicUrlData?.publicUrl || "";
     }
 
-    const { data: team, error: teamError } = await supabase.from("teams").insert([
-      {
-        name: teamName,
-        logo_url: logoUrl || null,
-        bio: info,
-        level,
-        location,
-        match_day: matchDays,
-        created_by: userId
-      }
-    ]).select().single();
+    const { data: team, error: teamError } = await supabase.from("teams").insert([{
+      name: teamName,
+      logo_url: logoUrl || null,
+      bio: info,
+      level,
+      location,
+      match_day: matchDays,
+      created_by: userId
+    }]).select().single();
 
     if (teamError) {
       console.error(teamError);
@@ -82,14 +92,12 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    const { error: memberError } = await supabase.from("team_members").insert([
-      {
-        team_id: team.id,
-        user_id: userId,
-        role: "captain",
-        status: "active"
-      }
-    ]);
+    const { error: memberError } = await supabase.from("team_members").insert([{
+      team_id: team.id,
+      user_id: userId,
+      role: "captain",
+      status: "active"
+    }]);
 
     if (memberError) {
       console.error(memberError);
