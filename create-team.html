@@ -12,32 +12,33 @@
     body {
       font-family: Arial, sans-serif;
       background-image: url('./images/backgroundOrangeGradient.jpg');
+      background-size: cover;
       margin: 0;
       padding: 20px;
       display: flex;
       justify-content: center;
-      align-items: center;
-      height: 100vh;
     }
 
     .container {
       background: white;
-      padding: 30px;
-      border-radius: 20px;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-      width: 100%;
-      max-width: 450px;
       border-top: 8px solid #e63946;
-      position: relative;
+      border-radius: 12px;
+      max-width: 450px;
+      width: 100%;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
 
-    .home-icon {
-      position: absolute;
-      top: 15px;
-      left: 15px;
-      width: 24px;
-      height: 24px;
-      cursor: pointer;
+    .top-nav {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .top-nav a {
+      text-decoration: none;
+      color: #555;
+      font-weight: bold;
     }
 
     h2 {
@@ -106,7 +107,9 @@
 </head>
 <body>
   <div class="container">
-    <a href="index.html"><img src="./images/home-icon.png" alt="Home" class="home-icon"></a>
+    <div class="top-nav">
+      <a href="index.html">🏠 Home</a>
+    </div>
     <h2>Create Your Team</h2>
     <form id="createTeamForm">
       <label for="teamName">Team Name:</label>
