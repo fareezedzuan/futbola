@@ -1,0 +1,36 @@
+<!-- create-team.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Team - Futbola</title>
+  <link rel="stylesheet" href="./style.css">
+  <script type="module" src="./create-team.js" defer></script>
+</head>
+<body>
+  <div class="container">
+    <h2>Create Your Team</h2>
+    <form id="createTeamForm">
+      <label for="teamName">Team Name:</label>
+      <input type="text" id="teamName" required />
+
+      <label for="logoUrl">Logo URL (optional):</label>
+      <input type="text" id="logoUrl" />
+
+      <label for="bio">Team Bio (optional):</label>
+      <textarea id="bio" rows="3"></textarea>
+
+      <label for="level">Team Level:</label>
+      <select id="level">
+        <option value="Social">Social</option>
+        <option value="Semi-Comp">Semi-Comp</option>
+        <option value="Competitive">Competitive</option>
+      </select>
+
+      <button type="submit">Create Team</button>
+    </form>
+    <div id="message"></div>
+  </div>
+</body>
+</html>
