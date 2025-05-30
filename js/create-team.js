@@ -11,15 +11,15 @@ document.addEventListener("DOMContentLoaded", () => {
   const logoInput = document.getElementById("logoUpload");
   const logoPreview = document.getElementById("logoPreview");
 
-console.log("Logo upload listener active");
+  console.log("Logo upload listener active");
 
-logoInput.addEventListener("change", (e) => {
-  const file = e.target.files[0];
-  console.log("Selected file:", file);
-  if (file) {
-    logoPreview.src = URL.createObjectURL(file);
-  }
-});
+  logoInput.addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    console.log("Selected file:", file);
+    if (file) {
+      logoPreview.src = URL.createObjectURL(file);
+    }
+  });
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -27,7 +27,14 @@ logoInput.addEventListener("change", (e) => {
     const teamName = document.getElementById("teamName").value.trim();
     const info = document.getElementById("info").value.trim();
     const level = document.getElementById("level").value;
+    const location = document.getElementById("location")?.value?.trim() || "";
     const file = logoInput.files[0];
+
+    // Get match day selections
+    const matchDayInputs = document.querySelectorAll('#matchDay input[type="checkbox"]');
+    const matchDays = Array.from(matchDayInputs)
+      .filter(input => input.checked)
+      .map(input => input.value);
 
     const user = await supabase.auth.getUser();
     const userId = user?.data?.user?.id;
@@ -63,6 +70,8 @@ logoInput.addEventListener("change", (e) => {
         logo_url: logoUrl || null,
         bio: info,
         level,
+        location,
+        match_day: matchDays,
         created_by: userId
       }
     ]).select().single();
