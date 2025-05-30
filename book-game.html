@@ -148,12 +148,6 @@ if (user) {
 }
 
 
-  document.getElementById("logoutBtn").addEventListener("click", async () => {
-    await supabase.auth.signOut();
-    location.reload(); // Or use: window.location.href = "/"
-  });
-}
-
 
 const today = new Date().toISOString().split("T")[0];
 
