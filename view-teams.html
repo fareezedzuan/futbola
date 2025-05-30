@@ -49,7 +49,7 @@
     } else {
       teams.forEach(team => {
         const card = document.createElement("div");
-        card.className = "bg-white shadow-lg rounded-lg p-4 text-center";
+        card.className = "bg-white p-6 rounded-lg shadow-md border-t-4 border-red-500";
 
         card.innerHTML = `
           <img src="${team.logo_url || './images/futbolaLogoOnly.png'}" alt="Team Logo" class="w-20 h-20 object-cover mx-auto mb-2 rounded-full">
