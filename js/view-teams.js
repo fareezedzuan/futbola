@@ -27,7 +27,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   teamList.innerHTML = teams.map(team => `
-    <div class="bg-white rounded-lg shadow-md p-6">
+    <div class="bg-white p-6 rounded-lg shadow-md border-t-4 border-red-500 text-center">
       <div class="flex items-center space-x-4">
         <img src="${team.logo_url || './images/default-team.png'}" alt="logo" class="w-14 h-14 rounded-full object-cover border">
         <div>
