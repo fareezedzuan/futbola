@@ -101,6 +101,22 @@
       color: green;
       font-weight: bold;
     }
+
+    .day-toggle {
+        background-color: #e5ffe5;
+        border: 1px solid #34d399;
+        padding: 6px 12px;
+        border-radius: 20px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: 0.2s;
+        }
+
+        .day-toggle.active {
+        background-color: #34d399;
+        color: white;
+        }
+
   </style>
 </head>
 <body>
@@ -128,16 +144,18 @@
         <option value="Competitive">Competitive</option>
       </select>
 
-        <label for="matchDay">Preferred Match Day(s):</label>
+        <label>Match Days:</label>
         <div id="matchDay" class="flex flex-wrap gap-2 mt-2">
-        <label><input type="checkbox" value="Monday"> Monday</label>
-        <label><input type="checkbox" value="Tuesday"> Tuesday</label>
-        <label><input type="checkbox" value="Wednesday"> Wednesday</label>
-        <label><input type="checkbox" value="Thursday"> Thursday</label>
-        <label><input type="checkbox" value="Friday"> Friday</label>
-        <label><input type="checkbox" value="Saturday"> Saturday</label>
-        <label><input type="checkbox" value="Sunday"> Sunday</label>
+        <div class="day-toggle" data-day="Monday">Monday</div>
+        <div class="day-toggle" data-day="Tuesday">Tuesday</div>
+        <div class="day-toggle" data-day="Wednesday">Wednesday</div>
+        <div class="day-toggle" data-day="Thursday">Thursday</div>
+        <div class="day-toggle" data-day="Friday">Friday</div>
+        <div class="day-toggle" data-day="Saturday">Saturday</div>
+        <div class="day-toggle" data-day="Sunday">Sunday</div>
         </div>
+        <input type="hidden" id="selectedMatchDays" name="match_days" />
+
 
       <button type="submit">Create Team</button>
     </form>
