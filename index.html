@@ -358,28 +358,18 @@
 
       const inTeam = memberships && memberships.length > 0;
 
-      teamWrapper.innerHTML = inTeam
-        ? `
-          <a href="/team-dashboard.html"
-            class="bg-blue-500 border-2 border-blue-700 text-white px-6 py-3 rounded-lg font-semibold transform transition hover:scale-105 duration-200 shadow-lg">
-            👥 My Team
-          </a>
-        `
-        : `
-          <a href="/create-team.html"
-            class="bg-green-500 border-2 border-green-700 text-white px-6 py-3 rounded-lg font-semibold transform transition hover:scale-105 duration-200 shadow-lg">
-            ➕ Create Team
-          </a>
-          <a href="/join-team.html"
-            class="bg-blue-500 border-2 border-blue-700 text-white px-6 py-3 rounded-lg font-semibold transform transition hover:scale-105 duration-200 shadow-lg">
-            🔍 Join Team
-          </a>
-        `;
+    teamWrapper.innerHTML = `
+      <a href="${inTeam ? '/team-dashboard.html' : '/view-teams.html'}"
+        class="bg-blue-500 border-2 border-blue-700 text-white px-6 py-3 rounded-lg font-semibold transform transition hover:scale-105 duration-200 shadow-lg">
+        👥 My Team
+      </a>
+    `;
+
     } else {
       teamWrapper.innerHTML = `
         <a href="/login.html"
           class="bg-yellow-500 border-2 border-yellow-700 text-white px-6 py-3 rounded-lg font-semibold transform transition hover:scale-105 duration-200 shadow-lg">
-          🔑 Login to Join a Team
+          👉 Login for Team
         </a>
       `;
     }
