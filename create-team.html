@@ -54,6 +54,20 @@
       box-sizing: border-box;
     }
 
+    #logoPreview {
+      display: block;
+      margin: 10px auto;
+      width: 80px;
+      height: 80px;
+      object-fit: cover;
+      border-radius: 50%;
+      border: 2px solid #ccc;
+    }
+
+    input[type="file"] {
+      margin-top: 5px;
+    }
+
     button {
       width: 100%;
       padding: 12px;
@@ -85,18 +99,19 @@
     <h2>Create Your Team</h2>
     <form id="createTeamForm">
       <label for="teamName">Team Name:</label>
-      <input type="text" id="teamName" required />
+      <input type="text" id="teamName" placeholder="e.g. Thunder FC" required />
 
-      <label for="logoUrl">Logo URL (optional):</label>
-      <input type="text" id="logoUrl" />
+      <label for="logoUpload">Team Logo:</label>
+      <input type="file" id="logoUpload" accept="image/*" />
+      <img id="logoPreview" src="./images/futbolaLogo.png" alt="Logo Preview" />
 
-      <label for="bio">Team Bio (optional):</label>
-      <textarea id="bio" rows="3"></textarea>
+      <label for="info">Team Info:</label>
+      <textarea id="info" rows="3" maxlength="120" placeholder="Short description about your team"></textarea>
 
       <label for="level">Team Level:</label>
       <select id="level">
-        <option value="Social">Social</option>
-        <option value="Semi-Comp">Semi-Comp</option>
+        <option value="Community">Community</option>
+        <option value="Casual-Competitive">Casual-Competitive</option>
         <option value="Competitive">Competitive</option>
       </select>
 
@@ -104,5 +119,17 @@
     </form>
     <div id="message"></div>
   </div>
+
+  <script>
+    const logoUpload = document.getElementById('logoUpload');
+    const logoPreview = document.getElementById('logoPreview');
+
+    logoUpload.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        logoPreview.src = URL.createObjectURL(file);
+      }
+    });
+  </script>
 </body>
 </html>
