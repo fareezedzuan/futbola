@@ -8,14 +8,15 @@ const supabase = createClient(
 
 const form = document.getElementById("createTeamForm");
 const message = document.getElementById("message");
+const logoInput = document.getElementById("logoUpload");
 
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
   const teamName = document.getElementById("teamName").value.trim();
-  const logoUrl = document.getElementById("logoUrl").value.trim();
-  const bio = document.getElementById("bio").value.trim();
+  const info = document.getElementById("info").value.trim();
   const level = document.getElementById("level").value;
+  const file = logoInput.files[0];
 
   const user = await supabase.auth.getUser();
   const userId = user?.data?.user?.id;
@@ -24,11 +25,32 @@ form.addEventListener("submit", async (e) => {
     return;
   }
 
+  let logoUrl = "";
+  if (file) {
+    const fileExt = file.name.split(".").pop();
+    const fileName = `team-${Date.now()}.${fileExt}`;
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from("logos") // ensure this bucket exists
+      .upload(fileName, file);
+
+    if (uploadError) {
+      console.error(uploadError);
+      message.textContent = "Failed to upload logo.";
+      return;
+    }
+
+    const { data: publicUrlData } = supabase.storage
+      .from("logos")
+      .getPublicUrl(fileName);
+
+    logoUrl = publicUrlData?.publicUrl;
+  }
+
   const { data: team, error: teamError } = await supabase.from("teams").insert([
     {
       name: teamName,
       logo_url: logoUrl || null,
-      bio,
+      bio: info,
       level,
       created_by: userId
     }
