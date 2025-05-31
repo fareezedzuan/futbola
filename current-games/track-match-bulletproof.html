@@ -7,6 +7,7 @@
   <title>Track Match - futbola</title>
   <link rel="icon" href="../images/futbola-favicon.ico" type="image/x-icon">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -658,6 +659,11 @@
 
 <script>
 
+const supabase = createClient(
+  'https://kdbqroxhypnadolcxxxc.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkYnFyb3hoeXBuYWRvbGN4eHhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3MjkwNzYsImV4cCI6MjA1NzMwNTA3Nn0.c7_RVxoFdJNqQ62R3t1emH2Wf4dSsQaunHsHmbQxOBA'
+);
+
 // Set session ID once
 if (!sessionStorage.getItem("sessionId")) {
   sessionStorage.setItem("sessionId", Date.now().toString()); // or use a UUID if needed
@@ -817,7 +823,36 @@ function resetTimer() {
 }
 
 function startNextMatch() {
-  if (matchNumber > 0) saveCurrentMatch();
+    if (matchNumber > 0) {
+      const tA = document.getElementById("teamAName").textContent;
+      const tB = document.getElementById("teamBName").textContent;
+      const gA = parseInt(document.getElementById("scoreA").textContent);
+      const gB = parseInt(document.getElementById("scoreB").textContent);
+
+      const matchData = {
+        game_id: sessionStorage.getItem("gameId"),
+        session_id: sessionStorage.getItem("sessionId"),
+        match_number: matchNumber,
+        team_a: tA,
+        team_b: tB,
+        score_a: gA,
+        score_b: gB,
+        goals: currentGoals,
+        timestamp: Date.now()
+      };
+
+      submitAndNextMatch(matchData, () => {
+        matchResults.push({ tA, tB, gA, gB });
+        allGoals = allGoals.concat(currentGoals);
+        updateMatchHistory();
+        updateLeaderboard();
+        updateStandings(tA, tB, gA, gB);
+        startNextMatch(); // proceed to next match
+      });
+
+      return; // block accidental auto-progression
+    }
+
   const matchesPerRound = baseMatchups.length;
   if (matchNumber >= matchups.length) {
     if (currentRound < totalRounds) {
@@ -953,21 +988,6 @@ async function saveCurrentMatch() {
       score_a: gA,
       score_b: gB,
       goals: currentGoals
-    });
-
-    const res = await fetch('/api/save-match-result', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        game_id: sessionStorage.getItem("gameId"),
-        session_id: sessionStorage.getItem("sessionId"),
-        match_number: matchNumber,
-        team_a: tA,
-        team_b: tB,
-        score_a: gA,
-        score_b: gB,
-        goals: currentGoals
-      })
     });
 
     if (!res.ok) {
@@ -1308,35 +1328,59 @@ function exportToInstagramImage() {
 updateTimerDisplay();
 startNextMatch();
 
-window.addEventListener('online', attemptResync);
 
-function attemptResync() {
+async function submitAndNextMatch(matchData, onSuccess) {
+  saveToLocalQueue(matchData);
+  const success = await tryUpsertMatch(matchData);
+
+  if (success) {
+    removeFromLocalQueue(matchData);
+    onSuccess(); // proceed
+  } else {
+    const choice = confirm("⚠️ Match not synced.\nIt’s saved locally.\n\nRetry sync?\n(Click Cancel to continue offline)");
+    if (choice) {
+      await submitAndNextMatch(matchData, onSuccess); // recursive retry
+    } else {
+      onSuccess(); // proceed anyway
+    }
+  }
+}
+
+function saveToLocalQueue(matchData) {
   const queue = JSON.parse(localStorage.getItem("unsyncedMatches") || "[]");
+  queue.push(matchData);
+  localStorage.setItem("unsyncedMatches", JSON.stringify(queue));
+}
+
+function removeFromLocalQueue(matchData) {
+  const queue = JSON.parse(localStorage.getItem("unsyncedMatches") || "[]");
+  const filtered = queue.filter(m =>
+    !(m.game_id === matchData.game_id && m.match_number === matchData.match_number)
+  );
+  localStorage.setItem("unsyncedMatches", JSON.stringify(filtered));
+}
+
+async function tryUpsertMatch(matchData) {
+  const { error } = await supabase
+    .from('match_results')
+    .upsert(matchData, { onConflict: ['game_id', 'match_number'] });
+  return !error;
+}
+
+function backgroundRetrySync() {
+  const queue = JSON.parse(localStorage.getItem("unsyncedMatches") || []);
   if (!queue.length) return;
 
   const remaining = [];
-
-  queue.forEach(async (data) => {
-    try {
-      const res = await fetch('/api/save-match-result', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
-
-      if (res.ok) {
-        console.log(`✅ Resynced Match ${data.match_number}`);
-      } else {
-        throw new Error(`Server returned ${res.status}`);
-      }
-    } catch (err) {
-      console.warn(`🔁 Retry failed for Match ${data.match_number}`, err);
-      remaining.push(data); // Keep it for next retry
-    }
+  queue.forEach(async (match) => {
+    const success = await tryUpsertMatch(match);
+    if (!success) remaining.push(match);
   });
 
   localStorage.setItem("unsyncedMatches", JSON.stringify(remaining));
 }
+setInterval(backgroundRetrySync, 30000);
+
 
 </script>
 
