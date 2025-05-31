@@ -1,0 +1,1353 @@
+<!-- track-match-bulletproof.html-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Track Match - futbola</title>
+  <link rel="icon" href="../images/futbola-favicon.ico" type="image/x-icon">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-image: url('./images/backgroundOrangeGradient.jpg');
+      margin: 0;
+      padding: 0;
+      overflow-y: scroll;
+    }
+    .container {
+      max-width: 1200px;
+      margin: auto;
+      padding: 20px;
+    }
+
+    .main-display {
+    display: flex;
+    flex-direction: column;
+    background: white;
+    padding: 20px;
+    height: 480px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    border-top: 5px solid #ff5a5f;
+  }
+
+  .match-header {
+    font-size: 35px;
+    font-weight: bold;
+    text-align: center;
+    color: #702963;
+    margin-bottom: 10px;
+    width: 100%;
+  }
+
+  .row-display {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+  }
+
+    .team-block {
+      width: 30%;
+      text-align: center;
+      cursor: pointer;
+    }
+
+    .team-block img {
+      height: 100px;
+      max-width: 80%;     /* Prevent image from stretching too wide */
+      margin-bottom: 10px;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .team-block span {
+      font-size: 40px;
+      font-weight: bold;
+      color: #702963;
+    }
+
+    .score-number {
+      font-size: 40px;
+      font-weight: bold;
+      color: #702963;
+      margin-top: 5px;
+    }
+
+    .goal-log {
+      font-size: 14px;
+      margin-top: 10px;
+    }
+
+    .timer-block {
+      width: 35%;
+      text-align: center;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .center-timer {
+      font-size: clamp(24px, 7vw, 80px); /* Shrinks better on phones */
+      font-weight: bold;
+      color: black;
+      text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.2);
+      line-height: 1; /* Prevent weird spacing */
+      white-space: nowrap;
+    }
+
+    .btn-row {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .btn-primary {
+      background-color: #ff5a5f;
+      color: white;
+      font-weight: bold;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 5px;
+    }
+
+    .btn-primary:hover {
+      background-color: #cc0000;
+    }
+
+    .section {
+      background: #f3f3f3;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 20px;
+    }
+
+    .goal-line {
+      font-size: 13px;
+      color: #444;
+      margin: 4px 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 6px;
+      text-align: center;
+    }
+    th {
+      background-color: #ffe4e1;
+    }
+
+    .overlay, .scorer-popup {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.3);
+      z-index: 99;
+    }
+    .scorer-popup {
+      top: 10%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: white;
+      z-index: 100;
+      padding: 20px;
+      border-radius: 10px;
+      border: 2px solid #ff5a5f;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      width: 90%;
+      max-width: 600px;
+    }
+    .scorer-popup h4 {
+      text-align: center;
+      color: #702963;
+    }
+    .scorer-columns {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+    }
+    .scorer-columns div {
+      width: 50%;
+    }
+    .scorer-columns button {
+      width: 100%;
+      margin-bottom: 6px;
+      padding: 8px;
+      background-color: #ff5a5f;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .close-popup {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      cursor: pointer;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .match-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: white;
+      border-radius: 10px;
+      padding: 8px 16px;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    .team {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: bold;
+      font-size: 18px;
+      color: #702963;
+      flex: 1;
+    }
+
+    .team img {
+      height: 28px;
+      width: 28px;
+      object-fit: contain;
+    }
+
+    .score-box {
+      font-size: 20px;
+      font-weight: bold;
+      background: #702963;
+      color: white;
+      padding: 4px 12px;
+      border-radius: 6px;
+      min-width: 64px;
+      text-align: center;
+    }
+    .match-result-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: white;
+      border-radius: 10px;
+      padding: 12px 16px;
+      margin: 10px 0;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .team-side {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: bold;
+      color: #702963;
+      font-size: 16px;
+    }
+
+    .team-side.right {
+      justify-content: flex-end;
+    }
+
+    .match-score {
+      font-size: 20px;
+      font-weight: bold;
+      background-color: #702963;
+      color: white;
+      padding: 6px 16px;
+      border-radius: 8px;
+      text-align: center;
+      min-width: 70px;
+    }
+
+    .team-logo {
+      width: 28px;
+      height: 28px;
+      object-fit: contain;
+    }
+
+    .scorer-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #eee;
+      padding: 8px 12px;
+      font-size: 16px;
+    }
+
+    .scorer-pos {
+      width: 30px;
+      font-weight: bold;
+      color: #702963;
+      text-align: center;
+    }
+
+    .scorer-player {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-grow: 1;
+    }
+
+    .scorer-player strong {
+      font-weight: 600;
+    }
+
+    .scorer-logo {
+      height: 24px;
+      width: 24px;
+      object-fit: contain;
+    }
+
+    .scorer-goals {
+      font-weight: bold;
+      color: #702963;
+      min-width: 30px;
+      text-align: right;
+    }
+
+    #standingsTable table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      background: #fff;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    #standingsTable th {
+      background: #f4f4f4;
+      font-size: 14px;
+      color: #333;
+      text-align: left;
+      padding: 8px;
+    }
+
+    #standingsTable td {
+      padding: 8px;
+      font-size: 14px;
+      text-align: center;
+      border-bottom: 1px solid #eee;
+    }
+
+    #standingsTable .club {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-align: left;
+      font-weight: bold;
+      color: #702963;
+    }
+
+    .club-logo {
+      width: 24px;
+      height: 24px;
+      object-fit: contain;
+    }
+
+    #standingsTable .points {
+      font-weight: bold;
+      color: #000;
+    }
+
+    #roundPopup {
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      position: fixed;
+      display: none;
+      background-color: white;
+      padding: 30px;
+      border-radius: 10px;
+      border: 2px solid #ff5a5f;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+      z-index: 200;
+      text-align: center;
+      max-width: 90%;
+      width: 400px;
+    }
+
+    #roundOverlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.4);
+      z-index: 199;
+      display: none;
+    }
+
+    .btn-row {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .btn-primary {
+      background-color: #ff5a5f;
+      color: white;
+      font-weight: bold;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 5px;
+    }
+
+    #instagramExportDiv {
+      display: none;
+      width: 1080px;
+      height: 1080px;
+      background: linear-gradient(to bottom right, #ffa07a, #ffc0cb);
+      font-family: Arial, sans-serif;
+      padding: 20px 40px;
+      box-sizing: border-box;
+      color: #702963;
+      position: relative;
+    }
+
+    #instagramExportDiv h2 {
+      text-align: center;
+      font-size: 44px;
+      margin: 10px 0 5px;
+    }
+
+    #instagramExportDiv h3 {
+      text-align: center;
+      font-size: 28px;
+      margin: 5px 0 15px;
+    }
+
+    #instagramExportDiv .section {
+      background: white;
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    #instagramExportDiv .section > h3 {
+      margin: 0 0 10px;
+      font-size: 24px;
+    }
+
+    #instagramExportDiv table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 22px;
+    }
+    #instagramExportDiv th, #instagramExportDiv td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: center;
+    }
+    #instagramExportDiv .logo {
+      width: 32px;
+      height: 32px;
+      object-fit: contain;
+    }
+
+    #instagramExportDiv .footer-logo {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      opacity: 0.4;
+      width: 80px;
+    }
+
+    #instaMatchResults, #instaTopScorers {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 10px;
+    }
+
+    #instaMatchResults .match-result-row,
+    #instaTopScorers .scorer-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 20px;
+      background: #fff0f5;
+      padding: 6px 10px;
+      border-radius: 6px;
+    }
+
+    #instaTopScorers .scorer-player {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .match-result-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: white;
+      border-radius: 10px;
+      padding: 10px 16px;
+      margin: 10px 0;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .team-side {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: bold;
+      color: #702963;
+      font-size: 18px;
+      flex: 1;
+    }
+
+    .team-side.left {
+      justify-content: flex-start;
+    }
+
+    .team-side.right {
+      justify-content: flex-end;
+    }
+
+    .match-score {
+      font-size: 22px;
+      font-weight: bold;
+      background-color: #702963;
+      color: white;
+      padding: 8px 18px;
+      border-radius: 12px;
+      min-width: 70px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .team-logo {
+      width: 28px;
+      height: 28px;
+      object-fit: contain;
+    }
+
+    #instagramExportDiv #instaTopScorers {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr); /* force 4-column layout */
+      gap: 12px;
+    }
+
+  </style>
+</head>
+<body>
+
+<div class="overlay" id="overlay" onclick="closePopup()"></div>
+<div class="scorer-popup" id="scorerPopup">
+  <div class="close-popup" onclick="closePopup()">×</div>
+  <h4>Select Scorer</h4>
+  <div class="scorer-columns">
+    <div><strong id="teamACol"></strong><div id="playersA"></div></div>
+    <div><strong id="teamBCol"></strong><div id="playersB"></div></div>
+  </div>
+</div>
+
+<div class="overlay" id="confirmOverlay" onclick="cancelScorerConfirm()"></div>
+<div class="scorer-popup" id="confirmScorerPopup">
+  <div class="close-popup" onclick="cancelScorerConfirm()">×</div>
+  <h4 id="confirmScorerText">Confirm goal by:</h4>
+  <div style="text-align: center; margin-top: 10px;">
+    <button class="btn-primary" onclick="confirmScorerAdd()">✅ Confirm</button>
+    <button class="btn-primary" onclick="cancelScorerConfirm()">❌ Cancel</button>
+  </div>
+</div>
+
+<div class="container">
+  <audio id="alarmSound" src="./audio/annoying-alarm.wav" preload="auto"></audio>
+
+  <div class="main-display">
+    <!-- Match Title should be outside of row for top alignment -->
+    <div class="match-header" id="matchTitle">Match 1</div>
+
+    <div class="row-display">
+      <div class="team-block" onclick="triggerScorer('A')">
+        <img id="teamAIcon" src="./images/default.png" />
+        <span id="teamAName">Team A</span>
+        <div class="score-number" id="scoreA">0</div>
+        <div class="goal-log" id="goalLogA"></div>
+      </div>
+
+      <div class="timer-block">
+        <div class="center-timer" id="timer">00:00</div>
+      </div>
+
+      <div class="team-block" onclick="triggerScorer('B')">
+        <img id="teamBIcon" src="./images/default.png" />
+        <span id="teamBName">Team B</span>
+        <div class="score-number" id="scoreB">0</div>
+        <div class="goal-log" id="goalLogB"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+  <div class="btn-row">
+    <button class="btn-primary" id="timerBtn" onclick="handleTimerClick()">Start Timer</button>
+    <button class="btn-primary" onclick="resetTimer()">Reset Timer</button>
+    <button class="btn-primary" onclick="openEditGoals()">Edit Goals</button>
+    <button class="btn-primary" onclick="startNextMatch()">Next Match</button>
+    <button class="btn-primary" onclick="exportSummary()">Export WhatsApp</button>
+    <button class="btn-primary" onclick="exportToInstagramImage()">Instagram Image</button>
+  </div>
+
+  <div class="section">
+    <h3>Match Results</h3>
+    <div id="matchHistory"></div>
+  </div>  
+
+  <div class="section">
+    <h3>Top Scorers</h3>
+    <div id="topScorersList" class="scorer-list"></div>
+  </div>
+
+  <div class="section">
+    <h3>Live Standings</h3>
+    <div id="standingsTable"></div>
+  </div>
+</div>
+
+<div class="overlay" id="editOverlay" onclick="closeEditPopup()"></div>
+<div class="scorer-popup" id="editGoalsPopup">
+  <div class="close-popup" onclick="closeEditPopup()">×</div>
+  <h4>Edit Goals</h4>
+  <div id="editGoalsList"></div>
+</div>
+
+<!-- Add this popup HTML near the end of track-match.html -->
+<div id="roundPopup" class="popup" style="display:none; z-index: 300;">
+  <h3>Round 1 Completed</h3>
+  <p style="text-align:center;">Do you want to continue to Round 2?</p>
+  <div class="popup-footer">
+    <button onclick="startNextRound()">✅ Continue to Round 2</button>
+    <button onclick="endGameNow()">❌ End Game Now</button>
+  </div>
+</div>
+
+<!-- Instagram Export Div (hidden for rendering only) -->
+<div id="instagramExportDiv">
+  <h2 id="instaVenue">futbola - Venue</h2>
+  <h3 id="instaDate">Date</h3>
+  <div class="section">
+    <h3>📋 Match Results</h3>
+    <div id="instaMatchResults"></div>
+  </div>
+  <div class="section">
+    <h3>🎯 Top Scorers</h3>
+    <div id="instaTopScorers"></div>
+  </div>
+  <div class="section">
+    <h3>🏆 Standings</h3>
+    <div id="instaStandings"></div>
+  </div>
+  <img class="footer-logo" src="../images/futbola-logo.png" alt="futbola logo" />
+</div>
+
+<script>
+
+// Set session ID once
+if (!sessionStorage.getItem("sessionId")) {
+  sessionStorage.setItem("sessionId", Date.now().toString()); // or use a UUID if needed
+}
+// Paste your existing JS logic here from the MVP version (match tracking, popup, standings, export, etc.)
+// You already have all this working beautifully – just stitch into this layout.
+const duration = parseInt(sessionStorage.getItem("duration")) || 7;
+const teamNames = JSON.parse(sessionStorage.getItem("teamNames") || "[]");
+const teamPlayersRaw = JSON.parse(sessionStorage.getItem("teamPlayers") || "[]");
+
+// Extract only names for backwards compatibility
+const teamPlayers = teamPlayersRaw.map(team => team.map(p => p.name));
+
+
+let matchNumber = 0;
+if (!teamNames || teamNames.length < 2) {
+    alert("Match setup incomplete. Please return to start-game.");
+    window.location.href = "start-game.html";
+  }
+
+  if (!teamPlayers || teamPlayers.length !== teamNames.length) {
+    alert("Team player data missing or mismatched. Please restart.");
+    window.location.href = "start-game.html";
+  }
+
+let timeElapsed = 0, timer = null, timerRunning = false, timerPaused = false;
+let alarmInterval;
+let currentGoals = [];
+let matchResults = [];
+let standings = {};
+let allGoals = [];
+let matchAlreadySaved = false;
+let pendingScorer = null;
+let pendingTeam = null;
+let pendingIsOG = false;
+let totalRounds = parseInt(sessionStorage.getItem("rounds")) || 1;
+let currentRound = 1;
+let baseMatchups = generateRoundRobin(teamNames); // keep base round
+let matchups = [...baseMatchups];
+let alarmTimeout;
+let alarmScheduledTime = 0; // when the alarm is supposed to trigger
+let alarmStartTimestamp = null; // when timer starts
+
+function generateRoundRobin(teams) {
+  const rounds = [], t = [...teams];
+  if (t.length % 2) t.push("BYE");
+  const half = t.length / 2;
+  for (let i = 0; i < t.length - 1; i++) {
+    for (let j = 0; j < half; j++) {
+      const a = t[j], b = t[t.length - 1 - j];
+      if (a !== "BYE" && b !== "BYE") rounds.push([a, b]);
+    }
+    t.splice(1, 0, t.pop());
+  }
+  return rounds;
+}
+
+function getTeamLogo(colorName) {
+  const logos = {
+    Red: "../images/red.png",
+    White: "../images/white.png",
+    Green: "../images/green.png",
+    Orange: "../images/orange.png",
+    Black: "../images/black.png",
+    Yellow: "../images/yellow.png"
+  };
+  return logos[colorName] || "../images/default.png"; // fallback
+}
+
+function handleTimerClick() {
+  if (!timerRunning) {
+  timerRunning = true;
+  timerPaused = false;
+  document.getElementById('timerBtn').textContent = "Pause";
+  
+  alarmStartTimestamp = Date.now();
+  alarmScheduledTime = duration * 60 * 1000; // duration in ms
+
+  alarmTimeout = setTimeout(() => {
+    playAlarm();
+  }, alarmScheduledTime);
+
+  timer = setInterval(() => {
+    if (!timerPaused) {
+      timeElapsed++;
+      updateTimerDisplay();
+      if (timeElapsed >= duration * 60) {
+        clearInterval(timer);
+        timerRunning = false;
+        document.getElementById('timerBtn').textContent = "Start Timer";
+      }
+    }
+  }, 1000);
+} else {
+  timerPaused = !timerPaused;
+  document.getElementById('timerBtn').textContent = timerPaused ? "Resume Timer" : "Pause Timer";
+
+  if (timerPaused) {
+    // 🔵 If pausing: clear alarm timeout
+    clearTimeout(alarmTimeout);
+  } else {
+    // 🔵 If resuming: re-schedule alarm
+    const now = Date.now();
+    const timePassed = now - alarmStartTimestamp;
+    const remaining = Math.max(alarmScheduledTime - timePassed, 0);
+
+    alarmStartTimestamp = Date.now(); // reset start timestamp
+    alarmScheduledTime = remaining;
+
+    alarmTimeout = setTimeout(() => {
+      playAlarm();
+    }, remaining);
+  }
+}
+}
+
+
+function updateTimerDisplay() {
+  const min = Math.floor(timeElapsed / 60);
+  const sec = timeElapsed % 60;
+  document.getElementById("timer").textContent = `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+}
+
+function stopAlarmOnce() {
+  playAlarm();
+}
+
+function playAlarm() {
+  const alarm = document.getElementById("alarmSound");
+  alarm.currentTime = 0;
+  alarm.play();
+
+  // Allow click to stop
+  document.body.addEventListener("click", stopAlarmOnce);
+}
+
+function stopAlarm() {
+  clearInterval(alarmInterval);
+  clearTimeout(alarmTimeout);
+  const alarm = document.getElementById("alarmSound");
+  alarm.currentTime = 0;
+  document.body.removeEventListener("click", stopAlarmOnce);
+}
+
+function stopAlarmOnce() {
+  stopAlarm();
+}
+
+function resetTimer() {
+  clearInterval(timer);
+  timeElapsed = 0;
+  timerRunning = false;
+  timerPaused = false;
+  updateTimerDisplay();
+  document.getElementById('timerBtn').textContent = "Start Timer";
+  clearTimeout(alarmTimeout);
+}
+
+function startNextMatch() {
+  if (matchNumber > 0) saveCurrentMatch();
+  const matchesPerRound = baseMatchups.length;
+  if (matchNumber >= matchups.length) {
+    if (currentRound < totalRounds) {
+      showRoundPopup();
+    } else {
+      alert("All matches done!");
+    }
+    return;
+  }
+
+  resetTimer();
+  currentGoals = [];
+  document.getElementById("scoreA").textContent = "0";
+  document.getElementById("scoreB").textContent = "0";
+  document.getElementById("goalLogA").innerHTML = "";
+  document.getElementById("goalLogB").innerHTML = "";
+
+  const [teamA, teamB] = matchups[matchNumber];
+  document.getElementById("matchTitle").textContent = `Match ${matchNumber + 1}`;
+  document.getElementById("teamAName").textContent = teamA;
+  document.getElementById("teamBName").textContent = teamB;
+  document.getElementById("teamAIcon").src = getTeamLogo(teamA);
+  document.getElementById("teamBIcon").src = getTeamLogo(teamB);
+
+  checkRoundCompletion();
+  updateMatchHistory(); // 👈 Ensure match schedule always appears
+  matchNumber++;
+  matchAlreadySaved = false;
+}
+
+function triggerScorer(side) {
+  const teamA = document.getElementById("teamAName").textContent;
+  const teamB = document.getElementById("teamBName").textContent;
+  const idxA = teamNames.indexOf(teamA);
+  const idxB = teamNames.indexOf(teamB);
+
+  const scoringTeam = side === 'A' ? teamA : teamB;
+  const opponentTeam = side === 'A' ? teamB : teamA;
+  const scoringIdx = side === 'A' ? idxA : idxB;
+  const opponentIdx = side === 'A' ? idxB : idxA;
+
+  document.getElementById("teamACol").textContent = scoringTeam;
+  document.getElementById("teamBCol").textContent = opponentTeam;
+
+  document.getElementById("playersA").innerHTML = (teamPlayersRaw[scoringIdx] || []).map(p =>
+  `<button onclick="promptScorerConfirm('${scoringTeam}', '${p.name}', false)">
+     ${p.name}${p.jersey ? ` (#${p.jersey})` : ""}
+   </button>`
+).join("");
+
+document.getElementById("playersB").innerHTML = (teamPlayersRaw[opponentIdx] || []).map(p =>
+  `<button onclick="promptScorerConfirm('${scoringTeam}', '${p.name}', true)">
+     ${p.name}${p.jersey ? ` (#${p.jersey})` : ""} (OG)
+   </button>`
+).join("");
+
+
+  document.getElementById("overlay").style.display = "block";
+  document.getElementById("scorerPopup").style.display = "block";
+}
+
+function closePopup() {
+  document.getElementById("overlay").style.display = "none";
+  document.getElementById("scorerPopup").style.display = "none";
+}
+
+function addGoal(team, player, isOG = false) {
+  const timeMin = Math.floor(timeElapsed / 60);
+  const extra = timeMin >= duration ? `+${timeMin - duration}` : "";
+  const formatted = `${Math.min(timeMin + 1, duration)}${extra}'`;
+
+  currentGoals.push({ team, player, time: formatted, isOG });
+  const scoreId = team === document.getElementById("teamAName").textContent ? "scoreA" : "scoreB";
+  document.getElementById(scoreId).textContent = parseInt(document.getElementById(scoreId).textContent) + 1;
+
+  renderGoalLog();
+  closePopup();
+}
+
+function renderGoalLog() {
+  const tA = document.getElementById("teamAName").textContent;
+  const tB = document.getElementById("teamBName").textContent;
+  const logA = {}, logB = {};
+
+  currentGoals.forEach(g => {
+    const teamLog = g.team === tA ? logA : logB;
+    const name = g.isOG ? `${g.player} (OG)` : g.player;
+    if (!teamLog[name]) teamLog[name] = [];
+    teamLog[name].push(g.time);
+  });
+
+  document.getElementById("goalLogA").innerHTML = Object.entries(logA)
+    .map(([p, times]) => `<div class='goal-line'>${p} ${times.join(", ")}</div>`).join("");
+  document.getElementById("goalLogB").innerHTML = Object.entries(logB)
+    .map(([p, times]) => `<div class='goal-line'>${p} ${times.join(", ")}</div>`).join("");
+}
+
+function updateLiveScoreboard() {
+  const teamA = document.getElementById("teamAName").textContent;
+  const teamB = document.getElementById("teamBName").textContent;
+
+  const scoreA = currentGoals.filter(g => g.team === teamA).length;
+  const scoreB = currentGoals.filter(g => g.team === teamB).length;
+
+  document.getElementById("scoreA").textContent = scoreA;
+  document.getElementById("scoreB").textContent = scoreB;
+}
+
+async function saveCurrentMatch() {
+  console.log("Saving match to Supabase...");
+  if (matchAlreadySaved) return; // ✅ Prevent double save
+  matchAlreadySaved = true;
+
+  const tA = document.getElementById("teamAName").textContent;
+  const tB = document.getElementById("teamBName").textContent;
+  const gA = parseInt(document.getElementById("scoreA").textContent);
+  const gB = parseInt(document.getElementById("scoreB").textContent);
+
+  matchResults.push({ tA, tB, gA, gB });
+  allGoals = allGoals.concat(currentGoals);
+  updateMatchHistory();
+  updateLeaderboard();
+  updateStandings(tA, tB, gA, gB);
+
+  // ✅ Replaced block starts here
+  try {
+    console.log("📤 Sending match result to Supabase:", {
+      game_id: sessionStorage.getItem("gameId"),
+      session_id: sessionStorage.getItem("sessionId"),
+      match_number: matchNumber,
+      team_a: tA,
+      team_b: tB,
+      score_a: gA,
+      score_b: gB,
+      goals: currentGoals
+    });
+
+    const res = await fetch('/api/save-match-result', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        game_id: sessionStorage.getItem("gameId"),
+        session_id: sessionStorage.getItem("sessionId"),
+        match_number: matchNumber,
+        team_a: tA,
+        team_b: tB,
+        score_a: gA,
+        score_b: gB,
+        goals: currentGoals
+      })
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error(`Server returned ${res.status}: ${errorText}`);
+    }
+
+    const json = await res.json();
+    console.log("✅ Saved to Supabase:", json);
+    }catch (err) {
+      console.error("❌ Network or server error while saving match:", err);
+
+      const failedData = {
+        game_id: sessionStorage.getItem("gameId"),
+        session_id: sessionStorage.getItem("sessionId"),
+        match_number: matchNumber,
+        team_a: tA,
+        team_b: tB,
+        score_a: gA,
+        score_b: gB,
+        goals: currentGoals,
+        timestamp: Date.now()
+      };
+
+      const existing = JSON.parse(localStorage.getItem("unsyncedMatches") || "[]");
+      existing.push(failedData);
+      localStorage.setItem("unsyncedMatches", JSON.stringify(existing));
+
+      alert(`⚠️ Match ${matchNumber} not saved due to network. Will retry when online.`);
+    }
+
+  // ✅ Replaced block ends here
+}
+
+function updateMatchHistory() {
+  const container = document.getElementById("matchHistory");
+  container.innerHTML = "";
+
+  // Loop through all scheduled matches (matchups array)
+  matchups.forEach((match, index) => {
+    const [teamA, teamB] = match;
+
+    // Check if result exists
+    const result = matchResults[index];
+    const gA = result ? result.gA : "";
+    const gB = result ? result.gB : "";
+
+    container.innerHTML += `
+      <div class="match-result-row">
+        <div class="team-side left">
+          <img class="team-logo" src="${getTeamLogo(teamA)}" alt="${teamA}" />
+          <span class="team-name">${teamA}</span>
+        </div>
+        <div class="match-score">${gA !== "" ? gA : "–"} - ${gB !== "" ? gB : "–"}</div>
+        <div class="team-side right">
+          <span class="team-name">${teamB}</span>
+          <img class="team-logo" src="${getTeamLogo(teamB)}" alt="${teamB}" />
+        </div>
+      </div>
+    `;
+  });
+}
+
+function updateLeaderboard() {
+  const tally = {};
+  allGoals.forEach(g => {
+    if (!g.isOG) tally[g.player] = (tally[g.player] || 0) + 1;
+  });
+
+  const sorted = Object.entries(tally).sort((a, b) => b[1] - a[1]);
+  const container = document.getElementById("topScorersList");
+
+  container.innerHTML = sorted.map(([name, count], index) => {
+    // ✅ Find player and team
+    const teamEntry = teamPlayersRaw.find(team => team.some(p => p.name === name)) || [];
+    const player = teamEntry.find(p => p.name === name) || {};
+    const team = player.team || "default";
+
+    // ✅ Sanitize for file path
+    const teamFile = team.toLowerCase().replace(/ /g, "-");
+
+    console.log(`${name} → team: ${team}, file: ${teamFile}`);//debug purpose
+
+
+    return `
+      <div class="scorer-row">
+        <div class="scorer-pos">${index + 1}</div>
+        <div class="scorer-player">
+          <strong>${name}</strong>
+          <img class="scorer-logo" src="${getTeamLogo(team)}" alt="${team}" />
+        </div>
+        <div class="scorer-goals">${count}</div>
+      </div>
+    `;
+  }).join("");
+}
+
+
+function updateStandings(tA, tB, gA, gB) {
+  const stats = name => standings[name] ||= { MP: 0, W: 0, D: 0, L: 0, Pts: 0, GF: 0, GA: 0 };
+
+  stats(tA).MP++; stats(tB).MP++;
+  stats(tA).GF += gA; stats(tA).GA += gB;
+  stats(tB).GF += gB; stats(tB).GA += gA;
+
+  if (gA > gB) { stats(tA).W++; stats(tB).L++; stats(tA).Pts += 3; }
+  else if (gB > gA) { stats(tB).W++; stats(tA).L++; stats(tB).Pts += 3; }
+  else { stats(tA).D++; stats(tB).D++; stats(tA).Pts += 1; stats(tB).Pts += 1; }
+
+  const rows = Object.entries(standings).map(([team, s]) => ({
+    team, ...s, GD: s.GF - s.GA
+  })).sort((a, b) =>
+    b.Pts - a.Pts || b.GD - a.GD || b.GF - a.GF
+  );
+
+  const tableHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th>Pos</th>
+          <th>Team</th>
+          <th>P</th>
+          <th>W</th>
+          <th>D</th>
+          <th>L</th>
+          <th>GF</th>
+          <th>GA</th>
+          <th>GD</th>
+          <th>Pts</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rows.map((r, i) => `
+          <tr>
+            <td class="pos">${i + 1}</td>
+            <td class="club">
+              <img src="${getTeamLogo(r.team)}" class="club-logo" />
+              <span>${r.team}</span>
+            </td>
+            <td>${r.MP}</td>
+            <td>${r.W}</td>
+            <td>${r.D}</td>
+            <td>${r.L}</td>
+            <td>${r.GF}</td>
+            <td>${r.GA}</td>
+            <td>${r.GD}</td>
+            <td class="points">${r.Pts}</td>
+          </tr>`).join("")}
+      </tbody>
+    </table>
+  `;
+
+  document.getElementById("standingsTable").innerHTML = tableHTML;
+}
+
+
+function exportSummary() {
+  saveCurrentMatch();
+
+  const venue = sessionStorage.getItem("venue") || "futbola court";
+  const date = sessionStorage.getItem("date") || new Date().toLocaleDateString();
+
+  let message = `⚽ *Thank you for joining futbola!*\n📍 *Venue:* ${venue}\n📅 *Date:* ${date}\n\n`;
+
+  // Match results
+  message += `📋 *Match Results*\n`;
+  matchResults.forEach((r, i) => {
+    message += `Match ${i + 1}: ${r.tA} ${r.gA} - ${r.gB} ${r.tB}\n`;
+  });
+
+  const tally = {};
+  allGoals.forEach(g => {
+    if (!g.isOG) tally[g.player] = (tally[g.player] || 0) + 1;
+  });
+  const top = Object.entries(tally).sort((a, b) => b[1] - a[1]);
+
+  message += `\n🎯 *Top Scorers*\n`;
+  if (top.length > 0) {
+    top.forEach(([name, count], i) => {
+      const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : "•";
+      message += `${medal} ${name} – ${count}\n`;
+    });
+  } else {
+    message += "No goals recorded yet.\n";
+  }
+
+  const rows = Object.entries(standings).map(([team, s]) => ({ team, ...s, GD: s.GF - s.GA }))
+    .sort((a, b) => b.Pts - a.Pts || b.GD - a.GD || b.GF - a.GF);
+
+  message += `\n🏆 *Group Table*\n# Team        MP  W D L  Pts\n`;
+  rows.forEach((r, i) => {
+    const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i + 1}.`;
+    const name = r.team.padEnd(11, ' ');
+    message += `${medal} ${name} ${r.MP}  ${r.W} ${r.D} ${r.L}   ${r.Pts}\n`;
+  });
+
+  navigator.clipboard.writeText(message).then(() =>
+    alert("Copied WhatsApp summary to clipboard 📋. Paste and share the vibes 💬!")
+  );
+}
+
+function openEditGoals() {
+  const container = document.getElementById("editGoalsList");
+  container.innerHTML = "";
+
+  if (currentGoals.length === 0) {
+    container.innerHTML = "<p>No goals to edit yet.</p>";
+  } else {
+    currentGoals.forEach((g, index) => {
+      const label = g.isOG ? `${g.player} (OG)` : g.player;
+      container.innerHTML += `
+        <div style="margin-bottom:10px;">
+          ${label} – ${g.time}
+          <button onclick="editGoal(${index})">✏️</button>
+          <button onclick="deleteGoal(${index})">🗑️</button>
+        </div>
+      `;
+    });
+  }
+
+  document.getElementById("editOverlay").style.display = "block";
+  document.getElementById("editGoalsPopup").style.display = "block";
+}
+
+function closeEditPopup() {
+  document.getElementById("editOverlay").style.display = "none";
+  document.getElementById("editGoalsPopup").style.display = "none";
+}
+
+function deleteGoal(index) {
+  if (confirm("Delete this goal?")) {
+    currentGoals.splice(index, 1);
+    renderGoalLog();
+    updateLiveScoreboard(); // ✅ Add this
+    openEditGoals(); // Refresh popup
+  }
+}
+
+
+function editGoal(index) {
+  const newPlayer = prompt("Enter new player name:", currentGoals[index].player);
+  if (newPlayer === null) return;
+
+  const newTime = prompt("Enter new time (e.g. 5'):", currentGoals[index].time);
+  if (newTime === null) return;
+
+  currentGoals[index].player = newPlayer;
+  currentGoals[index].time = newTime;
+
+  renderGoalLog();
+  updateLiveScoreboard(); // ✅ Add this
+  openEditGoals(); // Refresh popup
+}
+
+function promptScorerConfirm(team, player, isOG) {
+  pendingScorer = player;
+  pendingTeam = team;
+  pendingIsOG = isOG;
+
+  document.getElementById("confirmScorerText").textContent = 
+    `Confirm goal by: ${player}${isOG ? " (OG)" : ""}?`;
+
+  document.getElementById("confirmOverlay").style.display = "block";
+  document.getElementById("confirmScorerPopup").style.display = "block";
+}
+
+function confirmScorerAdd() {
+  addGoal(pendingTeam, pendingScorer, pendingIsOG);
+  cancelScorerConfirm();
+}
+
+function cancelScorerConfirm() {
+  document.getElementById("confirmOverlay").style.display = "none";
+  document.getElementById("confirmScorerPopup").style.display = "none";
+  pendingScorer = null;
+  pendingTeam = null;
+  pendingIsOG = false;
+}
+
+function checkRoundCompletion() {
+  const matchesPerRound = baseMatchups.length;
+  if (matchNumber === currentRound * matchesPerRound && currentRound < totalRounds) {
+    document.getElementById("roundPopup").style.display = "block";
+  }
+}
+
+function startNextRound() {
+  currentRound++;
+  const newRound = generateRoundRobin(teamNames);
+  matchups = matchups.concat(newRound);
+  document.getElementById("roundPopup").style.display = "none";
+  startNextMatch();
+}
+
+function endGameNow() {
+  document.getElementById("roundPopup").style.display = "none";
+  // Let user stay on screen and export WhatsApp results manually
+}
+
+function closeRoundPopup() {
+  document.getElementById("roundPopup").style.display = "none";
+  document.getElementById("roundOverlay").style.display = "none";
+}
+
+function showRoundPopup() {
+  document.getElementById("roundPopup").style.display = "block";
+  document.getElementById("roundOverlay").style.display = "block";
+}
+
+function exportToInstagramImage() {
+  const venue = sessionStorage.getItem("venue") || "futbola court";
+  const date = sessionStorage.getItem("date") || new Date().toLocaleDateString();
+
+  document.getElementById("instaVenue").textContent = `futbola - ${venue}`;
+  document.getElementById("instaDate").textContent = date;
+
+  // Copy match results
+  document.getElementById("instaMatchResults").innerHTML = document.getElementById("matchHistory").innerHTML;
+
+  // Copy top scorers
+  document.getElementById("instaTopScorers").innerHTML = document.getElementById("topScorersList").innerHTML;
+
+  // Copy standings
+  document.getElementById("instaStandings").innerHTML = document.getElementById("standingsTable").innerHTML;
+
+  const exportDiv = document.getElementById("instagramExportDiv");
+  exportDiv.style.display = "block";
+
+  html2canvas(exportDiv, { width: 1080, height: 1080 }).then(canvas => {
+    const link = document.createElement('a');
+    link.download = `futbola_summary_${new Date().toISOString().slice(0,10)}.png`;
+    link.href = canvas.toDataURL();
+    link.click();
+    exportDiv.style.display = "none";
+  });
+}
+
+updateTimerDisplay();
+startNextMatch();
+
+window.addEventListener('online', attemptResync);
+
+function attemptResync() {
+  const queue = JSON.parse(localStorage.getItem("unsyncedMatches") || "[]");
+  if (!queue.length) return;
+
+  const remaining = [];
+
+  queue.forEach(async (data) => {
+    try {
+      const res = await fetch('/api/save-match-result', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      if (res.ok) {
+        console.log(`✅ Resynced Match ${data.match_number}`);
+      } else {
+        throw new Error(`Server returned ${res.status}`);
+      }
+    } catch (err) {
+      console.warn(`🔁 Retry failed for Match ${data.match_number}`, err);
+      remaining.push(data); // Keep it for next retry
+    }
+  });
+
+  localStorage.setItem("unsyncedMatches", JSON.stringify(remaining));
+}
+
+</script>
+
+<!-- <audio id="alarmSound" src="../audio/annoying-alarm.wav" preload="auto"></audio> -->
+<div id="roundOverlay" onclick="closeRoundPopup()"></div>
+<div id="roundPopup">
+  <h3>🎯 Round 1 Completed</h3>
+  <p>Do you want to continue to Round 2?</p>
+  <button class="btn-primary" onclick="startNextRound()">✅ Continue to Round 2</button>
+  <button class="btn-primary" onclick="endGameNow()">❌ End Game Now</button>
+</div>
+
+</body>
+</html>
