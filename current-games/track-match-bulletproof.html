@@ -1362,7 +1362,7 @@ function removeFromLocalQueue(matchData) {
 
 async function tryUpsertMatch(matchData) {
   const { error } = await supabase
-    .from('match_results')
+    .from('match_results_v2')
     .upsert(matchData, { onConflict: ['game_id', 'match_number'] });
   return !error;
 }
