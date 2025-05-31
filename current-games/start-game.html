@@ -304,12 +304,19 @@
     async function fetchPlayers(gameId) {
       const res = await fetch(`/api/get-bookings?game_id=${gameId}`);
       const data = await res.json();
-      allPlayers = data.bookings
-  .filter(b => b.status === 'confirmed')
-  .map(b => ({
-    name: b.name,
-    jersey: b.jersey_number || ""
-  }));
+
+      // allPlayers = data.bookings
+      // .filter(b => b.status === 'confirmed')
+      // .map(b => ({
+      //   name: b.name,
+      //   jersey: b.jersey_number || ""
+      // }));
+
+      allPlayers = data.bookings.map(b => ({
+        name: b.jersey_name,
+        jersey: "" // You can extend this if you store jersey_number in future
+      }));
+
       activePlayers = [...allPlayers];
       updateRemoveDropdown();
       generatePlayerAssignment();
@@ -491,6 +498,7 @@
     const [venueText, datetimeText] = selectedText.split(" - ");
     sessionStorage.setItem("venue", venueText.trim());
     sessionStorage.setItem("date", datetimeText.trim());
+    // window.location.href = "track-match.html";
     window.location.href = "track-match-bulletproof.html";
 }
 

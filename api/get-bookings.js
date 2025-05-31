@@ -26,6 +26,8 @@ async function handler(req, res) {
 
   try {
     const { data, error } = await supabase
+      // .from("bookings") 
+      // .select("id, name, phone, status")
       .from("game_bookings")
       .select("id, user_id, jersey_name, phone, avatar_url, booked_by_user_id")
       .eq("game_id", gameId);
