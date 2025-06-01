@@ -361,7 +361,7 @@ async function bookGame(gameId, form) {
     phone
   };
 
-  const { data, error } = await supabase.from("game_bookings").insert([payload]).select();
+  const { error } = await supabase.from("game_bookings").insert([payload]);
 
   if (error) {
     alert("Booking failed.");
@@ -370,21 +370,7 @@ async function bookGame(gameId, form) {
     alert("Booking successful!");
     loadPlayers(gameId);
     form.reset();
-
-    // ✅ WhatsApp confirmation (auto-launch)
-    const booking = data[0];
-    let phone = booking.phone;
-
-    if (phone) {
-      phone = phone.replace(/[^0-9]/g, '') // strip non-digits
-                   .replace(/^0/, '60')     // replace leading 0
-                   .replace(/^(\+)?60/, '60'); // ensure starts with 60
-
-      const msg = `Hi ${booking.jersey_name}! 🎉 Your Futbola booking is confirmed.\n\nSee you at the game! 💪`;
-      window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
-    }
   }
-
 }
 
 
