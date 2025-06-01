@@ -302,7 +302,7 @@
     }
 
     async function fetchPlayers(gameId) {
-      const res = await fetch(`/api/get-bookings?game_id=${gameId}`);
+      const res = await fetch(`/api/get-bookings-v2?game_id=${gameId}`);
       const data = await res.json();
 
       // allPlayers = data.bookings
@@ -467,7 +467,7 @@
     await Promise.all(
       activePlayers.map(p => {
         if (p.jersey !== undefined && p.jersey !== "") {
-          return fetch('/api/update-booking', {
+          return fetch('/api/update-booking-v2', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
