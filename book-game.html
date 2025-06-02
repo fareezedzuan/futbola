@@ -352,6 +352,12 @@ async function bookGame(gameId, form) {
     profile = data;
   }
 
+    if (!profile?.jersey_name || profile.jersey_name.trim().toLowerCase() === "player" || !profile?.phone) {
+    alert("Please complete your profile with a jersey name and phone number before booking.");
+    return;
+  }
+
+
   // ✅ Build payload
   const payload = user && selfBooking ? {
     game_id: gameId,
