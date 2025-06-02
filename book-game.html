@@ -240,14 +240,14 @@ async function loadPlayers(gameId) {
 
   const html = bookings.map(b => {
     const initial = (b.jersey_name || 'P')[0].toUpperCase();
-    const label = b.jersey_name || 'Player';
-
+    //const label = b.jersey_name || 'Player';
     // if (b.user_id && b.avatar_url) {
     //   return `<a href="/player-public.html?id=${b.user_id}" class="player-avatar">
     //     <img src="${b.avatar_url}" />
     //     <span>${label}</span>
     //   </a>`;}
-    const avatarUrl = b.profiles?.avatar_url || b.avatar_url || 'images/default-avatar.png'; //new start
+    const label = b.profiles?.jersey_name || b.jersey_name || 'Player'; //new start
+    const avatarUrl = b.profiles?.avatar_url || b.avatar_url || 'images/default-avatar.png'; 
 
     if (b.user_id) {
       return `<a href="/player-public.html?id=${b.user_id}" class="player-avatar">
@@ -357,14 +357,11 @@ async function bookGame(gameId, form) {
     game_id: gameId,
     user_id: user.id,
     booked_by_user_id: user.id,
-    avatar_url: profile?.avatar_url || null,
-    jersey_name: profile?.jersey_name || "Player",
     phone: profile?.phone || null
   } : {
     game_id: gameId,
     user_id: null,
     booked_by_user_id: user?.id || null,
-    avatar_url: null,
     jersey_name,
     phone
   };
