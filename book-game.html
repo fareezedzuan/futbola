@@ -228,8 +228,8 @@ async function loadPlayers(gameId) {
   const target = document.getElementById("players-" + gameId);
 
   const [{ data: bookings, error: bookingError }, { data: game, error: gameError }] = await Promise.all([
-    //supabase.from("game_bookings").select("*").eq("game_id", gameId),
-    supabase.from("game_bookings").select(`*,profiles (avatar_url)`).eq("game_id", gameId), //new
+    supabase.from("game_bookings").select("*").eq("game_id", gameId),
+    // supabase.from("game_bookings").select(`*,profiles (avatar_url)`).eq("game_id", gameId), //new
     supabase.from("games").select("max_players").eq("id", gameId).single()
   ]);
 
@@ -242,19 +242,19 @@ async function loadPlayers(gameId) {
     const initial = (b.jersey_name || 'P')[0].toUpperCase();
     const label = b.jersey_name || 'Player';
 
-    // if (b.user_id && b.avatar_url) {
-    //   return `<a href="/player-public.html?id=${b.user_id}" class="player-avatar">
-    //     <img src="${b.avatar_url}" />
-    //     <span>${label}</span>
-    //   </a>`;
-    const avatarUrl = b.profiles?.avatar_url || b.avatar_url || 'images/default-avatar.png'; //new start
-
-    if (b.user_id) {
+    if (b.user_id && b.avatar_url) {
       return `<a href="/player-public.html?id=${b.user_id}" class="player-avatar">
-        <img src="${avatarUrl}" onerror="this.onerror=null;this.src='images/default-avatar.png';" />
+        <img src="${b.avatar_url}" />
         <span>${label}</span>
-      </a>`; //new end
-    } else {
+      </a>`;}
+    // const avatarUrl = b.profiles?.avatar_url || b.avatar_url || 'images/default-avatar.png'; //new start
+
+    // if (b.user_id) {
+    //   return `<a href="/player-public.html?id=${b.user_id}" class="player-avatar">
+    //     <img src="${avatarUrl}" onerror="this.onerror=null;this.src='images/default-avatar.png';" />
+    //     <span>${label}</span>
+    //   </a>`; }//new end
+    else {
       return `<div class="player-avatar">
         <div style="
           width: 40px; height: 40px;
