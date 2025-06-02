@@ -114,8 +114,10 @@ const container = document.getElementById("gameContainer");
 const { data: userData } = await supabase.auth.getUser();
 const user = userData.user;
 
+const logoutContainer = document.getElementById("logoutContainer");
+
 if (user) {
-  document.getElementById("logoutContainer").innerHTML = `
+  logoutContainer.innerHTML = `
     <button id="logoutBtn" style="
       background-color: #702963;
       color: white;
@@ -129,9 +131,22 @@ if (user) {
 
   document.getElementById("logoutBtn").addEventListener("click", async () => {
     await supabase.auth.signOut();
-    location.reload(); // Or use: window.location.href = "/"
+    location.reload(); // or window.location.href = "/"
   });
+} else {
+  logoutContainer.innerHTML = `
+    <a href="/login.html" style="
+      color: #702963;
+      font-weight: bold;
+      text-decoration: none;
+      padding: 10px 20px;
+      border: 2px solid #702963;
+      border-radius: 5px;
+      display: inline-block;
+    ">🔐 Log In</a>
+  `;
 }
+
 
 
 const today = new Date().toISOString().split("T")[0];
@@ -150,32 +165,55 @@ if (error) {
     const div = document.createElement("div");
     div.className = "game-card";
     div.innerHTML = `
-      <div class="game-info">
-        <p><strong>📍 Venue:</strong> ${game.venue}</p>
-        <p><strong>📅 Date:</strong> ${game.game_date}</p>
-        <p><strong>🕒 Time:</strong> ${game.start_time} - ${game.end_time}</p>
-        <p><strong>🏷️ Level:</strong> ${game.level}</p>
-        <p><strong>🎮 Play Style:</strong> ${game.play_style}</p>
-        <p><strong>💰 Price:</strong> RM ${parseFloat(game.price).toFixed(2)}</p>
-        <p class="availability">Slots: loading...</p>
+  <div class="game-info">
+    <p><strong>📍 Venue:</strong> ${game.venue}</p>
+    <p><strong>📅 Date:</strong> ${game.game_date}</p>
+    <p><strong>🕒 Time:</strong> ${game.start_time} - ${game.end_time}</p>
+    <p><strong>🏷️ Level:</strong> ${game.level}</p>
+    <p><strong>🎮 Play Style:</strong> ${game.play_style}</p>
+    <p><strong>💰 Price:</strong> RM ${parseFloat(game.price).toFixed(2)}</p>
+    <p class="availability">Slots: loading...</p>
+  </div>
+  <form class="form-section" id="form-${game.id}">
+    ${user ? `
+<div style="display: flex; align-items: center; margin-bottom: 10px;">
+  <div style="width: 10%; min-width: 30px;">
+    <input type="checkbox" name="selfBooking" checked style="margin: 0;" />
+  </div>
+  <label style="margin: 0; font-size: 14px;">I am playing</label>
+</div>
+
+
+
+      <div class="guest-fields" style="display: none;">
+        <input name="jersey_name" placeholder="Enter player's jersey name" />
+        <input name="phone" placeholder="Enter player's phone number" type="tel" />
       </div>
-
-    <form class="form-section" id="form-${game.id}">
-      ${user ? "" : `
-        <input name="jersey_name" placeholder="Enter jersey name" required />
-        <input name="phone" placeholder="Enter phone number" type="tel" required />
-        <p style="font-size: 13px; margin-top: 10px;">
-          Want to save your profile and track your games?
-          <a href="/login.html" style="color: #702963; font-weight: bold;">Register here</a>.
-        </p>
-      `}
-
-        <button type="submit">✅ Book Now</button>
-      </form>
-      <div class="player-list" id="players-${game.id}"></div>
-    `;
+    ` : `
+      <input name="jersey_name" placeholder="Enter jersey name" required />
+      <input name="phone" placeholder="Enter phone number" type="tel" required />
+    `}
+    <button type="submit">✅ Book Now</button>
+  </form>
+  <div class="player-list" id="players-${game.id}"></div>
+`;
 
     container.appendChild(div);
+
+if (user) {
+  const form = document.getElementById(`form-${game.id}`);
+  const checkbox = form.querySelector('input[name="selfBooking"]');
+  const guestFields = form.querySelector('.guest-fields');
+
+  checkbox.addEventListener("change", () => {
+    const showGuest = !checkbox.checked;
+    guestFields.style.display = showGuest ? "block" : "none";
+    guestFields.querySelectorAll("input").forEach(input => {
+      input.required = showGuest;
+    });
+  });
+}
+
     loadPlayers(game.id);
 
     // ✅ Bind submit listener
@@ -191,6 +229,7 @@ async function loadPlayers(gameId) {
 
   const [{ data: bookings, error: bookingError }, { data: game, error: gameError }] = await Promise.all([
     supabase.from("game_bookings").select("*").eq("game_id", gameId),
+    // supabase.from("game_bookings").select(`*,profiles (avatar_url)`).eq("game_id", gameId), //new
     supabase.from("games").select("max_players").eq("id", gameId).single()
   ]);
 
@@ -207,8 +246,15 @@ async function loadPlayers(gameId) {
       return `<a href="/player-public.html?id=${b.user_id}" class="player-avatar">
         <img src="${b.avatar_url}" />
         <span>${label}</span>
-      </a>`;
-    } else {
+      </a>`;}
+    // const avatarUrl = b.profiles?.avatar_url || b.avatar_url || 'images/default-avatar.png'; //new start
+
+    // if (b.user_id) {
+    //   return `<a href="/player-public.html?id=${b.user_id}" class="player-avatar">
+    //     <img src="${avatarUrl}" onerror="this.onerror=null;this.src='images/default-avatar.png';" />
+    //     <span>${label}</span>
+    //   </a>`; }//new end
+    else {
       return `<div class="player-avatar">
         <div style="
           width: 40px; height: 40px;
@@ -243,15 +289,23 @@ async function loadPlayers(gameId) {
 console.log(user?.user_metadata?.avatar_url);
 
 async function bookGame(gameId, form) {
+  const selfBooking = form.selfBooking?.checked;
   const jersey_name = form.jersey_name?.value?.trim();
   const phone = form.phone?.value?.trim();
 
+  // 🚫 For guests, jersey_name and phone required
   if (!user && (!jersey_name || !phone)) {
     alert("Please enter both jersey name and phone number.");
     return;
   }
 
-  // 1. Check if full
+  // 🚫 For user booking someone else, fields required
+  if (user && !selfBooking && (!jersey_name || !phone)) {
+    alert("Please enter guest name and phone.");
+    return;
+  }
+
+  // ✅ Check if game full
   const [{ data: bookings }, { data: game }] = await Promise.all([
     supabase.from("game_bookings").select("id").eq("game_id", gameId),
     supabase.from("games").select("max_players").eq("id", gameId).single()
@@ -262,8 +316,8 @@ async function bookGame(gameId, form) {
     return;
   }
 
-  // 2. Check duplicate booking
-  if (user) {
+  // ✅ Check duplicate
+  if (user && selfBooking) {
     const { data: existing } = await supabase
       .from("game_bookings")
       .select("id")
@@ -287,9 +341,9 @@ async function bookGame(gameId, form) {
     }
   }
 
-  // 3. Fetch profile if logged in
+  // ✅ Fetch profile if needed
   let profile = null;
-  if (user) {
+  if (user && selfBooking) {
     const { data } = await supabase
       .from("profiles")
       .select("jersey_name, avatar_url, phone")
@@ -298,13 +352,21 @@ async function bookGame(gameId, form) {
     profile = data;
   }
 
-  // 4. Create payload
-  const payload = {
+  // ✅ Build payload
+  const payload = user && selfBooking ? {
     game_id: gameId,
-    user_id: user?.id || null,
-    avatar_url: user ? (profile?.avatar_url || null) : null,
-    jersey_name: user ? (profile?.jersey_name || "Player") : jersey_name,
-    phone: user ? profile?.phone || null : phone 
+    user_id: user.id,
+    booked_by_user_id: user.id,
+    avatar_url: profile?.avatar_url || null,
+    jersey_name: profile?.jersey_name || "Player",
+    phone: profile?.phone || null
+  } : {
+    game_id: gameId,
+    user_id: null,
+    booked_by_user_id: user?.id || null,
+    avatar_url: null,
+    jersey_name,
+    phone
   };
 
   const { error } = await supabase.from("game_bookings").insert([payload]);
@@ -318,6 +380,7 @@ async function bookGame(gameId, form) {
     form.reset();
   }
 }
+
 
 </script>
 </body>
