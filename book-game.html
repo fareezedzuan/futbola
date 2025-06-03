@@ -229,7 +229,7 @@ async function loadPlayers(gameId) {
 
   const [{ data: bookings, error: bookingError }, { data: game, error: gameError }] = await Promise.all([
     //supabase.from("game_bookings").select("*").eq("game_id", gameId),
-    supabase.from("game_bookings").select(`*,profiles (avatar_url)`).eq("game_id", gameId), //new
+    supabase.from("game_bookings").select(`*,profiles (jersey_name, avatar_url)`).eq("game_id", gameId), //new
     supabase.from("games").select("max_players").eq("id", gameId).single()
   ]);
 
