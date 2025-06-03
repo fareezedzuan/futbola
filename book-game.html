@@ -350,11 +350,11 @@ async function bookGame(gameId, form) {
       .eq("id", user.id)
       .single();
     profile = data;
-  }
 
-    if (!profile?.jersey_name || profile.jersey_name.trim().toLowerCase() === "player" || !profile?.phone) {
-    alert("Please complete your profile with a jersey name and phone number before booking.");
-    return;
+        if (!profile?.jersey_name || profile.jersey_name.trim().toLowerCase() === "player" || !profile?.phone) {
+      alert("Please complete your profile with a jersey name and phone number before booking.");
+      return;
+    }
   }
 
 
@@ -375,7 +375,7 @@ async function bookGame(gameId, form) {
   const { error } = await supabase.from("game_bookings").insert([payload]);
 
   if (error) {
-    alert("Booking failed.");
+    alert("Booking failed: " + error.message);
     console.error(error);
   } else {
     alert("Booking successful!");
