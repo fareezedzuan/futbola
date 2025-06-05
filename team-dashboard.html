@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Team Dashboard - Futbola</title>
+  <link rel="icon" href="./images/futbola-favicon.ico" type="image/x-icon">
+  <link rel="stylesheet" href="./style.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-image: url('./images/backgroundOrangeGradient.jpg');
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1000px;
+      margin: auto;
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    .team-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .team-header h1 {
+      font-size: 2rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .team-header img {
+      height: 40px;
+      border-radius: 50%;
+    }
+    .tabs {
+      display: flex;
+      gap: 20px;
+      border-bottom: 2px solid #eee;
+      padding-bottom: 10px;
+      margin-bottom: 20px;
+    }
+    .tab {
+      cursor: pointer;
+      font-weight: bold;
+      color: #555;
+    }
+    .tab.active {
+      color: #d72638;
+      border-bottom: 2px solid #d72638;
+    }
+    .section {
+      display: none;
+    }
+    .section.active {
+      display: block;
+    }
+    .card {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .card h3 {
+      margin-top: 0;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    table th, table td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    table th {
+      background-color: #f2f2f2;
+    }
+    .button {
+      background-color: #d72638;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .button:hover {
+      background-color: #a91c2b;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="team-header">
+      <h1><img src="./images/futbola-logo.svg" alt="Logo"> Lionhearts</h1>
+      <button class="button">Edit Team Profile</button>
+    </div>
+
+    <div class="tabs">
+      <div class="tab active" onclick="showTab('info')">Team Info</div>
+      <div class="tab" onclick="showTab('players')">Players</div>
+      <div class="tab" onclick="showTab('history')">Match History</div>
+      <div class="tab" onclick="showTab('requests')">Requests & Challenges</div>
+    </div>
+
+    <div id="info" class="section active">
+      <div class="card">
+        <h3>Team Info</h3>
+        <p><strong>Name:</strong> Lionhearts</p>
+        <p><strong>Level:</strong> Competitive</p>
+        <p><strong>Location:</strong> Next City</p>
+        <p><strong>Bio:</strong> Passionate football squad representing state pride</p>
+        <p><strong>Average Age:</strong> 27</p>
+      </div>
+    </div>
+
+    <div id="players" class="section">
+      <div class="card">
+        <h3>Players</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Number</th>
+              <th>Role</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Acze Teltrieon</td><td>8</td><td>Captain</td></tr>
+            <tr><td>Mitmoll Sman</td><td>10</td><td>Contributor</td></tr>
+            <tr><td>Deab Brawn</td><td>5</td><td>Player</td></tr>
+            <tr><td>Jaryer Tilber</td><td>1</td><td>Player</td></tr>
+          </tbody>
+        </table>
+        <button class="button">+ Add/Invite Player</button>
+      </div>
+    </div>
+
+    <div id="history" class="section">
+      <div class="card">
+        <h3>Match History</h3>
+        <table>
+          <thead>
+            <tr><th>Opponent</th><th>Result</th><th>Date</th><th>Score</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Blazers</td><td>W</td><td>28/05</td><td>9–1</td></tr>
+            <tr><td>Defenders</td><td>L</td><td>14/05</td><td>3–4</td></tr>
+            <tr><td>Stormers</td><td>D</td><td>07/05</td><td>6–6</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="requests" class="section">
+      <div class="card">
+        <h3>Requests & Challenges</h3>
+        <p>Hornets — <button class="button">Accept</button> <button class="button" style="background:#ccc;color:#333">Decline</button></p>
+        <p>Wartons — <button class="button">Accept</button> <button class="button" style="background:#ccc;color:#333">Decline</button></p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function showTab(tabId) {
+      document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+      document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
+      document.querySelector(`.tab[onclick="showTab('${tabId}')"]`).classList.add('active');
+      document.getElementById(tabId).classList.add('active');
+    }
+  </script>
+</body>
+</html>
