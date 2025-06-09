@@ -204,7 +204,7 @@
 const { data: stats, error: statError } = await supabase
   .from('player_stats')
   .select('sessions_joined, goals_scored, mvps_won, matches_won')
-  .eq('user_id', id)
+  .eq('user_id', userId)
   .single();
 
 if (stats) {
