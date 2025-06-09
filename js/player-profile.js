@@ -337,6 +337,20 @@ function setupEditToggle(profile) {
       if (error) return alert("Save failed");
       Object.assign(profile, updated);
       populateFields(profile); // ✅ Add this
+      // 👇 Fetch and display player stats
+const { data: stats, error: statError } = await supabase
+  .from('player_stats')
+  .select('sessions_joined, goals_scored, mvps_won, matches_won')
+  .eq('user_id', user.id)
+  .single();
+
+if (stats) {
+  document.getElementById('statSessions').innerText = stats.sessions_joined ?? '-';
+  document.getElementById('statGoals').innerText = stats.goals_scored ?? '-';
+  document.getElementById('statMVPs').innerText = stats.mvps_won ?? '-';
+  document.getElementById('statWins').innerText = stats.matches_won ?? '-';
+}
+
       document.getElementById("jerseyFull").textContent = `${profile.jersey_name ?? ''} ${profile.jersey_number ?? ''}`.trim();
       document.getElementById("bio").textContent = profile.bio ?? '-';
       document.getElementById("availabilityView").innerHTML = (updated.availability || []).map(day => `<span class="chip">${day}</span>`).join('') || '-';
