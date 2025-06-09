@@ -110,6 +110,14 @@
       <div class="field-row"><div class="field-label">Football Position</div><div id="footballPositionView" class="field-value">-</div></div>
       
     </div>
+
+    <div style="margin-top: 20px;">
+  <div class="field-row"><div class="field-label">Sessions Joined</div><div id="statSessions" class="field-value">-</div></div>
+  <div class="field-row"><div class="field-label">Goals Scored</div><div id="statGoals" class="field-value">-</div></div>
+  <div class="field-row"><div class="field-label">MVPs Won</div><div id="statMVPs" class="field-value">-</div></div>
+  <div class="field-row"><div class="field-label">Matches Won</div><div id="statWins" class="field-value">-</div></div>
+</div>
+
     <hr>
     <button onclick="window.location.href='book-game.html'" class="btn-red">Book a Game</button>
   </div>
@@ -191,6 +199,21 @@
       show("futsalPosition", profile.futsal_position);
       show("footballPosition", profile.football_position);
     }
+
+    // 🔢 Load player stats
+const { data: stats, error: statError } = await supabase
+  .from('player_stats')
+  .select('sessions_joined, goals_scored, mvps_won, matches_won')
+  .eq('user_id', id)
+  .single();
+
+if (stats) {
+  document.getElementById('statSessions').innerText = stats.sessions_joined ?? '-';
+  document.getElementById('statGoals').innerText = stats.goals_scored ?? '-';
+  document.getElementById('statMVPs').innerText = stats.mvps_won ?? '-';
+  document.getElementById('statWins').innerText = stats.matches_won ?? '-';
+}
+
 
     function getAgeFromDOB(dobStr) {
       if (!dobStr) return null;
