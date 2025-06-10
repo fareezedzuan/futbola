@@ -313,10 +313,12 @@
       //   jersey: b.jersey_number || ""
       // }));
 
-      allPlayers = data.bookings.map(b => ({
-        name: b.jersey_name,
-        jersey: "" // You can extend this if you store jersey_number in future
-      }));
+allPlayers = data.bookings.map(b => ({
+  name: b.jersey_name,
+  jersey: "",
+  user_id: b.user_id || null  // guests have null
+}));
+
 
       activePlayers = [...allPlayers];
       updateRemoveDropdown();
@@ -376,11 +378,23 @@
           box.dataset.name = player.name;
           box.dataset.jersey = player.jersey || "";
 
-          box.innerHTML = `
-            <div>${player.name.slice(0, 15)}</div>
-            <div class="text-xs mt-1">🎽 ${player.jersey || '--'}</div>
-            <button class="text-blue-500 underline text-xs mt-1" onclick="event.stopPropagation(); openJerseyPopup(${i}, ${activePlayers.indexOf(player)})">Set</button>
-          `;
+let html = `
+  <div>${player.name.slice(0, 15)}</div>
+  <div class="text-xs mt-1">🎽 ${player.jersey || '--'}</div>
+  <button class="text-blue-500 underline text-xs mt-1" onclick="event.stopPropagation(); openJerseyPopup(${i}, ${activePlayers.indexOf(player)})">Set</button>
+`;
+
+if (player.user_id) {
+  html += `
+    <select class="team-select mt-1 text-xs" data-user-id="${player.user_id}">
+      <option value="">Team?</option>
+      ${teamColors.map(c => `<option value="${c}">${c}</option>`).join("")}
+    </select>
+  `;
+}
+
+box.innerHTML = html;
+
           
 
           // ✅ Re-apply selection
@@ -480,6 +494,31 @@
         }
       })
     );
+
+// Save session_teams for registered users
+const teamAssignments = [];
+
+teamPlayers.forEach((players, i) => {
+  players.forEach(p => {
+    const full = activePlayers.find(ap => ap.name === p.name && ap.user_id);
+    if (full && full.user_id) {
+      teamAssignments.push({
+        game_id: gameId,
+        user_id: full.user_id,
+        team_color: teamNames[i],
+        jersey_name: full.name
+      });
+    }
+  });
+});
+
+if (teamAssignments.length > 0) {
+  const { data, error } = await supabase.from('session_teams').upsert(teamAssignments, {
+    onConflict: ['game_id', 'user_id']
+  });
+  if (error) console.error('Error saving session_teams:', error);
+}
+
 
     // Then continue to game
     sessionStorage.setItem("gameId", gameId);
