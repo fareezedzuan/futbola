@@ -272,7 +272,16 @@
   </div>
 </div>
 
-  <script>
+ <script type="module">
+  import { createClient } from "https://esm.sh/@supabase/supabase-js";
+
+  const supabase = createClient(
+    'https://kdbqroxhypnadolcxxxc.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkYnFyb3hoeXBuYWRvbGN4eHhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3MjkwNzYsImV4cCI6MjA1NzMwNTA3Nn0.c7_RVxoFdJNqQ62R3t1emH2Wf4dSsQaunHsHmbQxOBA'
+  );
+
+  window.supabase = supabase; 
+
     let allPlayers = [];
     let activePlayers = [];
     let selectedPlayerName = "";
@@ -459,6 +468,7 @@ box.innerHTML = html;
     }
 
     async function startGame() {
+      console.log("Starting game...");
     const count = parseInt(document.getElementById("teamCount").value);
     const gameId = document.getElementById("gameSelect").value;
     const duration = parseInt(document.getElementById("duration").value);
@@ -513,6 +523,7 @@ teamPlayers.forEach((players, i) => {
 });
 
 if (teamAssignments.length > 0) {
+  console.log("Team Assignments to Upsert:", teamAssignments);
   const { data, error } = await supabase.from('session_teams').upsert(teamAssignments, {
     onConflict: ['game_id', 'user_id']
   });
