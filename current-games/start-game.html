@@ -273,14 +273,13 @@
 </div>
 
  <script type="module">
-  import { createClient } from "https://esm.sh/@supabase/supabase-js";
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
   const supabase = createClient(
     'https://kdbqroxhypnadolcxxxc.supabase.co',
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkYnFyb3hoeXBuYWRvbGN4eHhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3MjkwNzYsImV4cCI6MjA1NzMwNTA3Nn0.c7_RVxoFdJNqQ62R3t1emH2Wf4dSsQaunHsHmbQxOBA'
   );
 
-  window.supabase = supabase; 
 
     let allPlayers = [];
     let activePlayers = [];
@@ -614,6 +613,18 @@ if (teamAssignments.length > 0) {
     });
 
     fetchGames();
+
+    window.generateTeamInputs = generateTeamInputs;
+window.randomizeTeams = randomizeTeams;
+window.toggleEditControls = toggleEditControls;
+window.confirmStartGame = confirmStartGame;
+window.startGame = startGame;
+window.removePlayer = removePlayer;
+window.addPlayer = addPlayer;
+window.selectJersey = selectJersey;
+window.openJerseyPopup = openJerseyPopup;
+window.closeJerseyPopup = closeJerseyPopup;
+
   </script>
 </body>
 </html>
