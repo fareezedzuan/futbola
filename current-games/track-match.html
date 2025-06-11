@@ -624,7 +624,7 @@
 <div class="overlay" id="editOverlay" onclick="closeEditPopup()"></div>
 <div class="scorer-popup" id="editGoalsPopup">
   <div class="close-popup" onclick="closeEditPopup()">×</div>
-  <h4>Edit Goals – Match ${matchIndex + 1}</h4>
+  document.getElementById("editGoalsPopup").querySelector("h4").innerText = `Edit Goals – Match ${matchIndex + 1}`;
   <div id="editGoalsList"></div>
 </div>
 
@@ -1210,14 +1210,21 @@ function editMatchGoals(matchIndex) {
   }
 
   const goals = allGoals.filter(g =>
-    g.match_number === matchIndex + 1 // 1-based match number
+    g.match_number === matchIndex + 1
   );
 
   const container = document.getElementById("editGoalsList");
-  container.innerHTML = "";
+
+  // ✅ Set dynamic heading (overwrite default <h4>)
+  document.getElementById("editGoalsPopup").querySelector("h4").innerText = `Edit Goals – Match ${matchIndex + 1}`;
+
+  // ✅ Start with Add button
+  container.innerHTML = `
+    <button onclick="promptAddGoalToMatch(${matchIndex})" class="btn-primary" style="margin-bottom:10px;">➕ Add Goal</button>
+  `;
 
   if (goals.length === 0) {
-    container.innerHTML = "<p>No goals recorded for this match.</p>";
+    container.innerHTML += "<p>No goals recorded for this match.</p>";
   } else {
     goals.forEach((g, i) => {
       const label = g.isOG ? `${g.player} (OG)` : g.player;
@@ -1234,7 +1241,6 @@ function editMatchGoals(matchIndex) {
   document.getElementById("editOverlay").style.display = "block";
   document.getElementById("editGoalsPopup").style.display = "block";
 }
-
 
 function closeEditPopup() {
   document.getElementById("editOverlay").style.display = "none";
@@ -1390,6 +1396,39 @@ async function endSession() {
   } else {
     alert("✅ Player stats updated!");
   }
+}
+
+function promptAddGoalToMatch(matchIndex) {
+  const match = matchResults[matchIndex];
+  if (!match) {
+    alert("Match not found.");
+    return;
+  }
+
+  const team = prompt(`Enter team name (${match.tA} or ${match.tB}):`);
+  if (!team || (team !== match.tA && team !== match.tB)) {
+    alert("Invalid team.");
+    return;
+  }
+
+  const player = prompt("Enter player name:");
+  if (!player) return;
+
+  const time = prompt("Enter goal time (e.g. 5'):");
+  if (!time) return;
+
+  const isOG = confirm("Is this an own goal?");
+
+  allGoals.push({
+    match_number: matchIndex + 1,
+    team,
+    player,
+    time,
+    isOG
+  });
+
+  editMatchGoals(matchIndex);
+  updateLeaderboard();
 }
 
 
