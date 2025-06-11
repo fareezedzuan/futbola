@@ -463,6 +463,19 @@ box.innerHTML = html;
           `;
 
       }
+      // ⬇️ Add this right before: document.getElementById("popup").style.display = "block";
+
+const duration = document.getElementById("duration").value;
+const rounds = document.getElementById("roundsInput").value;
+
+popup.innerHTML += `
+  <div style="margin-top: 20px; text-align: center;">
+    <h4>Game Settings</h4>
+    <p><strong>Duration per Match:</strong> ${duration} minutes</p>
+    <p><strong>Number of Rounds:</strong> ${rounds}</p>
+  </div>
+`;
+
       document.getElementById("popup").style.display = "block";
     }
 
