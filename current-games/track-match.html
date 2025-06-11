@@ -624,7 +624,7 @@
 <div class="overlay" id="editOverlay" onclick="closeEditPopup()"></div>
 <div class="scorer-popup" id="editGoalsPopup">
   <div class="close-popup" onclick="closeEditPopup()">×</div>
-  <h4>Edit Goals</h4>
+  <h4>Edit Goals – Match ${matchIndex + 1}</h4>
   <div id="editGoalsList"></div>
 </div>
 
@@ -943,7 +943,10 @@ async function saveCurrentMatch() {
   const gB = parseInt(document.getElementById("scoreB").textContent);
 
   matchResults.push({ tA, tB, gA, gB });
-  allGoals = allGoals.concat(currentGoals);
+  allGoals = allGoals.concat(
+  currentGoals.map(g => ({ ...g, match_number: matchNumber }))
+);
+
   updateMatchHistory();
   updateLeaderboard();
   updateStandings(tA, tB, gA, gB);
@@ -1022,7 +1025,7 @@ function updateMatchHistory() {
     const gB = result ? result.gB : "";
 
     container.innerHTML += `
-      <div class="match-result-row">
+      <div class="match-result-row" data-match-index="${index}" onclick="editMatchGoals(${index})">
         <div class="team-side left">
           <img class="team-logo" src="${getTeamLogo(teamA)}" alt="${teamA}" />
           <span class="team-name">${teamA}</span>
@@ -1036,6 +1039,7 @@ function updateMatchHistory() {
     `;
   });
 }
+
 
 function updateLeaderboard() {
   const tally = {};
@@ -1197,6 +1201,40 @@ function openEditGoals() {
   document.getElementById("editOverlay").style.display = "block";
   document.getElementById("editGoalsPopup").style.display = "block";
 }
+
+function editMatchGoals(matchIndex) {
+  const match = matchResults[matchIndex];
+  if (!match) {
+    alert("No goals found for this match.");
+    return;
+  }
+
+  const goals = allGoals.filter(g =>
+    g.match_number === matchIndex + 1 // 1-based match number
+  );
+
+  const container = document.getElementById("editGoalsList");
+  container.innerHTML = "";
+
+  if (goals.length === 0) {
+    container.innerHTML = "<p>No goals recorded for this match.</p>";
+  } else {
+    goals.forEach((g, i) => {
+      const label = g.isOG ? `${g.player} (OG)` : g.player;
+      container.innerHTML += `
+        <div style="margin-bottom:10px;">
+          ${label} – ${g.time}
+          <button onclick="editMatchGoal(${matchIndex}, ${i})">✏️</button>
+          <button onclick="deleteMatchGoal(${matchIndex}, ${i})">🗑️</button>
+        </div>
+      `;
+    });
+  }
+
+  document.getElementById("editOverlay").style.display = "block";
+  document.getElementById("editGoalsPopup").style.display = "block";
+}
+
 
 function closeEditPopup() {
   document.getElementById("editOverlay").style.display = "none";
