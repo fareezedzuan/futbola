@@ -657,8 +657,13 @@
   <img class="footer-logo" src="../images/futbola-logo.png" alt="futbola logo" />
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 <script>
-
+  
+const supabase = supabase.createClient(
+    'https://kdbqroxhypnadolcxxxc.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkYnFyb3hoeXBuYWRvbGN4eHhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3MjkwNzYsImV4cCI6MjA1NzMwNTA3Nn0.c7_RVxoFdJNqQ62R3t1emH2Wf4dSsQaunHsHmbQxOBA'
+  );
 // Set session ID once
 if (!sessionStorage.getItem("sessionId")) {
   sessionStorage.setItem("sessionId", Date.now().toString()); // or use a UUID if needed
