@@ -602,6 +602,7 @@
     <button class="btn-primary" onclick="startNextMatch()">Next Match</button>
     <button class="btn-primary" onclick="exportSummary()">Export WhatsApp</button>
     <button class="btn-primary" onclick="exportToInstagramImage()">Instagram Image</button>
+    <button class="btn-primary" onclick="endSession()">End Session</button>
   </div>
 
   <div class="section">
@@ -1337,6 +1338,17 @@ function attemptResync() {
 
   localStorage.setItem("unsyncedMatches", JSON.stringify(remaining));
 }
+
+async function endSession() {
+  const { data, error } = await supabase.rpc('update_player_stats');
+  if (error) {
+    console.error("Failed to update player stats:", error.message);
+    alert("❌ Failed to update stats!");
+  } else {
+    alert("✅ Player stats updated!");
+  }
+}
+
 
 </script>
 
