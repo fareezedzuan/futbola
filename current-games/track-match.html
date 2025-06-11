@@ -1345,7 +1345,7 @@ function attemptResync() {
 }
 
 async function endSession() {
-  const { data, error } = await supabase.rpc('update_player_stats');
+  const { data, error } = await supabaseClient.rpc('update_player_stats');
   if (error) {
     console.error("Failed to update player stats:", error.message);
     alert("❌ Failed to update stats!");
