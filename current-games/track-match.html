@@ -1406,14 +1406,13 @@ function deleteMatchGoal(matchIndex, i) {
 function saveEditedMatchGoals(matchIndex) {
   alert(`✅ Saved edits for Match ${matchIndex + 1}. (UI only — no backend sync yet)`);
 
-  // Optional: update leaderboard if changes might affect top scorers
-  updateLeaderboard();
-  // Optional: maybe close popup after save
-  closeEditPopup();
-  updateMatchHistory();
-  closeEditPopup();                      // Hide edit popup
-
+  recalculateMatchResultsFromGoals();     // 🔁 Update matchResults based on allGoals
+  recalculateStandingsFromAllMatches();   // 🧮 Recalculate standings from matchResults
+  updateLeaderboard();                    // 🎯 Refresh top scorers
+  updateMatchHistory();                   // 📝 Refresh match cards
+  closeEditPopup();                       // ✅ Close popup
 }
+
 
 function recalculateStandingsFromAllMatches() {
   standings = {}; // reset
@@ -1428,6 +1427,28 @@ function recalculateStandingsFromAllMatches() {
 
   updateLeaderboard(); // optional: refresh top scorers
 }
+
+function recalculateMatchResultsFromGoals() {
+  matchResults = [];
+
+  const matches = baseMatchups.length * currentRound;
+
+  for (let i = 0; i < matches; i++) {
+    const goals = allGoals.filter(g => g.match_number === i + 1);
+    if (!goals.length) {
+      matchResults.push(null);
+      continue;
+    }
+
+    const tA = matchups[i][0];
+    const tB = matchups[i][1];
+    const gA = goals.filter(g => g.team === tA).length;
+    const gB = goals.filter(g => g.team === tB).length;
+
+    matchResults.push({ tA, tB, gA, gB });
+  }
+}
+
 
 recalculateStandingsFromAllMatches();
 updateTimerDisplay();
