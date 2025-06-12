@@ -1411,7 +1411,7 @@ function saveEditedMatchGoals(matchIndex) {
   console.log("Match results BEFORE:", matchResults);
   console.log("Standings BEFORE:", JSON.parse(JSON.stringify(standings)));
 
-  recalculateMatchResultsFromGoals();     // 🔁 Update matchResults based on allGoals
+  recalculateMatchResult(matchIndex);     // ✅ only update that match
   recalculateStandingsFromAllMatches();   // 🧮 Recalculate standings from matchResults
   updateLeaderboard();                    // 🎯 Refresh top scorers
   updateMatchHistory();                   // 📝 Refresh match cards
@@ -1440,28 +1440,17 @@ matchResults.forEach((match, index) => {
   updateLeaderboard(); // optional: refresh top scorers
 }
 
-function recalculateMatchResultsFromGoals() {
-  matchResults = [];
+function recalculateMatchResult(matchIndex) {
+  const goals = allGoals.filter(g => g.match_number === matchIndex + 1);
+  if (!matchups[matchIndex]) return;
 
-  const matches = baseMatchups.length * currentRound;
+  const [tA, tB] = matchups[matchIndex];
+  const gA = goals.filter(g => g.team === tA).length;
+  const gB = goals.filter(g => g.team === tB).length;
 
-  for (let i = 0; i < matches; i++) {
-    const goals = allGoals.filter(g => g.match_number === i + 1);
-    
-    // Only include match if any goal exists (even OG) or if it was saved before
-    if (!goals.length) {
-      matchResults.push(null); // keep it as unplayed
-      continue;
-    }
-
-    const tA = matchups[i][0];
-    const tB = matchups[i][1];
-    const gA = goals.filter(g => g.team === tA).length;
-    const gB = goals.filter(g => g.team === tB).length;
-
-    matchResults.push({ tA, tB, gA, gB });
-  }
+  matchResults[matchIndex] = { tA, tB, gA, gB };
 }
+
 
 recalculateStandingsFromAllMatches();
 updateTimerDisplay();
