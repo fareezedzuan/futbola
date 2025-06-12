@@ -1507,38 +1507,36 @@ async function endSession() {
 }
 
 function promptAddGoalToMatch(matchIndex) {
-  const match = matchResults[matchIndex];
-  if (!match) {
-    alert("Match not found.");
-    return;
-  }
+  const [teamA, teamB] = matchups[matchIndex];
 
-  const team = prompt(`Enter team name (${match.tA} or ${match.tB}):`);
-  if (!team || (team !== match.tA && team !== match.tB)) {
-    alert("Invalid team.");
-    return;
-  }
+  // 1. Which team gets the goal?
+  let team = prompt(`Which team gets the goal? (${teamA} / ${teamB})`);
+  if (!team || (team !== teamA && team !== teamB)) return;
+  team = team.trim();
 
+  // 2. Is it an own goal?
+  const ogInput = prompt("Is this an own goal? (yes/no)");
+  if (!ogInput) return;
+  const isOG = ogInput.toLowerCase().startsWith("y");
+
+  // 3. Player name (even for OG)
   const player = prompt("Enter player name:");
   if (!player) return;
 
-  const time = prompt("Enter goal time (e.g. 5'):");
+  // 4. Time
+  const time = prompt("Enter time (e.g. 5'):");
   if (!time) return;
 
-  const isOG = confirm("Is this an own goal?");
-
   allGoals.push({
-    match_number: matchIndex + 1,
-    team,
     player,
     time,
-    isOG
+    isOG,
+    match_number: matchIndex + 1,
+    team
   });
 
-  editMatchGoals(matchIndex);
-  updateLeaderboard();
+  editMatchGoals(matchIndex); // Re-render popup with new goal
 }
-
 
 </script>
 
