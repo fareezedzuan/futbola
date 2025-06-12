@@ -1207,27 +1207,24 @@ function openEditGoals() {
 function editMatchGoals(matchIndex) {
   const match = matchResults[matchIndex];
   if (!match) {
-    alert("No goals found for this match.");
+    alert("No data found for this match.");
     return;
   }
 
-  const goals = allGoals.filter(g =>
-    g.match_number === matchIndex + 1
-  );
-
+  const goals = allGoals.filter(g => g.match_number === matchIndex + 1);
   const container = document.getElementById("editGoalsList");
 
-  // ✅ Set dynamic heading (overwrite default <h4>)
+  // Set popup heading dynamically
   document.getElementById("editGoalsPopup").querySelector("h4").innerText = `Edit Goals – Match ${matchIndex + 1}`;
 
-  // ✅ Start with Add button
+  // Always show Add Goal button
   container.innerHTML = `
     <button onclick="promptAddGoalToMatch(${matchIndex})" class="btn-primary" style="margin-bottom:10px;">➕ Add Goal</button>
   `;
 
-
+  // Show existing goals (if any)
   if (goals.length === 0) {
-    container.innerHTML += "<p>No goals recorded for this match.</p>";
+    container.innerHTML += `<p>No goals recorded for this match, but you can still add or save.</p>`;
   } else {
     goals.forEach((g, i) => {
       const label = g.isOG ? `${g.player} (OG)` : g.player;
@@ -1241,9 +1238,10 @@ function editMatchGoals(matchIndex) {
     });
   }
 
-    container.innerHTML += `
-  <button class="btn-primary" onclick="saveEditedMatchGoals(${matchIndex})">💾 Save Changes</button>
-`;
+  // Always show Save Changes
+  container.innerHTML += `
+    <button class="btn-primary" onclick="saveEditedMatchGoals(${matchIndex})">💾 Save Changes</button>
+  `;
 
   document.getElementById("editOverlay").style.display = "block";
   document.getElementById("editGoalsPopup").style.display = "block";
