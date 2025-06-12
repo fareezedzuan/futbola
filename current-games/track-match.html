@@ -1382,7 +1382,54 @@ function editMatchGoal(matchIndex, i) {
   editMatchGoals(matchIndex); // Re-render the popup with updated goal
 }
 
+function deleteMatchGoal(matchIndex, i) {
+  if (!confirm("Delete this goal?")) return;
 
+  const goals = allGoals.filter(g => g.match_number === matchIndex + 1);
+  const toDelete = goals[i];
+
+  // Find actual index in allGoals
+  const globalIndex = allGoals.findIndex(g =>
+    g.match_number === matchIndex + 1 &&
+    g.player === toDelete.player &&
+    g.time === toDelete.time &&
+    g.isOG === toDelete.isOG
+  );
+
+  if (globalIndex !== -1) {
+    allGoals.splice(globalIndex, 1);
+    editMatchGoals(matchIndex); // Re-render the goal list
+    updateLeaderboard(); // Optional: if you want top scorer table to update too
+  }
+}
+
+function saveEditedMatchGoals(matchIndex) {
+  alert(`✅ Saved edits for Match ${matchIndex + 1}. (UI only — no backend sync yet)`);
+
+  // Optional: update leaderboard if changes might affect top scorers
+  updateLeaderboard();
+  // Optional: maybe close popup after save
+  closeEditPopup();
+  updateMatchHistory();
+  closeEditPopup();                      // Hide edit popup
+
+}
+
+function recalculateStandingsFromAllMatches() {
+  standings = {}; // reset
+
+  matchResults.forEach((match, index) => {
+    const goals = allGoals.filter(g => g.match_number === index + 1);
+    const gA = goals.filter(g => g.team === match.tA).length;
+    const gB = goals.filter(g => g.team === match.tB).length;
+
+    updateStandings(match.tA, match.tB, gA, gB); // this adds to `standings`
+  });
+
+  updateLeaderboard(); // optional: refresh top scorers
+}
+
+recalculateStandingsFromAllMatches();
 updateTimerDisplay();
 startNextMatch();
 
