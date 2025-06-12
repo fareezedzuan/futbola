@@ -934,8 +934,12 @@ function updateLiveScoreboard() {
 
 async function saveCurrentMatch() {
   console.log("Saving match to Supabase...");
-  if (matchAlreadySaved) return; // ✅ Prevent double save
-  matchAlreadySaved = true;
+
+  // ✅ Prevent double-save
+  if (matchNumber > matchResults.length) {
+    console.warn("⛔ Not saving: matchNumber exceeds saved results.");
+    return;
+  }
 
   const tA = document.getElementById("teamAName").textContent;
   const tB = document.getElementById("teamBName").textContent;
@@ -944,14 +948,13 @@ async function saveCurrentMatch() {
 
   matchResults.push({ tA, tB, gA, gB });
   allGoals = allGoals.concat(
-  currentGoals.map(g => ({ ...g, match_number: matchNumber }))
-);
+    currentGoals.map(g => ({ ...g, match_number: matchNumber }))
+  );
 
   updateMatchHistory();
   updateLeaderboard();
   updateStandings(tA, tB, gA, gB);
 
-  // ✅ Replaced block starts here
   try {
     console.log("📤 Sending match result to Supabase:", {
       game_id: sessionStorage.getItem("gameId"),
@@ -986,29 +989,28 @@ async function saveCurrentMatch() {
 
     const json = await res.json();
     console.log("✅ Saved to Supabase:", json);
-    }catch (err) {
-      console.error("❌ Network or server error while saving match:", err);
 
-      const failedData = {
-        game_id: sessionStorage.getItem("gameId"),
-        session_id: sessionStorage.getItem("sessionId"),
-        match_number: matchNumber,
-        team_a: tA,
-        team_b: tB,
-        score_a: gA,
-        score_b: gB,
-        goals: currentGoals,
-        timestamp: Date.now()
-      };
+  } catch (err) {
+    console.error("❌ Network or server error while saving match:", err);
 
-      const existing = JSON.parse(localStorage.getItem("unsyncedMatches") || "[]");
-      existing.push(failedData);
-      localStorage.setItem("unsyncedMatches", JSON.stringify(existing));
+    const failedData = {
+      game_id: sessionStorage.getItem("gameId"),
+      session_id: sessionStorage.getItem("sessionId"),
+      match_number: matchNumber,
+      team_a: tA,
+      team_b: tB,
+      score_a: gA,
+      score_b: gB,
+      goals: currentGoals,
+      timestamp: Date.now()
+    };
 
-      alert(`⚠️ Match ${matchNumber} not saved due to network. Will retry when online.`);
-    }
+    const existing = JSON.parse(localStorage.getItem("unsyncedMatches") || "[]");
+    existing.push(failedData);
+    localStorage.setItem("unsyncedMatches", JSON.stringify(existing));
 
-  // ✅ Replaced block ends here
+    alert(`⚠️ Match ${matchNumber} not saved due to network. Will retry when online.`);
+  }
 }
 
 function updateMatchHistory() {
