@@ -1019,18 +1019,21 @@ function updateMatchHistory() {
   matchups.forEach((match, index) => {
     const [teamA, teamB] = match;
 
-    // Check if result exists
+    // Get result object if exists
     const result = matchResults[index];
-    const gA = result ? result.gA : "";
-    const gB = result ? result.gB : "";
+    const gA = result?.gA;
+    const gB = result?.gB;
 
+    // Build match card with edit click
     container.innerHTML += `
       <div class="match-result-row" data-match-index="${index}" onclick="editMatchGoals(${index})">
         <div class="team-side left">
           <img class="team-logo" src="${getTeamLogo(teamA)}" alt="${teamA}" />
           <span class="team-name">${teamA}</span>
         </div>
-        <div class="match-score">${gA !== "" ? gA : "–"} - ${gB !== "" ? gB : "–"}</div>
+        <div class="match-score">
+          ${typeof gA === "number" ? gA : "–"} - ${typeof gB === "number" ? gB : "–"}
+        </div>
         <div class="team-side right">
           <span class="team-name">${teamB}</span>
           <img class="team-logo" src="${getTeamLogo(teamB)}" alt="${teamB}" />
@@ -1039,7 +1042,6 @@ function updateMatchHistory() {
     `;
   });
 }
-
 
 function updateLeaderboard() {
   const tally = {};
