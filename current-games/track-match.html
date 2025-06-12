@@ -1404,22 +1404,72 @@ function deleteMatchGoal(matchIndex, i) {
 }
 
 function saveEditedMatchGoals(matchIndex) {
-  alert(`✅ Saved edits for Match ${matchIndex + 1}. (UI only — no backend sync yet)`);
+  alert(`✅ Saved edits for Match ${matchIndex + 1}.`);
 
   // Debug logs
   console.log("Goals for match", matchIndex + 1, allGoals.filter(g => g.match_number === matchIndex + 1));
   console.log("Match results BEFORE:", matchResults);
   console.log("Standings BEFORE:", JSON.parse(JSON.stringify(standings)));
 
-  recalculateMatchResult(matchIndex);     // ✅ only update that match
-  recalculateStandingsFromAllMatches();   // 🧮 Recalculate standings from matchResults
-  updateLeaderboard();                    // 🎯 Refresh top scorers
-  updateMatchHistory();                   // 📝 Refresh match cards
-  closeEditPopup();                       // ✅ Close popup
+  // 🔁 Recalculate result from updated goals
+  recalculateMatchResult(matchIndex);
+  recalculateStandingsFromAllMatches();
+  updateLeaderboard();
+  updateMatchHistory();
+  closeEditPopup();
 
-  // Debug logs after changes
   console.log("Match results AFTER:", matchResults);
   console.log("Standings AFTER:", standings);
+
+  // ✅ Supabase save block
+  const match = matchResults[matchIndex];
+  if (!match) return;
+
+  const updatedGoals = allGoals.filter(g => g.match_number === matchIndex + 1);
+
+  fetch('/api/save-match-result', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      game_id: sessionStorage.getItem("gameId"),
+      session_id: sessionStorage.getItem("sessionId"),
+      match_number: matchIndex + 1,
+      team_a: match.tA,
+      team_b: match.tB,
+      score_a: match.gA,
+      score_b: match.gB,
+      goals: updatedGoals
+    })
+  })
+  .then(res => {
+    if (!res.ok) throw new Error(`Server returned ${res.status}`);
+    return res.json();
+  })
+  .then(json => {
+    console.log("✅ Edited match saved to Supabase:", json);
+  })
+  .catch(err => {
+    console.error("❌ Failed to save edited match:", err);
+
+    // Fallback: save to localStorage as backup
+    const failedData = {
+      game_id: sessionStorage.getItem("gameId"),
+      session_id: sessionStorage.getItem("sessionId"),
+      match_number: matchIndex + 1,
+      team_a: match.tA,
+      team_b: match.tB,
+      score_a: match.gA,
+      score_b: match.gB,
+      goals: updatedGoals,
+      timestamp: Date.now()
+    };
+
+    const existing = JSON.parse(localStorage.getItem("unsyncedMatches") || "[]");
+    existing.push(failedData);
+    localStorage.setItem("unsyncedMatches", JSON.stringify(existing));
+
+    alert("⚠️ Could not sync to Supabase. Saved locally and will retry when online.");
+  });
 }
 
 
