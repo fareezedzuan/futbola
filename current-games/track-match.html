@@ -1223,6 +1223,7 @@ function editMatchGoals(matchIndex) {
     <button onclick="promptAddGoalToMatch(${matchIndex})" class="btn-primary" style="margin-bottom:10px;">➕ Add Goal</button>
   `;
 
+
   if (goals.length === 0) {
     container.innerHTML += "<p>No goals recorded for this match.</p>";
   } else {
@@ -1237,6 +1238,10 @@ function editMatchGoals(matchIndex) {
       `;
     });
   }
+
+    container.innerHTML += `
+  <button class="btn-primary" onclick="saveEditedMatchGoals(${matchIndex})">💾 Save Changes</button>
+`;
 
   document.getElementById("editOverlay").style.display = "block";
   document.getElementById("editGoalsPopup").style.display = "block";
@@ -1354,6 +1359,29 @@ function exportToInstagramImage() {
     exportDiv.style.display = "none";
   });
 }
+
+function editMatchGoal(matchIndex, i) {
+  const goals = allGoals.filter(g => g.match_number === matchIndex + 1);
+  const original = goals[i];
+  const globalIndex = allGoals.findIndex(g =>
+    g.match_number === matchIndex + 1 &&
+    g.player === original.player &&
+    g.time === original.time &&
+    g.isOG === original.isOG
+  );
+
+  const newPlayer = prompt("Enter new player name:", original.player);
+  if (newPlayer === null) return;
+
+  const newTime = prompt("Enter new time (e.g. 5'):", original.time);
+  if (newTime === null) return;
+
+  allGoals[globalIndex].player = newPlayer;
+  allGoals[globalIndex].time = newTime;
+
+  editMatchGoals(matchIndex); // Re-render the popup with updated goal
+}
+
 
 updateTimerDisplay();
 startNextMatch();
