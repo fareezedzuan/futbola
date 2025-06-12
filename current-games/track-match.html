@@ -706,6 +706,7 @@ let matchups = [...baseMatchups];
 let alarmTimeout;
 let alarmScheduledTime = 0; // when the alarm is supposed to trigger
 let alarmStartTimestamp = null; // when timer starts
+const savedMatchNumbers = new Set(); // ✅ Add this here
 
 function generateRoundRobin(teams) {
   const rounds = [], t = [...teams];
@@ -823,8 +824,15 @@ function resetTimer() {
 }
 
 function startNextMatch() {
-  if (matchNumber > 0) saveCurrentMatch();
-  const matchesPerRound = baseMatchups.length;
+  // ✅ Only save the match if not already saved
+  if (!savedMatchNumbers.has(matchNumber)) {
+    saveCurrentMatch();                // Save the current match
+    savedMatchNumbers.add(matchNumber); // Mark it as saved
+  } else {
+    console.warn(`⛔ Match ${matchNumber} already saved.`);
+  }
+
+  // ✅ Check if more matches exist
   if (matchNumber >= matchups.length) {
     if (currentRound < totalRounds) {
       showRoundPopup();
@@ -834,6 +842,7 @@ function startNextMatch() {
     return;
   }
 
+  // ✅ Setup next match
   resetTimer();
   currentGoals = [];
   document.getElementById("scoreA").textContent = "0";
@@ -849,7 +858,8 @@ function startNextMatch() {
   document.getElementById("teamBIcon").src = getTeamLogo(teamB);
 
   checkRoundCompletion();
-  updateMatchHistory(); // 👈 Ensure match schedule always appears
+  updateMatchHistory();
+
   matchNumber++;
   matchAlreadySaved = false;
 }
@@ -934,12 +944,6 @@ function updateLiveScoreboard() {
 
 async function saveCurrentMatch() {
   console.log("Saving match to Supabase...");
-
-  // ✅ Prevent double-save
-  if (matchNumber > matchResults.length) {
-    console.warn("⛔ Not saving: matchNumber exceeds saved results.");
-    return;
-  }
 
   const tA = document.getElementById("teamAName").textContent;
   const tB = document.getElementById("teamBName").textContent;
