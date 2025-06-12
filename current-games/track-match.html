@@ -1406,11 +1406,20 @@ function deleteMatchGoal(matchIndex, i) {
 function saveEditedMatchGoals(matchIndex) {
   alert(`✅ Saved edits for Match ${matchIndex + 1}. (UI only — no backend sync yet)`);
 
+  // Debug logs
+  console.log("Goals for match", matchIndex + 1, allGoals.filter(g => g.match_number === matchIndex + 1));
+  console.log("Match results BEFORE:", matchResults);
+  console.log("Standings BEFORE:", JSON.parse(JSON.stringify(standings)));
+
   recalculateMatchResultsFromGoals();     // 🔁 Update matchResults based on allGoals
   recalculateStandingsFromAllMatches();   // 🧮 Recalculate standings from matchResults
   updateLeaderboard();                    // 🎯 Refresh top scorers
   updateMatchHistory();                   // 📝 Refresh match cards
   closeEditPopup();                       // ✅ Close popup
+
+  // Debug logs after changes
+  console.log("Match results AFTER:", matchResults);
+  console.log("Standings AFTER:", standings);
 }
 
 
