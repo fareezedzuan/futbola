@@ -1447,19 +1447,16 @@ function recalculateMatchResultsFromGoals() {
 
   for (let i = 0; i < matches; i++) {
     const goals = allGoals.filter(g => g.match_number === i + 1);
-    if (!goals.length) {
-      matchResults.push(null);
-      continue;
-    }
+    const teamA = matchups[i][0];
+    const teamB = matchups[i][1];
 
-    const tA = matchups[i][0];
-    const tB = matchups[i][1];
-    const gA = goals.filter(g => g.team === tA).length;
-    const gB = goals.filter(g => g.team === tB).length;
+    const gA = goals.filter(g => g.team === teamA).length;
+    const gB = goals.filter(g => g.team === teamB).length;
 
-    matchResults.push({ tA, tB, gA, gB });
+    matchResults.push({ tA: teamA, tB: teamB, gA, gB });
   }
 }
+
 
 
 recalculateStandingsFromAllMatches();
