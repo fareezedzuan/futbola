@@ -15,6 +15,7 @@ export default async function handler(req, res) {
       [{ game_id, session_id, match_number, team_a, team_b, score_a, score_b, goals }],
       { onConflict: ['game_id', 'session_id', 'match_number'] }
     );
+    
 
   if (error) {
     console.error("❌ Supabase upsert error:", error.details || error.message || error);

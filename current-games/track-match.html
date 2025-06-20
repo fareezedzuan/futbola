@@ -1468,7 +1468,12 @@ function saveEditedMatchGoals(matchIndex) {
   const match = matchResults[matchIndex];
   if (!match) return;
 
-  const updatedGoals = allGoals.filter(g => g.match_number === matchIndex + 1);
+const updatedGoals = allGoals.filter(g => g.match_number === matchIndex + 1);
+
+// 🧼 Remove extra props (e.g., event handlers, temporary flags)
+const cleanGoals = updatedGoals.map(({ match_number, player, team, minute }) => ({
+  match_number, player, team, minute
+}));
 
 const payload = {
   game_id: sessionStorage.getItem("gameId"),
@@ -1478,8 +1483,9 @@ const payload = {
   team_b: match.tB,
   score_a: match.gA,
   score_b: match.gB,
-  goals: updatedGoals
+  goals: cleanGoals
 };
+
 
 console.warn("📝 Edited match payload being sent:", payload);
 
@@ -1488,7 +1494,9 @@ if (!payload.game_id || !payload.session_id || !payload.team_a || !payload.team_
   alert("⚠️ Match data incomplete or corrupted. Could not save.");
   return;
 }
-console.log("📦 Edited match goals payload:", updatedGoals);
+
+console.log("📦 Edited match goals payload:", JSON.stringify(updatedGoals, null, 2));
+
 fetch('/api/save-match-result', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
