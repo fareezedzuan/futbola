@@ -1488,7 +1488,7 @@ if (!payload.game_id || !payload.session_id || !payload.team_a || !payload.team_
   alert("⚠️ Match data incomplete or corrupted. Could not save.");
   return;
 }
-
+console.log("📦 Edited match goals payload:", updatedGoals);
 fetch('/api/save-match-result', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
