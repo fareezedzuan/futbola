@@ -706,6 +706,7 @@ let matchups = [...baseMatchups];
 let alarmTimeout;
 let alarmScheduledTime = 0; // when the alarm is supposed to trigger
 let alarmStartTimestamp = null; // when timer starts
+let matchTransitionInProgress = false;
 
 function generateRoundRobin(teams) {
   const rounds = [], t = [...teams];
@@ -823,20 +824,33 @@ function resetTimer() {
 }
 
 function startNextMatch() {
+  if (matchTransitionInProgress) {
+    console.warn("🚫 startNextMatch skipped — already in progress");
+    return;
+  }
+  matchTransitionInProgress = true;
+
   console.warn("🟢 startNextMatch called, matchNumber:", matchNumber);
-  if (matchNumber > 0) saveCurrentMatch(matchNumber - 1);
+
+  if (matchNumber > 0) {
+    saveCurrentMatch(matchNumber - 1);
+  }
+
   const matchesPerRound = baseMatchups.length;
+
   if (matchNumber >= matchups.length) {
     if (currentRound < totalRounds) {
       showRoundPopup();
     } else {
       alert("All matches done!");
     }
+    matchTransitionInProgress = false; // release lock
     return;
   }
 
   resetTimer();
   currentGoals = [];
+
   document.getElementById("scoreA").textContent = "0";
   document.getElementById("scoreB").textContent = "0";
   document.getElementById("goalLogA").innerHTML = "";
@@ -850,11 +864,19 @@ function startNextMatch() {
   document.getElementById("teamBIcon").src = getTeamLogo(teamB);
 
   checkRoundCompletion();
-  updateMatchHistory(); // 👈 Ensure match schedule always appears
+  updateMatchHistory();
+
   matchNumber++;
   matchAlreadySaved = false;
-  console.warn("🟢 startNextMatch called, matchNumber:", matchNumber);
+
+  console.warn("🟢 Completed startNextMatch. Next matchNumber is:", matchNumber);
+
+  // Release the lock after a short delay to avoid accidental rapid reentry
+  setTimeout(() => {
+    matchTransitionInProgress = false;
+  }, 100); // 100ms
 }
+
 
 function triggerScorer(side) {
   const teamA = document.getElementById("teamAName").textContent;
@@ -1536,6 +1558,12 @@ function attemptResync() {
 
   localStorage.setItem("unsyncedMatches", JSON.stringify(remaining));
 }
+
+function continueToNextRound(button) {
+  button.disabled = true;
+  startNextRound();
+}
+
 
 async function endSession() {
   const { data, error } = await supabaseClient.rpc('update_player_stats');
