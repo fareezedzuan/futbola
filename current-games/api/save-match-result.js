@@ -6,7 +6,8 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
 
   const { game_id, session_id, match_number, team_a, team_b, score_a, score_b, goals } = req.body;
-console.log("📥 Incoming match save payload:", req.body);
+  console.log("📥 Incoming match save payload:", req.body);
+  console.log("🔍 Upserting payload to Supabase:", {  game_id, session_id, match_number, team_a, team_b, score_a, score_b, goals });
 
   const { data, error } = await supabase
     .from('match_results')
@@ -16,7 +17,7 @@ console.log("📥 Incoming match save payload:", req.body);
     );
 
   if (error) {
-    console.error("❌ Supabase upsert error:", error);
+    console.error("❌ Supabase upsert error:", error.details || error.message || error);
     return res.status(400).json({ error });
   }
 
