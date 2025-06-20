@@ -998,6 +998,7 @@ async function saveCurrentMatch(matchIndex) {
 
     console.log("📤 Sending match result to Supabase:", payload);
 
+
     const res = await fetch('/api/save-match-result', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -1469,20 +1470,32 @@ function saveEditedMatchGoals(matchIndex) {
 
   const updatedGoals = allGoals.filter(g => g.match_number === matchIndex + 1);
 
-  fetch('/api/save-match-result', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      game_id: sessionStorage.getItem("gameId"),
-      session_id: sessionStorage.getItem("sessionId"),
-      match_number: matchIndex + 1,
-      team_a: match.tA,
-      team_b: match.tB,
-      score_a: match.gA,
-      score_b: match.gB,
-      goals: updatedGoals
-    })
-  })
+const payload = {
+  game_id: sessionStorage.getItem("gameId"),
+  session_id: sessionStorage.getItem("sessionId"),
+  match_number: matchIndex + 1,
+  team_a: match.tA,
+  team_b: match.tB,
+  score_a: match.gA,
+  score_b: match.gB,
+  goals: updatedGoals
+};
+
+console.warn("📝 Edited match payload being sent:", payload);
+
+if (!payload.game_id || !payload.session_id || !payload.team_a || !payload.team_b || isNaN(payload.score_a) || isNaN(payload.score_b)) {
+  console.error("🚫 Invalid payload detected. Aborting save.", payload);
+  alert("⚠️ Match data incomplete or corrupted. Could not save.");
+  return;
+}
+
+fetch('/api/save-match-result', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(payload)
+})
+
+  
   .then(res => {
     if (!res.ok) throw new Error(`Server returned ${res.status}`);
     return res.json();
