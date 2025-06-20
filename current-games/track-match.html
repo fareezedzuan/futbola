@@ -1468,12 +1468,7 @@ function saveEditedMatchGoals(matchIndex) {
   const match = matchResults[matchIndex];
   if (!match) return;
 
-const updatedGoals = allGoals.filter(g => g.match_number === matchIndex + 1);
-
-// 🧼 Remove extra props (e.g., event handlers, temporary flags)
-const cleanGoals = updatedGoals.map(({ match_number, player, team, minute }) => ({
-  match_number, player, team, minute
-}));
+  const updatedGoals = allGoals.filter(g => g.match_number === matchIndex + 1);
 
 const payload = {
   game_id: sessionStorage.getItem("gameId"),
@@ -1483,9 +1478,8 @@ const payload = {
   team_b: match.tB,
   score_a: match.gA,
   score_b: match.gB,
-  goals: cleanGoals
+  goals: updatedGoals
 };
-
 
 console.warn("📝 Edited match payload being sent:", payload);
 
