@@ -53,6 +53,7 @@ const supabase = createClient(
   populateFields(profile);
   setupEditToggle(profile);
   setupAvatarUpload(user.id);
+  loadPlayerStats(user.id);
 })();
 
 function getUser() {
@@ -462,4 +463,22 @@ function mapSkillLevel(level) {
     default: return "-";
   }
 }
+
+async function loadPlayerStats(userId) {
+  const { data: stats, error } = await supabase
+    .from('player_stats')
+    .select('sessions_joined, goals_scored, mvps_won, matches_won')
+    .eq('user_id', userId)
+    .single();
+
+  if (stats) {
+    document.getElementById('statSessions').innerText = stats.sessions_joined ?? '-';
+    document.getElementById('statGoals').innerText = stats.goals_scored ?? '-';
+    document.getElementById('statMVPs').innerText = stats.mvps_won ?? '-';
+    document.getElementById('statWins').innerText = stats.matches_won ?? '-';
+  } else {
+    console.warn("No stats found or error:", error);
+  }
+}
+
 
