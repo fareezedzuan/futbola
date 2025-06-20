@@ -707,6 +707,7 @@ let alarmTimeout;
 let alarmScheduledTime = 0; // when the alarm is supposed to trigger
 let alarmStartTimestamp = null; // when timer starts
 let matchTransitionInProgress = false;
+let roundTransitionInProgress = false;
 
 function generateRoundRobin(teams) {
   const rounds = [], t = [...teams];
@@ -1325,6 +1326,12 @@ function checkRoundCompletion() {
 }
 
 function startNextRound() {
+  if (roundTransitionInProgress) {
+    console.warn("⏳ Round transition already in progress.");
+    return;
+  }
+
+  roundTransitionInProgress = true;
 
   currentRound++;
   const newRound = generateRoundRobin(teamNames);
@@ -1333,11 +1340,15 @@ function startNextRound() {
   console.warn("🔄 Starting new round:", currentRound);
   console.warn("🧮 matchNumber before startNextMatch:", matchNumber);
 
-  // ✅ PREVENT RE-SAVING THE LAST MATCH (Match 6)
-  matchAlreadySaved = false; // ← Reset safety flag just in case
+  matchAlreadySaved = false;
 
   document.getElementById("roundPopup").style.display = "none";
   startNextMatch();
+
+  // Reset the flag after a short delay (optional)
+  setTimeout(() => {
+    roundTransitionInProgress = false;
+  }, 300);
 }
 
 function endGameNow() {
