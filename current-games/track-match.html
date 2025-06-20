@@ -823,7 +823,7 @@ function resetTimer() {
 }
 
 function startNextMatch() {
-  if (matchNumber > 0) saveCurrentMatch();
+  if (matchNumber > 0) saveCurrentMatch(matchNumber - 1);
   const matchesPerRound = baseMatchups.length;
   if (matchNumber >= matchups.length) {
     if (currentRound < totalRounds) {
@@ -932,9 +932,8 @@ function updateLiveScoreboard() {
   document.getElementById("scoreB").textContent = scoreB;
 }
 
-async function saveCurrentMatch() {
+async function saveCurrentMatch(matchIndex) {
   console.log("Saving match to Supabase...");
-
 
   const tA = document.getElementById("teamAName").textContent;
   const tB = document.getElementById("teamBName").textContent;
@@ -943,7 +942,7 @@ async function saveCurrentMatch() {
 
   matchResults.push({ tA, tB, gA, gB });
   allGoals = allGoals.concat(
-    currentGoals.map(g => ({ ...g, match_number: matchNumber }))
+    currentGoals.map(g => ({ ...g, match_number: matchIndex + 1 }))
   );
 
   updateMatchHistory();
@@ -951,30 +950,23 @@ async function saveCurrentMatch() {
   updateStandings(tA, tB, gA, gB);
 
   try {
-    console.log("📤 Sending match result to Supabase:", {
+    const payload = {
       game_id: sessionStorage.getItem("gameId"),
       session_id: sessionStorage.getItem("sessionId"),
-      match_number: matchNumber,
+      match_number: matchIndex + 1,
       team_a: tA,
       team_b: tB,
       score_a: gA,
       score_b: gB,
       goals: currentGoals
-    });
+    };
+
+    console.log("📤 Sending match result to Supabase:", payload);
 
     const res = await fetch('/api/save-match-result', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        game_id: sessionStorage.getItem("gameId"),
-        session_id: sessionStorage.getItem("sessionId"),
-        match_number: matchNumber,
-        team_a: tA,
-        team_b: tB,
-        score_a: gA,
-        score_b: gB,
-        goals: currentGoals
-      })
+      body: JSON.stringify(payload)
     });
 
     if (!res.ok) {
@@ -991,7 +983,7 @@ async function saveCurrentMatch() {
     const failedData = {
       game_id: sessionStorage.getItem("gameId"),
       session_id: sessionStorage.getItem("sessionId"),
-      match_number: matchNumber,
+      match_number: matchIndex + 1,
       team_a: tA,
       team_b: tB,
       score_a: gA,
@@ -1004,7 +996,7 @@ async function saveCurrentMatch() {
     existing.push(failedData);
     localStorage.setItem("unsyncedMatches", JSON.stringify(existing));
 
-    alert(`⚠️ Match ${matchNumber} not saved due to network. Will retry when online.`);
+    alert(`⚠️ Match ${matchIndex + 1} not saved due to network. Will retry when online.`);
   }
 }
 
@@ -1312,7 +1304,6 @@ function startNextRound() {
   matchups = matchups.concat(newRound);
 
   // ✅ PREVENT RE-SAVING THE LAST MATCH (Match 6)
-  matchNumber++;             // ← Advance to match 7 before `startNextMatch()`
   matchAlreadySaved = false; // ← Reset safety flag just in case
 
   document.getElementById("roundPopup").style.display = "none";
