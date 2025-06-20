@@ -823,6 +823,7 @@ function resetTimer() {
 }
 
 function startNextMatch() {
+  console.warn("🟢 startNextMatch called, matchNumber:", matchNumber);
   if (matchNumber > 0) saveCurrentMatch(matchNumber - 1);
   const matchesPerRound = baseMatchups.length;
   if (matchNumber >= matchups.length) {
@@ -852,6 +853,7 @@ function startNextMatch() {
   updateMatchHistory(); // 👈 Ensure match schedule always appears
   matchNumber++;
   matchAlreadySaved = false;
+  console.warn("🟢 startNextMatch called, matchNumber:", matchNumber);
 }
 
 function triggerScorer(side) {
@@ -934,6 +936,8 @@ function updateLiveScoreboard() {
 
 async function saveCurrentMatch(matchIndex) {
   console.log("Saving match to Supabase...");
+  console.warn("🟡 saveCurrentMatch() called for matchIndex:", matchIndex);
+  console.warn("→ matchNumber is:", matchNumber);
 
   const tA = document.getElementById("teamAName").textContent;
   const tB = document.getElementById("teamBName").textContent;
@@ -1299,9 +1303,13 @@ function checkRoundCompletion() {
 }
 
 function startNextRound() {
+
   currentRound++;
   const newRound = generateRoundRobin(teamNames);
   matchups = matchups.concat(newRound);
+
+  console.warn("🔄 Starting new round:", currentRound);
+  console.warn("🧮 matchNumber before startNextMatch:", matchNumber);
 
   // ✅ PREVENT RE-SAVING THE LAST MATCH (Match 6)
   matchAlreadySaved = false; // ← Reset safety flag just in case
