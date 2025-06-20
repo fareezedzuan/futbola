@@ -9,7 +9,10 @@ export default async function handler(req, res) {
 
   const { data, error } = await supabase
     .from('match_results')
-    .insert([{ game_id, session_id, match_number, team_a, team_b, score_a, score_b, goals }]);
+    .upsert(
+      [{ game_id, session_id, match_number, team_a, team_b, score_a, score_b, goals }],
+      { onConflict: ['game_id', 'session_id', 'match_number'] }
+    );
 
   if (error) return res.status(400).json({ error });
   res.status(200).json({ success: true, data });
