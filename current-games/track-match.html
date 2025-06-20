@@ -1310,6 +1310,11 @@ function startNextRound() {
   currentRound++;
   const newRound = generateRoundRobin(teamNames);
   matchups = matchups.concat(newRound);
+
+  // ✅ PREVENT RE-SAVING THE LAST MATCH (Match 6)
+  matchNumber++;             // ← Advance to match 7 before `startNextMatch()`
+  matchAlreadySaved = false; // ← Reset safety flag just in case
+
   document.getElementById("roundPopup").style.display = "none";
   startNextMatch();
 }
