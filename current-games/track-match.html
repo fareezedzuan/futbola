@@ -599,7 +599,7 @@
     <button class="btn-primary" id="timerBtn" onclick="handleTimerClick()">Start Timer</button>
     <button class="btn-primary" onclick="resetTimer()">Reset Timer</button>
     <button class="btn-primary" onclick="openEditGoals()">Edit Goals</button>
-    <button class="btn-primary" id="nextMatchButton">Next Match</button>
+    <button class="btn-primary" onclick="startNextMatch()">Next Match</button>
     <button class="btn-primary" onclick="exportSummary()">Export WhatsApp</button>
     <button class="btn-primary" onclick="exportToInstagramImage()">Instagram Image</button>
     <button class="btn-primary" onclick="endSession()">End Session</button>
@@ -709,7 +709,6 @@ let alarmStartTimestamp = null; // when timer starts
 let matchTransitionInProgress = false;
 let roundTransitionInProgress = false;
 let lastSavedMatchIndex = -1;
-let debounceTimeout = null;
 
 function generateRoundRobin(teams) {
   const rounds = [], t = [...teams];
@@ -914,16 +913,6 @@ document.getElementById("playersB").innerHTML = (teamPlayersRaw[opponentIdx] || 
 
   document.getElementById("overlay").style.display = "block";
   document.getElementById("scorerPopup").style.display = "block";
-}
-
-function debounceStartNextMatch() {
-  if (debounceTimeout) return; // ignore if too soon
-
-  startNextMatch();
-
-  debounceTimeout = setTimeout(() => {
-    debounceTimeout = null;
-  }, 500); // lockout time
 }
 
 function closePopup() {
@@ -1414,8 +1403,6 @@ function exportToInstagramImage() {
 
   // Copy standings
   document.getElementById("instaStandings").innerHTML = document.getElementById("standingsTable").innerHTML;
-
-  document.getElementById("nextMatchButton").addEventListener("click", debounceStartNextMatch);
 
   const exportDiv = document.getElementById("instagramExportDiv");
   exportDiv.style.display = "block";
