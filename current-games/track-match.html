@@ -959,6 +959,16 @@ function updateLiveScoreboard() {
 }
 
 async function saveCurrentMatch(matchIndex) {
+  const match = matchResults[matchIndex];
+if (!match) return;
+
+// 🔔 Warn if both scores are empty or 0
+if ((match.gA == null || match.gA === '' || match.gA === 0) &&
+    (match.gB == null || match.gB === '' || match.gB === 0)) {
+  const proceed = confirm("⚠️ Both scores are 0 or empty. Are you sure you want to continue?");
+  if (!proceed) return;
+}
+
   if (matchIndex === lastSavedMatchIndex) {
     console.warn(`🚫 Match ${matchIndex + 1} already saved — skipping`);
     return;
