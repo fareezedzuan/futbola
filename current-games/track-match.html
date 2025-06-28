@@ -959,15 +959,20 @@ function updateLiveScoreboard() {
 }
 
 async function saveCurrentMatch(matchIndex) {
-  const match = matchResults[matchIndex];
-if (!match) return;
+  const tA = document.getElementById("teamAName").textContent;
+  const tB = document.getElementById("teamBName").textContent;
+  const gA = parseInt(document.getElementById("scoreA").textContent);
+  const gB = parseInt(document.getElementById("scoreB").textContent);
 
-// 🔔 Warn if both scores are empty or 0
-if ((match.gA == null || match.gA === '' || match.gA === 0) &&
-    (match.gB == null || match.gB === '' || match.gB === 0)) {
-  const proceed = confirm("⚠️ Both scores are 0 or empty. Are you sure you want to continue?");
-  if (!proceed) return;
-}
+  // 🔔 Warn if both scores are empty or 0
+  if ((gA == null || gA === '' || gA === 0) &&
+      (gB == null || gB === '' || gB === 0)) {
+    const proceed = confirm("⚠️ Both scores are 0 or empty. Are you sure you want to continue?");
+    if (!proceed) return;
+  }
+
+  // ⬇️ Now push it to matchResults BEFORE checking for duplicates
+  matchResults[matchIndex] = { tA, tB, gA, gB };
 
   if (matchIndex === lastSavedMatchIndex) {
     console.warn(`🚫 Match ${matchIndex + 1} already saved — skipping`);
@@ -980,12 +985,6 @@ if ((match.gA == null || match.gA === '' || match.gA === 0) &&
   console.warn("🟡 saveCurrentMatch() called for matchIndex:", matchIndex);
   console.warn("→ matchNumber is:", matchNumber);
 
-  const tA = document.getElementById("teamAName").textContent;
-  const tB = document.getElementById("teamBName").textContent;
-  const gA = parseInt(document.getElementById("scoreA").textContent);
-  const gB = parseInt(document.getElementById("scoreB").textContent);
-
-  matchResults.push({ tA, tB, gA, gB });
   allGoals = allGoals.concat(
     currentGoals.map(g => ({ ...g, match_number: matchIndex + 1 }))
   );
@@ -1007,7 +1006,6 @@ if ((match.gA == null || match.gA === '' || match.gA === 0) &&
     };
 
     console.log("📤 Sending match result to Supabase:", payload);
-
 
     const res = await fetch('/api/save-match-result', {
       method: 'POST',
