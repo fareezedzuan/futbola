@@ -825,7 +825,7 @@ function resetTimer() {
   clearTimeout(alarmTimeout);
 }
 
-function startNextMatch() {
+async function startNextMatch() {
   if (matchTransitionInProgress) {
     console.warn("🚫 startNextMatch skipped — already in progress");
     return;
@@ -835,7 +835,12 @@ function startNextMatch() {
   console.warn("🟢 startNextMatch called, matchNumber:", matchNumber);
 
   if (matchNumber > 0) {
-    saveCurrentMatch(matchNumber - 1);
+    const success = await saveCurrentMatch(matchNumber - 1);
+    if (!success) {
+      console.warn("❌ Match not saved — aborting transition.");
+      matchTransitionInProgress = false;
+      return;
+    }
   }
 
   const matchesPerRound = baseMatchups.length;
@@ -846,7 +851,7 @@ function startNextMatch() {
     } else {
       alert("All matches done!");
     }
-    matchTransitionInProgress = false; // release lock
+    matchTransitionInProgress = false;
     return;
   }
 
@@ -873,10 +878,9 @@ function startNextMatch() {
 
   console.warn("🟢 Completed startNextMatch. Next matchNumber is:", matchNumber);
 
-  // Release the lock after a short delay to avoid accidental rapid reentry
   setTimeout(() => {
     matchTransitionInProgress = false;
-  }, 100); // 100ms
+  }, 100);
 }
 
 
@@ -964,19 +968,17 @@ async function saveCurrentMatch(matchIndex) {
   const gA = parseInt(document.getElementById("scoreA").textContent);
   const gB = parseInt(document.getElementById("scoreB").textContent);
 
-  // 🔔 Warn if both scores are empty or 0
   if ((gA == null || gA === '' || gA === 0) &&
       (gB == null || gB === '' || gB === 0)) {
     const proceed = confirm("⚠️ Both scores are 0 or empty. Are you sure you want to continue?");
-    if (!proceed) return;
+    if (!proceed) return false; // ❗ return false on cancel
   }
 
-  // ⬇️ Now push it to matchResults BEFORE checking for duplicates
   matchResults[matchIndex] = { tA, tB, gA, gB };
 
   if (matchIndex === lastSavedMatchIndex) {
     console.warn(`🚫 Match ${matchIndex + 1} already saved — skipping`);
-    return;
+    return false;
   }
 
   lastSavedMatchIndex = matchIndex;
@@ -1020,6 +1022,7 @@ async function saveCurrentMatch(matchIndex) {
 
     const json = await res.json();
     console.log("✅ Saved to Supabase:", json);
+    return true;
 
   } catch (err) {
     console.error("❌ Network or server error while saving match:", err);
@@ -1041,8 +1044,10 @@ async function saveCurrentMatch(matchIndex) {
     localStorage.setItem("unsyncedMatches", JSON.stringify(existing));
 
     alert(`⚠️ Match ${matchIndex + 1} not saved due to network. Will retry when online.`);
+    return false;
   }
 }
+
 
 function updateMatchHistory() {
   const container = document.getElementById("matchHistory");
