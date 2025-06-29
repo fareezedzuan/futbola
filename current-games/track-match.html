@@ -1362,15 +1362,16 @@ function startNextRound() {
   const newRound = generateRoundRobin(teamNames);
   matchups = matchups.concat(newRound);
 
-  // 👇 This is the key fix
-  matchNumber = matchups.length - newRound.length;
+  // ✅ Reset matchNumber to start of this new round
+  const matchesPerRound = baseMatchups.length;
+  matchNumber = (currentRound - 1) * matchesPerRound;
 
   console.warn("🔄 Starting new round:", currentRound);
   console.warn("🧮 matchNumber before startNextMatch:", matchNumber);
 
   matchAlreadySaved = false;
-
   document.getElementById("roundPopup").style.display = "none";
+
   startNextMatch();
 
   setTimeout(() => {
