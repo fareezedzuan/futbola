@@ -835,6 +835,7 @@ async function startNextMatch() {
   console.warn("🟢 startNextMatch called, matchNumber:", matchNumber);
 
   if (matchNumber > 0) {
+    console.log("✅ Set contents before save attempt:", savedMatchIndexes);
     const success = await saveCurrentMatch(matchNumber - 1);
     if (!success) {
       console.warn("❌ Match not saved — aborting transition.");
