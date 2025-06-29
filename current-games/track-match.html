@@ -1177,19 +1177,27 @@ function updateStandings(tA, tB, gA, gB) {
 
 
 function exportSummary() {
-  saveCurrentMatch();
+  const lastMatchIndex = matchNumber - 1;
+
+  // ✅ Safe guard: only try to save if index is valid
+  if (lastMatchIndex >= 0 && lastMatchIndex < matchups.length) {
+    saveCurrentMatch(lastMatchIndex);
+  } else {
+    console.warn("⚠️ Skipping saveCurrentMatch — invalid match index:", lastMatchIndex);
+  }
 
   const venue = sessionStorage.getItem("venue") || "futbola court";
   const date = sessionStorage.getItem("date") || new Date().toLocaleDateString();
 
   let message = `⚽ *Thank you for joining futbola!*\n📍 *Venue:* ${venue}\n📅 *Date:* ${date}\n\n`;
 
-  // Match results
+  // 📋 Match results
   message += `📋 *Match Results*\n`;
   matchResults.forEach((r, i) => {
     message += `Match ${i + 1}: ${r.tA} ${r.gA} - ${r.gB} ${r.tB}\n`;
   });
 
+  // 🎯 Top scorers
   const tally = {};
   allGoals.forEach(g => {
     if (!g.isOG) tally[g.player] = (tally[g.player] || 0) + 1;
@@ -1206,8 +1214,14 @@ function exportSummary() {
     message += "No goals recorded yet.\n";
   }
 
-  const rows = Object.entries(standings).map(([team, s]) => ({ team, ...s, GD: s.GF - s.GA }))
-    .sort((a, b) => b.Pts - a.Pts || b.GD - a.GD || b.GF - a.GF);
+  // 🏆 Group standings
+  const rows = Object.entries(standings).map(([team, s]) => ({
+    team,
+    ...s,
+    GD: s.GF - s.GA
+  })).sort((a, b) =>
+    b.Pts - a.Pts || b.GD - a.GD || b.GF - a.GF
+  );
 
   message += `\n🏆 *Group Table*\n# Team        MP  W D L  Pts\n`;
   rows.forEach((r, i) => {
