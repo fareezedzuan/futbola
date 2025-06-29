@@ -1613,13 +1613,22 @@ function continueToNextRound(button) {
 
 
 async function endSession() {
+  if (!confirm("End session and save scores/goals?")) return;
+
+  // (Optional) insert logic here to finalize match_results if not already saved
+
   const { data, error } = await supabaseClient.rpc('update_player_stats');
+
   if (error) {
-    console.error("Failed to update player stats:", error.message);
+    console.error("❌ Failed to update player stats:", error.message);
     alert("❌ Failed to update stats!");
   } else {
+    console.log("✅ Player stats updated:", data);
     alert("✅ Player stats updated!");
   }
+
+  // Optional reload after success
+  window.location.reload();
 }
 
 function promptAddGoalToMatch(matchIndex) {
