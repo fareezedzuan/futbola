@@ -708,7 +708,7 @@ let alarmScheduledTime = 0; // when the alarm is supposed to trigger
 let alarmStartTimestamp = null; // when timer starts
 let matchTransitionInProgress = false;
 let roundTransitionInProgress = false;
-let lastSavedMatchIndex = -1;
+let savedMatchIndexes = new Set();
 
 function generateRoundRobin(teams) {
   const rounds = [], t = [...teams];
@@ -976,12 +976,12 @@ async function saveCurrentMatch(matchIndex) {
 
   matchResults[matchIndex] = { tA, tB, gA, gB };
 
-  if (matchIndex === lastSavedMatchIndex) {
+  if (savedMatchIndexes.has(matchIndex)) {
     console.warn(`🚫 Match ${matchIndex + 1} already saved — skipping`);
     return false;
   }
 
-  lastSavedMatchIndex = matchIndex;
+  savedMatchIndexes.add(matchIndex);
 
   console.log("Saving match to Supabase...");
   console.warn("🟡 saveCurrentMatch() called for matchIndex:", matchIndex);
