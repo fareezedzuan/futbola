@@ -1354,10 +1354,13 @@ function startNextRound() {
   }
 
   roundTransitionInProgress = true;
-
   currentRound++;
+
   const newRound = generateRoundRobin(teamNames);
   matchups = matchups.concat(newRound);
+
+  // 👇 This is the key fix
+  matchNumber = matchups.length - newRound.length;
 
   console.warn("🔄 Starting new round:", currentRound);
   console.warn("🧮 matchNumber before startNextMatch:", matchNumber);
@@ -1367,11 +1370,11 @@ function startNextRound() {
   document.getElementById("roundPopup").style.display = "none";
   startNextMatch();
 
-  // Reset the flag after a short delay (optional)
   setTimeout(() => {
     roundTransitionInProgress = false;
   }, 300);
 }
+
 
 function endGameNow() {
   document.getElementById("roundPopup").style.display = "none";
