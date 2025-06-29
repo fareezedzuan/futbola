@@ -825,7 +825,9 @@ function resetTimer() {
   clearTimeout(alarmTimeout);
 }
 
-async function startNextMatch() {
+async function startNextMatch(options = {}) {
+  const skipSave = options.skipSave || false;
+
   if (matchTransitionInProgress) {
     console.warn("🚫 startNextMatch skipped — already in progress");
     return;
@@ -834,7 +836,7 @@ async function startNextMatch() {
 
   console.warn("🟢 startNextMatch called, matchNumber:", matchNumber);
 
-  if (matchNumber > 0) {
+  if (!skipSave && matchNumber > 0) {
     const actualMatchIndex = matchNumber - 1;
     console.log("🎯 Actual match index to save:", actualMatchIndex);
     const success = await saveCurrentMatch(actualMatchIndex);
@@ -845,8 +847,6 @@ async function startNextMatch() {
       return;
     }
   }
-
-  const matchesPerRound = baseMatchups.length;
 
   if (matchNumber >= matchups.length) {
     if (currentRound < totalRounds) {
@@ -885,7 +885,6 @@ async function startNextMatch() {
     matchTransitionInProgress = false;
   }, 100);
 }
-
 
 function triggerScorer(side) {
   const teamA = document.getElementById("teamAName").textContent;
@@ -1362,16 +1361,17 @@ function startNextRound() {
   const newRound = generateRoundRobin(teamNames);
   matchups = matchups.concat(newRound);
 
-  // ❌ REMOVE this line — causes conflict
-  // matchNumber = matchups.length - newRound.length;
+  // ✅ Correctly point to the start of the new round
+  matchNumber = matchups.length - newRound.length;
 
   console.warn("🔄 Starting new round:", currentRound);
   console.warn("🧮 matchNumber before startNextMatch:", matchNumber);
 
   matchAlreadySaved = false;
-
   document.getElementById("roundPopup").style.display = "none";
-  startNextMatch();
+
+  // 🛠️ Skip saving on round start to avoid double-save
+  startNextMatch({ skipSave: true });
 
   setTimeout(() => {
     roundTransitionInProgress = false;
