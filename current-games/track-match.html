@@ -1623,36 +1623,67 @@ async function endSession() {
 }
 
 function promptAddGoalToMatch(matchIndex) {
+  window.pendingEditMatchIndex = matchIndex;
   const [teamA, teamB] = matchups[matchIndex];
 
-  // 1. Which team gets the goal?
-  let team = prompt(`Which team gets the goal? (${teamA} / ${teamB})`);
-  if (!team || (team !== teamA && team !== teamB)) return;
-  team = team.trim();
+  document.getElementById("editTeamSelector").innerHTML = `
+    <button class="btn-primary" onclick="selectEditTeam('${teamA}', '${teamB}')">${teamA}</button>
+    <button class="btn-primary" onclick="selectEditTeam('${teamB}', '${teamA}')">${teamB}</button>
+  `;
 
-  // 2. Is it an own goal?
-  const ogInput = prompt("Is this an own goal? (yes/no)");
-  if (!ogInput) return;
-  const isOG = ogInput.toLowerCase().startsWith("y");
+  document.getElementById("editAddGoalPopup").style.display = "block";
+  document.getElementById("overlay").style.display = "block";
+}
 
-  // 3. Player name (even for OG)
-  const player = prompt("Enter player name:");
-  if (!player) return;
+function selectEditTeam(scoringTeam, opponentTeam) {
+  const scoringIdx = teamNames.indexOf(scoringTeam);
+  const opponentIdx = teamNames.indexOf(opponentTeam);
 
-  // 4. Time
-  const time = prompt("Enter time (e.g. 5'):");
-  if (!time) return;
+  document.getElementById("editLeftTeam").textContent = scoringTeam;
+  document.getElementById("editRightTeam").textContent = opponentTeam;
+
+  document.getElementById("editLeftPlayers").innerHTML = (teamPlayersRaw[scoringIdx] || []).map(p =>
+    `<button onclick="selectEditPlayer('${scoringTeam}', '${p.name}', false)">${p.name}</button>`
+  ).join("");
+
+  document.getElementById("editRightPlayers").innerHTML = (teamPlayersRaw[opponentIdx] || []).map(p =>
+    `<button onclick="selectEditPlayer('${scoringTeam}', '${p.name}', true)">${p.name} (OG)</button>`
+  ).join("");
+
+  document.getElementById("editPlayerSelector").style.display = "block";
+  document.getElementById("editTimeInputSection").style.display = "none";
+}
+
+function selectEditPlayer(team, player, isOG) {
+  window.pendingEditGoal = { team, player, isOG };
+  document.getElementById("editTimeInputSection").style.display = "block";
+}
+
+function confirmAddGoalToMatch() {
+  const matchIndex = window.pendingEditMatchIndex;
+  const { team, player, isOG } = window.pendingEditGoal;
+  const timeVal = document.getElementById("editGoalTime").value;
+  const time = `${timeVal}'`;
 
   allGoals.push({
-    player,
-    time,
-    isOG,
     match_number: matchIndex + 1,
-    team
+    player,
+    team,
+    time,
+    isOG
   });
 
-  editMatchGoals(matchIndex); // Re-render popup with new goal
+  closeEditAddGoalPopup();
+  editMatchGoals(matchIndex);
 }
+
+function closeEditAddGoalPopup() {
+  document.getElementById("editAddGoalPopup").style.display = "none";
+  document.getElementById("overlay").style.display = "none";
+  document.getElementById("editPlayerSelector").style.display = "none";
+  document.getElementById("editTimeInputSection").style.display = "none";
+}
+
 
 </script>
 
@@ -1664,6 +1695,27 @@ function promptAddGoalToMatch(matchIndex) {
   <button class="btn-primary" onclick="startNextRound()">✅ Continue to Round 2</button>
   <button class="btn-primary" onclick="endGameNow()">❌ End Game Now</button>
 </div>
+
+<div class="scorer-popup" id="editAddGoalPopup" style="display:none;">
+  <div class="close-popup" onclick="closeEditAddGoalPopup()">×</div>
+  <h4>Select Team</h4>
+  <div class="btn-row" id="editTeamSelector"></div>
+  <div id="editPlayerSelector" style="display:none;">
+    <h4>Select Player</h4>
+    <div class="scorer-columns">
+      <div><strong id="editLeftTeam"></strong><div id="editLeftPlayers"></div></div>
+      <div><strong id="editRightTeam"></strong><div id="editRightPlayers"></div></div>
+    </div>
+  </div>
+  <div id="editTimeInputSection" style="display:none; text-align:center; margin-top:10px;">
+    <label for="editGoalTime">Time (min): </label>
+    <input type="number" id="editGoalTime" min="1" max="60" value="5" style="width:80px;" />
+    <div class="btn-row">
+      <button class="btn-primary" onclick="confirmAddGoalToMatch()">✅ Confirm Goal</button>
+    </div>
+  </div>
+</div>
+
 
 </body>
 </html>
