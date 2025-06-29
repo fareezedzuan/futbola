@@ -1360,7 +1360,10 @@ function startNextRound() {
   currentRound++;
 
   const newRound = generateRoundRobin(teamNames);
-  matchups = matchups.concat(newRound); // adds to the flat matchups list
+  matchups = matchups.concat(newRound);
+
+  // ❌ REMOVE this line — causes conflict
+  // matchNumber = matchups.length - newRound.length;
 
   console.warn("🔄 Starting new round:", currentRound);
   console.warn("🧮 matchNumber before startNextMatch:", matchNumber);
