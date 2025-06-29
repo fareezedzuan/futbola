@@ -835,7 +835,7 @@ async function startNextMatch() {
   console.warn("🟢 startNextMatch called, matchNumber:", matchNumber);
 
   if (matchNumber > 0) {
-    const actualMatchIndex = matchNumber - 1 + (currentRound - 1) * baseMatchups.length;
+    const actualMatchIndex = matchNumber - 1;
     console.log("🎯 Actual match index to save:", actualMatchIndex);
     const success = await saveCurrentMatch(actualMatchIndex);
 
