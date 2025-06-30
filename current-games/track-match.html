@@ -603,6 +603,7 @@
     <button class="btn-primary" onclick="exportSummary()">Export WhatsApp</button>
     <button class="btn-primary" onclick="exportToInstagramImage()">Instagram Image</button>
     <button class="btn-primary" onclick="endSession()">End Session</button>
+    <button id="nominateMVPBtn">Nominate MVP</button>
   </div>
 
   <div class="section">
@@ -709,6 +710,7 @@ let alarmStartTimestamp = null; // when timer starts
 let matchTransitionInProgress = false;
 let roundTransitionInProgress = false;
 let savedMatchIndexes = new Set();
+let selectedMVP = null;
 
 function generateRoundRobin(teams) {
   const rounds = [], t = [...teams];
@@ -1632,22 +1634,37 @@ function continueToNextRound(button) {
 
 
 async function endSession() {
+  if (!selectedMVP) {
+    alert("Please select an MVP before ending the session.");
+    return;
+  }
+
+  const { error: mvpError } = await supabase
+    .from("games")
+    .update({ mvp_user_id: selectedMVP })
+    .eq("id", gameId); // assumes gameId is globally set
+
+  if (mvpError) {
+    console.error("❌ Error saving MVP:", mvpError);
+    alert("Failed to save MVP.");
+    return;
+  } else {
+    alert("✅ MVP saved successfully.");
+  }
+
   if (!confirm("End session and save scores/goals?")) return;
 
-  // (Optional) insert logic here to finalize match_results if not already saved
+  const { data: statsData, error: statsError } = await supabaseClient.rpc('update_player_stats');
 
-  const { data, error } = await supabaseClient.rpc('update_player_stats');
-
-  if (error) {
-    console.error("❌ Failed to update player stats:", error.message);
+  if (statsError) {
+    console.error("❌ Failed to update player stats:", statsError.message);
     alert("❌ Failed to update stats!");
   } else {
-    console.log("✅ Player stats updated:", data);
+    console.log("✅ Player stats updated:", statsData);
     alert("✅ Player stats updated!");
   }
 
-  // Optional reload after success
-  window.location.reload();
+  window.location.reload(); // Optional reload
 }
 
 function promptAddGoalToMatch(matchIndex) {
@@ -1712,6 +1729,35 @@ function closeEditAddGoalPopup() {
   document.getElementById("editTimeInputSection").style.display = "none";
 }
 
+document.getElementById("nominateMVPBtn").addEventListener("click", () => {
+  const select = document.getElementById("mvpSelect");
+  select.innerHTML = ""; // Clear existing options
+
+  registeredUsers.forEach(user => {
+    const option = document.createElement("option");
+    option.value = user.id;
+    option.textContent = user.name;
+    select.appendChild(option);
+  });
+
+  document.getElementById("mvpModal").style.display = "block";
+});
+
+function closeMVPModal() {
+  document.getElementById("mvpModal").style.display = "none";
+}
+
+function confirmMVP() {
+  selectedMVP = document.getElementById("mvpSelect").value;
+  if (!selectedMVP) {
+    alert("Please select a valid player.");
+    return;
+  }
+  alert("✅ MVP selected.");
+  closeMVPModal();
+}
+
+
 
 </script>
 
@@ -1742,6 +1788,14 @@ function closeEditAddGoalPopup() {
       <button class="btn-primary" onclick="confirmAddGoalToMatch()">✅ Confirm Goal</button>
     </div>
   </div>
+</div>
+
+<div id="mvpModal" style="display:none; position: fixed; top: 20%; left: 50%; transform: translateX(-50%); background: white; border: 1px solid #ccc; padding: 20px; z-index: 999;">
+  <h3>Select MVP</h3>
+  <select id="mvpSelect"></select>
+  <br><br>
+  <button onclick="confirmMVP()">✅ Confirm</button>
+  <button onclick="closeMVPModal()">❌ Cancel</button>
 </div>
 
 
