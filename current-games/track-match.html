@@ -658,6 +658,52 @@
   <img class="footer-logo" src="../images/futbola-logo.png" alt="futbola logo" />
 </div>
 
+
+<!-- <audio id="alarmSound" src="../audio/annoying-alarm.wav" preload="auto"></audio> -->
+<div id="roundOverlay" onclick="closeRoundPopup()"></div>
+<div id="roundPopup">
+  <h3>🎯 Round 1 Completed</h3>
+  <p>Do you want to continue to Round 2?</p>
+  <button class="btn-primary" onclick="startNextRound()">✅ Continue to Round 2</button>
+  <button class="btn-primary" onclick="endGameNow()">❌ End Game Now</button>
+</div>
+
+<div class="scorer-popup" id="editAddGoalPopup" style="display:none;">
+  <div class="close-popup" onclick="closeEditAddGoalPopup()">×</div>
+  <h4>Select Team</h4>
+  <div class="btn-row" id="editTeamSelector"></div>
+  <div id="editPlayerSelector" style="display:none;">
+    <h4>Select Player</h4>
+    <div class="scorer-columns">
+      <div><strong id="editLeftTeam"></strong><div id="editLeftPlayers"></div></div>
+      <div><strong id="editRightTeam"></strong><div id="editRightPlayers"></div></div>
+    </div>
+  </div>
+  <div id="editTimeInputSection" style="display:none; text-align:center; margin-top:10px;">
+    <label for="editGoalTime">Time (min): </label>
+    <input type="number" id="editGoalTime" min="1" max="60" value="5" style="width:80px;" />
+    <div class="btn-row">
+      <button class="btn-primary" onclick="confirmAddGoalToMatch()">✅ Confirm Goal</button>
+    </div>
+  </div>
+</div>
+
+<!-- MVP Modal -->
+<div id="mvpModal" class="overlay" style="display: none;">
+  <div class="scorer-popup">
+    <span class="close-popup" onclick="closeMVPModal()">×</span>
+    <h4>🏅 Select MVP</h4>
+    <select id="mvpSelect" class="dropdown" style="width: 100%; padding: 10px; font-size: 16px;">
+      <option disabled selected>Loading...</option>
+    </select>
+    <div style="margin-top: 15px;">
+      <button onclick="selectMVP()" class="btn-primary" style="width: 100%;">✅ Confirm</button>
+      <button onclick="closeMVPModal()" class="btn-primary" style="background: #ccc; color: #333; margin-top: 8px;">❌ Cancel</button>
+    </div>
+  </div>
+</div>
+
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 <script>
 const { createClient } = supabase;
@@ -1786,51 +1832,14 @@ function closeMVPModal() {
   document.getElementById("mvpModal").style.display = "none";
 }
 
+document.addEventListener("DOMContentLoaded", () => {
+  const mvpBtn = document.getElementById("nominateMVPBtn");
+  if (mvpBtn) {
+    mvpBtn.addEventListener("click", showMVPSelector);
+  }
+});
+
 </script>
-
-<!-- <audio id="alarmSound" src="../audio/annoying-alarm.wav" preload="auto"></audio> -->
-<div id="roundOverlay" onclick="closeRoundPopup()"></div>
-<div id="roundPopup">
-  <h3>🎯 Round 1 Completed</h3>
-  <p>Do you want to continue to Round 2?</p>
-  <button class="btn-primary" onclick="startNextRound()">✅ Continue to Round 2</button>
-  <button class="btn-primary" onclick="endGameNow()">❌ End Game Now</button>
-</div>
-
-<div class="scorer-popup" id="editAddGoalPopup" style="display:none;">
-  <div class="close-popup" onclick="closeEditAddGoalPopup()">×</div>
-  <h4>Select Team</h4>
-  <div class="btn-row" id="editTeamSelector"></div>
-  <div id="editPlayerSelector" style="display:none;">
-    <h4>Select Player</h4>
-    <div class="scorer-columns">
-      <div><strong id="editLeftTeam"></strong><div id="editLeftPlayers"></div></div>
-      <div><strong id="editRightTeam"></strong><div id="editRightPlayers"></div></div>
-    </div>
-  </div>
-  <div id="editTimeInputSection" style="display:none; text-align:center; margin-top:10px;">
-    <label for="editGoalTime">Time (min): </label>
-    <input type="number" id="editGoalTime" min="1" max="60" value="5" style="width:80px;" />
-    <div class="btn-row">
-      <button class="btn-primary" onclick="confirmAddGoalToMatch()">✅ Confirm Goal</button>
-    </div>
-  </div>
-</div>
-
-<!-- MVP Modal -->
-<div id="mvpModal" class="overlay" style="display: none;">
-  <div class="scorer-popup">
-    <span class="close-popup" onclick="closeMVPModal()">×</span>
-    <h4>🏅 Select MVP</h4>
-    <select id="mvpSelect" class="dropdown" style="width: 100%; padding: 10px; font-size: 16px;">
-      <option disabled selected>Loading...</option>
-    </select>
-    <div style="margin-top: 15px;">
-      <button onclick="selectMVP()" class="btn-primary" style="width: 100%;">✅ Confirm</button>
-      <button onclick="closeMVPModal()" class="btn-primary" style="background: #ccc; color: #333; margin-top: 8px;">❌ Cancel</button>
-    </div>
-  </div>
-</div>
 
 </body>
 </html>
