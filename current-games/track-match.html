@@ -543,6 +543,7 @@
 
   </style>
 </head>
+
 <body>
 
 <div class="overlay" id="overlay" onclick="closePopup()"></div>
@@ -1681,37 +1682,34 @@ function continueToNextRound(button) {
 
 
 async function endSession() {
-  if (!selectedMVP) {
-    alert("Please select an MVP before ending the session.");
-    return;
-  }
+  // Only update MVP if selected
+  if (selectedMVP) {
+    const { error } = await supabaseClient
+      .from("games")
+      .update({ mvp_user_id: selectedMVP })
+      .eq("id", gameId); // assumes gameId is globally set
 
-  const { error: mvpError } = await supabase
-    .from("games")
-    .update({ mvp_user_id: selectedMVP })
-    .eq("id", gameId); // assumes gameId is globally set
-
-  if (mvpError) {
-    console.error("❌ Error saving MVP:", mvpError);
-    alert("Failed to save MVP.");
-    return;
-  } else {
-    alert("✅ MVP saved successfully.");
+    if (error) {
+      console.error("❌ Error saving MVP:", error);
+      alert("Failed to save MVP.");
+    } else {
+      console.log("✅ MVP saved to Supabase.");
+    }
   }
 
   if (!confirm("End session and save scores/goals?")) return;
 
-  const { data: statsData, error: statsError } = await supabaseClient.rpc('update_player_stats');
+  const { data, error: statError } = await supabaseClient.rpc("update_player_stats");
 
-  if (statsError) {
-    console.error("❌ Failed to update player stats:", statsError.message);
+  if (statError) {
+    console.error("❌ Failed to update player stats:", statError.message);
     alert("❌ Failed to update stats!");
   } else {
-    console.log("✅ Player stats updated:", statsData);
+    console.log("✅ Player stats updated:", data);
     alert("✅ Player stats updated!");
   }
 
-  window.location.reload(); // Optional reload
+  window.location.reload();
 }
 
 function promptAddGoalToMatch(matchIndex) {
