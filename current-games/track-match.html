@@ -710,6 +710,7 @@ let alarmStartTimestamp = null; // when timer starts
 let matchTransitionInProgress = false;
 let roundTransitionInProgress = false;
 let savedMatchIndexes = new Set();
+let registeredUsers = [];
 let selectedMVP = null;
 
 function generateRoundRobin(teams) {
@@ -1729,35 +1730,61 @@ function closeEditAddGoalPopup() {
   document.getElementById("editTimeInputSection").style.display = "none";
 }
 
-document.getElementById("nominateMVPBtn").addEventListener("click", () => {
-  const select = document.getElementById("mvpSelect");
-  select.innerHTML = ""; // Clear existing options
+document.getElementById("nominateMVPBtn").addEventListener("click", showMVPSelector);
 
+async function fetchRegisteredUsers() {
+  const { data, error } = await supabase
+    .from("users")
+    .select("id, name")
+    .order("name", { ascending: true });
+
+  if (error) {
+    console.error("❌ Failed to fetch users:", error.message);
+    return;
+  }
+
+  registeredUsers = data;
+}
+
+function populateMVPDropdown() {
+  const select = document.getElementById("mvpSelect");
+  select.innerHTML = `<option disabled selected>Select a player</option>`;
   registeredUsers.forEach(user => {
     const option = document.createElement("option");
     option.value = user.id;
     option.textContent = user.name;
     select.appendChild(option);
   });
+}
 
-  document.getElementById("mvpModal").style.display = "block";
-});
+function showMVPSelector() {
+  if (registeredUsers.length === 0) {
+    fetchRegisteredUsers().then(() => {
+      populateMVPDropdown();
+      document.getElementById("mvpModal").style.display = "block";
+    });
+  } else {
+    populateMVPDropdown();
+    document.getElementById("mvpModal").style.display = "block";
+  }
+}
+
+function selectMVP() {
+  const select = document.getElementById("mvpSelect");
+  selectedMVP = select.value;
+
+  if (!selectedMVP) {
+    alert("❗ Please select a valid player.");
+    return;
+  }
+
+  alert(`✅ MVP selected: ${select.options[select.selectedIndex].text}`);
+  closeMVPModal();
+}
 
 function closeMVPModal() {
   document.getElementById("mvpModal").style.display = "none";
 }
-
-function confirmMVP() {
-  selectedMVP = document.getElementById("mvpSelect").value;
-  if (!selectedMVP) {
-    alert("Please select a valid player.");
-    return;
-  }
-  alert("✅ MVP selected.");
-  closeMVPModal();
-}
-
-
 
 </script>
 
