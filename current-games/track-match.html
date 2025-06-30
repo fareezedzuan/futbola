@@ -1774,8 +1774,6 @@ function closeEditAddGoalPopup() {
   document.getElementById("editTimeInputSection").style.display = "none";
 }
 
-document.getElementById("nominateMVPBtn").addEventListener("click", showMVPSelector);
-
 async function fetchRegisteredUsers() {
   const { data, error } = await supabase
     .from("users")
