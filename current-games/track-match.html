@@ -603,7 +603,7 @@
     <button class="btn-primary" onclick="exportSummary()">Export WhatsApp</button>
     <button class="btn-primary" onclick="exportToInstagramImage()">Instagram Image</button>
     <button class="btn-primary" onclick="endSession()">End Session</button>
-    <button id="nominateMVPBtn">Nominate MVP</button>
+    <button onclick="showMVPSelector()" class="btn-primary">Nominate MVP</button>
   </div>
 
   <div class="section">
@@ -1790,14 +1790,20 @@ function confirmMVP() {
   </div>
 </div>
 
-<div id="mvpModal" style="display:none; position: fixed; top: 20%; left: 50%; transform: translateX(-50%); background: white; border: 1px solid #ccc; padding: 20px; z-index: 999;">
-  <h3>Select MVP</h3>
-  <select id="mvpSelect"></select>
-  <br><br>
-  <button onclick="confirmMVP()">✅ Confirm</button>
-  <button onclick="closeMVPModal()">❌ Cancel</button>
+<!-- MVP Modal -->
+<div id="mvpModal" class="overlay" style="display: none;">
+  <div class="scorer-popup">
+    <span class="close-popup" onclick="closeMVPModal()">×</span>
+    <h4>🏅 Select MVP</h4>
+    <select id="mvpSelect" class="dropdown" style="width: 100%; padding: 10px; font-size: 16px;">
+      <option disabled selected>Loading...</option>
+    </select>
+    <div style="margin-top: 15px;">
+      <button onclick="selectMVP()" class="btn-primary" style="width: 100%;">✅ Confirm</button>
+      <button onclick="closeMVPModal()" class="btn-primary" style="background: #ccc; color: #333; margin-top: 8px;">❌ Cancel</button>
+    </div>
+  </div>
 </div>
-
 
 </body>
 </html>
