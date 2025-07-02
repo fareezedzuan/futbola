@@ -1844,7 +1844,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  // Step 1: fetch user_ids from session_teams
+  // Step 1: Fetch session_teams user_ids for this game
   const { data: teamData, error: teamError } = await supabaseClient
     .from("session_teams")
     .select("user_id")
@@ -1856,27 +1856,26 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   const userIds = teamData.map(entry => entry.user_id);
+  console.log("🆔 User IDs from session_teams:", userIds);
 
   if (userIds.length === 0) {
-    console.warn("⚠️ No users found for this game.");
+    console.warn("⚠️ No players found for this game.");
     return;
   }
 
-  // Step 2: fetch names from users table
+  // Step 2: Fetch user names based on those user_ids
   const { data: users, error: userError } = await supabaseClient
     .from("users")
     .select("id, name")
     .in("id", userIds);
 
   if (userError) {
-    console.error("❌ Error fetching user names:", userError);
+    console.error("❌ Error fetching users:", userError);
     return;
   }
 
   console.log("👥 Players from session_teams + users:", users);
 });
-
-
 
 </script>
 
