@@ -1844,10 +1844,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  // ✅ Single joined query to session_teams → users
+  // ✅ Step 1: Fetch session_teams with profiles join
   const { data, error } = await supabaseClient
     .from("session_teams")
-    .select("user_id, users(name)")  // 👈 join via FK
+    .select("user_id, profiles(name)")
     .eq("game_id", gameId);
 
   if (error) {
@@ -1855,15 +1855,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  const users = data.map(entry => ({
+  // ✅ Step 2: Map and display
+  const players = data.map(entry => ({
     id: entry.user_id,
-    name: entry.users?.name || "(Unnamed)"
+    name: entry.profiles?.name || "(Unnamed)"
   }));
 
-  console.log("👥 Players from session_teams + users:", users);
-
-  // Optional: store globally for MVP use
-  window.registeredUsers = users;
+  console.log("👥 Players from session_teams (joined via profiles):", players);
 });
 
 
