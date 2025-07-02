@@ -1835,30 +1835,27 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-async function fetchPlayersFromSessionTeams() {
-  if (!gameId) {
-    console.error("❌ gameId not found.");
-    return;
-  }
 
-  const { data, error } = await supabaseClient
-    .from("session_teams")
-    .select("user_id, users(name)")
-    .eq("game_id", gameId);
+  document.addEventListener("DOMContentLoaded", async () => {
+    console.log("🎮 gameId global:", typeof gameId !== "undefined" ? gameId : "(not found)");
 
-  if (error) {
-    console.error("❌ Failed to fetch session team users:", error);
-    return;
-  }
+    const { data, error } = await supabaseClient
+      .from("session_teams")
+      .select("user_id, users(name)")
+      .eq("game_id", gameId);
 
-  const players = data.map(entry => ({
-    id: entry.user_id,
-    name: entry.users?.name || "(Unnamed)"
-  }));
+    if (error) {
+      console.error("❌ Failed to fetch session team users:", error);
+      return;
+    }
 
-  console.log("👥 Registered players from session_teams:", players);
-  return players;
-}
+    const players = data.map(entry => ({
+      id: entry.user_id,
+      name: entry.users?.name || "(Unnamed)"
+    }));
+
+    console.log("👥 Registered players from session_teams:", players);
+  });
 
 </script>
 
