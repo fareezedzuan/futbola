@@ -1646,9 +1646,7 @@ function recalculateMatchResult(matchIndex) {
 
 recalculateStandingsFromAllMatches();
 updateTimerDisplay();
-if (confirm("Start first match now?")) {
-  startNextMatch();
-}
+startNextMatch();
 
 window.addEventListener('online', attemptResync);
 
