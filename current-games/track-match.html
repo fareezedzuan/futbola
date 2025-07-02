@@ -1828,13 +1828,14 @@ function closeMVPModal() {
   document.getElementById("mvpModal").style.display = "none";
 }
 
+
+
 document.addEventListener("DOMContentLoaded", async () => {
   const mvpBtn = document.getElementById("nominateMVPBtn");
   if (mvpBtn) {
     mvpBtn.addEventListener("click", showMVPSelector);
   }
 
-  // 👇 Log gameId and registered users
   const gameId = sessionStorage.getItem("gameId");
   console.log("🎮 gameId from sessionStorage:", gameId);
 
@@ -1843,22 +1844,36 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  const { data, error } = await supabaseClient
+  // Step 1: fetch user_ids from session_teams
+  const { data: teamData, error: teamError } = await supabaseClient
     .from("session_teams")
-    .select("user_id, users(name)")
+    .select("user_id")
     .eq("game_id", gameId);
 
-  if (error) {
-    console.error("❌ Failed to fetch session team users:", error);
+  if (teamError) {
+    console.error("❌ Error fetching session_teams:", teamError);
     return;
   }
 
-  const players = data.map(entry => ({
-    id: entry.user_id,
-    name: entry.users?.name || "(Unnamed)"
-  }));
+  const userIds = teamData.map(entry => entry.user_id);
 
-  console.log("👥 Players from session_teams:", players);
+  if (userIds.length === 0) {
+    console.warn("⚠️ No users found for this game.");
+    return;
+  }
+
+  // Step 2: fetch names from users table
+  const { data: users, error: userError } = await supabaseClient
+    .from("users")
+    .select("id, name")
+    .in("id", userIds);
+
+  if (userError) {
+    console.error("❌ Error fetching user names:", userError);
+    return;
+  }
+
+  console.log("👥 Players from session_teams + users:", users);
 });
 
 
