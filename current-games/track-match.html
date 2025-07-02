@@ -1844,10 +1844,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  // ✅ Step 1: Fetch session_teams with profiles join
+  // ✅ Fetch session_teams with profile names via foreign key
   const { data, error } = await supabaseClient
     .from("session_teams")
-    .select("user_id, profiles(name)")
+    .select("user_id, profiles(full_name)")
     .eq("game_id", gameId);
 
   if (error) {
@@ -1855,14 +1855,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  // ✅ Step 2: Map and display
-  const players = data.map(entry => ({
-    id: entry.user_id,
-    name: entry.profiles?.name || "(Unnamed)"
-  }));
-
-  console.log("👥 Players from session_teams (joined via profiles):", players);
+  const playerNames = data.map(row => row.profiles?.full_name).filter(Boolean);
+  console.log("🧑‍🤝‍🧑 Registered players:", playerNames);
 });
+
 
 
 </script>
