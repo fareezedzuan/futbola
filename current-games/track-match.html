@@ -1844,38 +1844,28 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  // Step 1: Fetch session_teams user_ids for this game
-  const { data: teamData, error: teamError } = await supabaseClient
+  // ✅ Single joined query to session_teams → users
+  const { data, error } = await supabaseClient
     .from("session_teams")
-    .select("user_id")
+    .select("user_id, users(name)")  // 👈 join via FK
     .eq("game_id", gameId);
 
-  if (teamError) {
-    console.error("❌ Error fetching session_teams:", teamError);
+  if (error) {
+    console.error("❌ Failed to fetch session team users:", error);
     return;
   }
 
-  const userIds = teamData.map(entry => entry.user_id);
-  console.log("🆔 User IDs from session_teams:", userIds);
-
-  if (userIds.length === 0) {
-    console.warn("⚠️ No players found for this game.");
-    return;
-  }
-
-  // Step 2: Fetch user names based on those user_ids
-  const { data: users, error: userError } = await supabaseClient
-    .from("users")
-    .select("id, name")
-    .in("id", userIds);
-
-  if (userError) {
-    console.error("❌ Error fetching users:", userError);
-    return;
-  }
+  const users = data.map(entry => ({
+    id: entry.user_id,
+    name: entry.users?.name || "(Unnamed)"
+  }));
 
   console.log("👥 Players from session_teams + users:", users);
+
+  // Optional: store globally for MVP use
+  window.registeredUsers = users;
 });
+
 
 </script>
 
