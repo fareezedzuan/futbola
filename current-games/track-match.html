@@ -712,8 +712,6 @@ const supabaseClient = createClient(
     'https://kdbqroxhypnadolcxxxc.supabase.co',
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkYnFyb3hoeXBuYWRvbGN4eHhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3MjkwNzYsImV4cCI6MjA1NzMwNTA3Nn0.c7_RVxoFdJNqQ62R3t1emH2Wf4dSsQaunHsHmbQxOBA'
   );
-const gameId = sessionStorage.getItem("game_id");
-
 // Set session ID once
 if (!sessionStorage.getItem("sessionId")) {
   sessionStorage.setItem("sessionId", Date.now().toString()); // or use a UUID if needed
@@ -761,7 +759,6 @@ let roundTransitionInProgress = false;
 let savedMatchIndexes = new Set();
 let registeredUsers = [];
 let selectedMVP = null;
-let mvpCandidates = [];
 
 function generateRoundRobin(teams) {
   const rounds = [], t = [...teams];
@@ -1831,23 +1828,20 @@ function closeMVPModal() {
   document.getElementById("mvpModal").style.display = "none";
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   const mvpBtn = document.getElementById("nominateMVPBtn");
   if (mvpBtn) {
     mvpBtn.addEventListener("click", showMVPSelector);
   }
-});
 
+  // 👇 Log gameId and registered users
+  const gameId = sessionStorage.getItem("gameId");
+  console.log("🎮 gameId from sessionStorage:", gameId);
 
-
-
-async function fetchPlayersFromSessionTeams() {
   if (!gameId) {
-    console.error("❌ gameId not found in sessionStorage.");
+    console.error("❌ No gameId found in sessionStorage.");
     return;
   }
-
-  console.log("🎮 gameId:", gameId);
 
   const { data, error } = await supabaseClient
     .from("session_teams")
@@ -1855,17 +1849,19 @@ async function fetchPlayersFromSessionTeams() {
     .eq("game_id", gameId);
 
   if (error) {
-    console.error("❌ Error fetching session team users:", error);
+    console.error("❌ Failed to fetch session team users:", error);
     return;
   }
 
-  mvpCandidates = data.map(entry => ({
+  const players = data.map(entry => ({
     id: entry.user_id,
     name: entry.users?.name || "(Unnamed)"
   }));
 
-  console.log("✅ Players fetched from session_teams:", mvpCandidates);
-}
+  console.log("👥 Players from session_teams:", players);
+});
+
+
 
 </script>
 
