@@ -1479,7 +1479,7 @@ function exportToInstagramImage() {
   const exportDiv = document.getElementById("instagramExportDiv");
   exportDiv.style.display = "block";
 
-  html2canvas(exportDiv, { width: 1080, height: 1080 }).then(canvas => {
+  html2canvas(exportDiv, { width: 1080, height: 1526 }).then(canvas => {
     const link = document.createElement('a');
     link.download = `futbola_summary_${new Date().toISOString().slice(0,10)}.png`;
     link.href = canvas.toDataURL();
