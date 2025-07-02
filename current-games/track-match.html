@@ -1774,23 +1774,13 @@ function closeEditAddGoalPopup() {
   document.getElementById("editTimeInputSection").style.display = "none";
 }
 
-async function fetchRegisteredUsers() {
-  const { data, error } = await supabase
-    .from("users")
-    .select("id, name")
-    .order("name", { ascending: true });
 
-  if (error) {
-    console.error("❌ Failed to fetch users:", error.message);
-    return;
-  }
 
-  registeredUsers = data;
-}
 
 function populateMVPDropdown() {
   const select = document.getElementById("mvpSelect");
   select.innerHTML = `<option disabled selected>Select a player</option>`;
+
   registeredUsers.forEach(user => {
     const option = document.createElement("option");
     option.value = user.id;
@@ -1801,14 +1791,12 @@ function populateMVPDropdown() {
 
 function showMVPSelector() {
   if (registeredUsers.length === 0) {
-    fetchRegisteredUsers().then(() => {
-      populateMVPDropdown();
-      document.getElementById("mvpModal").style.display = "block";
-    });
-  } else {
-    populateMVPDropdown();
-    document.getElementById("mvpModal").style.display = "block";
+    alert("⚠️ No players available for MVP selection.");
+    return;
   }
+
+  populateMVPDropdown();
+  document.getElementById("mvpModal").style.display = "block";
 }
 
 function selectMVP() {
@@ -1828,8 +1816,6 @@ function closeMVPModal() {
   document.getElementById("mvpModal").style.display = "none";
 }
 
-
-
 document.addEventListener("DOMContentLoaded", async () => {
   const mvpBtn = document.getElementById("nominateMVPBtn");
   if (mvpBtn) {
@@ -1844,7 +1830,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  // ✅ Fetch session_teams with profile names via foreign key
+  // ✅ Fetch session_teams with profile names via FK
   const { data, error } = await supabaseClient
     .from("session_teams")
     .select("user_id, profiles(full_name)")
@@ -1855,11 +1841,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  const playerNames = data.map(row => row.profiles?.full_name).filter(Boolean);
-  console.log("🧑‍🤝‍🧑 Registered players:", playerNames);
+  registeredUsers = data
+    .filter(row => row.profiles && row.profiles.full_name)
+    .map(row => ({
+      id: row.user_id,
+      name: row.profiles.full_name
+    }));
+
+  console.log("✅ Registered users loaded for MVP dropdown:", registeredUsers);
 });
-
-
 
 </script>
 
