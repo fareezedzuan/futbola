@@ -146,8 +146,8 @@
       background-color: #ffe4e1;
     }
 
-    .overlay, .scorer-popup {
-      display: none;
+    .overlay {
+      display: none; /* controls visibility of the modal background */
       position: fixed;
       top: 0; left: 0;
       width: 100%;
@@ -155,7 +155,9 @@
       background: rgba(0,0,0,0.3);
       z-index: 99;
     }
+
     .scorer-popup {
+      position: fixed; /* <-- this was missing */
       top: 10%;
       left: 50%;
       transform: translateX(-50%);
@@ -168,6 +170,7 @@
       width: 90%;
       max-width: 600px;
     }
+
     .scorer-popup h4 {
       text-align: center;
       color: #702963;
