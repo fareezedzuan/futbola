@@ -1835,6 +1835,30 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
+async function fetchPlayersFromSessionTeams() {
+  if (!gameId) {
+    console.error("❌ gameId not found.");
+    return;
+  }
+
+  const { data, error } = await supabaseClient
+    .from("session_teams")
+    .select("user_id, users(name)")
+    .eq("game_id", gameId);
+
+  if (error) {
+    console.error("❌ Failed to fetch session team users:", error);
+    return;
+  }
+
+  const players = data.map(entry => ({
+    id: entry.user_id,
+    name: entry.users?.name || "(Unnamed)"
+  }));
+
+  console.log("👥 Registered players from session_teams:", players);
+  return players;
+}
 
 </script>
 
