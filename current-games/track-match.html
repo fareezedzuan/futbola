@@ -1854,6 +1854,21 @@ document.addEventListener("DOMContentLoaded", async () => {
   console.log("✅ Registered users loaded for MVP dropdown:", registeredUsers);
 });
 
+window.addEventListener("DOMContentLoaded", () => {
+  // Hide all known popups on initial load
+  document.getElementById("editGoalsPopup").style.display = "none";
+  document.getElementById("editAddGoalPopup").style.display = "none";
+  document.getElementById("editPlayerSelector").style.display = "none";
+  document.getElementById("editTimeInputSection").style.display = "none";
+  document.getElementById("confirmScorerPopup").style.display = "none";
+  document.getElementById("confirmOverlay").style.display = "none";
+  document.getElementById("editOverlay").style.display = "none";
+  document.getElementById("overlay").style.display = "none"; // general dark background
+  document.getElementById("roundPopup").style.display = "none";
+  document.getElementById("roundOverlay").style.display = "none";
+  document.getElementById("mvpModal").style.display = "none";
+});
+
 </script>
 
 </body>
