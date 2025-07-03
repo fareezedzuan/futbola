@@ -1729,6 +1729,7 @@ function promptAddGoalToMatch(matchIndex) {
 }
 
 function selectEditTeam(scoringTeam, opponentTeam) {
+  console.trace("🐞 selectEditTeam triggered with:", scoringTeam, opponentTeam);
   const scoringIdx = teamNames.indexOf(scoringTeam);
   const opponentIdx = teamNames.indexOf(opponentTeam);
 
@@ -1855,20 +1856,16 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 window.addEventListener("DOMContentLoaded", () => {
-  // Hide all known popups on initial load
-  document.getElementById("editGoalsPopup").style.display = "none";
-  document.getElementById("editAddGoalPopup").style.display = "none";
+  // Force hide all overlays/panels
   document.getElementById("editPlayerSelector").style.display = "none";
-  document.getElementById("editTimeInputSection").style.display = "none";
+  document.getElementById("editAddGoalPopup").style.display = "none";
+  document.getElementById("editGoalsPopup").style.display = "none";
+  document.getElementById("overlay").style.display = "none";
+  document.getElementById("editOverlay").style.display = "none";
   document.getElementById("confirmScorerPopup").style.display = "none";
   document.getElementById("confirmOverlay").style.display = "none";
-  document.getElementById("editOverlay").style.display = "none";
-  document.getElementById("overlay").style.display = "none"; // general dark background
-  document.getElementById("roundPopup").style.display = "none";
-  document.getElementById("roundOverlay").style.display = "none";
-  document.getElementById("mvpModal").style.display = "none";
-  document.getElementById("editPlayerSelector").style.display = "none";
 });
+
 
 </script>
 
