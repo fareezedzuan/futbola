@@ -146,30 +146,30 @@
       background-color: #ffe4e1;
     }
 
-    .overlay {
-      display: none; /* controls visibility of the modal background */
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.3);
-      z-index: 99;
-    }
+.overlay, .scorer-popup {
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.3);
+  z-index: 99;
+}
 
-    .scorer-popup {
-      position: fixed; /* <-- this was missing */
-      top: 10%;
-      left: 50%;
-      transform: translateX(-50%);
-      background: white;
-      z-index: 100;
-      padding: 20px;
-      border-radius: 10px;
-      border: 2px solid #ff5a5f;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-      width: 90%;
-      max-width: 600px;
-    }
+.scorer-popup {
+  top: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: white;
+  z-index: 100;
+  padding: 20px;
+  border-radius: 10px;
+  border: 2px solid #ff5a5f;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  width: 90%;
+  max-width: 600px;
+}
+
 
     .scorer-popup h4 {
       text-align: center;
@@ -1289,7 +1289,6 @@ function exportSummary() {
 }
 
 function openEditGoals() {
-  console.warn("🧨 openEditGoals triggered");
   const container = document.getElementById("editGoalsList");
   container.innerHTML = "";
 
@@ -1313,7 +1312,6 @@ function openEditGoals() {
 }
 
 function editMatchGoals(matchIndex) {
-  console.warn("🧨 editMatchGoals triggered with index", index);
   const match = matchResults[matchIndex];
   if (!match) {
     alert("No data found for this match.");
@@ -1718,7 +1716,6 @@ async function endSession() {
 }
 
 function promptAddGoalToMatch(matchIndex) {
-  console.warn("🧨 promptAddGoalToMatch triggered with index", index);
   window.pendingEditMatchIndex = matchIndex;
   const [teamA, teamB] = matchups[matchIndex];
 
