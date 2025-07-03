@@ -1289,6 +1289,7 @@ function exportSummary() {
 }
 
 function openEditGoals() {
+  console.warn("🧨 openEditGoals triggered");
   const container = document.getElementById("editGoalsList");
   container.innerHTML = "";
 
@@ -1312,6 +1313,7 @@ function openEditGoals() {
 }
 
 function editMatchGoals(matchIndex) {
+  console.warn("🧨 editMatchGoals triggered with index", index);
   const match = matchResults[matchIndex];
   if (!match) {
     alert("No data found for this match.");
@@ -1716,6 +1718,7 @@ async function endSession() {
 }
 
 function promptAddGoalToMatch(matchIndex) {
+  console.warn("🧨 promptAddGoalToMatch triggered with index", index);
   window.pendingEditMatchIndex = matchIndex;
   const [teamA, teamB] = matchups[matchIndex];
 
@@ -1729,7 +1732,6 @@ function promptAddGoalToMatch(matchIndex) {
 }
 
 function selectEditTeam(scoringTeam, opponentTeam) {
-  console.trace("🐞 selectEditTeam triggered with:", scoringTeam, opponentTeam);
   const scoringIdx = teamNames.indexOf(scoringTeam);
   const opponentIdx = teamNames.indexOf(opponentTeam);
 
