@@ -987,17 +987,25 @@ function triggerScorer(side) {
   document.getElementById("teamACol").textContent = scoringTeam;
   document.getElementById("teamBCol").textContent = opponentTeam;
 
-  document.getElementById("playersA").innerHTML = (teamPlayersRaw[scoringIdx] || []).map(p =>
+const playersAHTML = (teamPlayersRaw[scoringIdx] || []).map(p =>
   `<button onclick="promptScorerConfirm('${scoringTeam}', '${p.name}', false)">
      ${p.name}${p.jersey ? ` (#${p.jersey})` : ""}
    </button>`
-).join("");
+).join("") + `
+  <button onclick="promptScorerConfirm('${scoringTeam}', 'Others', false)">Others</button>
+`;
+document.getElementById("playersA").innerHTML = playersAHTML;
 
-document.getElementById("playersB").innerHTML = (teamPlayersRaw[opponentIdx] || []).map(p =>
+
+const playersBHTML = (teamPlayersRaw[opponentIdx] || []).map(p =>
   `<button onclick="promptScorerConfirm('${scoringTeam}', '${p.name}', true)">
      ${p.name}${p.jersey ? ` (#${p.jersey})` : ""} (OG)
    </button>`
-).join("");
+).join("") + `
+  <button onclick="promptScorerConfirm('${scoringTeam}', 'Others', true)">Others (OG)</button>
+`;
+document.getElementById("playersB").innerHTML = playersBHTML;
+
 
 
   document.getElementById("overlay").style.display = "block";
