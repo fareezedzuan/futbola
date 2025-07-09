@@ -1825,6 +1825,7 @@ window.addEventListener("DOMContentLoaded", async () => {
   const mvpBtn = document.getElementById("nominateMVPBtn");
   if (mvpBtn) {
     mvpBtn.addEventListener("click", showMVPSelector);
+    console.log("✅ MVP button click listener wired up");
   }
 
   const gameId = sessionStorage.getItem("gameId");
