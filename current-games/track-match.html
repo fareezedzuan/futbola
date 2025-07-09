@@ -548,27 +548,33 @@
 #mvpModal {
   display: none;
   position: fixed;
-  top: 0; left: 0;
+  top: 0;
+  left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(0,0,0,0.4);
-  z-index: 300; /* must be above everything */
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 9999;
+
+  /* Centering with Flex */
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 #mvpModal .scorer-popup {
+  position: relative;
+  z-index: 10000;
+  display: block;
   background: white;
   padding: 20px;
   border-radius: 10px;
   border: 2px solid #ff5a5f;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   max-width: 400px;
   width: 90%;
-  z-index: 301;
-  position: relative;
+  color: #333;
 }
+
 
 
 
@@ -721,12 +727,12 @@
 </div>
 
 <!-- MVP Modal -->
-<div id="mvpModal" style="display: none;">
+<div id="mvpModal">
   <div class="scorer-popup">
     <span class="close-popup" onclick="closeMVPModal()">×</span>
     <h4>🏅 Select MVP</h4>
     <select id="mvpSelect" class="dropdown" style="width: 100%; padding: 10px; font-size: 16px;">
-      <option disabled selected>Loading...</option>
+      <option disabled selected>Select a player</option>
     </select>
     <div style="margin-top: 15px;">
       <button onclick="selectMVP()" class="btn-primary" style="width: 100%;">✅ Confirm</button>
