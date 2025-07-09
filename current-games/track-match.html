@@ -639,7 +639,7 @@
     <button class="btn-primary" onclick="startNextMatch()">Next Match</button>
     <button class="btn-primary" onclick="exportSummary()">Export WhatsApp</button>
     <button class="btn-primary" onclick="exportToInstagramImage()">Instagram Image</button>
-    <button class="btn-primary" onclick="endSession()">End Session</button>
+    <button class="btn-primary" onclick="updateStats()">Update Stats</button>
     <button id="nominateMVPBtn" class="btn-primary">Nominate MVP</button>
   </div>
 
@@ -1718,35 +1718,51 @@ function continueToNextRound(button) {
 }
 
 
-async function endSession() {
-  // Only update MVP if selected
-  if (selectedMVP) {
-    const { error } = await supabaseClient
-      .from("games")
-      .update({ mvp_user_id: selectedMVP })
-      .eq("id", gameId); // assumes gameId is globally set
+async function updateStats() {
+  const btn = document.querySelector('[onclick="updateStats()"]');
+  btn.disabled = true;
+  btn.textContent = "Updating...";
 
-    if (error) {
-      console.error("❌ Error saving MVP:", error);
-      alert("Failed to save MVP.");
-    } else {
-      console.log("✅ MVP saved to Supabase.");
+  try {
+    // ✅ Save MVP if selected
+    if (selectedMVP && gameId) {
+      const { error: mvpError } = await supabaseClient
+        .from("games")
+        .update({ mvp_user_id: selectedMVP })
+        .eq("id", gameId);
+
+      if (mvpError) {
+        console.error("❌ Error saving MVP:", mvpError);
+        alert("Failed to save MVP.");
+        return;
+      } else {
+        console.log(`✅ MVP saved successfully for game: ${gameId}`);
+      }
     }
+
+    // ✅ Confirm update
+    if (!confirm("Update player stats now?")) return;
+
+    // ✅ Call stored procedure to update stats
+    const { data, error: statsError } = await supabaseClient.rpc("update_player_stats");
+
+    if (statsError) {
+      console.error("❌ Failed to update player stats:", statsError.message);
+      alert("❌ Failed to update stats!");
+    } else {
+      console.log("✅ Player stats updated:", data);
+      alert("✅ Player stats updated!");
+    }
+
+    // 🔄 Optional: Reload to reflect updated data
+    window.location.reload();
+  } catch (e) {
+    console.error("Unexpected error during updateStats():", e);
+    alert("❌ Something went wrong!");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Update Stats";
   }
-
-  if (!confirm("End session and save scores/goals?")) return;
-
-  const { data, error: statError } = await supabaseClient.rpc("update_player_stats");
-
-  if (statError) {
-    console.error("❌ Failed to update player stats:", statError.message);
-    alert("❌ Failed to update stats!");
-  } else {
-    console.log("✅ Player stats updated:", data);
-    alert("✅ Player stats updated!");
-  }
-
-  window.location.reload();
 }
 
 function promptAddGoalToMatch(matchIndex) {
