@@ -1821,7 +1821,7 @@ function closeMVPModal() {
   document.getElementById("mvpModal").style.display = "none";
 }
 
-document.addEventListener("DOMContentLoaded", async () => {
+window.addEventListener("DOMContentLoaded", async () => {
   const mvpBtn = document.getElementById("nominateMVPBtn");
   if (mvpBtn) {
     mvpBtn.addEventListener("click", showMVPSelector);
