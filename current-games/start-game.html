@@ -375,7 +375,8 @@ allPlayers = data.bookings.map(b => ({
 
       for (let i = 0; i < teamCount; i++) {
         const label = document.createElement("label");
-        const teamName = teamColors[i] || `Team ${String.fromCharCode(65 + i)}`;
+        const teamInput = document.getElementById(`team${i}`);
+        const teamName = teamInput ? teamInput.value.trim() : `Team ${String.fromCharCode(65 + i)}`;
         label.textContent = `Assign players to ${teamName}:`;
 
         const grid = document.createElement("div");
