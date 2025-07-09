@@ -1901,29 +1901,30 @@ window.addEventListener("DOMContentLoaded", () => {
 });
 
 
-async function saveMVP() {
-  const mvpUserId = document.getElementById("mvpSelect").value;
-  if (!mvpUserId) {
-    alert("⚠️ Please select an MVP.");
+async function selectMVP() {
+  const selectedUserId = document.getElementById("mvpSelect").value;
+  const gameId = sessionStorage.getItem("gameId");
+
+  if (!selectedUserId || !gameId) {
+    alert("⚠️ Please select a player and ensure game is loaded.");
     return;
   }
 
-  const gameId = sessionStorage.getItem("gameId");
-
-  const { data, error } = await supabase
+  const { error } = await supabase
     .from("games")
-    .update({ mvp_user_id: mvpUserId })
+    .update({ mvp_user_id: selectedUserId })
     .eq("id", gameId);
 
   if (error) {
     console.error("❌ Error saving MVP:", error);
-    alert("Failed to save MVP.");
+    alert("Failed to save MVP. See console.");
   } else {
     console.log("✅ MVP saved successfully for game:", gameId);
-    closeMVPModal();
     alert("🎉 MVP saved!");
+    closeMVPModal();
   }
 }
+
 
 
 
