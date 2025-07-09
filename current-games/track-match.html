@@ -1901,6 +1901,32 @@ window.addEventListener("DOMContentLoaded", () => {
 });
 
 
+async function saveMVP() {
+  const mvpUserId = document.getElementById("mvpSelect").value;
+  if (!mvpUserId) {
+    alert("⚠️ Please select an MVP.");
+    return;
+  }
+
+  const gameId = sessionStorage.getItem("gameId");
+
+  const { data, error } = await supabase
+    .from("games")
+    .update({ mvp_user_id: mvpUserId })
+    .eq("id", gameId);
+
+  if (error) {
+    console.error("❌ Error saving MVP:", error);
+    alert("Failed to save MVP.");
+  } else {
+    console.log("✅ MVP saved successfully for game:", gameId);
+    closeMVPModal();
+    alert("🎉 MVP saved!");
+  }
+}
+
+
+
 </script>
 
 </body>
