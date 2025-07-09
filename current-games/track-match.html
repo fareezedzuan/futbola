@@ -1906,26 +1906,24 @@ async function selectMVP() {
   const gameId = sessionStorage.getItem("gameId");
 
   if (!selectedUserId || !gameId) {
-    alert("⚠️ Please select a player and ensure game is loaded.");
+    alert("⚠️ Please select a player and ensure a game is loaded.");
     return;
   }
 
-  const { error } = await supabase
+  const { error } = await supabaseClient
     .from("games")
     .update({ mvp_user_id: selectedUserId })
     .eq("id", gameId);
 
   if (error) {
     console.error("❌ Error saving MVP:", error);
-    alert("Failed to save MVP. See console.");
+    alert("Failed to save MVP.");
   } else {
     console.log("✅ MVP saved successfully for game:", gameId);
     alert("🎉 MVP saved!");
     closeMVPModal();
   }
 }
-
-
 
 
 </script>
