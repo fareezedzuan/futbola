@@ -342,7 +342,23 @@ allPlayers = data.bookings.map(b => ({
         input.type = "text";
         input.id = `team${i}`;
         input.value = teamColors[i] || `Team ${String.fromCharCode(65 + i)}`;
-        teamInputs.appendChild(input);
+        const wrapper = document.createElement("div");
+wrapper.style.marginTop = "10px";
+
+const ordinal = ["1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th"][i] || `${i + 1}th`;
+const label = document.createElement("label");
+label.textContent = `${ordinal} Team:`;
+label.style.display = "block";
+label.style.fontWeight = "bold";
+label.style.color = "#702963";
+
+input.style.width = "100%";
+input.addEventListener("input", generatePlayerAssignment);
+
+wrapper.appendChild(label);
+wrapper.appendChild(input);
+teamInputs.appendChild(wrapper);
+
       }
       generatePlayerAssignment();
     }
@@ -376,8 +392,10 @@ allPlayers = data.bookings.map(b => ({
       for (let i = 0; i < teamCount; i++) {
         const label = document.createElement("label");
         const teamInput = document.getElementById(`team${i}`);
-        const teamName = teamInput ? teamInput.value.trim() : `Team ${String.fromCharCode(65 + i)}`;
-        label.textContent = `Assign players to ${teamName}:`;
+        const teamName = teamInput ? teamInput.value.trim() : `Team ${i + 1}`;
+const ordinal = ["1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th"][i] || `${i + 1}th`;
+label.textContent = `Assign players to ${ordinal} team`;
+
 
         const grid = document.createElement("div");
         grid.className = "player-grid";
