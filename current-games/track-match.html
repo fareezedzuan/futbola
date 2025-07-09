@@ -545,19 +545,31 @@
       gap: 12px;
     }
 
-    #mvpModal {
+#mvpModal {
   display: none;
   position: fixed;
-  top: 0;
-  left: 0;
+  top: 0; left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(0, 0, 0, 0.4);
-  z-index: 150; /* must be higher than .overlay (z-index: 99) */
+  background: rgba(0,0,0,0.4);
+  z-index: 300; /* must be above everything */
   display: flex;
   align-items: center;
   justify-content: center;
 }
+
+#mvpModal .scorer-popup {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  border: 2px solid #ff5a5f;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  max-width: 400px;
+  width: 90%;
+  z-index: 301;
+  position: relative;
+}
+
 
 
   </style>
