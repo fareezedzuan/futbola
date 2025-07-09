@@ -548,35 +548,30 @@
 #mvpModal {
   display: none;
   position: fixed;
-  top: 0;
-  left: 0;
+  top: 0; left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0,0,0,0.4);
   z-index: 9999;
-
-  /* Centering with Flex */
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-#mvpModal .scorer-popup {
-  position: relative;
-  z-index: 10000;
+.mvp-popup {
   display: block;
   background: white;
-  padding: 20px;
-  border-radius: 10px;
+  padding: 24px;
+  border-radius: 12px;
   border: 2px solid #ff5a5f;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.2);
   max-width: 400px;
   width: 90%;
-  color: #333;
+  text-align: center;
+  z-index: 10000;
+  position: relative;
+  font-family: Arial, sans-serif;
 }
-
-
-
 
   </style>
 </head>
@@ -728,7 +723,7 @@
 
 <!-- MVP Modal -->
 <div id="mvpModal">
-  <div class="scorer-popup">
+  <div class="mvp-popup">
     <span class="close-popup" onclick="closeMVPModal()">×</span>
     <h4>🏅 Select MVP</h4>
     <select id="mvpSelect" class="dropdown" style="width: 100%; padding: 10px; font-size: 16px;">
