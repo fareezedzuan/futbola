@@ -213,6 +213,7 @@
 
     <div id="teamInputs"></div>
 
+    <label for="roundsInput" style="font-weight:bold;">Number of Rounds:</label>
     <label for="duration">Match Duration (minutes):</label>
     <input type="number" id="duration" value="7" min="1" />
 
@@ -231,7 +232,7 @@
       </div>
     </div>
 
-    <label for="roundsInput" style="font-weight:bold;">Number of Rounds:</label>
+
     <select id="roundsInput" style="margin-left:10px;">
       <option value="1" selected>1</option>
       <option value="2">2</option>
@@ -240,6 +241,7 @@
     </select>    
 
     <div id="playerAssignment"></div>
+    <button onclick="loadTeamSetup()">Load Team Setup</button>
     <button onclick="confirmStartGame()">Start Game</button>
   </div>
 
@@ -500,6 +502,60 @@ popup.innerHTML += `
 
       document.getElementById("popup").style.display = "block";
     }
+
+async function loadTeamSetup() {
+  const gameId = document.getElementById("gameSelect").value;
+  if (!gameId) {
+    alert("Please select a game first.");
+    return;
+  }
+
+  console.log("📥 Loading saved session_teams for game:", gameId);
+
+  const { data, error } = await supabase
+    .from('session_teams')
+    .select('*')
+    .eq('game_id', gameId);
+
+  if (error) {
+    console.error("❌ Failed to load session_teams:", error);
+    return;
+  }
+
+  if (!data || data.length === 0) {
+    alert("No saved teams found for this game.");
+    return;
+  }
+
+  // 🔄 Reset selection
+  document.getElementById("teamCount").value = 0;
+  const teams = [...new Set(data.map(d => d.team_color))];
+  document.getElementById("teamCount").value = teams.length;
+  generateTeamInputs();
+
+  // ⏳ Wait for UI to finish rendering
+  setTimeout(() => {
+    teams.forEach((team, i) => {
+      document.getElementById(`team${i}`).value = team;
+    });
+
+    const playerGrids = document.querySelectorAll(".player-grid");
+
+    data.forEach(entry => {
+      const teamIdx = teams.indexOf(entry.team_color);
+      const grid = playerGrids[teamIdx];
+      const box = Array.from(grid.children).find(b => b.dataset.name === entry.jersey_name);
+      if (box) box.classList.add("selected");
+
+      const player = activePlayers.find(p => p.name === entry.jersey_name);
+      if (player) player.jersey = entry.jersey_number || ""; // Optional if you want to restore jersey
+    });
+
+    generatePlayerAssignment(); // Re-render with jerseys
+    alert("✅ Team setup loaded.");
+  }, 100);
+}
+
 
     async function startGame() {
       console.log("Starting game...");
