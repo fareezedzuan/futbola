@@ -596,7 +596,7 @@ if (teamAssignments.length > 0) {
       sessionStorage.setItem("date", datetimeText.trim());
 
       window.location.href = "track-match.html";
-    }, 2000); // ⏳ Wait 2 seconds to allow logs to display
+    }, 10000); // ⏳ Wait 2 seconds to allow logs to display
   }
 } else {
   console.warn("⚠️ No team assignments to upsert.");
