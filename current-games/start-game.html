@@ -544,27 +544,44 @@ const teamAssignments = [];
 
 teamPlayers.forEach((players, i) => {
   players.forEach(p => {
-    const full = activePlayers.find(ap => ap.name === p.name && ap.user_id);
-    if (full && full.user_id) {
+
+    const full = activePlayers.find(ap => ap.name === p.name);
+    if (full) {
       teamAssignments.push({
         game_id: gameId,
-        user_id: full.user_id,
+        user_id: full.user_id || null,
         team_color: teamNames[i],
         jersey_name: full.name
       });
     }
+
   });
 });
 
 
 
 if (teamAssignments.length > 0) {
-  console.log("Team Assignments to Upsert:", teamAssignments);
-  const { data, error } = await supabase.from('session_teams').upsert(teamAssignments, {
-    onConflict: ['game_id', 'user_id']
-  });
-  if (error) {
-    console.error('Error saving session_teams:', error);
+  console.log("🧹 Deleting old session_teams for game:", gameId);
+
+  const { error: deleteError } = await supabase
+    .from('session_teams')
+    .delete()
+    .eq('game_id', gameId);
+
+  if (deleteError) {
+    console.error('❌ Error deleting old session_teams:', deleteError);
+    return; // exit if delete fails
+  }
+
+  console.log("⬆️ Inserting new session_teams:", teamAssignments);
+
+  const { error: insertError } = await supabase
+    .from('session_teams')
+    .insert(teamAssignments);
+
+  if (insertError) {
+    console.error('❌ Error inserting session_teams:', insertError);
+    return; // exit if insert fails
   }
 
   // Continue to game immediately
