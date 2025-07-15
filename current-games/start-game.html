@@ -214,6 +214,13 @@
     <div id="teamInputs"></div>
 
     <label for="roundsInput" style="font-weight:bold;">Number of Rounds:</label>
+        <select id="roundsInput" style="margin-left:10px;">
+      <option value="1" selected>1</option>
+      <option value="2">2</option>
+      <option value="3">3</option>
+      <option value="4">4</option>
+    </select>  
+    
     <label for="duration">Match Duration (minutes):</label>
     <input type="number" id="duration" value="7" min="1" />
 
@@ -230,15 +237,7 @@
       <div class="half">
         <button onclick="randomizeTeams()">Randomize Teams</button>
       </div>
-    </div>
-
-
-    <select id="roundsInput" style="margin-left:10px;">
-      <option value="1" selected>1</option>
-      <option value="2">2</option>
-      <option value="3">3</option>
-      <option value="4">4</option>
-    </select>    
+    </div>  
 
     <div id="playerAssignment"></div>
     <button onclick="loadTeamSetup()">Load Team Setup</button>
