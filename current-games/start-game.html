@@ -324,9 +324,9 @@
 allPlayers = data.bookings.map(b => ({
   name: b.jersey_name,
   jersey: "",
-  user_id: b.user_id || null,
-  guest_id: !b.user_id ? b.id : null  // booking ID for guests
+  user_id: b.user_id || null  // guests have null
 }));
+
 
 
 
@@ -544,63 +544,52 @@ const teamAssignments = [];
 
 teamPlayers.forEach((players, i) => {
   players.forEach(p => {
-    const full = activePlayers.find(ap => ap.name === p.name);
-    if (!full) return;
-
-    const entry = {
-      game_id: gameId,
-      team_color: teamNames[i],
-      jersey_name: full.name
-    };
-
-    if (full.user_id) {
-      entry.user_id = full.user_id;
-    } else if (full.guest_id) {
-      entry.guest_id = full.guest_id;
+    const full = activePlayers.find(ap => ap.name === p.name && ap.user_id);
+    if (full && full.user_id) {
+      teamAssignments.push({
+        game_id: gameId,
+        user_id: full.user_id,
+        team_color: teamNames[i],
+        jersey_name: full.name
+      });
     }
-
-    teamAssignments.push(entry);
   });
 });
 
 
+
 if (teamAssignments.length > 0) {
-  console.log("🟡 Upserting session_teams:", teamAssignments);
-
+  console.log("Team Assignments to Upsert:", teamAssignments);
   const { data, error } = await supabase.from('session_teams').upsert(teamAssignments, {
-    onConflict: ['game_id', 'user_id', 'guest_id']
+    onConflict: ['game_id', 'user_id']
   });
-
   if (error) {
-    console.error('❌ Error saving session_teams:', error);
-  } else {
-    console.log('✅ session_teams saved:', data);
-
-    // Delay navigation for logs to show
-    setTimeout(() => {
-      sessionStorage.setItem("gameId", gameId);
-      sessionStorage.setItem("teamNames", JSON.stringify(teamNames));
-
-      const enrichedPlayers = teamPlayers.map((players, i) =>
-        players.map(p => ({ ...p, team: teamNames[i] }))
-      );
-      sessionStorage.setItem("teamPlayers", JSON.stringify(enrichedPlayers));
-
-      sessionStorage.setItem("duration", duration);
-      const rounds = parseInt(document.getElementById("roundsInput").value);
-      sessionStorage.setItem("rounds", rounds);
-      const selectedGame = document.getElementById("gameSelect");
-      const selectedText = selectedGame.options[selectedGame.selectedIndex].textContent;
-      const [venueText, datetimeText] = selectedText.split(" - ");
-      sessionStorage.setItem("venue", venueText.trim());
-      sessionStorage.setItem("date", datetimeText.trim());
-
-      window.location.href = "track-match.html";
-    }, 2000); // ⏳ Wait 2 seconds to allow logs to display
+    console.error('Error saving session_teams:', error);
   }
+
+  // Continue to game immediately
+  sessionStorage.setItem("gameId", gameId);
+  sessionStorage.setItem("teamNames", JSON.stringify(teamNames));
+
+  const enrichedPlayers = teamPlayers.map((players, i) =>
+    players.map(p => ({ ...p, team: teamNames[i] }))
+  );
+  sessionStorage.setItem("teamPlayers", JSON.stringify(enrichedPlayers));
+
+  sessionStorage.setItem("duration", duration);
+  const rounds = parseInt(document.getElementById("roundsInput").value);
+  sessionStorage.setItem("rounds", rounds);
+  const selectedGame = document.getElementById("gameSelect");
+  const selectedText = selectedGame.options[selectedGame.selectedIndex].textContent;
+  const [venueText, datetimeText] = selectedText.split(" - ");
+  sessionStorage.setItem("venue", venueText.trim());
+  sessionStorage.setItem("date", datetimeText.trim());
+
+  window.location.href = "track-match.html";
 } else {
   console.warn("⚠️ No team assignments to upsert.");
 }
+
 
 
     // window.location.href = "track-match-bulletproof.html";
