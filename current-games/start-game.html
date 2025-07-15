@@ -565,34 +565,43 @@ teamPlayers.forEach((players, i) => {
 
 
 if (teamAssignments.length > 0) {
-  console.log("Team Assignments to Upsert:", teamAssignments);
+  console.log("🟡 Upserting session_teams:", teamAssignments);
+
   const { data, error } = await supabase.from('session_teams').upsert(teamAssignments, {
     onConflict: ['game_id', 'user_id', 'guest_id']
   });
-  if (error) console.error('Error saving session_teams:', error);
-}
 
+  if (error) {
+    console.error('❌ Error saving session_teams:', error);
+  } else {
+    console.log('✅ session_teams saved:', data);
 
+    // Delay navigation for logs to show
+    setTimeout(() => {
+      sessionStorage.setItem("gameId", gameId);
+      sessionStorage.setItem("teamNames", JSON.stringify(teamNames));
 
-    // Then continue to game
-    sessionStorage.setItem("gameId", gameId);
-    sessionStorage.setItem("teamNames", JSON.stringify(teamNames));
-          // Attach team name to each player before storing
       const enrichedPlayers = teamPlayers.map((players, i) =>
         players.map(p => ({ ...p, team: teamNames[i] }))
       );
-    sessionStorage.setItem("teamPlayers", JSON.stringify(enrichedPlayers));
+      sessionStorage.setItem("teamPlayers", JSON.stringify(enrichedPlayers));
 
+      sessionStorage.setItem("duration", duration);
+      const rounds = parseInt(document.getElementById("roundsInput").value);
+      sessionStorage.setItem("rounds", rounds);
+      const selectedGame = document.getElementById("gameSelect");
+      const selectedText = selectedGame.options[selectedGame.selectedIndex].textContent;
+      const [venueText, datetimeText] = selectedText.split(" - ");
+      sessionStorage.setItem("venue", venueText.trim());
+      sessionStorage.setItem("date", datetimeText.trim());
 
-    sessionStorage.setItem("duration", duration);
-    const rounds = parseInt(document.getElementById("roundsInput").value);
-    sessionStorage.setItem("rounds", rounds);
-    const selectedGame = document.getElementById("gameSelect");
-    const selectedText = selectedGame.options[selectedGame.selectedIndex].textContent;
-    const [venueText, datetimeText] = selectedText.split(" - ");
-    sessionStorage.setItem("venue", venueText.trim());
-    sessionStorage.setItem("date", datetimeText.trim());
-    window.location.href = "track-match.html";
+      window.location.href = "track-match.html";
+    }, 2000); // ⏳ Wait 2 seconds to allow logs to display
+  }
+} else {
+  console.warn("⚠️ No team assignments to upsert.");
+}
+
 
     // window.location.href = "track-match-bulletproof.html";
 }
