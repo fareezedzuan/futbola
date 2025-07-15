@@ -324,8 +324,10 @@
 allPlayers = data.bookings.map(b => ({
   name: b.jersey_name,
   jersey: "",
-  user_id: b.user_id || null  // guests have null
+  user_id: b.user_id || null,
+  guest_id: !b.user_id ? b.id : null  // booking ID for guests
 }));
+
 
 
       activePlayers = [...allPlayers];
@@ -537,30 +539,39 @@ popup.innerHTML += `
       })
     );
 
-// Save session_teams for registered users
+// Save session_teams for all users
 const teamAssignments = [];
 
 teamPlayers.forEach((players, i) => {
   players.forEach(p => {
-    const full = activePlayers.find(ap => ap.name === p.name && ap.user_id);
-    if (full && full.user_id) {
-      teamAssignments.push({
-        game_id: gameId,
-        user_id: full.user_id,
-        team_color: teamNames[i],
-        jersey_name: full.name
-      });
+    const full = activePlayers.find(ap => ap.name === p.name);
+    if (!full) return;
+
+    const entry = {
+      game_id: gameId,
+      team_color: teamNames[i],
+      jersey_name: full.name
+    };
+
+    if (full.user_id) {
+      entry.user_id = full.user_id;
+    } else if (full.guest_id) {
+      entry.guest_id = full.guest_id;
     }
+
+    teamAssignments.push(entry);
   });
 });
+
 
 if (teamAssignments.length > 0) {
   console.log("Team Assignments to Upsert:", teamAssignments);
   const { data, error } = await supabase.from('session_teams').upsert(teamAssignments, {
-    onConflict: ['game_id', 'user_id']
+    onConflict: ['game_id', 'user_id', 'guest_id']
   });
   if (error) console.error('Error saving session_teams:', error);
 }
+
 
 
     // Then continue to game
