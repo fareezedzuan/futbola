@@ -322,6 +322,12 @@
 
       activePlayers = [...allPlayers];
 
+      // Clear team assignment UI state
+      document.getElementById("teamCount").value = ""; // reset team count
+      document.getElementById("teamInputs").innerHTML = ""; // clear team names
+      document.getElementById("playerAssignment").innerHTML = ""; // clear grids
+
+
       // 🔁 Check if any saved session_teams exist
       const { data: teamData, error } = await supabase
         .from('session_teams')
