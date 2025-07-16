@@ -287,7 +287,7 @@
     let selectedPlayerName = "";
     let currentPlayerIndex = null;
     let currentTeamIndex = null;
-    const teamColors = ["Red", "White", "Green", "Orange", "Black", "Yellow", "Blue"];
+    const teamColors = ["Red", "White", "Green", "Orange", "Black", "Yellow", "Blue", "Turqoise"];
 
     async function fetchGames() {
       const res = await fetch("/api/get-upcoming-games");
@@ -421,7 +421,8 @@ teamInputs.appendChild(wrapper);
         White: "../images/white.png",
         Orange: "../images/orange.png",
         Black: "../images/black.png",
-        Blue: "../images/blue.png"
+        Blue: "../images/blue.png",
+        Turqoise: "../images/turqoise.png"
       };
       return logos[colorName] || "../images/default.png"; // fallback default logo if color not found
     }
