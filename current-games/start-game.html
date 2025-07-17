@@ -792,6 +792,18 @@ if (teamAssignments.length > 0) {
     closeJerseyPopup();
   }
 
+  function handlePlayStyleChange() {
+    const selectedStyle = document.getElementById("playStyle").value;
+    const roundsWrapper = document.getElementById("roundsInputWrapper");
+
+    if (selectedStyle === "round_robin") {
+      roundsWrapper.style.display = "block";
+    } else {
+      roundsWrapper.style.display = "none";
+    }
+  }
+
+
     document.getElementById("gameSelect").addEventListener("change", e => {
       if (e.target.value) fetchPlayers(e.target.value);
     });
@@ -808,6 +820,9 @@ window.addPlayer = addPlayer;
 window.selectJersey = selectJersey;
 window.openJerseyPopup = openJerseyPopup;
 window.closeJerseyPopup = closeJerseyPopup;
+
+handlePlayStyleChange(); // 📌 add at the end of script
+
 
   </script>
 </body>
