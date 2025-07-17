@@ -631,6 +631,33 @@ async function loadTeamSetup() {
     const gameId = document.getElementById("gameSelect").value;
     const duration = parseInt(document.getElementById("duration").value);
     const teamNames = [], teamPlayers = [];
+    const playStyle = document.getElementById("playStyle").value;
+    const courtCount = parseInt(document.getElementById("courtCount").value);
+    const rounds = parseInt(document.getElementById("roundsInput").value);
+
+    // 🧹 Delete existing session config if re-starting
+    await supabase.from('games_sessions').delete().eq('game_id', gameId);
+
+    // ➕ Insert new session setup
+    const { data: gameSession, error: sessionError } = await supabase
+      .from('games_sessions')
+      .insert([{
+        game_id: gameId,
+        play_style: playStyle,
+        rounds: rounds,
+        num_courts: courtCount
+      }])
+      .select()
+      .single();
+
+    if (sessionError) {
+      console.error("❌ Error saving games_sessions:", sessionError);
+      return;
+    }
+
+    const gameSessionId = gameSession.id;
+    sessionStorage.setItem("gameSessionId", gameSessionId); // optional use later
+
 
     for (let i = 0; i < count; i++) {
       const name = document.getElementById(`team${i}`).value.trim();
