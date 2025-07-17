@@ -213,14 +213,36 @@
 
     <div id="teamInputs"></div>
 
-    <label for="roundsInput" style="font-weight:bold;">Number of Rounds:</label>
-        <select id="roundsInput" style="margin-left:10px;">
-      <option value="1" selected>1</option>
-      <option value="2">2</option>
-      <option value="3">3</option>
-      <option value="4">4</option>
-    </select>  
-    
+<label for="playStyle">Game Style:</label>
+<select id="playStyle" onchange="handlePlayStyleChange()">
+  <option value="round_robin" selected>Round Robin</option>
+  <option value="multi_stage">Two-Stage Round Robin</option>
+  <option value="knockout">Knockout</option>
+</select>
+
+<!-- Court count stays always visible -->
+<label for="courtCount">Number of Courts:</label>
+<select id="courtCount">
+  <option value="1" selected>1</option>
+  <option value="2">2</option>
+  <option value="3">3</option>
+  <option value="4">4</option>
+  <option value="5">5</option>
+  <option value="6">6</option>
+</select>
+
+<!-- 🔁 Only show for round robin -->
+<div id="roundsInputWrapper">
+  <label for="roundsInput" style="font-weight:bold;">Number of Rounds:</label>
+  <select id="roundsInput" style="margin-left:10px;">
+    <option value="1" selected>1</option>
+    <option value="2">2</option>
+    <option value="3">3</option>
+    <option value="4">4</option>
+  </select>
+</div>
+
+
     <label for="duration">Match Duration (minutes):</label>
     <input type="number" id="duration" value="7" min="1" />
 
