@@ -1963,6 +1963,87 @@ async function selectMVP() {
   }
 }
 
+window.addEventListener("DOMContentLoaded", async () => {
+  const sessionDropdown = document.getElementById("sessionDropdown");
+  const matchDropdown = document.getElementById("matchDropdown");
+
+  // 🟡 Load all sessions
+  const { data: sessions, error: sessionError } = await supabaseClient
+    .from("games_sessions")
+    .select("id, session_name");
+
+  if (sessionError) {
+    console.error("❌ Failed to fetch sessions:", sessionError);
+    return;
+  }
+
+  sessions.forEach(sess => {
+    const option = document.createElement("option");
+    option.value = sess.id;
+    option.textContent = sess.session_name || `Session ${sess.id}`;
+    sessionDropdown.appendChild(option);
+  });
+
+  // 🔁 On session change → load matches
+  sessionDropdown.addEventListener("change", async (e) => {
+    const sessionId = e.target.value;
+    sessionStorage.setItem("sessionId", sessionId);
+    matchDropdown.innerHTML = `<option disabled selected>Loading matches...</option>`;
+
+    const { data: matches, error: matchError } = await supabaseClient
+      .from("session_matches")
+      .select("id, match_number, team_a, team_b")
+      .eq("session_id", sessionId)
+      .order("match_number");
+
+    if (matchError) {
+      console.error("❌ Failed to fetch matches:", matchError);
+      return;
+    }
+
+    matchDropdown.innerHTML = `<option disabled selected>-- Select Match --</option>`;
+    matches.forEach(m => {
+      const option = document.createElement("option");
+      option.value = m.id;
+      option.textContent = `Match ${m.match_number}: ${m.team_a} vs ${m.team_b}`;
+      matchDropdown.appendChild(option);
+    });
+  });
+
+  // 🟢 On match selection → preload into scoreboard
+  matchDropdown.addEventListener("change", async (e) => {
+    const matchId = e.target.value;
+
+    const { data: match, error } = await supabaseClient
+      .from("session_matches")
+      .select("team_a, team_b")
+      .eq("id", matchId)
+      .single();
+
+    if (error || !match) {
+      alert("⚠️ Failed to load match details.");
+      return;
+    }
+
+    // Set up scoreboard
+    document.getElementById("teamAName").textContent = match.team_a;
+    document.getElementById("teamBName").textContent = match.team_b;
+    document.getElementById("teamAIcon").src = getTeamLogo(match.team_a);
+    document.getElementById("teamBIcon").src = getTeamLogo(match.team_b);
+    document.getElementById("scoreA").textContent = "0";
+    document.getElementById("scoreB").textContent = "0";
+    document.getElementById("goalLogA").innerHTML = "";
+    document.getElementById("goalLogB").innerHTML = "";
+    matchNumber = 0; // Reset match pointer
+    matchResults = [];
+    allGoals = [];
+    standings = {};
+    updateMatchHistory();
+    updateLeaderboard();
+    updateStandings(match.team_a, match.team_b, 0, 0);
+  });
+});
+
 
 </script>
 
