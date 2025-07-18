@@ -1970,7 +1970,8 @@ window.addEventListener("DOMContentLoaded", async () => {
   // 🟡 Load all sessions
   const { data: sessions, error: sessionError } = await supabaseClient
     .from("games_sessions")
-    .select("id, session_name");
+    .select("id, play_style, rounds, num_courts, created_at")
+    .eq("game_id", gameId)
 
   if (sessionError) {
     console.error("❌ Failed to fetch sessions:", sessionError);
