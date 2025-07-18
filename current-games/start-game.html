@@ -625,45 +625,37 @@ async function loadTeamSetup() {
 }
 
 
-    async function startGame() {
-      console.log("Starting game...");
-    const count = parseInt(document.getElementById("teamCount").value);
-    const gameId = document.getElementById("gameSelect").value;
-    const duration = parseInt(document.getElementById("duration").value);
-    const teamNames = [], teamPlayers = [];
-    const playStyle = document.getElementById("playStyle").value;
-    const courtCount = parseInt(document.getElementById("courtCount").value);
-    const rounds = parseInt(document.getElementById("roundsInput").value);
+async function startGame() {
+  console.log("Starting game...");
+  const count = parseInt(document.getElementById("teamCount").value);
+  const gameId = document.getElementById("gameSelect").value;
+  const duration = parseInt(document.getElementById("duration").value);
+  const teamNames = [], teamPlayers = [];
+  const playStyle = document.getElementById("playStyle").value;
+  const courtCount = parseInt(document.getElementById("courtCount").value);
+  const rounds = parseInt(document.getElementById("roundsInput").value);
 
-    // 🧹 Delete existing session config if re-starting
-    await supabase.from('games_sessions').delete().eq('game_id', gameId);
+  await supabase.from('games_sessions').delete().eq('game_id', gameId);
 
-    // ➕ Insert new session setup
-    const { data: gameSession, error: sessionError } = await supabase
-      .from('games_sessions')
-      .insert([{
-        game_id: gameId,
-        play_style: playStyle,
-        rounds: rounds,
-        num_courts: courtCount
-      }])
-      .select()
-      .single();
+  const { data: gameSession, error: sessionError } = await supabase
+    .from('games_sessions')
+    .insert([{ game_id: gameId, play_style: playStyle, rounds: rounds, num_courts: courtCount }])
+    .select()
+    .single();
 
-    if (sessionError) {
-      console.error("❌ Error saving games_sessions:", sessionError);
-      return;
-    }
+  if (sessionError) {
+    console.error("❌ Error saving games_sessions:", sessionError);
+    return;
+  }
 
-    const gameSessionId = gameSession.id;
-    sessionStorage.setItem("gameSessionId", gameSessionId); // optional use later
+  const gameSessionId = gameSession.id;
+  sessionStorage.setItem("gameSessionId", gameSessionId);
 
-
-    for (let i = 0; i < count; i++) {
-      const name = document.getElementById(`team${i}`).value.trim();
-      teamNames.push(name); // ✅ This ensures teamNames gets filled properly
-      const grid = document.querySelectorAll(".player-grid")[i];
-      const selected = Array.from(grid.children)
+  for (let i = 0; i < count; i++) {
+    const name = document.getElementById(`team${i}`).value.trim();
+    teamNames.push(name);
+    const grid = document.querySelectorAll(".player-grid")[i];
+    const selected = Array.from(grid.children)
       .filter(b => b.classList.contains("selected"))
       .map(b => {
         const name = b.dataset.name;
@@ -671,180 +663,168 @@ async function loadTeamSetup() {
         return { name, jersey };
       });
     teamPlayers.push(selected);
-    }
+  }
 
-    // ✅ Save all jersey numbers before starting game
-    await Promise.all(
-      activePlayers.map(p => {
-        if (p.jersey !== undefined && p.jersey !== "") {
-          return fetch('/api/update-booking', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              game_id: gameId,
-              name: p.name,
-              jersey_number: p.jersey
-            })
-          });
-        }
-      })
-    );
+  await Promise.all(
+    activePlayers.map(p => {
+      if (p.jersey !== undefined && p.jersey !== "") {
+        return fetch('/api/update-booking', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ game_id: gameId, name: p.name, jersey_number: p.jersey })
+        });
+      }
+    })
+  );
 
-// Save session_teams for all users
-const teamAssignments = [];
+  const teamAssignments = [];
 
-teamPlayers.forEach((players, i) => {
-  players.forEach(p => {
-
-    const full = activePlayers.find(ap => ap.name === p.name);
-    if (full) {
-      teamAssignments.push({
-        game_id: gameId,
-        user_id: full.user_id || null,
-        team_color: teamNames[i],
-        jersey_name: full.name
-      });
-    }
-
+  teamPlayers.forEach((players, i) => {
+    players.forEach(p => {
+      const full = activePlayers.find(ap => ap.name === p.name);
+      if (full) {
+        teamAssignments.push({
+          game_id: gameId,
+          user_id: full.user_id || null,
+          team_color: teamNames[i],
+          jersey_name: full.name
+        });
+      }
+    });
   });
-});
 
+  await supabase.from('session_teams').delete().eq('game_id', gameId);
+  await supabase.from('session_teams').insert(teamAssignments);
 
-
-if (teamAssignments.length > 0) {
-  console.log("🧹 Deleting old session_teams for game:", gameId);
-
-  const { error: deleteError } = await supabase
+  const { data: sessionTeams } = await supabase
     .from('session_teams')
-    .delete()
+    .select('team_color')
     .eq('game_id', gameId);
 
-  if (deleteError) {
-    console.error('❌ Error deleting old session_teams:', deleteError);
-    return; // exit if delete fails
-  }
+  const uniqueTeams = [...new Set(sessionTeams.map(t => t.team_color))];
 
-  console.log("⬆️ Inserting new session_teams:", teamAssignments);
+  await supabase.from('session_matches').delete().eq('game_session_id', gameSessionId);
 
-  const { error: insertError } = await supabase
-    .from('session_teams')
-    .insert(teamAssignments);
+  if (playStyle === "multi_stage" && uniqueTeams.length === 8) {
+    // Split into groups A and B
+    const shuffled = [...uniqueTeams].sort(() => Math.random() - 0.5);
+    const groupA = shuffled.slice(0, 4);
+    const groupB = shuffled.slice(4, 8);
 
-  if (insertError) {
-    console.error('❌ Error inserting session_teams:', insertError);
-    return; // exit if insert fails
-  }
-
-  //newly added table generation
-// ✅ Fetch inserted game_session_id
-const { data: sessionData, error: sessionErr } = await supabase
-  .from('games_sessions')
-  .select('id')
-  .eq('game_id', gameId)
-  .single();
-
-if (sessionErr || !sessionData) {
-  console.error("❌ Failed to fetch game_session_id:", sessionErr);
-  return;
-}
-
-const gameSessionId = sessionData.id;
-
-// ✅ Fetch teams from session_teams
-const { data: sessionTeams, error: fetchTeamErr } = await supabase
-  .from('session_teams')
-  .select('team_color')
-  .eq('game_id', gameId);
-
-if (fetchTeamErr || !sessionTeams) {
-  console.error("❌ Failed to fetch session_teams:", fetchTeamErr);
-  return;
-}
-
-const uniqueTeams = [...new Set(sessionTeams.map(t => t.team_color))];
-
-// ✅ Generate round robin matches
-function generateRoundRobinMatches(teams, rounds) {
-  const matches = [];
-  const paddedTeams = [...teams];
-  const isOdd = paddedTeams.length % 2 !== 0;
-
-  if (isOdd) paddedTeams.push(null); // Add dummy team
-
-  const numRounds = paddedTeams.length - 1;
-
-  for (let r = 0; r < rounds; r++) {
-    for (let i = 0; i < numRounds; i++) {
-      for (let j = 0; j < paddedTeams.length / 2; j++) {
-        const team1 = paddedTeams[j];
-        const team2 = paddedTeams[paddedTeams.length - 1 - j];
-
-        if (team1 && team2) {
+    function generateRRMatches(group, roundOffset, court, stage) {
+      const matches = [];
+      for (let i = 0; i < group.length - 1; i++) {
+        for (let j = i + 1; j < group.length; j++) {
           matches.push({
-            round: r + 1,
-            team1,
-            team2
+            game_session_id: gameSessionId,
+            team1: group[i],
+            team2: group[j],
+            round: roundOffset,
+            match_number: matches.length + 1,
+            court_number: court,
+            stage: stage
           });
         }
       }
-      const fixed = paddedTeams[0];
-      const rest = paddedTeams.slice(1);
-      rest.unshift(rest.pop());
-      paddedTeams.splice(1, paddedTeams.length - 1, ...rest);
+      return matches;
     }
+
+    const firstStageMatches = [
+      ...generateRRMatches(groupA, 1, 1, "group_A"),
+      ...generateRRMatches(groupB, 1, 2, "group_B")
+    ];
+
+    // Placeholder matches for second stage (will be updated later via logic in track-match)
+    const secondStageMatches = [
+      { team1: "Winner A", team2: "Winner B", court_number: 1, stage: "final" },
+      { team1: "Runner-up A", team2: "Runner-up B", court_number: 1, stage: "3rd_place" },
+      { team1: "3rd A", team2: "3rd B", court_number: 2, stage: "5th_place" },
+      { team1: "4th A", team2: "4th B", court_number: 2, stage: "7th_place" },
+    ].map((m, idx) => ({
+      game_session_id: gameSessionId,
+      team1: m.team1,
+      team2: m.team2,
+      round: 2,
+      match_number: firstStageMatches.length + idx + 1,
+      court_number: m.court_number,
+      stage: m.stage
+    }));
+
+    const allMatches = [...firstStageMatches, ...secondStageMatches];
+    const { error: insertMatchErr } = await supabase.from('session_matches').insert(allMatches);
+
+    if (insertMatchErr) {
+      console.error("❌ Failed to insert multi-stage matches:", insertMatchErr);
+    } else {
+      console.log("✅ Inserted all multi-stage matches:", allMatches.length);
+    }
+
+  } else if (playStyle === "round_robin") {
+    function generateRoundRobinMatches(teams, rounds) {
+      const matches = [];
+      const padded = [...teams];
+      if (padded.length % 2 !== 0) padded.push(null);
+      const n = padded.length;
+      const numRounds = n - 1;
+
+      for (let r = 0; r < rounds; r++) {
+        for (let i = 0; i < numRounds; i++) {
+          for (let j = 0; j < n / 2; j++) {
+            const team1 = padded[j];
+            const team2 = padded[n - 1 - j];
+            if (team1 && team2) {
+              matches.push({
+                round: r + 1,
+                team1,
+                team2
+              });
+            }
+          }
+          const fixed = padded[0];
+          const rest = padded.slice(1);
+          rest.unshift(rest.pop());
+          padded.splice(1, n - 1, ...rest);
+        }
+      }
+      return matches;
+    }
+
+    const matchData = generateRoundRobinMatches(uniqueTeams, rounds).map((m, i) => ({
+      game_session_id: gameSessionId,
+      team1: m.team1,
+      team2: m.team2,
+      round: m.round,
+      match_number: i + 1
+    }));
+
+    const { error: matchInsertErr } = await supabase.from('session_matches').insert(matchData);
+
+    if (matchInsertErr) {
+      console.error("❌ Error inserting round robin matches:", matchInsertErr);
+      return;
+    }
+
+    console.log("✅ Inserted round robin matches:", matchData.length);
   }
 
-  return matches;
-}
-
-const rounds = parseInt(document.getElementById("roundsInput").value);
-const matchData = generateRoundRobinMatches(uniqueTeams, rounds).map((m, i) => ({
-  game_session_id: gameSessionId,
-  team1: m.team1,
-  team2: m.team2,
-  round: m.round,
-  match_number: i + 1
-}));
-
-// ✅ Overwrite old session_matches
-await supabase.from('session_matches').delete().eq('game_session_id', gameSessionId);
-
-const { error: matchInsertErr } = await supabase.from('session_matches').insert(matchData);
-
-if (matchInsertErr) {
-  console.error("❌ Error inserting session_matches:", matchInsertErr);
-  return;
-}
-
-console.log("✅ Inserted session_matches:", matchData.length);
-
-
-  // Continue to game immediately-original
+  // Finish
   sessionStorage.setItem("gameId", gameId);
   sessionStorage.setItem("teamNames", JSON.stringify(teamNames));
-
-  const enrichedPlayers = teamPlayers.map((players, i) =>
-    players.map(p => ({ ...p, team: teamNames[i] }))
-  );
-  sessionStorage.setItem("teamPlayers", JSON.stringify(enrichedPlayers));
-
+  sessionStorage.setItem("teamPlayers", JSON.stringify(teamPlayers.map((p, i) =>
+    p.map(pl => ({ ...pl, team: teamNames[i] }))
+  )));
   sessionStorage.setItem("duration", duration);
   sessionStorage.setItem("rounds", rounds);
+
   const selectedGame = document.getElementById("gameSelect");
   const selectedText = selectedGame.options[selectedGame.selectedIndex].textContent;
   const [venueText, datetimeText] = selectedText.split(" - ");
   sessionStorage.setItem("venue", venueText.trim());
   sessionStorage.setItem("date", datetimeText.trim());
 
-  window.location.href = "track-match.html";
-} else {
-  console.warn("⚠️ No team assignments to upsert.");
+  // window.location.href = "track-match.html";
 }
 
-
-
-    // window.location.href = "track-match-bulletproof.html";
-}
 
 
     function toggleEditControls() {
