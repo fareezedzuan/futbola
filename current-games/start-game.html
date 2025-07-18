@@ -626,6 +626,7 @@ async function loadTeamSetup() {
 
 
 async function startGame() {
+  document.getElementById("popup").style.display = "none";
   console.log("Starting game...");
   const count = parseInt(document.getElementById("teamCount").value);
   const gameId = document.getElementById("gameSelect").value;
