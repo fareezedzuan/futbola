@@ -705,59 +705,90 @@ async function startGame() {
 
   await supabase.from('session_matches').delete().eq('game_session_id', gameSessionId);
 
-  if (playStyle === "multi_stage" && uniqueTeams.length === 8) {
-    const shuffled = [...uniqueTeams].sort(() => Math.random() - 0.5);
-    const groupA = shuffled.slice(0, 4);
-    const groupB = shuffled.slice(4, 8);
+if (playStyle === "multi_stage" && uniqueTeams.length === 8 && courtCount === 2) {
+  const shuffled = [...uniqueTeams].sort(() => Math.random() - 0.5);
+  const groupA = shuffled.slice(0, 4);
+  const groupB = shuffled.slice(4, 8);
 
-    function generateRRMatches(group, roundOffset, court, stage) {
-      const matches = [];
-      for (let i = 0; i < group.length - 1; i++) {
-        for (let j = i + 1; j < group.length; j++) {
-          matches.push({
-            game_session_id: gameSessionId,
-            team1_id: group[i],
-            team2_id: group[j],
-            round: roundOffset,
-            match_number: matches.length + 1,
-            court_number: court,
-            stage: stage
-          });
-        }
+  // Helper to generate all matches in a round robin group
+  function generateGroupMatches(group, court_number, stage) {
+    const matches = [];
+    let matchNum = 1;
+    for (let i = 0; i < group.length - 1; i++) {
+      for (let j = i + 1; j < group.length; j++) {
+        matches.push({
+          game_session_id: gameSessionId,
+          team1_id: group[i],
+          team2_id: group[j],
+          court_number,
+          round: 1,
+          match_number: matchNum++,
+          stage,
+        });
       }
-      return matches;
     }
+    return matches;
+  }
 
-    const firstStageMatches = [
-      ...generateRRMatches(groupA, 1, 1, "group_A"),
-      ...generateRRMatches(groupB, 1, 2, "group_B")
-    ];
+  // First Stage: Group Round Robins
+  const groupAMatches = generateGroupMatches(groupA, 1, "group_A");
+  const groupBMatches = generateGroupMatches(groupB, 2, "group_B");
 
-    const secondStageMatches = [
-      { team1_id: "Winner A", team2_id: "Winner B", court_number: 1, stage: "final" },
-      { team1_id: "Runner-up A", team2_id: "Runner-up B", court_number: 1, stage: "3rd_place" },
-      { team1_id: "3rd A", team2_id: "3rd B", court_number: 2, stage: "5th_place" },
-      { team1_id: "4th A", team2_id: "4th B", court_number: 2, stage: "7th_place" },
-    ].map((m, idx) => ({
-      game_session_id: gameSessionId,
-      team1_id: m.team1_id,
-      team2_id: m.team2_id,
-      round: 2,
-      match_number: firstStageMatches.length + idx + 1,
-      court_number: m.court_number,
-      stage: m.stage
-    }));
+  // Second Stage: Champions & Plate (Round Robin again, using placeholders)
+  const champions = [
+    ["A1", "B2"],
+    ["B1", "A2"],
+    ["A1", "B1"],
+    ["A2", "B2"],
+    ["A1", "A2"],
+    ["B1", "B2"],
+  ];
 
-    const allMatches = [...firstStageMatches, ...secondStageMatches];
-    const { error: insertMatchErr } = await supabase.from('session_matches').insert(allMatches);
+  const plate = [
+    ["A3", "B4"],
+    ["B3", "A4"],
+    ["A3", "B3"],
+    ["A4", "B4"],
+    ["A3", "A4"],
+    ["B3", "B4"],
+  ];
 
-    if (insertMatchErr) {
-      console.error("❌ Failed to insert multi-stage matches:", insertMatchErr);
-    } else {
-      console.log("✅ Inserted all multi-stage matches:", allMatches.length);
-    }
+  const championsMatches = champions.map(([t1, t2], i) => ({
+    game_session_id: gameSessionId,
+    team1_id: t1,
+    team2_id: t2,
+    court_number: 1,
+    round: 2,
+    match_number: i + 13,
+    stage: "champions",
+    is_placeholder: true,
+    team1_placeholder: t1,
+    team2_placeholder: t2,
+  }));
 
-  } else if (playStyle === "round_robin") {
+  const plateMatches = plate.map(([t1, t2], i) => ({
+    game_session_id: gameSessionId,
+    team1_id: t1,
+    team2_id: t2,
+    court_number: 2,
+    round: 2,
+    match_number: i + 19,
+    stage: "plate",
+    is_placeholder: true,
+    team1_placeholder: t1,
+    team2_placeholder: t2,
+  }));
+
+  const allMatches = [...groupAMatches, ...groupBMatches, ...championsMatches, ...plateMatches];
+
+  const { error: insertMatchErr } = await supabase.from('session_matches').insert(allMatches);
+
+  if (insertMatchErr) {
+    console.error("❌ Failed to insert multi-stage matches:", insertMatchErr);
+  } else {
+    console.log("✅ Inserted 24 multi-stage matches.");
+  }
+} else if (playStyle === "round_robin") {
     function generateRoundRobinMatches(teams, rounds) {
       const matches = [];
       const padded = [...teams];
