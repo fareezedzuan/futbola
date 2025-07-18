@@ -231,6 +231,8 @@
   <option value="6">6</option>
 </select>
 
+<div id="courtInputs"></div>
+
 <!-- 🔁 Only show for round robin -->
 <div id="roundsInputWrapper">
   <label for="roundsInput" style="font-weight:bold;">Number of Rounds:</label>
@@ -652,6 +654,19 @@ async function startGame() {
   const gameSessionId = gameSession.id;
   sessionStorage.setItem("gameSessionId", gameSessionId);
 
+    // ✅ Insert actual court names into session_courts
+  const courtNames = [];
+  for (let i = 0; i < courtCount; i++) {
+    const name = document.getElementById(`courtName${i}`).value.trim() || `Court ${i + 1}`;
+    courtNames.push({
+      game_session_id: gameSessionId,
+      court_number: i + 1,
+      court_name: name
+    });
+  }
+
+  await supabase.from("session_courts").insert(courtNames);
+
   for (let i = 0; i < count; i++) {
     const name = document.getElementById(`team${i}`).value.trim();
     teamNames.push(name);
@@ -910,6 +925,32 @@ if (playStyle === "multi_stage" && uniqueTeams.length === 8 && courtCount === 2)
       generatePlayerAssignment(); // Rerender the player boxes
     }
     closeJerseyPopup();
+  }
+
+  function generateCourtInputs() {
+    const courtInputs = document.getElementById("courtInputs");
+    courtInputs.innerHTML = "";
+    const count = parseInt(document.getElementById("courtCount").value);
+    for (let i = 0; i < count; i++) {
+      const wrapper = document.createElement("div");
+      wrapper.style.marginTop = "10px";
+
+      const label = document.createElement("label");
+      label.textContent = `Court ${i + 1} Name:`;
+      label.style.display = "block";
+      label.style.fontWeight = "bold";
+      label.style.color = "#702963";
+
+      const input = document.createElement("input");
+      input.type = "text";
+      input.id = `courtName${i}`;
+      input.value = `Court ${i + 1}`;
+      input.style.width = "100%";
+
+      wrapper.appendChild(label);
+      wrapper.appendChild(input);
+      courtInputs.appendChild(wrapper);
+    }
   }
 
   function handlePlayStyleChange() {
