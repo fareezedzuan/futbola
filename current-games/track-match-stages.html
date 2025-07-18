@@ -1966,6 +1966,12 @@ async function selectMVP() {
 window.addEventListener("DOMContentLoaded", async () => {
   const sessionDropdown = document.getElementById("sessionDropdown");
   const matchDropdown = document.getElementById("matchDropdown");
+  const gameId = sessionStorage.getItem("gameId");
+
+  if (!gameId) {
+    console.error("❌ No gameId found in sessionStorage.");
+    return;
+  }
 
   // 🟡 Load all sessions
   const { data: sessions, error: sessionError } = await supabaseClient
