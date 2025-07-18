@@ -735,7 +735,91 @@ if (teamAssignments.length > 0) {
     return; // exit if insert fails
   }
 
-  // Continue to game immediately
+  //newly added table generation
+// ✅ Fetch inserted game_session_id
+const { data: sessionData, error: sessionErr } = await supabase
+  .from('games_sessions')
+  .select('id')
+  .eq('game_id', gameId)
+  .single();
+
+if (sessionErr || !sessionData) {
+  console.error("❌ Failed to fetch game_session_id:", sessionErr);
+  return;
+}
+
+const gameSessionId = sessionData.id;
+
+// ✅ Fetch teams from session_teams
+const { data: sessionTeams, error: fetchTeamErr } = await supabase
+  .from('session_teams')
+  .select('team_color')
+  .eq('game_id', gameId);
+
+if (fetchTeamErr || !sessionTeams) {
+  console.error("❌ Failed to fetch session_teams:", fetchTeamErr);
+  return;
+}
+
+const uniqueTeams = [...new Set(sessionTeams.map(t => t.team_color))];
+
+// ✅ Generate round robin matches
+function generateRoundRobinMatches(teams, rounds) {
+  const matches = [];
+  const paddedTeams = [...teams];
+  const isOdd = paddedTeams.length % 2 !== 0;
+
+  if (isOdd) paddedTeams.push(null); // Add dummy team
+
+  const numRounds = paddedTeams.length - 1;
+
+  for (let r = 0; r < rounds; r++) {
+    for (let i = 0; i < numRounds; i++) {
+      for (let j = 0; j < paddedTeams.length / 2; j++) {
+        const team1 = paddedTeams[j];
+        const team2 = paddedTeams[paddedTeams.length - 1 - j];
+
+        if (team1 && team2) {
+          matches.push({
+            round: r + 1,
+            team1,
+            team2
+          });
+        }
+      }
+      const fixed = paddedTeams[0];
+      const rest = paddedTeams.slice(1);
+      rest.unshift(rest.pop());
+      paddedTeams.splice(1, paddedTeams.length - 1, ...rest);
+    }
+  }
+
+  return matches;
+}
+
+const rounds = parseInt(document.getElementById("roundsInput").value);
+const matchData = generateRoundRobinMatches(uniqueTeams, rounds).map((m, i) => ({
+  game_session_id: gameSessionId,
+  team1: m.team1,
+  team2: m.team2,
+  round: m.round,
+  match_number: i + 1
+}));
+
+// ✅ Overwrite old session_matches
+await supabase.from('session_matches').delete().eq('game_session_id', gameSessionId);
+
+const { error: matchInsertErr } = await supabase.from('session_matches').insert(matchData);
+
+if (matchInsertErr) {
+  console.error("❌ Error inserting session_matches:", matchInsertErr);
+  return;
+}
+
+console.log("✅ Inserted session_matches:", matchData.length);
+
+
+  // Continue to game immediately-original
   sessionStorage.setItem("gameId", gameId);
   sessionStorage.setItem("teamNames", JSON.stringify(teamNames));
 
@@ -745,7 +829,6 @@ if (teamAssignments.length > 0) {
   sessionStorage.setItem("teamPlayers", JSON.stringify(enrichedPlayers));
 
   sessionStorage.setItem("duration", duration);
-  const rounds = parseInt(document.getElementById("roundsInput").value);
   sessionStorage.setItem("rounds", rounds);
   const selectedGame = document.getElementById("gameSelect");
   const selectedText = selectedGame.options[selectedGame.selectedIndex].textContent;
