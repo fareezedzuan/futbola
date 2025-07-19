@@ -655,17 +655,16 @@ async function startGame() {
   sessionStorage.setItem("gameSessionId", gameSessionId);
 
     // ✅ Insert actual court names into session_courts
-  const courtNames = [];
-  for (let i = 0; i < courtCount; i++) {
-    const name = document.getElementById(`courtName${i}`).value.trim() || `Court ${i + 1}`;
-    courtNames.push({
-      game_session_id: gameSessionId,
-      court_number: i + 1,
-      court_name: name
-    });
-  }
-
-  await supabase.from("session_courts").insert(courtNames);
+//  const courtNames = [];
+//  for (let i = 0; i < courtCount; i++) {
+ //   const name = document.getElementById(`courtName${i}`).value.trim() || `Court ${i + 1}`;
+  //  courtNames.push({
+    //  game_session_id: gameSessionId,
+      //court_number: i + 1,
+      //court_name: name
+    //});
+  //}
+// await supabase.from("session_courts").insert(courtNames);
 
   for (let i = 0; i < count; i++) {
     const name = document.getElementById(`team${i}`).value.trim();
@@ -867,7 +866,7 @@ if (playStyle === "multi_stage" && uniqueTeams.length === 8 && courtCount === 2)
   sessionStorage.setItem("venue", venueText.trim());
   sessionStorage.setItem("date", datetimeText.trim());
 
-  // window.location.href = "track-match.html";
+  window.location.href = "track-match.html";
 }
 
 
