@@ -642,9 +642,19 @@ async function startGame() {
 
   const { data: gameSession, error: sessionError } = await supabase
     .from('games_sessions')
-    .insert([{ game_id: gameId, play_style: playStyle, rounds: rounds, num_courts: courtCount }])
+    .insert([{
+      game_id: gameId,
+      play_style: playStyle,
+      rounds: rounds,
+      num_courts: courtCount,
+      court_names: courtNames, // ✅ already saved here
+      match_duration: duration, // 👈 optional: save match duration too
+      team_count: count         // 👈 optional: save number of teams
+    }])
     .select()
     .single();
+    
+
 
   if (sessionError) {
     console.error("❌ Error saving games_sessions:", sessionError);
@@ -660,11 +670,6 @@ for (let i = 0; i < courtCount; i++) {
   courtNames.push(name);
 }
 
-// 🔄 Update games_sessions with court_names JSON
-const { error: courtUpdateError } = await supabase
-  .from('games_sessions')
-  .update({ court_names: courtNames })
-  .eq('id', gameSessionId);
 
 if (courtUpdateError) {
   console.error("❌ Failed to update court names:", courtUpdateError);
