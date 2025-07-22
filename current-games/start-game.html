@@ -222,7 +222,7 @@
 
 <!-- Court count stays always visible -->
 <label for="courtCount">Number of Courts:</label>
-<select id="courtCount">
+<select id="courtCount" onchange="generateCourtInputs()">
   <option value="1" selected>1</option>
   <option value="2">2</option>
   <option value="3">3</option>
@@ -654,17 +654,24 @@ async function startGame() {
   const gameSessionId = gameSession.id;
   sessionStorage.setItem("gameSessionId", gameSessionId);
 
-    // ✅ Insert actual court names into session_courts
-//  const courtNames = [];
-//  for (let i = 0; i < courtCount; i++) {
- //   const name = document.getElementById(`courtName${i}`).value.trim() || `Court ${i + 1}`;
-  //  courtNames.push({
-    //  game_session_id: gameSessionId,
-      //court_number: i + 1,
-      //court_name: name
-    //});
-  //}
-// await supabase.from("session_courts").insert(courtNames);
+const courtNames = [];
+for (let i = 0; i < courtCount; i++) {
+  const name = document.getElementById(`courtName${i}`)?.value.trim() || `Court ${i + 1}`;
+  courtNames.push(name);
+}
+
+// 🔄 Update games_sessions with court_names JSON
+const { error: courtUpdateError } = await supabase
+  .from('games_sessions')
+  .update({ court_names: courtNames })
+  .eq('id', gameSessionId);
+
+if (courtUpdateError) {
+  console.error("❌ Failed to update court names:", courtUpdateError);
+} else {
+  console.log("✅ Court names saved to games_sessions:", courtNames);
+}
+
 
   for (let i = 0; i < count; i++) {
     const name = document.getElementById(`team${i}`).value.trim();
