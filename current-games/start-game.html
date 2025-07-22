@@ -351,11 +351,30 @@
       document.getElementById("playerAssignment").innerHTML = ""; // clear grids
 
 
-      // 🔁 Check if any saved session_teams exist
-      const { data: teamData, error } = await supabase
-        .from('session_teams')
-        .select('*')
-        .eq('game_id', gameId);
+// 🧠 Load saved session config
+const { data: session, error: sessionError } = await supabase
+  .from("games_sessions")
+  .select("match_duration, rounds, team_count, play_style, num_courts, court_names")
+  .eq("game_id", gameId)
+  .single();
+
+if (session) {
+  document.getElementById("duration").value = session.match_duration || 7;
+  document.getElementById("roundsInput").value = session.rounds || 1;
+  document.getElementById("playStyle").value = session.play_style || "round_robin";
+  document.getElementById("courtCount").value = session.num_courts || 1;
+  handlePlayStyleChange();
+  generateCourtInputs();
+
+  // 🏟️ Set court names
+  if (session.court_names?.length) {
+    session.court_names.forEach((name, i) => {
+      const el = document.getElementById(`courtName${i}`);
+      if (el) el.value = name;
+    });
+  }
+}
+
 
       if (error) {
         console.error("❌ Error loading session_teams:", error);
