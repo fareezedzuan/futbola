@@ -672,14 +672,6 @@ async function startGame() {
 
 
 
-
-if (courtUpdateError) {
-  console.error("❌ Failed to update court names:", courtUpdateError);
-} else {
-  console.log("✅ Court names saved to games_sessions:", courtNames);
-}
-
-
   for (let i = 0; i < count; i++) {
     const name = document.getElementById(`team${i}`).value.trim();
     teamNames.push(name);
