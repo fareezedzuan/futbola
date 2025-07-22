@@ -375,6 +375,10 @@ if (session) {
   }
 }
 
+      const { data: teamData, error } = await supabase
+      .from('session_teams')
+      .select('*')
+      .eq('game_id', gameId);
 
       if (error) {
         console.error("❌ Error loading session_teams:", error);
