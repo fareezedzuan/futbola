@@ -2049,7 +2049,7 @@ sessionDropdown.addEventListener("change", async (e) => {
     // Step 2: Fetch matches
     const { data: matches, error: matchError } = await supabaseClient
       .from("session_matches")
-      .select("id, match_number, team_a, team_b")
+      .select("id, match_number, team1_id, team2_id")
       .eq("session_id", sessionId)
       .order("match_number");
 
@@ -2059,7 +2059,7 @@ sessionDropdown.addEventListener("change", async (e) => {
     matches.forEach(m => {
       const option = document.createElement("option");
       option.value = m.id;
-      option.textContent = `Match ${m.match_number}: ${m.team_a} vs ${m.team_b}`;
+      option.textContent = `Match ${m.match_number}: ${m.team1_id} vs ${m.team2_id}`;
       matchDropdown.appendChild(option);
     });
   } catch (err) {
@@ -2076,7 +2076,7 @@ sessionDropdown.addEventListener("change", async (e) => {
     try {
       const { data: match, error } = await supabaseClient
         .from("session_matches")
-        .select("team_a, team_b")
+        .select("team1_id, team2_id")
         .eq("id", matchId)
         .single();
 
