@@ -1938,7 +1938,8 @@ window.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("confirmScorerPopup").style.display = "none";
   document.getElementById("confirmOverlay").style.display = "none";
 
-  // 🟢 Load registered users (for MVP dropdown)
+ // 🟢 Load registered users (for MVP dropdown)
+if (gameId) {
   try {
     const { data: sessionUsers, error: userError } = await supabaseClient
       .from("session_teams")
@@ -1958,6 +1959,9 @@ window.addEventListener("DOMContentLoaded", async () => {
   } catch (err) {
     console.error("❌ Failed to fetch session team users:", err);
   }
+} else {
+  console.warn("⚠️ No gameId yet — skipping MVP user fetch.");
+}
 
   // 🟢 Load sessions with date/venue
   try {
@@ -1993,32 +1997,50 @@ window.addEventListener("DOMContentLoaded", async () => {
     console.error("❌ Failed to fetch sessions:", err);
   }
 
-  // 🔁 On session change → load matches
-  sessionDropdown.addEventListener("change", async (e) => {
-    const sessionId = e.target.value;
-    sessionStorage.setItem("sessionId", sessionId);
-    matchDropdown.innerHTML = `<option disabled selected>Loading matches...</option>`;
+sessionDropdown.addEventListener("change", async (e) => {
+  const sessionId = e.target.value;
+  sessionStorage.setItem("sessionId", sessionId);
 
-    try {
-      const { data: matches, error: matchError } = await supabaseClient
-        .from("session_matches")
-        .select("id, match_number, team_a, team_b")
-        .eq("session_id", sessionId)
-        .order("match_number");
+  // ✅ Also fetch and store gameId
+  try {
+    const { data, error } = await supabaseClient
+      .from("games_sessions")
+      .select("game_id")
+      .eq("id", sessionId)
+      .single();
 
-      if (matchError) throw matchError;
-
-      matchDropdown.innerHTML = `<option disabled selected>-- Select Match --</option>`;
-      matches.forEach(m => {
-        const option = document.createElement("option");
-        option.value = m.id;
-        option.textContent = `Match ${m.match_number}: ${m.team_a} vs ${m.team_b}`;
-        matchDropdown.appendChild(option);
-      });
-    } catch (err) {
-      console.error("❌ Failed to fetch matches:", err);
+    if (error) throw error;
+    if (data?.game_id) {
+      sessionStorage.setItem("gameId", data.game_id);
+      console.log("📌 gameId set from selected session:", data.game_id);
     }
-  });
+  } catch (err) {
+    console.error("❌ Failed to retrieve gameId for session:", err);
+  }
+
+  matchDropdown.innerHTML = `<option disabled selected>Loading matches...</option>`;
+
+  try {
+    const { data: matches, error: matchError } = await supabaseClient
+      .from("session_matches")
+      .select("id, match_number, team_a, team_b")
+      .eq("session_id", sessionId)
+      .order("match_number");
+
+    if (matchError) throw matchError;
+
+    matchDropdown.innerHTML = `<option disabled selected>-- Select Match --</option>`;
+    matches.forEach(m => {
+      const option = document.createElement("option");
+      option.value = m.id;
+      option.textContent = `Match ${m.match_number}: ${m.team_a} vs ${m.team_b}`;
+      matchDropdown.appendChild(option);
+    });
+  } catch (err) {
+    console.error("❌ Failed to fetch matches:", err);
+  }
+});
+
 
   // 🟢 On match selection → preload into scoreboard
   matchDropdown.addEventListener("change", async (e) => {
