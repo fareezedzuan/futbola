@@ -1736,24 +1736,44 @@ function recalculateStandingsFromAllMatches() {
     b.Pts - a.Pts || b.GD - a.GD || b.GF - a.GF
   );
 
-  document.getElementById("standingsTable").innerHTML = `
+document.getElementById("standingsTable").innerHTML = `
+  <table class="leaderboard-table">
     <thead>
       <tr>
-        <th>Pos</th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th>
-        <th>GF</th><th>GA</th><th>GD</th><th>Pts</th>
+        <th>Pos</th>
+        <th>Team</th>
+        <th>P</th>
+        <th>W</th>
+        <th>D</th>
+        <th>L</th>
+        <th>GF</th>
+        <th>GA</th>
+        <th>GD</th>
+        <th>Pts</th>
       </tr>
     </thead>
     <tbody>
       ${rows.map((t, i) => `
         <tr>
           <td>${i + 1}</td>
-          <td><img src="${getTeamLogo(t.team)}" style="width:20px;vertical-align:middle;margin-right:5px;"> <strong>${t.team}</strong></td>
-          <td>${t.MP}</td><td>${t.W}</td><td>${t.D}</td><td>${t.L}</td>
-          <td>${t.GF}</td><td>${t.GA}</td><td>${t.GD}</td><td><strong>${t.Pts}</strong></td>
+          <td class="club">
+            <img src="${getTeamLogo(t.team)}" class="club-logo" />
+            <span>${t.team}</span>
+          </td>
+          <td>${t.MP}</td>
+          <td>${t.W}</td>
+          <td>${t.D}</td>
+          <td>${t.L}</td>
+          <td>${t.GF}</td>
+          <td>${t.GA}</td>
+          <td>${t.GD}</td>
+          <td class="points">${t.Pts}</td>
         </tr>
       `).join("")}
     </tbody>
-  `;
+  </table>
+`;
+
 }
 
 function recalculateMatchResult(matchIndex) {
