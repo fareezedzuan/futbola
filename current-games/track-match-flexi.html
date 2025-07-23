@@ -1156,24 +1156,45 @@ function updateMatchHistory() {
     return;
   }
 
-  matchResults.forEach((m) => {
-    const row = document.createElement("div");
-    row.className = "match-result-row";
-
-    row.innerHTML = `
-      <div class="team-side left">
-        <img class="team-logo" src="${getTeamLogo(m.tA)}" />
-        ${m.tA}
-      </div>
-      <div class="match-score">${m.gA ?? '-'} - ${m.gB ?? '-'}</div>
-      <div class="team-side right">
-        ${m.tB}
-        <img class="team-logo" src="${getTeamLogo(m.tB)}" />
-      </div>
-    `;
-
-    container.appendChild(row);
+  // 🔁 Group by court
+  const groupedByCourt = {};
+  matchResults.forEach(m => {
+    const court = m.court || 1;
+    if (!groupedByCourt[court]) groupedByCourt[court] = [];
+    groupedByCourt[court].push(m);
   });
+
+  // 🎨 Render each court group
+  Object.keys(groupedByCourt)
+    .sort((a, b) => a - b)
+    .forEach(court => {
+      const heading = document.createElement("h3");
+      heading.textContent = `🏟️ Court ${court}`;
+      heading.style.marginTop = "1.5em";
+      heading.style.color = "#702963";
+      heading.style.textAlign = "left";
+
+      container.appendChild(heading);
+
+      groupedByCourt[court].forEach(m => {
+        const row = document.createElement("div");
+        row.className = "match-result-row";
+
+        row.innerHTML = `
+          <div class="team-side left">
+            <img class="team-logo" src="${getTeamLogo(m.tA)}" />
+            ${m.tA}
+          </div>
+          <div class="match-score">${m.gA ?? '-'} - ${m.gB ?? '-'}</div>
+          <div class="team-side right">
+            ${m.tB}
+            <img class="team-logo" src="${getTeamLogo(m.tB)}" />
+          </div>
+        `;
+
+        container.appendChild(row);
+      });
+    });
 }
 
 function updateStandingsUI() {
