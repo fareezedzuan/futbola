@@ -611,6 +611,12 @@
     <option disabled selected value="">-- Choose Session --</option>
   </select>
 
+  <label for="courtFilter">Filter by Court:</label>
+<select id="courtFilter">
+  <option value="all">All Courts</option>
+</select>
+
+
   <label for="matchDropdown" style="font-weight:bold; color:#702963;">Select Match to Officiate:</label>
   <select id="matchDropdown" class="dropdown" style="width:100%; padding:8px; font-size:16px;">
     <option disabled selected value="">-- Choose Match --</option>
@@ -1909,167 +1915,151 @@ async function selectMVP() {
   }
 }
 
-
 window.addEventListener("DOMContentLoaded", async () => {
-  sessionStorage.clear(); // wipe any old/stale values
+  sessionStorage.clear();
+
   const sessionDropdown = document.getElementById("sessionDropdown");
   const matchDropdown = document.getElementById("matchDropdown");
-  const gameId = sessionStorage.getItem("gameId");
-  console.log("🎮 gameId from sessionStorage:", gameId);
-
-  if (!gameId) {
-    console.warn("⚠️ No gameId found in sessionStorage. Please select a session from the dropdown.");
-    // Do not return — allow the rest of the UI (dropdowns) to load
-  }
-
-  // 🟢 Wire up MVP button
+  const courtFilter = document.getElementById("courtFilter");
   const mvpBtn = document.getElementById("nominateMVPBtn");
+
+  // Hide overlays
+  ["editPlayerSelector", "editAddGoalPopup", "editGoalsPopup", "overlay", "editOverlay", "confirmScorerPopup", "confirmOverlay"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = "none";
+  });
+
+  // MVP button
   if (mvpBtn) {
     mvpBtn.addEventListener("click", showMVPSelector);
     console.log("✅ MVP button click listener wired up");
   }
 
-  // 🟢 Hide overlays
-  document.getElementById("editPlayerSelector").style.display = "none";
-  document.getElementById("editAddGoalPopup").style.display = "none";
-  document.getElementById("editGoalsPopup").style.display = "none";
-  document.getElementById("overlay").style.display = "none";
-  document.getElementById("editOverlay").style.display = "none";
-  document.getElementById("confirmScorerPopup").style.display = "none";
-  document.getElementById("confirmOverlay").style.display = "none";
-
- // 🟢 Load registered users (for MVP dropdown)
-if (gameId) {
+  // Fetch all sessions (for dropdown)
+  let sessions = [];
   try {
-    const { data: sessionUsers, error: userError } = await supabaseClient
-      .from("session_teams")
-      .select("user_id, profiles(full_name)")
-      .eq("game_id", gameId);
-
-    if (userError) throw userError;
-
-    registeredUsers = sessionUsers
-      .filter(row => row.profiles && row.profiles.full_name)
-      .map(row => ({
-        id: row.user_id,
-        name: row.profiles.full_name
-      }));
-
-    console.log("✅ Registered users loaded for MVP dropdown:", registeredUsers);
-  } catch (err) {
-    console.error("❌ Failed to fetch session team users:", err);
-  }
-} else {
-  console.warn("⚠️ No gameId yet — skipping MVP user fetch.");
-}
-
-// 🟢 Load registered users (for MVP dropdown)
-if (gameId) {
-  try {
-    const { data: sessionUsers, error: userError } = await supabaseClient
-      .from("session_teams")
-      .select("user_id, profiles(full_name)")
-      .eq("game_id", gameId);
-
-    if (userError) throw userError;
-
-    registeredUsers = sessionUsers
-      .filter(row => row.profiles && row.profiles.full_name)
-      .map(row => ({
-        id: row.user_id,
-        name: row.profiles.full_name
-      }));
-
-    console.log("✅ Registered users loaded for MVP dropdown:", registeredUsers);
-  } catch (err) {
-    console.error("❌ Failed to fetch session team users:", err);
-  }
-} else {
-  console.warn("⚠️ No gameId yet — skipping MVP user fetch.");
-}
-
-// 🟢 Load all available game sessions (regardless of gameId)
-let sessions = [];
-
-try {
-  const response = await supabaseClient
-    .from("games_sessions")
-    .select(`
-      id,
-      game_id,
-      play_style,
-      rounds,
-      num_courts,
-      created_at,
-      game:games (
-        game_date,
-        venue
-      )
-    `)
-    .order("created_at", { ascending: false });
-
-  if (response.error) throw response.error;
-  sessions = response.data;
-} catch (err) {
-  console.error("❌ Failed to fetch sessions:", err);
-}
-
-// ⬇️ Populate session dropdown
-sessionDropdown.innerHTML = `<option disabled selected value="">-- Choose Session --</option>`;
-
-sessions.forEach(sess => {
-  const date = sess.game?.game_date || "No Date";
-  const venue = sess.game?.venue || "No Venue";
-  const option = document.createElement("option");
-  option.value = sess.id;
-  option.textContent = `${venue} (${date})`;
-  sessionDropdown.appendChild(option);
-});
-
-// 🔁 On session change → fetch gameId and load matches
-sessionDropdown.addEventListener("change", async (e) => {
-  const sessionId = e.target.value;
-  sessionStorage.setItem("sessionId", sessionId);
-  matchDropdown.innerHTML = `<option disabled selected>Loading matches...</option>`;
-
-  try {
-    // Step 1: Get gameId and save to sessionStorage
-    const { data: sessionInfo, error: sessionError } = await supabaseClient
+    const { data, error } = await supabaseClient
       .from("games_sessions")
-      .select("game_id")
-      .eq("id", sessionId)
-      .single();
+      .select(`
+        id,
+        game_id,
+        play_style,
+        rounds,
+        num_courts,
+        created_at,
+        court_names,
+        game:games (
+          game_date,
+          venue
+        )
+      `)
+      .order("created_at", { ascending: false });
 
-    if (sessionError) throw sessionError;
+    if (error) throw error;
+    sessions = data;
+  } catch (err) {
+    console.error("❌ Failed to fetch sessions:", err);
+  }
 
-    const gameId = sessionInfo.game_id;
+  // Populate session dropdown
+  sessionDropdown.innerHTML = `<option disabled selected value="">-- Choose Session --</option>`;
+  sessions.forEach(sess => {
+    const date = sess.game?.game_date || "No Date";
+    const venue = sess.game?.venue || "No Venue";
+    const option = document.createElement("option");
+    option.value = sess.id;
+    option.textContent = `${venue} (${date})`;
+    sessionDropdown.appendChild(option);
+  });
+
+  // Handle session selection
+  sessionDropdown.addEventListener("change", async (e) => {
+    const sessionId = e.target.value;
+    sessionStorage.setItem("sessionId", sessionId);
+
+    // Fetch session details
+    const sessionInfo = sessions.find(s => s.id === sessionId);
+    const gameId = sessionInfo?.game_id;
+    const courtNames = sessionInfo?.court_names || [];
+
+    if (!gameId) {
+      console.warn("⚠️ No gameId for session");
+      return;
+    }
+
     sessionStorage.setItem("gameId", gameId);
     console.log("✅ gameId saved to sessionStorage:", gameId);
 
-    // Step 2: Fetch matches
-    const { data: matches, error: matchError } = await supabaseClient
+    // Populate courtFilter
+    courtFilter.innerHTML = `<option value="all">All Courts</option>`;
+    courtNames.forEach((name, idx) => {
+      const opt = document.createElement("option");
+      opt.value = idx + 1;
+      opt.textContent = name;
+      courtFilter.appendChild(opt);
+    });
+
+    // Load MVP players
+    try {
+      const { data: users, error } = await supabaseClient
+        .from("session_teams")
+        .select("user_id, profiles(full_name)")
+        .eq("game_id", gameId);
+
+      if (error) throw error;
+
+      registeredUsers = users
+        .filter(u => u.profiles?.full_name)
+        .map(u => ({ id: u.user_id, name: u.profiles.full_name }));
+
+      console.log("✅ MVP players loaded:", registeredUsers);
+    } catch (err) {
+      console.error("❌ Failed to load MVP players:", err);
+    }
+
+    // Load matches
+    loadMatches(sessionId);
+  });
+
+  // Filter matches by court
+  courtFilter.addEventListener("change", () => {
+    const sessionId = sessionDropdown.value;
+    if (sessionId) loadMatches(sessionId);
+  });
+
+  // Load matches based on session + court
+  async function loadMatches(sessionId) {
+    const selectedCourt = courtFilter.value;
+    matchDropdown.innerHTML = `<option disabled selected>Loading matches...</option>`;
+
+    let query = supabaseClient
       .from("session_matches")
-      .select("id, match_number, team1_id, team2_id")
+      .select("id, match_number, team1_id, team2_id, court_number")
       .eq("game_session_id", sessionId)
       .order("match_number");
 
-    if (matchError) throw matchError;
+    if (selectedCourt !== "all") {
+      query = query.eq("court_number", parseInt(selectedCourt));
+    }
 
-    matchDropdown.innerHTML = `<option disabled selected>-- Select Match --</option>`;
-    matches.forEach(m => {
-      const option = document.createElement("option");
-      option.value = m.id;
-      option.textContent = `Match ${m.match_number}: ${m.team1_id} vs ${m.team2_id}`;
-      matchDropdown.appendChild(option);
-    });
-  } catch (err) {
-    console.error("❌ Error loading session/game/matches:", err);
-    matchDropdown.innerHTML = `<option disabled selected>⚠️ Failed to load matches</option>`;
+    try {
+      const { data: matches, error } = await query;
+      if (error) throw error;
+
+      matchDropdown.innerHTML = `<option disabled selected>-- Select Match --</option>`;
+      matches.forEach(m => {
+        const opt = document.createElement("option");
+        opt.value = m.id;
+        opt.textContent = `Match ${m.match_number}: ${m.team1_id} vs ${m.team2_id}`;
+        matchDropdown.appendChild(opt);
+      });
+    } catch (err) {
+      console.error("❌ Failed to load matches:", err);
+      matchDropdown.innerHTML = `<option disabled selected>⚠️ Failed to load matches</option>`;
+    }
   }
-});
 
-
-  // 🟢 On match selection → preload into scoreboard
+  // Handle match selection
   matchDropdown.addEventListener("change", async (e) => {
     const matchId = e.target.value;
 
@@ -2085,28 +2075,28 @@ sessionDropdown.addEventListener("change", async (e) => {
         return;
       }
 
-      // Set up scoreboard
-      document.getElementById("teamAName").textContent = match.team_a;
-      document.getElementById("teamBName").textContent = match.team_b;
-      document.getElementById("teamAIcon").src = getTeamLogo(match.team_a);
-      document.getElementById("teamBIcon").src = getTeamLogo(match.team_b);
+      document.getElementById("teamAName").textContent = match.team1_id;
+      document.getElementById("teamBName").textContent = match.team2_id;
+      document.getElementById("teamAIcon").src = getTeamLogo(match.team1_id);
+      document.getElementById("teamBIcon").src = getTeamLogo(match.team2_id);
       document.getElementById("scoreA").textContent = "0";
       document.getElementById("scoreB").textContent = "0";
       document.getElementById("goalLogA").innerHTML = "";
       document.getElementById("goalLogB").innerHTML = "";
-      matchNumber = 0; // Reset match pointer
+
+      matchNumber = 0;
       matchResults = [];
       allGoals = [];
       standings = {};
+
       updateMatchHistory();
       updateLeaderboard();
-      updateStandings(match.team_a, match.team_b, 0, 0);
+      updateStandings(match.team1_id, match.team2_id, 0, 0);
     } catch (err) {
       console.error("❌ Failed to load match from DB:", err);
     }
   });
 });
-
 
 </script>
 
