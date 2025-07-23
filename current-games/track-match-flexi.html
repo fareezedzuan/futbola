@@ -939,16 +939,6 @@ async function startNextMatch(options = {}) {
     }
   }
 
-  if (matchNumber >= matchups.length) {
-    if (currentRound < totalRounds) {
-      showRoundPopup();
-    } else {
-      alert("All matches done!");
-    }
-    matchTransitionInProgress = false;
-    return;
-  }
-
   resetTimer();
   currentGoals = [];
 
@@ -1695,6 +1685,16 @@ updateTimerDisplay();
 startNextMatch();
 
 window.addEventListener('online', attemptResync);
+
+  if (matchups.length > 0 && matchNumber >= matchups.length) {
+    if (currentRound < totalRounds) {
+      showRoundPopup();
+    } else {
+      alert("All matches done!");
+    }
+    matchTransitionInProgress = false;
+    return;
+  }
 
 function attemptResync() {
   const queue = JSON.parse(localStorage.getItem("unsyncedMatches") || "[]");
