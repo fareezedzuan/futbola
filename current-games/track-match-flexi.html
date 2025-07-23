@@ -656,6 +656,7 @@
     <button class="btn-primary" onclick="resetTimer()">Reset Timer</button>
     <button class="btn-primary" onclick="openEditGoals()">Edit Goals</button>
     <button class="btn-primary" onclick="startNextMatch()">Next Match</button>
+    <button class="btn-primary" onclick="saveCurrentMatchOnly()">Save Result</button>
     <button class="btn-primary" onclick="exportSummary()">Export WhatsApp</button>
     <button class="btn-primary" onclick="exportToInstagramImage()">Instagram Image</button>
     <button class="btn-primary" onclick="updateStats()">Update Stats</button>
@@ -1060,6 +1061,47 @@ function updateLiveScoreboard() {
   document.getElementById("scoreA").textContent = scoreA;
   document.getElementById("scoreB").textContent = scoreB;
 }
+
+async function saveCurrentMatchOnly() {
+  if (matchNumber === 0 || !matchResults.length) {
+    alert("⚠️ No match selected.");
+    return;
+  }
+
+  const match = matchResults[matchNumber - 1]; // matchNumber is 1-based
+  if (!match) {
+    alert("⚠️ Match data missing.");
+    return;
+  }
+
+  console.log("📝 Preparing to save result for Match", match.number);
+
+  const payload = {
+    game_id: sessionStorage.getItem("gameId"),
+    session_id: sessionStorage.getItem("sessionId"),
+    match_number: match.number,
+    team_a: match.tA,
+    team_b: match.tB,
+    goals_team_a: match.gA || 0,
+    goals_team_b: match.gB || 0,
+    updated_at: new Date().toISOString()
+  };
+
+  try {
+    const { data, error } = await supabaseClient
+      .from("session_results")
+      .upsert([payload], { onConflict: ['session_id', 'match_number'] });
+
+    if (error) throw error;
+
+    console.log("✅ Match result saved:", data);
+    alert(`✅ Match ${match.number} saved successfully.`);
+  } catch (err) {
+    console.error("❌ Failed to save match result:", err);
+    alert("❌ Error saving match. Check console.");
+  }
+}
+
 
 async function saveCurrentMatch(matchIndex) {
   const tA = document.getElementById("teamAName").textContent;
