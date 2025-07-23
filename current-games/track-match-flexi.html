@@ -2047,33 +2047,48 @@ async function loadMatches(sessionId) {
     const { data: matches, error } = await query;
     if (error) throw error;
 
-    matchResults = [];
-    allGoals = [];
-    standings = {};
+    matchResults = matches.map(m => ({
+      id: m.id,
+      number: m.match_number,
+      tA: m.team1_id,
+      tB: m.team2_id,
+      gA: null, // Start with null
+      gB: null,
+      court: m.court_number || 1,
+      status: "incoming"
+    }));
 
+    allGoals = []; // Optional: Load from match_goals if table exists
+
+    // ⬇️ Build grouped dropdown
     matchDropdown.innerHTML = `<option disabled selected>-- Select Match --</option>`;
+    const grouped = {};
 
-    matches.forEach(m => {
-      // Add to dropdown
-      const opt = document.createElement("option");
-      opt.value = m.id;
-      opt.textContent = `Match ${m.match_number}: ${m.team1_id} vs ${m.team2_id}`;
-      matchDropdown.appendChild(opt);
-
-      // Initialize results (no score yet)
-      matchResults[m.match_number - 1] = {
-        tA: m.team1_id,
-        tB: m.team2_id,
-        gA: null,
-        gB: null
-      };
-
-      // Initialize standings with 0–0
-      updateStandings(m.team1_id, m.team2_id, 0, 0);
+    matchResults.forEach(m => {
+      const court = m.court || 1;
+      if (!grouped[court]) grouped[court] = [];
+      grouped[court].push(m);
     });
+
+    Object.keys(grouped)
+      .sort((a, b) => a - b)
+      .forEach(court => {
+        const label = document.createElement("option");
+        label.disabled = true;
+        label.textContent = `--- Court ${court} ---`;
+        matchDropdown.appendChild(label);
+
+        grouped[court].forEach(m => {
+          const opt = document.createElement("option");
+          opt.value = m.id;
+          opt.textContent = `Match ${m.number}: ${m.tA} vs ${m.tB}`;
+          matchDropdown.appendChild(opt);
+        });
+      });
 
     updateMatchHistory();
     updateLeaderboard();
+    updateStandingsUI?.(); // Only call if it exists
   } catch (err) {
     console.error("❌ Failed to load matches:", err);
     matchDropdown.innerHTML = `<option disabled selected>⚠️ Failed to load matches</option>`;
