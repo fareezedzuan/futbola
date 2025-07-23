@@ -1963,9 +1963,37 @@ if (gameId) {
   console.warn("⚠️ No gameId yet — skipping MVP user fetch.");
 }
 
-  // 🟢 Load sessions with date/venue
+// 🟢 Load registered users (for MVP dropdown)
+if (gameId) {
   try {
-    const { data: sessions, error: sessionError } = await supabaseClient
+    const { data: sessionUsers, error: userError } = await supabaseClient
+      .from("session_teams")
+      .select("user_id, profiles(full_name)")
+      .eq("game_id", gameId);
+
+    if (userError) throw userError;
+
+    registeredUsers = sessionUsers
+      .filter(row => row.profiles && row.profiles.full_name)
+      .map(row => ({
+        id: row.user_id,
+        name: row.profiles.full_name
+      }));
+
+    console.log("✅ Registered users loaded for MVP dropdown:", registeredUsers);
+  } catch (err) {
+    console.error("❌ Failed to fetch session team users:", err);
+  }
+} else {
+  console.warn("⚠️ No gameId yet — skipping MVP user fetch.");
+}
+
+// 🟢 Load sessions with date/venue
+let sessions = [];
+
+if (gameId) {
+  try {
+    const response = await supabaseClient
       .from("games_sessions")
       .select(`
         id,
@@ -1981,64 +2009,25 @@ if (gameId) {
       `)
       .eq("game_id", gameId);
 
-    if (sessionError) throw sessionError;
-
-    sessionDropdown.innerHTML = `<option disabled selected value="">-- Choose Session --</option>`;
-
-    sessions.forEach(sess => {
-      const date = sess.game?.game_date || "No Date";
-      const venue = sess.game?.venue || "No Venue";
-      const option = document.createElement("option");
-      option.value = sess.id;
-      option.textContent = `Session ${sess.id} (${date}, ${venue})`;
-      sessionDropdown.appendChild(option);
-    });
+    if (response.error) throw response.error;
+    sessions = response.data;
   } catch (err) {
     console.error("❌ Failed to fetch sessions:", err);
   }
+} else {
+  console.warn("⚠️ No gameId yet — skipping session fetch.");
+}
 
-sessionDropdown.addEventListener("change", async (e) => {
-  const sessionId = e.target.value;
-  sessionStorage.setItem("sessionId", sessionId);
+// ⬇️ Proceed with populating the dropdown (if any sessions available)
+sessionDropdown.innerHTML = `<option disabled selected value="">-- Choose Session --</option>`;
 
-  // ✅ Also fetch and store gameId
-  try {
-    const { data, error } = await supabaseClient
-      .from("games_sessions")
-      .select("game_id")
-      .eq("id", sessionId)
-      .single();
-
-    if (error) throw error;
-    if (data?.game_id) {
-      sessionStorage.setItem("gameId", data.game_id);
-      console.log("📌 gameId set from selected session:", data.game_id);
-    }
-  } catch (err) {
-    console.error("❌ Failed to retrieve gameId for session:", err);
-  }
-
-  matchDropdown.innerHTML = `<option disabled selected>Loading matches...</option>`;
-
-  try {
-    const { data: matches, error: matchError } = await supabaseClient
-      .from("session_matches")
-      .select("id, match_number, team_a, team_b")
-      .eq("session_id", sessionId)
-      .order("match_number");
-
-    if (matchError) throw matchError;
-
-    matchDropdown.innerHTML = `<option disabled selected>-- Select Match --</option>`;
-    matches.forEach(m => {
-      const option = document.createElement("option");
-      option.value = m.id;
-      option.textContent = `Match ${m.match_number}: ${m.team_a} vs ${m.team_b}`;
-      matchDropdown.appendChild(option);
-    });
-  } catch (err) {
-    console.error("❌ Failed to fetch matches:", err);
-  }
+sessions.forEach(sess => {
+  const date = sess.game?.game_date || "No Date";
+  const venue = sess.game?.venue || "No Venue";
+  const option = document.createElement("option");
+  option.value = sess.id;
+  option.textContent = `Session ${sess.id} (${date}, ${venue})`;
+  sessionDropdown.appendChild(option);
 });
 
 
