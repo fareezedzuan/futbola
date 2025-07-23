@@ -2050,7 +2050,7 @@ sessionDropdown.addEventListener("change", async (e) => {
     const { data: matches, error: matchError } = await supabaseClient
       .from("session_matches")
       .select("id, match_number, team1_id, team2_id")
-      .eq("session_id", sessionId)
+      .eq("game_session_id", sessionId)
       .order("match_number");
 
     if (matchError) throw matchError;
