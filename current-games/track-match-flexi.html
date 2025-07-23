@@ -2091,6 +2091,37 @@ window.addEventListener("DOMContentLoaded", async () => {
     sessionStorage.setItem("gameId", gameId);
     console.log("✅ gameId saved to sessionStorage:", gameId);
 
+    // 🟢 Fetch all teams + players for this game
+try {
+  const { data: teamData, error: teamError } = await supabaseClient
+    .from("session_teams")
+    .select("team_color, jersey_name, jersey_number")
+    .eq("game_id", gameId);
+
+  if (teamError) throw teamError;
+
+  const teamMap = {}; // { Red: [{ name, jersey }], Blue: [...] }
+
+  teamData.forEach(row => {
+    const color = row.team_color;
+    if (!teamMap[color]) teamMap[color] = [];
+    teamMap[color].push({
+      name: row.jersey_name || "Unnamed",
+      jersey: row.jersey_number || ""
+    });
+  });
+
+  teamNames = Object.keys(teamMap);
+  teamPlayersRaw = teamNames.map(color => teamMap[color]);
+
+  console.log("✅ teamNames", teamNames);
+  console.log("✅ teamPlayersRaw", teamPlayersRaw);
+
+} catch (err) {
+  console.error("❌ Failed to fetch teams/players for MVP/scorer use:", err);
+}
+
+
     // Populate courtFilter
     courtFilter.innerHTML = `<option value="all">All Courts</option>`;
     courtNames.forEach((name, idx) => {
