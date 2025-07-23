@@ -2088,7 +2088,7 @@ async function loadMatches(sessionId) {
 
     updateMatchHistory();
     updateLeaderboard();
-    updateStandingsUI?.(); // Only call if it exists
+    //updateStandingsUI?.(); // Only call if it exists
   } catch (err) {
     console.error("❌ Failed to load matches:", err);
     matchDropdown.innerHTML = `<option disabled selected>⚠️ Failed to load matches</option>`;
