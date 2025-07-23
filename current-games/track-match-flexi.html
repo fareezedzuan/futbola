@@ -1088,7 +1088,7 @@ async function saveCurrentMatchOnly() {
 
   try {
     const { data, error } = await supabaseClient
-      .from("session_results")
+      .from("match_results")
       .upsert([payload], { onConflict: ['session_id', 'match_number'] });
 
     if (error) throw error;
