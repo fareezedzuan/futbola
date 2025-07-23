@@ -2071,6 +2071,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     if (sessionId) loadMatches(sessionId);
   });
 
+  let courtNames = []; // 🔄 Make this global
   // Load matches based on session + court
 async function loadMatches(sessionId) {
   const selectedCourt = courtFilter.value;
