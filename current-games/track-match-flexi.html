@@ -1706,42 +1706,39 @@ function recalculateStandingsFromAllMatches() {
   standings = {}; // Reset
 
   matchResults.forEach(match => {
-    if (!match || !match.tA || !match.tB || match.gA == null || match.gB == null) return;
+    const { tA, tB, gA, gB } = match || {};
 
-    const teamA = match.tA;
-    const teamB = match.tB;
-    const gA = match.gA;
-    const gB = match.gB;
+    // Validate data
+    if (!tA || !tB || gA === null || gB === null) return;
 
-    if (!standings[teamA]) standings[teamA] = { team: teamA, played: 0, wins: 0, draws: 0, losses: 0, gf: 0, ga: 0, points: 0 };
-    if (!standings[teamB]) standings[teamB] = { team: teamB, played: 0, wins: 0, draws: 0, losses: 0, gf: 0, ga: 0, points: 0 };
+    if (!standings[tA]) standings[tA] = { team: tA, played: 0, wins: 0, draws: 0, losses: 0, gf: 0, ga: 0, points: 0 };
+    if (!standings[tB]) standings[tB] = { team: tB, played: 0, wins: 0, draws: 0, losses: 0, gf: 0, ga: 0, points: 0 };
 
-    standings[teamA].played++;
-    standings[teamB].played++;
-    standings[teamA].gf += gA;
-    standings[teamA].ga += gB;
-    standings[teamB].gf += gB;
-    standings[teamB].ga += gA;
+    standings[tA].played++;
+    standings[tB].played++;
+    standings[tA].gf += gA;
+    standings[tA].ga += gB;
+    standings[tB].gf += gB;
+    standings[tB].ga += gA;
 
     if (gA > gB) {
-      standings[teamA].wins++;
-      standings[teamB].losses++;
-      standings[teamA].points += 3;
+      standings[tA].wins++;
+      standings[tB].losses++;
+      standings[tA].points += 3;
     } else if (gB > gA) {
-      standings[teamB].wins++;
-      standings[teamA].losses++;
-      standings[teamB].points += 3;
+      standings[tB].wins++;
+      standings[tA].losses++;
+      standings[tB].points += 3;
     } else {
-      standings[teamA].draws++;
-      standings[teamB].draws++;
-      standings[teamA].points += 1;
-      standings[teamB].points += 1;
+      standings[tA].draws++;
+      standings[tB].draws++;
+      standings[tA].points += 1;
+      standings[tB].points += 1;
     }
   });
 
-  updateStandings(); // Renders table
+  updateStandings(); // Re-render table
 }
-
 
 function recalculateMatchResult(matchIndex) {
   const goals = allGoals.filter(g => g.match_number === matchIndex + 1);
