@@ -2096,6 +2096,13 @@ window.addEventListener("DOMContentLoaded", async () => {
 
   // Load matches based on session + court
 async function loadMatches(sessionId) {
+    if (!sessionId) {
+    console.warn("⚠️ No sessionId provided. Skipping match load.");
+    return;
+  }
+
+  console.log("✅ Loading matches for session:", sessionId);
+  
   const selectedCourt = courtFilter.value;
   matchDropdown.innerHTML = `<option disabled selected>Loading matches...</option>`;
 
@@ -2211,6 +2218,7 @@ matchDropdown.addEventListener("change", async (e) => {
     document.getElementById("scoreB").textContent = "0";
     document.getElementById("goalLogA").innerHTML = "";
     document.getElementById("goalLogB").innerHTML = "";
+    document.getElementById("standingsTableBody").innerHTML = "";
 
     matchNumber = matchObj.number; // e.g. match 3 = index 2 + 1
     currentGoals = allGoals.filter(g => g.match_number === matchNumber);
