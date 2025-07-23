@@ -1149,33 +1149,55 @@ async function saveCurrentMatch(matchIndex) {
 
 function updateMatchHistory() {
   const container = document.getElementById("matchHistory");
-  container.innerHTML = "";
+  if (!container) return;
 
-  // Loop through all scheduled matches (matchups array)
-  matchups.forEach((match, index) => {
-    const [teamA, teamB] = match;
+  container.innerHTML = ""; // clear first
 
-    // Get result object if exists
-    const result = matchResults[index];
-    const gA = result?.gA;
-    const gB = result?.gB;
+  if (!matchResults || matchResults.length === 0) {
+    container.innerHTML = "<p>No match results yet.</p>";
+    return;
+  }
 
-    // Build match card with edit click
-    container.innerHTML += `
-      <div class="match-result-row" data-match-index="${index}" onclick="editMatchGoals(${index})">
-        <div class="team-side left">
-          <img class="team-logo" src="${getTeamLogo(teamA)}" alt="${teamA}" />
-          <span class="team-name">${teamA}</span>
-        </div>
-        <div class="match-score">
-          ${typeof gA === "number" ? gA : "–"} - ${typeof gB === "number" ? gB : "–"}
-        </div>
-        <div class="team-side right">
-          <span class="team-name">${teamB}</span>
-          <img class="team-logo" src="${getTeamLogo(teamB)}" alt="${teamB}" />
-        </div>
-      </div>
-    `;
+  // Sort by court then match number
+  const grouped = {};
+  matchResults.forEach(m => {
+    const court = m.court || 1;
+    if (!grouped[court]) grouped[court] = [];
+    grouped[court].push(m);
+  });
+
+  Object.entries(grouped).forEach(([court, matches]) => {
+    const header = document.createElement("h4");
+    header.textContent = `Court ${court}`;
+    container.appendChild(header);
+
+    matches.forEach(m => {
+      const div = document.createElement("div");
+      div.textContent = `Match ${m.number}: ${m.tA} ${m.gA ?? '-'} - ${m.gB ?? '-'} ${m.tB}`;
+      container.appendChild(div);
+    });
+  });
+}
+
+function updateStandingsUI() {
+  const container = document.getElementById("standingsTable");
+  if (!container) return;
+
+  container.innerHTML = ""; // Clear
+
+  const teams = Object.keys(standings);
+  if (teams.length === 0) {
+    container.innerHTML = "<p>No standings available.</p>";
+    return;
+  }
+
+  teams.sort((a, b) => standings[b].points - standings[a].points);
+
+  teams.forEach(team => {
+    const s = standings[team];
+    const row = document.createElement("div");
+    row.textContent = `${team}: ${s.points} pts (W:${s.wins}, D:${s.draws}, L:${s.losses}, GD:${s.gf - s.ga})`;
+    container.appendChild(row);
   });
 }
 
@@ -2052,13 +2074,15 @@ async function loadMatches(sessionId) {
       number: m.match_number,
       tA: m.team1_id,
       tB: m.team2_id,
-      gA: null, // Start with null
+      gA: null,
       gB: null,
       court: m.court_number || 1,
       status: "incoming"
     }));
 
-    allGoals = []; // Optional: Load from match_goals if table exists
+    console.log("✅ matchResults loaded:", matchResults); // ✅ RIGHT PLACE
+
+    allGoals = []; // placeholder for future goal tracking
 
     // ⬇️ Build grouped dropdown
     matchDropdown.innerHTML = `<option disabled selected>-- Select Match --</option>`;
@@ -2088,12 +2112,14 @@ async function loadMatches(sessionId) {
 
     updateMatchHistory();
     updateLeaderboard();
-    //updateStandingsUI?.(); // Only call if it exists
+    recalculateStandingsFromAllMatches();
+    updateStandingsUI();
   } catch (err) {
     console.error("❌ Failed to load matches:", err);
     matchDropdown.innerHTML = `<option disabled selected>⚠️ Failed to load matches</option>`;
   }
 }
+
 
   // Handle match selection
   matchDropdown.addEventListener("change", async (e) => {
