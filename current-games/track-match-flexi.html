@@ -1703,16 +1703,18 @@ fetch('/api/save-match-result', {
 
 
 function recalculateStandingsFromAllMatches() {
-  standings = {}; // Reset
+  standings = {};
 
   matchResults.forEach(match => {
-    const { tA, tB, gA, gB } = match || {};
+    const { tA, tB, gA, gB } = match;
 
-    // Validate data
-    if (!tA || !tB || gA === null || gB === null) return;
+    if (!tA || !tB) return;
 
     if (!standings[tA]) standings[tA] = { team: tA, played: 0, wins: 0, draws: 0, losses: 0, gf: 0, ga: 0, points: 0 };
     if (!standings[tB]) standings[tB] = { team: tB, played: 0, wins: 0, draws: 0, losses: 0, gf: 0, ga: 0, points: 0 };
+
+    // Only calculate scores if both teams have a score
+    if (gA === null || gB === null) return;
 
     standings[tA].played++;
     standings[tB].played++;
@@ -1737,7 +1739,7 @@ function recalculateStandingsFromAllMatches() {
     }
   });
 
-  updateStandings(); // Re-render table
+  updateStandings();
 }
 
 function recalculateMatchResult(matchIndex) {
