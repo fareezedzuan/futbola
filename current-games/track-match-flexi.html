@@ -776,16 +776,6 @@ const teamPlayers = teamPlayersRaw.map(team => team.map(p => p.name));
 
 
 let matchNumber = 0;
-if (!teamNames || teamNames.length < 2) {
-    alert("Match setup incomplete. Please return to start-game.");
-    window.location.href = "start-game.html";
-  }
-
-  if (!teamPlayers || teamPlayers.length !== teamNames.length) {
-    alert("Team player data missing or mismatched. Please restart.");
-    window.location.href = "start-game.html";
-  }
-
 let timeElapsed = 0, timer = null, timerRunning = false, timerPaused = false;
 let alarmInterval;
 let currentGoals = [];
