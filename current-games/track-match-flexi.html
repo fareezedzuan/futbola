@@ -1752,7 +1752,6 @@ function recalculateMatchResult(matchIndex) {
 }
 
 
-recalculateStandingsFromAllMatches();
 updateTimerDisplay();
 
 window.addEventListener('online', attemptResync);
@@ -2102,7 +2101,7 @@ async function loadMatches(sessionId) {
   }
 
   console.log("✅ Loading matches for session:", sessionId);
-  
+
   const selectedCourt = courtFilter.value;
   matchDropdown.innerHTML = `<option disabled selected>Loading matches...</option>`;
 
