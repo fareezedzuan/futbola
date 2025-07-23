@@ -2047,49 +2047,36 @@ async function loadMatches(sessionId) {
     const { data: matches, error } = await query;
     if (error) throw error;
 
-    matchResults = matches.map(m => ({
-      id: m.id,
-      number: m.match_number,
-      tA: m.team1_id,
-      tB: m.team2_id,
-      gA: 0,
-      gB: 0,
-      court: m.court_number,
-      status: "incoming"
-    }));
+    matchResults = [];
+    allGoals = [];
+    standings = {};
 
-    // 🟢 Fetch saved goals from DB
-    const { data: goalRows, error: goalError } = await supabaseClient
-      .from("match_goals")
-      .select("*")
-      .eq("session_id", sessionId);
-
-    if (goalError) throw goalError;
-
-    allGoals = goalRows || [];
-
-    goalRows.forEach(g => {
-      const match = matchResults.find(m => m.number === g.match_number);
-      if (!match) return;
-
-      if (g.team === match.tA) match.gA += 1;
-      else if (g.team === match.tB) match.gB += 1;
-    });
-
-    // ⬇️ Populate dropdown
     matchDropdown.innerHTML = `<option disabled selected>-- Select Match --</option>`;
-    matchResults.forEach(m => {
-      const option = document.createElement("option");
-      option.value = m.id;
-      option.textContent = `Match ${m.number}: ${m.tA} vs ${m.tB}`;
-      matchDropdown.appendChild(option);
+
+    matches.forEach(m => {
+      // Add to dropdown
+      const opt = document.createElement("option");
+      opt.value = m.id;
+      opt.textContent = `Match ${m.match_number}: ${m.team1_id} vs ${m.team2_id}`;
+      matchDropdown.appendChild(opt);
+
+      // Initialize results (no score yet)
+      matchResults[m.match_number - 1] = {
+        tA: m.team1_id,
+        tB: m.team2_id,
+        gA: null,
+        gB: null
+      };
+
+      // Initialize standings with 0–0
+      updateStandings(m.team1_id, m.team2_id, 0, 0);
     });
 
     updateMatchHistory();
     updateLeaderboard();
     updateStandingsUI();
   } catch (err) {
-    console.error("❌ Failed to load matches or goals:", err);
+    console.error("❌ Failed to load matches:", err);
     matchDropdown.innerHTML = `<option disabled selected>⚠️ Failed to load matches</option>`;
   }
 }
