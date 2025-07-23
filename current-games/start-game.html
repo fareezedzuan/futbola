@@ -264,7 +264,8 @@
     </div>  
 
     <div id="playerAssignment"></div>
-    <button onclick="confirmStartGame()">Start Game</button>
+    <button onclick="confirmStartGame()">Setup Game</button>
+    <button id="goToTrackMatchBtn" style="display:none;">➡️ Start Match</button>
   </div>
 
   <!-- Confirmation Popup -->
@@ -896,6 +897,17 @@ if (playStyle === "multi_stage" && uniqueTeams.length === 8 && courtCount === 2)
   sessionStorage.setItem("date", datetimeText.trim());
 
   //window.location.href = "track-match.html";
+  alert("✅ Match setup complete!\nYou can now proceed to Track Match to officiate games.");
+
+  // Show "Go to Track Match" button
+  const trackBtn = document.getElementById("goToTrackMatchBtn");
+  if (trackBtn) {
+    trackBtn.style.display = "block";
+    trackBtn.addEventListener("click", () => {
+      window.location.href = "track-match-flexi.html";
+    }, { once: true }); // ✅ prevent multiple event bindings
+  }
+
 }
 
 
