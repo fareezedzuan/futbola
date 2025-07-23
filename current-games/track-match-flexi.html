@@ -805,6 +805,7 @@ let roundTransitionInProgress = false;
 let savedMatchIndexes = new Set();
 let registeredUsers = [];
 let selectedMVP = null;
+let courtNames = []; // 🔄 Make this global
 
 function generateRoundRobin(teams) {
   const rounds = [], t = [...teams];
@@ -2071,7 +2072,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     if (sessionId) loadMatches(sessionId);
   });
 
-  let courtNames = []; // 🔄 Make this global
+
   // Load matches based on session + court
 async function loadMatches(sessionId) {
   const selectedCourt = courtFilter.value;
