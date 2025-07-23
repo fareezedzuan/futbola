@@ -2253,7 +2253,6 @@ matchDropdown.addEventListener("change", async (e) => {
     document.getElementById("scoreB").textContent = "0";
     document.getElementById("goalLogA").innerHTML = "";
     document.getElementById("goalLogB").innerHTML = "";
-    document.getElementById("standingsTableBody").innerHTML = "";
 
     matchNumber = matchObj.number; // e.g. match 3 = index 2 + 1
     currentGoals = allGoals.filter(g => g.match_number === matchNumber);
