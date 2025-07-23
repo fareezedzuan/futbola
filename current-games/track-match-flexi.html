@@ -775,8 +775,8 @@ if (!sessionStorage.getItem("sessionId")) {
 // Paste your existing JS logic here from the MVP version (match tracking, popup, standings, export, etc.)
 // You already have all this working beautifully – just stitch into this layout.
 const duration = parseInt(sessionStorage.getItem("duration")) || 7;
-const teamNames = JSON.parse(sessionStorage.getItem("teamNames") || "[]");
-const teamPlayersRaw = JSON.parse(sessionStorage.getItem("teamPlayers") || "[]");
+let teamNames = JSON.parse(sessionStorage.getItem("teamNames") || "[]");
+let teamPlayersRaw = JSON.parse(sessionStorage.getItem("teamPlayers") || "[]");
 
 // Extract only names for backwards compatibility
 const teamPlayers = teamPlayersRaw.map(team => team.map(p => p.name));
