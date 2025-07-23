@@ -574,6 +574,67 @@
   color: #333;
 }
 
+<style>
+.match-results {
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  margin-top: 30px;
+}
+.match-results h3 {
+  color: #702963;
+  font-size: 22px;
+  margin-bottom: 15px;
+  text-align: center;
+  font-weight: bold;
+}
+.court-block {
+  margin-bottom: 25px;
+}
+.court-block h4 {
+  font-size: 18px;
+  color: #ff5a5f;
+  margin-bottom: 10px;
+  border-bottom: 2px solid #eee;
+  padding-bottom: 4px;
+}
+.match-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 10px;
+  margin: 4px 0;
+  background: #f9f9f9;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 14px;
+}
+.match-label {
+  font-weight: bold;
+  flex: 0 0 80px;
+  color: #999;
+}
+.team {
+  flex: 1;
+  text-align: center;
+}
+.score {
+  flex: 0 0 60px;
+  text-align: center;
+  font-weight: bold;
+  color: #702963;
+}
+/* Team color classes */
+.red { color: red; }
+.blue { color: #007bff; }
+.green { color: green; }
+.yellow { color: #ffcc00; }
+.white { color: #aaa; }
+.black { color: #333; }
+.orange { color: orange; }
+.turquoise { color: #20c997; }
+</style>
 
 
 
@@ -662,10 +723,10 @@
     <button id="nominateMVPBtn" class="btn-primary">Nominate MVP</button>
   </div>
 
-  <div class="section">
-    <h3>Match Results</h3>
-    <div id="matchHistory"></div>
-  </div>  
+  <section id="matchResultsContainer" class="match-results">
+    <h3>⚽ Match Results</h3>
+    <!-- Dynamic court blocks will be injected here -->
+  </section>
 
   <div class="section">
     <h3>Live Standings</h3>
@@ -1148,36 +1209,47 @@ async function saveCurrentMatch(matchIndex) {
 
 
 function updateMatchHistory() {
-  const container = document.getElementById("matchHistory");
+  const container = document.getElementById("matchResultsContainer");
   if (!container) return;
 
-  container.innerHTML = ""; // clear first
+  container.innerHTML = `<h3>⚽ Match Results</h3>`;
 
-  if (!matchResults || matchResults.length === 0) {
-    container.innerHTML = "<p>No match results yet.</p>";
-    return;
-  }
-
-  // Sort by court then match number
   const grouped = {};
+
   matchResults.forEach(m => {
     const court = m.court || 1;
     if (!grouped[court]) grouped[court] = [];
     grouped[court].push(m);
   });
 
-  Object.entries(grouped).forEach(([court, matches]) => {
-    const header = document.createElement("h4");
-    header.textContent = `Court ${court}`;
-    container.appendChild(header);
+  Object.keys(grouped)
+    .sort((a, b) => a - b)
+    .forEach(court => {
+      const courtBlock = document.createElement("div");
+      courtBlock.className = "court-block";
 
-    matches.forEach(m => {
-      const div = document.createElement("div");
-      div.textContent = `Match ${m.number}: ${m.tA} ${m.gA ?? '-'} - ${m.gB ?? '-'} ${m.tB}`;
-      container.appendChild(div);
+      const title = document.createElement("h4");
+      title.textContent = `Court ${court}`;
+      courtBlock.appendChild(title);
+
+      grouped[court].forEach(m => {
+        const row = document.createElement("div");
+        row.className = "match-row";
+
+        row.innerHTML = `
+          <span class="match-label">Match ${m.number}</span>
+          <span class="team ${m.tA.toLowerCase()}">${m.tA}</span>
+          <span class="score">${m.gA ?? "-"} - ${m.gB ?? "-"}</span>
+          <span class="team ${m.tB.toLowerCase()}">${m.tB}</span>
+        `;
+
+        courtBlock.appendChild(row);
+      });
+
+      container.appendChild(courtBlock);
     });
-  });
 }
+
 
 function updateStandingsUI() {
   const container = document.getElementById("standingsTable");
