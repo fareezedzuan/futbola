@@ -2120,15 +2120,12 @@ async function loadMatches(sessionId) {
       document.getElementById("goalLogA").innerHTML = "";
       document.getElementById("goalLogB").innerHTML = "";
 
-      matchNumber = 0;
-      matchResults = [];
-      allGoals = [];
-      standings = {};
+    matchNumber = matchResults.findIndex(m => m.id === matchId) + 1;
+    currentGoals = allGoals.filter(g => g.match_number === matchNumber); // if applicable
 
-      updateMatchHistory();
-      updateLeaderboard();
-      updateStandings(match.team1_id, match.team2_id, 0, 0);
-      recalculateStandingsFromAllMatches(); // will call updateStandings
+    updateLiveScoreboard();
+    renderGoalLog();
+
     } catch (err) {
       console.error("❌ Failed to load match from DB:", err);
     }
