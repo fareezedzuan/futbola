@@ -1966,18 +1966,34 @@ window.addEventListener("DOMContentLoaded", async () => {
   // 🟡 Load all sessions
   const { data: sessions, error: sessionError } = await supabaseClient
     .from("games_sessions")
-    .select("id, play_style, rounds, num_courts, created_at")
-    .eq("game_id", gameId)
+    .select(`
+      id,
+      game_id,
+      play_style,
+      rounds,
+      num_courts,
+      created_at,
+      game:games (
+        game_date,
+        venue
+      )
+    `)
+    .eq("game_id", gameId);
 
   if (sessionError) {
     console.error("❌ Failed to fetch sessions:", sessionError);
     return;
   }
 
+  sessionDropdown.innerHTML = `<option disabled selected value="">-- Choose Session --</option>`;
+
   sessions.forEach(sess => {
+    const date = sess.game?.game_date || "No Date";
+    const venue = sess.game?.venue || "No Venue";
+
     const option = document.createElement("option");
     option.value = sess.id;
-    option.textContent = sess.session_name || `Session ${sess.id}`;
+    option.textContent = `Session ${sess.id} (${date}, ${venue})`;
     sessionDropdown.appendChild(option);
   });
 
