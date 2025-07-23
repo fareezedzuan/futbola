@@ -2156,41 +2156,51 @@ async function loadMatches(sessionId) {
 
 
   // Handle match selection
-  matchDropdown.addEventListener("change", async (e) => {
-    const matchId = e.target.value;
+matchDropdown.addEventListener("change", async (e) => {
+  const matchId = e.target.value;
+  const matchObj = matchResults.find(m => m.id === matchId);
 
-    try {
-      const { data: match, error } = await supabaseClient
-        .from("session_matches")
-        .select("team1_id, team2_id")
-        .eq("id", matchId)
-        .single();
-        courtNames = session?.court_names || [];
+  if (!matchObj) {
+    alert("⚠️ Match not found.");
+    return;
+  }
 
-      if (error || !match) {
-        alert("⚠️ Failed to load match details.");
-        return;
-      }
+  // Show court name in UI
+  const courtLabel = courtNames[matchObj.court - 1] || `Court ${matchObj.court}`;
+  document.getElementById("courtLabel").textContent = courtLabel;
 
-      document.getElementById("teamAName").textContent = match.team1_id;
-      document.getElementById("teamBName").textContent = match.team2_id;
-      document.getElementById("teamAIcon").src = getTeamLogo(match.team1_id);
-      document.getElementById("teamBIcon").src = getTeamLogo(match.team2_id);
-      document.getElementById("scoreA").textContent = "0";
-      document.getElementById("scoreB").textContent = "0";
-      document.getElementById("goalLogA").innerHTML = "";
-      document.getElementById("goalLogB").innerHTML = "";
+  try {
+    const { data, error } = await supabaseClient
+      .from("session_matches")
+      .select("team1_id, team2_id")
+      .eq("id", matchId)
+      .single();
 
-    matchNumber = matchResults.findIndex(m => m.id === matchId) + 1;
-    currentGoals = allGoals.filter(g => g.match_number === matchNumber); // if applicable
+    if (error || !data) {
+      alert("⚠️ Failed to load match details.");
+      return;
+    }
+
+    // Set up scoreboard UI
+    document.getElementById("teamAName").textContent = data.team1_id;
+    document.getElementById("teamBName").textContent = data.team2_id;
+    document.getElementById("teamAIcon").src = getTeamLogo(data.team1_id);
+    document.getElementById("teamBIcon").src = getTeamLogo(data.team2_id);
+    document.getElementById("scoreA").textContent = "0";
+    document.getElementById("scoreB").textContent = "0";
+    document.getElementById("goalLogA").innerHTML = "";
+    document.getElementById("goalLogB").innerHTML = "";
+
+    matchNumber = matchObj.number; // e.g. match 3 = index 2 + 1
+    currentGoals = allGoals.filter(g => g.match_number === matchNumber);
 
     updateLiveScoreboard();
     renderGoalLog();
+  } catch (err) {
+    console.error("❌ Failed to load match from DB:", err);
+  }
+});
 
-    } catch (err) {
-      console.error("❌ Failed to load match from DB:", err);
-    }
-  });
 });
 
 </script>
