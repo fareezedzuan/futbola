@@ -2099,7 +2099,7 @@ async function loadMatches(sessionId) {
       .eq("id", sessionId)
       .single();
 
-    const courtNames = sessionMeta?.court_names || [];
+    courtNames = sessionMeta?.court_names || [];
 
     // 3. Reset global state
     matchResults = matches.map(m => ({
