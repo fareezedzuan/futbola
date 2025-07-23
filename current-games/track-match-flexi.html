@@ -1909,18 +1909,18 @@ async function selectMVP() {
   }
 }
 
+
 window.addEventListener("DOMContentLoaded", async () => {
-  const gameId = sessionStorage.getItem("gameId");
+  sessionStorage.clear(); // wipe any old/stale values
   const sessionDropdown = document.getElementById("sessionDropdown");
   const matchDropdown = document.getElementById("matchDropdown");
+  const gameId = sessionStorage.getItem("gameId");
+  console.log("🎮 gameId from sessionStorage:", gameId);
 
   if (!gameId) {
-    alert("⚠️ No game selected. Redirecting to start-game...");
-    window.location.href = "start-game.html";
-    return;
+    console.warn("⚠️ No gameId found in sessionStorage. Please select a session from the dropdown.");
+    // Do not return — allow the rest of the UI (dropdowns) to load
   }
-
-  console.log("🎮 gameId from sessionStorage:", gameId);
 
   // 🟢 Wire up MVP button
   const mvpBtn = document.getElementById("nominateMVPBtn");
