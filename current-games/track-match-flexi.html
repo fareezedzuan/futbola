@@ -1988,37 +1988,33 @@ if (gameId) {
   console.warn("⚠️ No gameId yet — skipping MVP user fetch.");
 }
 
-// 🟢 Load sessions with date/venue
+// 🟢 Load all available game sessions (regardless of gameId)
 let sessions = [];
 
-if (gameId) {
-  try {
-    const response = await supabaseClient
-      .from("games_sessions")
-      .select(`
-        id,
-        game_id,
-        play_style,
-        rounds,
-        num_courts,
-        created_at,
-        game:games (
-          game_date,
-          venue
-        )
-      `)
-      .eq("game_id", gameId);
+try {
+  const response = await supabaseClient
+    .from("games_sessions")
+    .select(`
+      id,
+      game_id,
+      play_style,
+      rounds,
+      num_courts,
+      created_at,
+      game:games (
+        game_date,
+        venue
+      )
+    `)
+    .order("created_at", { ascending: false });
 
-    if (response.error) throw response.error;
-    sessions = response.data;
-  } catch (err) {
-    console.error("❌ Failed to fetch sessions:", err);
-  }
-} else {
-  console.warn("⚠️ No gameId yet — skipping session fetch.");
+  if (response.error) throw response.error;
+  sessions = response.data;
+} catch (err) {
+  console.error("❌ Failed to fetch sessions:", err);
 }
 
-// ⬇️ Proceed with populating the dropdown (if any sessions available)
+// ⬇️ Populate session dropdown
 sessionDropdown.innerHTML = `<option disabled selected value="">-- Choose Session --</option>`;
 
 sessions.forEach(sess => {
@@ -2026,10 +2022,9 @@ sessions.forEach(sess => {
   const venue = sess.game?.venue || "No Venue";
   const option = document.createElement("option");
   option.value = sess.id;
-  option.textContent = `Session ${sess.id} (${date}, ${venue})`;
+  option.textContent = `${venue} (${date})`;
   sessionDropdown.appendChild(option);
 });
-
 
   // 🟢 On match selection → preload into scoreboard
   matchDropdown.addEventListener("change", async (e) => {
