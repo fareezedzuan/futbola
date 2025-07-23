@@ -1705,41 +1705,55 @@ fetch('/api/save-match-result', {
 function recalculateStandingsFromAllMatches() {
   standings = {};
 
-  matchResults.forEach(match => {
-    const { tA, tB, gA, gB } = match;
-
-    if (!tA || !tB) return;
-
-    if (!standings[tA]) standings[tA] = { team: tA, played: 0, wins: 0, draws: 0, losses: 0, gf: 0, ga: 0, points: 0 };
-    if (!standings[tB]) standings[tB] = { team: tB, played: 0, wins: 0, draws: 0, losses: 0, gf: 0, ga: 0, points: 0 };
-
-    // Only calculate scores if both teams have a score
-    if (gA === null || gB === null) return;
-
-    standings[tA].played++;
-    standings[tB].played++;
-    standings[tA].gf += gA;
-    standings[tA].ga += gB;
-    standings[tB].gf += gB;
-    standings[tB].ga += gA;
-
-    if (gA > gB) {
-      standings[tA].wins++;
-      standings[tB].losses++;
-      standings[tA].points += 3;
-    } else if (gB > gA) {
-      standings[tB].wins++;
-      standings[tA].losses++;
-      standings[tB].points += 3;
-    } else {
-      standings[tA].draws++;
-      standings[tB].draws++;
-      standings[tA].points += 1;
-      standings[tB].points += 1;
-    }
+  // 1. Initialize all teams to zero stats
+  matchResults.forEach(m => {
+    if (!standings[m.tA]) standings[m.tA] = { team: m.tA, MP: 0, W: 0, D: 0, L: 0, GF: 0, GA: 0, Pts: 0 };
+    if (!standings[m.tB]) standings[m.tB] = { team: m.tB, MP: 0, W: 0, D: 0, L: 0, GF: 0, GA: 0, Pts: 0 };
   });
 
-  updateStandings();
+  // 2. Recalculate based on played matches (non-null scores)
+  matchResults.forEach(m => {
+    if (m.gA == null || m.gB == null) return;
+
+    const a = standings[m.tA];
+    const b = standings[m.tB];
+
+    a.MP++; b.MP++;
+    a.GF += m.gA; a.GA += m.gB;
+    b.GF += m.gB; b.GA += m.gA;
+
+    if (m.gA > m.gB) { a.W++; b.L++; a.Pts += 3; }
+    else if (m.gB > m.gA) { b.W++; a.L++; b.Pts += 3; }
+    else { a.D++; b.D++; a.Pts += 1; b.Pts += 1; }
+  });
+
+  const rows = Object.values(standings).map(t => ({
+    ...t,
+    GD: t.GF - t.GA
+  }));
+
+  rows.sort((a, b) =>
+    b.Pts - a.Pts || b.GD - a.GD || b.GF - a.GF
+  );
+
+  document.getElementById("standingsTable").innerHTML = `
+    <thead>
+      <tr>
+        <th>Pos</th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th>
+        <th>GF</th><th>GA</th><th>GD</th><th>Pts</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${rows.map((t, i) => `
+        <tr>
+          <td>${i + 1}</td>
+          <td><img src="${getTeamLogo(t.team)}" style="width:20px;vertical-align:middle;margin-right:5px;"> <strong>${t.team}</strong></td>
+          <td>${t.MP}</td><td>${t.W}</td><td>${t.D}</td><td>${t.L}</td>
+          <td>${t.GF}</td><td>${t.GA}</td><td>${t.GD}</td><td><strong>${t.Pts}</strong></td>
+        </tr>
+      `).join("")}
+    </tbody>
+  `;
 }
 
 function recalculateMatchResult(matchIndex) {
