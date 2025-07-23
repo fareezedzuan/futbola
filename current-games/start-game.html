@@ -863,13 +863,19 @@ if (playStyle === "multi_stage" && uniqueTeams.length === 8 && courtCount === 2)
       return matches;
     }
 
-    const matchData = generateRoundRobinMatches(uniqueTeams, rounds).map((m, i) => ({
+  const matchData = generateRoundRobinMatches(uniqueTeams, rounds).map((m, i) => {
+    const matchNumber = i + 1;
+    const court_number = ((matchNumber - 1) % courtCount) + 1;
+
+    return {
       game_session_id: gameSessionId,
       team1_id: m.team1_id,
       team2_id: m.team2_id,
       round: m.round,
-      match_number: i + 1
-    }));
+      match_number: matchNumber,
+      court_number: court_number  // ✅ assign alternately
+    };
+  });
 
     const { error: matchInsertErr } = await supabase.from('session_matches').insert(matchData);
 
