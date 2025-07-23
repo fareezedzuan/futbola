@@ -1149,33 +1149,30 @@ async function saveCurrentMatch(matchIndex) {
 
 function updateMatchHistory() {
   const container = document.getElementById("matchHistory");
-  if (!container) return;
+  container.innerHTML = "";
 
-  container.innerHTML = ""; // clear first
-
-  if (!matchResults || matchResults.length === 0) {
-    container.innerHTML = "<p>No match results yet.</p>";
+  if (!matchResults?.length) {
+    container.innerHTML = "<p style='text-align:center;'>No matches loaded.</p>";
     return;
   }
 
-  // Sort by court then match number
-  const grouped = {};
-  matchResults.forEach(m => {
-    const court = m.court || 1;
-    if (!grouped[court]) grouped[court] = [];
-    grouped[court].push(m);
-  });
+  matchResults.forEach((m) => {
+    const row = document.createElement("div");
+    row.className = "match-result-row";
 
-  Object.entries(grouped).forEach(([court, matches]) => {
-    const header = document.createElement("h4");
-    header.textContent = `Court ${court}`;
-    container.appendChild(header);
+    row.innerHTML = `
+      <div class="team-side left">
+        <img class="team-logo" src="${getTeamLogo(m.tA)}" />
+        ${m.tA}
+      </div>
+      <div class="match-score">${m.gA ?? '-'} - ${m.gB ?? '-'}</div>
+      <div class="team-side right">
+        ${m.tB}
+        <img class="team-logo" src="${getTeamLogo(m.tB)}" />
+      </div>
+    `;
 
-    matches.forEach(m => {
-      const div = document.createElement("div");
-      div.textContent = `Match ${m.number}: ${m.tA} ${m.gA ?? '-'} - ${m.gB ?? '-'} ${m.tB}`;
-      container.appendChild(div);
-    });
+    container.appendChild(row);
   });
 }
 
