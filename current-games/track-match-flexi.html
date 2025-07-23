@@ -805,6 +805,7 @@ let roundTransitionInProgress = false;
 let savedMatchIndexes = new Set();
 let registeredUsers = [];
 let selectedMVP = null;
+let courtNames = [];
 
 function generateRoundRobin(teams) {
   const rounds = [], t = [...teams];
@@ -1169,7 +1170,10 @@ function updateMatchHistory() {
     .sort((a, b) => a - b)
     .forEach(court => {
       const heading = document.createElement("h3");
-      heading.textContent = `🏟️ Court ${court}`;
+      const courtIndex = parseInt(court) - 1;
+      const courtLabel = courtNames?.[courtIndex] || `Court ${court}`;
+      heading.textContent = `🏟️ ${courtLabel}`;
+
       heading.style.marginTop = "1.5em";
       heading.style.color = "#702963";
       heading.style.textAlign = "left";
@@ -2149,6 +2153,7 @@ async function loadMatches(sessionId) {
         .select("team1_id, team2_id")
         .eq("id", matchId)
         .single();
+        courtNames = session?.court_names || [];
 
       if (error || !match) {
         alert("⚠️ Failed to load match details.");
