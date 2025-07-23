@@ -2026,6 +2026,49 @@ sessions.forEach(sess => {
   sessionDropdown.appendChild(option);
 });
 
+// 🔁 On session change → fetch gameId and load matches
+sessionDropdown.addEventListener("change", async (e) => {
+  const sessionId = e.target.value;
+  sessionStorage.setItem("sessionId", sessionId);
+  matchDropdown.innerHTML = `<option disabled selected>Loading matches...</option>`;
+
+  try {
+    // Step 1: Get gameId and save to sessionStorage
+    const { data: sessionInfo, error: sessionError } = await supabaseClient
+      .from("games_sessions")
+      .select("game_id")
+      .eq("id", sessionId)
+      .single();
+
+    if (sessionError) throw sessionError;
+
+    const gameId = sessionInfo.game_id;
+    sessionStorage.setItem("gameId", gameId);
+    console.log("✅ gameId saved to sessionStorage:", gameId);
+
+    // Step 2: Fetch matches
+    const { data: matches, error: matchError } = await supabaseClient
+      .from("session_matches")
+      .select("id, match_number, team_a, team_b")
+      .eq("session_id", sessionId)
+      .order("match_number");
+
+    if (matchError) throw matchError;
+
+    matchDropdown.innerHTML = `<option disabled selected>-- Select Match --</option>`;
+    matches.forEach(m => {
+      const option = document.createElement("option");
+      option.value = m.id;
+      option.textContent = `Match ${m.match_number}: ${m.team_a} vs ${m.team_b}`;
+      matchDropdown.appendChild(option);
+    });
+  } catch (err) {
+    console.error("❌ Error loading session/game/matches:", err);
+    matchDropdown.innerHTML = `<option disabled selected>⚠️ Failed to load matches</option>`;
+  }
+});
+
+
   // 🟢 On match selection → preload into scoreboard
   matchDropdown.addEventListener("change", async (e) => {
     const matchId = e.target.value;
