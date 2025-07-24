@@ -2135,7 +2135,7 @@ courtNames = session.court_names || [];
   sessionStorage.clear();
 
   const sessionDropdown = document.getElementById("sessionDropdown");
-  const matchDropdown = document.getElementById("matchDropdown");
+  //const matchDropdown = document.getElementById("matchDropdown");
   const courtFilter = document.getElementById("courtFilter");
   const mvpBtn = document.getElementById("nominateMVPBtn");
 
@@ -2316,7 +2316,7 @@ async function loadMatches(sessionId) {
   console.log("✅ Loading matches for session:", sessionId);
 
   const selectedCourt = courtFilter.value;
-  matchDropdown.innerHTML = `<option disabled selected>Loading matches...</option>`;
+//  matchDropdown.innerHTML = `<option disabled selected>Loading matches...</option>`;
 
   let query = supabaseClient
     .from("session_matches")
@@ -2386,7 +2386,7 @@ if (resultError) {
 
 
     // 4. Build grouped dropdown by court name
-    matchDropdown.innerHTML = `<option disabled selected>-- Select Match --</option>`;
+    //matchDropdown.innerHTML = `<option disabled selected>-- Select Match --</option>`;
     const grouped = {};
 
     matchResults.forEach(m => {
@@ -2402,13 +2402,13 @@ if (resultError) {
         const label = document.createElement("option");
         label.disabled = true;
         label.textContent = `--- ${courtLabel} ---`;
-        matchDropdown.appendChild(label);
+        //matchDropdown.appendChild(label);
 
         grouped[court].forEach(m => {
           const opt = document.createElement("option");
           opt.value = m.id;
           opt.textContent = `Match ${m.number}: ${m.tA} vs ${m.tB}`;
-          matchDropdown.appendChild(opt);
+          //matchDropdown.appendChild(opt);
         });
       });
 
@@ -2419,60 +2419,12 @@ if (resultError) {
 
   } catch (err) {
     console.error("❌ Failed to load matches:", err);
-    matchDropdown.innerHTML = `<option disabled selected>⚠️ Failed to load matches</option>`;
+    //matchDropdown.innerHTML = `<option disabled selected>⚠️ Failed to load matches</option>`;
   }
 }
 
 
 
-  // Handle match selection
-matchDropdown.addEventListener("change", async (e) => {
-  const matchId = e.target.value;
-  const matchObj = matchResults.find(m => m.id === matchId);
-
-  if (!matchObj) {
-    alert("⚠️ Match not found.");
-    return;
-  }
-  
-
-  // Show court name in UI
-  const courtLabel = courtNames[matchObj.court - 1] || `Court ${matchObj.court}`;
-  //document.getElementById("courtLabel").textContent = courtLabel;
-
-  try {
-    const { data, error } = await supabaseClient
-      .from("session_matches")
-      .select("team1_id, team2_id")
-      .eq("id", matchId)
-      .single();
-
-    if (error || !data) {
-      alert("⚠️ Failed to load match details.");
-      return;
-    }
-
-    // Set up scoreboard UI
-    document.getElementById("teamAName").textContent = data.team1_id;
-    document.getElementById("teamBName").textContent = data.team2_id;
-    document.getElementById("teamAIcon").src = getTeamLogo(data.team1_id);
-    document.getElementById("teamBIcon").src = getTeamLogo(data.team2_id);
-    document.getElementById("scoreA").textContent = "0";
-    document.getElementById("scoreB").textContent = "0";
-    document.getElementById("goalLogA").innerHTML = "";
-    document.getElementById("goalLogB").innerHTML = "";
-
-    matchNumber = matchObj.number; // e.g. match 3 = index 2 + 1
-    document.getElementById("matchTitle").textContent = `Match ${matchNumber}`;
-
-    currentGoals = allGoals.filter(g => g.match_number === matchNumber);
-
-    updateLiveScoreboard();
-    renderGoalLog();
-  } catch (err) {
-    console.error("❌ Failed to load match from DB:", err);
-  }
-});
 
 });
 
