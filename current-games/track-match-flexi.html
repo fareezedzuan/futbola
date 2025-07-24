@@ -2307,31 +2307,23 @@ async function loadMatches(sessionId) {
 
     courtNames = sessionMeta?.court_names || [];
 
-// 3. Fetch saved results from match_results and merge into matches
-const { data: savedResults, error: resultsError } = await supabaseClient
-  .from("match_results")
-  .select("*")
-  .eq("session_id", sessionId);
+    // 3. Reset global state
+    matchResults = matches.map(m => {
+  console.log("📋 Loaded match with court:", m.match_number, m.court_number); // ✅ INSERT HERE
 
-if (resultsError) {
-  console.error("❌ Failed to load saved match results:", resultsError);
-} else {
-  savedResults.forEach(saved => {
-    const match = matches.find(m => m.match_number === saved.match_number);
-    if (match) {
-      match.gA = saved.score_a ?? null;
-      match.gB = saved.score_b ?? null;
-      match.goals = saved.goals ?? [];
-      match.status = saved.status ?? "incoming";
+  return {
+    id: m.id,
+    number: m.match_number,
+    tA: m.team1_id,
+    tB: m.team2_id,
+    gA: null,
+    gB: null,
+    court: m.court_number || 1,
+    status: "incoming"
+  };
+});
 
-      // Push to allGoals for standings / goal logs
-      (match.goals || []).forEach(goal => {
-        allGoals.push({ ...goal, match_number: saved.match_number });
-      });
-    }
-  });
-}
-
+    allGoals = [];
 
     // 4. Build grouped dropdown by court name
     matchDropdown.innerHTML = `<option disabled selected>-- Select Match --</option>`;
