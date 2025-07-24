@@ -1114,7 +1114,14 @@ async function saveCurrentMatch(matchIndex) {
     if (!proceed) return false; // ❗ return false on cancel
   }
 
-  matchResults[matchIndex] = { tA, tB, gA, gB };
+  matchResults[matchIndex] = {
+    ...matchResults[matchIndex], // ✅ Preserve existing id, number, court, etc.
+    tA,
+    tB,
+    gA,
+    gB
+  };
+
 
   if (savedMatchIndexes.has(matchIndex)) {
     console.warn(`🚫 Match ${matchIndex + 1} already saved — skipping`);
