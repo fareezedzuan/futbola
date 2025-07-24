@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Public Match View</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f9f9f9;
+      margin: 0;
+      padding: 2em;
+      color: #333;
+    }
+    h2 {
+      margin-top: 2em;
+      color: #702963;
+    }
+    .match-result-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: white;
+      padding: 0.75em 1em;
+      margin: 0.3em 0;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .blinking {
+      animation: blink 1s infinite;
+      border: 2px solid green;
+    }
+    @keyframes blink {
+      50% { border-color: transparent; }
+    }
+    .team-logo {
+      width: 24px;
+      height: 24px;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+    table {
+      width: 100%;
+      margin-top: 1em;
+      border-collapse: collapse;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 0.5em;
+      text-align: center;
+    }
+    .club {
+      display: flex;
+      align-items: center;
+      justify-content: start;
+      gap: 0.5em;
+    }
+    .pos, .points {
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>📋 Match Results</h1>
+  <div id="matchResults"></div>
+
+  <h2>📊 Standings</h2>
+  <div id="standings"></div>
+
+  <h2>🥅 Goal Scorers</h2>
+  <ul id="scorers"></ul>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+    const supabase = createClient(
+      'https://kdbqroxhypnadolcxxxc.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkYnFyb3hoeXBuYWRvbGN4eHhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3MjkwNzYsImV4cCI6MjA1NzMwNTA3Nn0.c7_RVxoFdJNqQ62R3t1emH2Wf4dSsQaunHsHmbQxOBA'
+    );
+
+    const gameId = new URLSearchParams(window.location.search).get("game") || "bf4457f7-00b8-465a-98fe-d421c82513cf";
+
+    async function fetchAndRender() {
+      const { data: matches, error } = await supabase
+        .from("match_results")
+        .select("match_number, team_a, team_b, score_a, score_b, goals, status")
+        .eq("game_id", gameId)
+        .order("match_number");
+
+      if (error) {
+        console.error("❌ Failed to fetch results:", error);
+        return;
+      }
+
+      const resultsDiv = document.getElementById("matchResults");
+      const standings = {};
+      const scorers = {};
+
+      resultsDiv.innerHTML = "";
+
+      matches.forEach(m => {
+        const div = document.createElement("div");
+        div.className = "match-result-row";
+        if (m.status === "pending") div.classList.add("blinking");
+
+        div.innerHTML = `
+          <div class="team-side left">
+            <img class="team-logo" src="/team/${m.team_a.toLowerCase()}.png" /> ${m.team_a}
+          </div>
+          <div class="match-score">${m.score_a ?? '-'} - ${m.score_b ?? '-'}</div>
+          <div class="team-side right">
+            ${m.team_b} <img class="team-logo" src="/team/${m.team_b.toLowerCase()}.png" />
+          </div>
+        `;
+        resultsDiv.appendChild(div);
+
+        // Standings logic
+        const updateTeam = (name, gf, ga, pts) => {
+          standings[name] = standings[name] || { MP: 0, W: 0, D: 0, L: 0, GF: 0, GA: 0, Pts: 0 };
+          standings[name].MP++;
+          standings[name].GF += gf;
+          standings[name].GA += ga;
+          standings[name].Pts += pts;
+        };
+        if (m.score_a != null && m.score_b != null) {
+          if (m.score_a > m.score_b) {
+            updateTeam(m.team_a, m.score_a, m.score_b, 3);
+            updateTeam(m.team_b, m.score_b, m.score_a, 0);
+          } else if (m.score_b > m.score_a) {
+            updateTeam(m.team_b, m.score_b, m.score_a, 3);
+            updateTeam(m.team_a, m.score_a, m.score_b, 0);
+          } else {
+            updateTeam(m.team_a, m.score_a, m.score_b, 1);
+            updateTeam(m.team_b, m.score_b, m.score_a, 1);
+          }
+        }
+
+        // Goals
+        if (Array.isArray(m.goals)) {
+          m.goals.forEach(g => {
+            if (!g || !g.name) return;
+            scorers[g.name] = (scorers[g.name] || 0) + 1;
+          });
+        }
+      });
+
+      // Render standings
+      const sortedStandings = Object.entries(standings).map(([team, stat]) => ({ team, ...stat, GD: stat.GF - stat.GA }))
+        .sort((a, b) => b.Pts - a.Pts || b.GD - a.GD || b.GF - a.GF);
+
+      document.getElementById("standings").innerHTML = `
+        <table>
+          <thead><tr><th>Pos</th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>Pts</th></tr></thead>
+          <tbody>
+            ${sortedStandings.map((r, i) => `
+              <tr>
+                <td class="pos">${i + 1}</td>
+                <td class="club"><img src="/team/${r.team.toLowerCase()}.png" class="team-logo"> ${r.team}</td>
+                <td>${r.MP}</td><td>${r.W}</td><td>${r.D}</td><td>${r.L}</td><td>${r.GF}</td><td>${r.GA}</td><td>${r.GD}</td><td class="points">${r.Pts}</td>
+              </tr>`).join("")}
+          </tbody>
+        </table>
+      `;
+
+      // Render scorers
+      const scorerList = Object.entries(scorers)
+        .sort((a, b) => b[1] - a[1])
+        .map(([name, count]) => `<li>${name} — ${count}</li>`)
+        .join("");
+      document.getElementById("scorers").innerHTML = scorerList;
+    }
+
+    fetchAndRender();
+    setInterval(fetchAndRender, 15000); // refresh every 15s
+  </script>
+</body>
+</html>
