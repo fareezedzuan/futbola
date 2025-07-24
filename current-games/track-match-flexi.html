@@ -2355,6 +2355,7 @@ matchDropdown.addEventListener("change", async (e) => {
     alert("⚠️ Match not found.");
     return;
   }
+  
 
   // Show court name in UI
   const courtLabel = courtNames[matchObj.court - 1] || `Court ${matchObj.court}`;
@@ -2383,6 +2384,8 @@ matchDropdown.addEventListener("change", async (e) => {
     document.getElementById("goalLogB").innerHTML = "";
 
     matchNumber = matchObj.number; // e.g. match 3 = index 2 + 1
+    document.getElementById("matchTitle").textContent = `Match ${matchNumber}`;
+
     currentGoals = allGoals.filter(g => g.match_number === matchNumber);
 
     updateLiveScoreboard();
