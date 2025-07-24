@@ -841,82 +841,85 @@ function getTeamLogo(colorName) {
   return logos[colorName] || "../images/default.png"; // fallback
 }
 
-function handleTimerClick() {
+async function handleTimerClick() {
   if (!timerRunning) {
-  timerRunning = true;
-  timerPaused = false;
-  document.getElementById('timerBtn').textContent = "Pause";
+    timerRunning = true;
+    timerPaused = false;
+    document.getElementById('timerBtn').textContent = "Pause";
 
-  // 🟢 Update match status to "pending"
-const sessionId = sessionStorage.getItem("sessionId");
-const gameId = sessionStorage.getItem("gameId");
-const match = matchResults[matchNumber - 1];
+    // 🟢 Update match status to "pending"
+    const sessionId = sessionStorage.getItem("sessionId");
+    const gameId = sessionStorage.getItem("gameId");
+    const match = matchResults[matchNumber - 1];
 
-if (match) {
-  supabaseClient
-    .from("match_results")
-    .upsert({
-      session_id: sessionId,
-      match_number: match.number,
-      game_id: gameId,
-      team_a: match.tA,
-      team_b: match.tB,
-      goals_team_a: match.gA ?? 0,
-      goals_team_b: match.gB ?? 0,
-      status: "pending",
-      updated_at: new Date().toISOString()
-    }, { onConflict: ['session_id', 'match_number'] })
-    .then(({ error }) => {
-      if (error) {
-        console.error("❌ Failed to update status to pending:", error);
-      } else {
-        console.log("⏱️ Match marked as pending");
-      }
-    });
-}
+    if (match && match.status !== "completed") {
+      try {
+        const payload = {
+          session_id: sessionId,
+          game_id: gameId,
+          match_number: match.number,
+          team_a: match.tA,
+          team_b: match.tB,
+          score_a: 0,
+          score_b: 0,
+          goals: [],
+          status: "pending",
+          updated_at: new Date().toISOString()
+        };
 
-  
-  alarmStartTimestamp = Date.now();
-  alarmScheduledTime = duration * 60 * 1000; // duration in ms
+        const res = await fetch("/api/save-match-result", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
 
-  alarmTimeout = setTimeout(() => {
-    playAlarm();
-  }, alarmScheduledTime);
-
-  timer = setInterval(() => {
-    if (!timerPaused) {
-      timeElapsed++;
-      updateTimerDisplay();
-      if (timeElapsed >= duration * 60) {
-        clearInterval(timer);
-        timerRunning = false;
-        document.getElementById('timerBtn').textContent = "Start Timer";
+        if (!res.ok) throw new Error(`Server responded ${res.status}`);
+        console.log("✅ Match row created with pending status");
+      } catch (err) {
+        console.warn("⚠️ Couldn't upsert pending match to DB:", err);
       }
     }
-  }, 1000);
-} else {
-  timerPaused = !timerPaused;
-  document.getElementById('timerBtn').textContent = timerPaused ? "Resume Timer" : "Pause Timer";
 
-  if (timerPaused) {
-    // 🔵 If pausing: clear alarm timeout
-    clearTimeout(alarmTimeout);
-  } else {
-    // 🔵 If resuming: re-schedule alarm
-    const now = Date.now();
-    const timePassed = now - alarmStartTimestamp;
-    const remaining = Math.max(alarmScheduledTime - timePassed, 0);
-
-    alarmStartTimestamp = Date.now(); // reset start timestamp
-    alarmScheduledTime = remaining;
+    // 🔔 Start timer + alarm
+    alarmStartTimestamp = Date.now();
+    alarmScheduledTime = duration * 60 * 1000;
 
     alarmTimeout = setTimeout(() => {
       playAlarm();
-    }, remaining);
+    }, alarmScheduledTime);
+
+    timer = setInterval(() => {
+      if (!timerPaused) {
+        timeElapsed++;
+        updateTimerDisplay();
+        if (timeElapsed >= duration * 60) {
+          clearInterval(timer);
+          timerRunning = false;
+          document.getElementById('timerBtn').textContent = "Start Timer";
+        }
+      }
+    }, 1000);
+
+  } else {
+    timerPaused = !timerPaused;
+    document.getElementById('timerBtn').textContent = timerPaused ? "Resume Timer" : "Pause Timer";
+
+    if (timerPaused) {
+      clearTimeout(alarmTimeout);
+    } else {
+      const now = Date.now();
+      const timePassed = now - alarmStartTimestamp;
+      const remaining = Math.max(alarmScheduledTime - timePassed, 0);
+
+      alarmStartTimestamp = Date.now();
+      alarmScheduledTime = remaining;
+
+      alarmTimeout = setTimeout(() => {
+        playAlarm();
+      }, remaining);
+    }
   }
 }
-}
-
 
 function updateTimerDisplay() {
   const min = Math.floor(timeElapsed / 60);
