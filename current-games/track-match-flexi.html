@@ -2339,6 +2339,31 @@ async function loadMatches(sessionId) {
 
     allGoals = [];
 
+    // 🧠 Merge results from match_results into matchResults
+const { data: results, error: resultError } = await supabaseClient
+  .from("match_results")
+  .select("*")
+  .eq("session_id", sessionId);
+
+if (resultError) {
+  console.error("❌ Failed to fetch match results:", resultError);
+} else {
+  results.forEach(r => {
+    const match = matchResults.find(m => m.number === r.match_number);
+    if (match) {
+      match.gA = r.score_a ?? null;
+      match.gB = r.score_b ?? null;
+      match.goals = r.goals ?? [];
+      match.status = r.status ?? "incoming";
+
+      (match.goals || []).forEach(goal => {
+        allGoals.push({ ...goal, match_number: r.match_number });
+      });
+    }
+  });
+}
+
+
     // 4. Build grouped dropdown by court name
     matchDropdown.innerHTML = `<option disabled selected>-- Select Match --</option>`;
     const grouped = {};
