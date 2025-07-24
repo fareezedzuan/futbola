@@ -2243,6 +2243,25 @@ try {
 
     // Load matches
     loadMatches(sessionId);
+
+// 🔁 Periodic refresh every 15s
+setInterval(() => {
+  const currentSessionId = sessionStorage.getItem("sessionId");
+  if (!currentSessionId) return;
+
+  console.log("🔄 Periodic update: fetching matches & goals...");
+
+  loadMatches(currentSessionId);
+
+  if (matchNumber > 0) {
+    const match = matchResults[matchNumber - 1];
+    if (match) {
+      updateLiveScoreboard();
+      renderGoalLog();
+    }
+  }
+}, 15000);
+
   });
 
   // Filter matches by court
