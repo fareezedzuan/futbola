@@ -2245,22 +2245,36 @@ try {
     loadMatches(sessionId);
 
 // 🔁 Periodic refresh every 15s
-setInterval(() => {
+setInterval(async () => {
   const currentSessionId = sessionStorage.getItem("sessionId");
   if (!currentSessionId) return;
 
   console.log("🔄 Periodic update: fetching matches & goals...");
 
-  loadMatches(currentSessionId);
+  const prevMatchNumber = matchNumber;
+  const prevGoals = currentGoals.slice(); // backup current goals
 
-  if (matchNumber > 0) {
+  await loadMatches(currentSessionId); // reload matchResults
+
+  // 🛠 Restore current match if still valid
+  if (prevMatchNumber > 0 && prevMatchNumber <= matchResults.length) {
+    matchNumber = prevMatchNumber;
+    currentGoals = prevGoals;
+
     const match = matchResults[matchNumber - 1];
     if (match) {
+      document.getElementById("teamAName").textContent = match.tA;
+      document.getElementById("teamBName").textContent = match.tB;
+      document.getElementById("teamAIcon").src = getTeamLogo(match.tA);
+      document.getElementById("teamBIcon").src = getTeamLogo(match.tB);
+      document.getElementById("matchTitle").textContent = `Match ${match.number}`;
+
       updateLiveScoreboard();
       renderGoalLog();
     }
   }
 }, 15000);
+
 
   });
 
