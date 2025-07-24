@@ -1190,44 +1190,56 @@ async function saveCurrentMatch(matchIndex) {
 
 
 function updateMatchHistory() {
-  if (!matchResults.length) return;
+  const container = document.getElementById("matchHistory");
+  container.innerHTML = "";
 
-  // Group matches by court_number
+  if (!matchResults?.length) {
+    container.innerHTML = "<p style='text-align:center;'>No matches loaded.</p>";
+    return;
+  }
+
+  // 🔁 Group by court
   const groupedByCourt = {};
-
   matchResults.forEach(m => {
     const court = m.court || 1;
     if (!groupedByCourt[court]) groupedByCourt[court] = [];
     groupedByCourt[court].push(m);
   });
 
-  // Clear and rebuild
-  const container = document.getElementById("matchResultsContainer");
-  container.innerHTML = "";
+  // 🎨 Render each court group
+  Object.keys(groupedByCourt)
+    .sort((a, b) => a - b)
+    .forEach(court => {
+      const heading = document.createElement("h3");
+      const courtIndex = parseInt(court) - 1;
+      const courtLabel = courtNames?.[courtIndex] || `Court ${court}`;
+      heading.textContent = `🏟️ ${courtLabel}`;
 
-  Object.keys(groupedByCourt).sort((a, b) => a - b).forEach(courtNum => {
-    const courtMatches = groupedByCourt[courtNum];
+      heading.style.marginTop = "1.5em";
+      heading.style.color = "#702963";
+      heading.style.textAlign = "left";
 
-    const courtName = courtNames[courtNum - 1] || `Court ${courtNum}`;
-    const section = document.createElement("div");
-    section.className = "match-history-section";
+      container.appendChild(heading);
 
-    const heading = document.createElement("h3");
-    heading.textContent = courtName;
-    section.appendChild(heading);
+      groupedByCourt[court].forEach(m => {
+        const row = document.createElement("div");
+        row.className = "match-result-row";
 
-    courtMatches.forEach(m => {
-      const row = document.createElement("div");
-      row.className = "match-history-row";
-      row.innerHTML = `
-        <div class="match-label">Match ${m.number}</div>
-        <div class="match-team">${m.tA} ${m.gA ?? "-"} : ${m.gB ?? "-"} ${m.tB}</div>
-      `;
-      section.appendChild(row);
+        row.innerHTML = `
+          <div class="team-side left">
+            <img class="team-logo" src="${getTeamLogo(m.tA)}" />
+            ${m.tA}
+          </div>
+          <div class="match-score">${m.gA ?? '-'} - ${m.gB ?? '-'}</div>
+          <div class="team-side right">
+            ${m.tB}
+            <img class="team-logo" src="${getTeamLogo(m.tB)}" />
+          </div>
+        `;
+
+        container.appendChild(row);
+      });
     });
-
-    container.appendChild(section);
-  });
 }
 
 // function updateStandingsUI() {
