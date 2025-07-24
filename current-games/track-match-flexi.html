@@ -2271,8 +2271,9 @@ setInterval(() => {
   });
 
 
+  // Load matches based on session + court
 async function loadMatches(sessionId) {
-  if (!sessionId) {
+    if (!sessionId) {
     console.warn("⚠️ No sessionId provided. Skipping match load.");
     return;
   }
@@ -2297,7 +2298,7 @@ async function loadMatches(sessionId) {
     const { data: matches, error } = await query;
     if (error) throw error;
 
-    // 2. Fetch court names
+    // 2. Fetch court names from games_sessions
     const { data: sessionMeta, error: metaError } = await supabaseClient
       .from("games_sessions")
       .select("court_names")
@@ -2306,40 +2307,38 @@ async function loadMatches(sessionId) {
 
     courtNames = sessionMeta?.court_names || [];
 
-    // 3. Fetch saved results and merge
-    const { data: savedResults, error: resultsError } = await supabaseClient
-      .from("match_results")
-      .select("*")
-      .eq("session_id", sessionId);
+// 3. Fetch saved results from match_results and merge into matches
+const { data: savedResults, error: resultsError } = await supabaseClient
+  .from("match_results")
+  .select("*")
+  .eq("session_id", sessionId);
 
-    if (resultsError) {
-      console.error("❌ Failed to load saved match results:", resultsError);
-    } else {
-      savedResults.forEach(saved => {
-        const match = matches.find(m => m.match_number === saved.match_number);
-        if (match) {
-          match.gA = saved.score_a ?? null;
-          match.gB = saved.score_b ?? null;
-          match.goals = saved.goals ?? [];
-          match.status = saved.status ?? "incoming";
+if (resultsError) {
+  console.error("❌ Failed to load saved match results:", resultsError);
+} else {
+  savedResults.forEach(saved => {
+    const match = matches.find(m => m.match_number === saved.match_number);
+    if (match) {
+      match.gA = saved.score_a ?? null;
+      match.gB = saved.score_b ?? null;
+      match.goals = saved.goals ?? [];
+      match.status = saved.status ?? "incoming";
 
-          // Update global goal log
-          (match.goals || []).forEach(goal => {
-            allGoals.push({ ...goal, match_number: saved.match_number });
-          });
-        }
+      // Push to allGoals for standings / goal logs
+      (match.goals || []).forEach(goal => {
+        allGoals.push({ ...goal, match_number: saved.match_number });
       });
     }
+  });
+}
 
-    // ✅ Assign matchResults now
-    matchResults = matches;
 
-    // 4. Build grouped dropdown
+    // 4. Build grouped dropdown by court name
     matchDropdown.innerHTML = `<option disabled selected>-- Select Match --</option>`;
     const grouped = {};
 
-    matches.forEach(m => {
-      const court = m.court_number || 1;
+    matchResults.forEach(m => {
+      const court = m.court || 1;
       if (!grouped[court]) grouped[court] = [];
       grouped[court].push(m);
     });
@@ -2356,7 +2355,7 @@ async function loadMatches(sessionId) {
         grouped[court].forEach(m => {
           const opt = document.createElement("option");
           opt.value = m.id;
-          opt.textContent = `Match ${m.match_number}: ${m.team1_id} vs ${m.team2_id}`;
+          opt.textContent = `Match ${m.number}: ${m.tA} vs ${m.tB}`;
           matchDropdown.appendChild(opt);
         });
       });
@@ -2364,6 +2363,7 @@ async function loadMatches(sessionId) {
     updateMatchHistory();
     updateLeaderboard();
     recalculateStandingsFromAllMatches();
+    // updateStandingsUI();
 
   } catch (err) {
     console.error("❌ Failed to load matches:", err);
