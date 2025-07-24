@@ -314,25 +314,29 @@
     const teamColors = ["Red", "White", "Green", "Orange", "Black", "Yellow", "Blue", "Turquoise"];
 
     async function fetchGames() {
-      const res = await fetch("/api/get-upcoming-games");
-      const data = await res.json();
-      const select = document.getElementById("gameSelect");
-      select.innerHTML = '<option value="">-- Select Game --</option>';
-      const today = new Date();
-      const sevenDaysLater = new Date();
-      today.setHours(0, 0, 0, 0);
-      sevenDaysLater.setDate(today.getDate() + 7);
-      sevenDaysLater.setHours(23, 59, 59, 999);
-      data.games.forEach(game => {
-        const gameDate = new Date(game.game_date + "T00:00:00");
-        if (gameDate >= today && gameDate <= sevenDaysLater) {
-          const option = document.createElement("option");
-          option.value = game.id;
-          option.textContent = `${game.venue} - ${game.game_date} ${game.start_time}`;
-          select.appendChild(option);
-        }
-      });
+  const res = await fetch("/api/get-upcoming-games");
+  const data = await res.json();
+  const select = document.getElementById("gameSelect");
+  select.innerHTML = '<option value="">-- Select Game --</option>';
+
+  const startDate = new Date(); // 3 days before today
+  startDate.setDate(startDate.getDate() - 3);
+  startDate.setHours(0, 0, 0, 0);
+
+  const endDate = new Date(); // 7 days after today
+  endDate.setDate(endDate.getDate() + 7);
+  endDate.setHours(23, 59, 59, 999);
+
+  data.games.forEach(game => {
+    const gameDate = new Date(game.game_date + "T00:00:00");
+    if (gameDate >= startDate && gameDate <= endDate) {
+      const option = document.createElement("option");
+      option.value = game.id;
+      option.textContent = `${game.venue} - ${game.game_date} ${game.start_time}`;
+      select.appendChild(option);
     }
+  });
+}
 
     async function fetchPlayers(gameId) {
       const res = await fetch(`/api/get-bookings-v2?game_id=${gameId}`);
