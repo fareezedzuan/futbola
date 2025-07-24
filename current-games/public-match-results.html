@@ -893,7 +893,7 @@ async function handleTimerClick() {
     timer = setInterval(() => {
       if (!timerPaused) {
         timeElapsed++;
-        updateTimerDisplay();
+        //updateTimerDisplay();
         if (timeElapsed >= duration * 60) {
           clearInterval(timer);
           timerRunning = false;
@@ -923,11 +923,11 @@ async function handleTimerClick() {
   }
 }
 
-function updateTimerDisplay() {
-  const min = Math.floor(timeElapsed / 60);
-  const sec = timeElapsed % 60;
-  document.getElementById("timer").textContent = `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
-}
+// function updateTimerDisplay() {
+//   const min = Math.floor(timeElapsed / 60);
+//   const sec = timeElapsed % 60;
+//   document.getElementById("timer").textContent = `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+// }
 
 function stopAlarmOnce() {
   playAlarm();
@@ -959,7 +959,7 @@ function resetTimer() {
   timeElapsed = 0;
   timerRunning = false;
   timerPaused = false;
-  updateTimerDisplay();
+  //updateTimerDisplay();
   document.getElementById('timerBtn').textContent = "Start Timer";
   clearTimeout(alarmTimeout);
 }
