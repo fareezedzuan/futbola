@@ -867,6 +867,8 @@ async function handleTimerClick() {
           updated_at: new Date().toISOString()
         };
 
+        console.log("📤 Sending pending match to server:", payload);
+
         const res = await fetch("/api/save-match-result", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -1189,7 +1191,8 @@ async function saveCurrentMatch(matchIndex) {
       team_b: tB,
       score_a: gA,
       score_b: gB,
-      goals: currentGoals
+      goals: currentGoals,
+      status: "completed"
     };
 
     console.log("📤 Sending match result to Supabase:", payload);
