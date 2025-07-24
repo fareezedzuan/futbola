@@ -2236,16 +2236,21 @@ async function loadMatches(sessionId) {
     courtNames = sessionMeta?.court_names || [];
 
     // 3. Reset global state
-    matchResults = matches.map(m => ({
-      id: m.id,
-      number: m.match_number,
-      tA: m.team1_id,
-      tB: m.team2_id,
-      gA: null,
-      gB: null,
-      court: m.court_number || 1,
-      status: "incoming"
-    }));
+    matchResults = matches.map(m => {
+  console.log("📋 Loaded match with court:", m.match_number, m.court_number); // ✅ INSERT HERE
+
+  return {
+    id: m.id,
+    number: m.match_number,
+    tA: m.team1_id,
+    tB: m.team2_id,
+    gA: null,
+    gB: null,
+    court: m.court_number || 1,
+    status: "incoming"
+  };
+});
+
     allGoals = [];
 
     // 4. Build grouped dropdown by court name
