@@ -7,25 +7,50 @@ export default async function handler(req, res) {
   const supabaseKey = process.env.SUPABASE_KEY;
 
   if (!supabaseUrl || !supabaseKey) {
-    console.error("Missing Supabase environment variables.");
+    console.error("❌ Missing Supabase environment variables.");
     return res.status(500).json({ error: "Supabase URL or key not configured." });
   }
 
   const supabase = createClient(supabaseUrl, supabaseKey);
 
   try {
-    const { game_id, session_id, match_number, team_a, team_b, score_a, score_b, goals } = req.body;
+    const {
+      game_id,
+      session_id,
+      match_number,
+      team_a,
+      team_b,
+      score_a,
+      score_b,
+      goals,
+      status,       // ✅ optional new field
+      updated_at    // ✅ optional new field
+    } = req.body;
 
     console.log("📥 Received data:", {
-      game_id, session_id, match_number, team_a, team_b, score_a, score_b, goals
+      game_id, session_id, match_number, team_a, team_b,
+      score_a, score_b, goals, status, updated_at
     });
+
+    const payload = {
+      game_id,
+      session_id,
+      match_number,
+      team_a,
+      team_b,
+      score_a,
+      score_b,
+      goals
+    };
+
+    if (status) payload.status = status;
+    if (updated_at) payload.updated_at = updated_at;
 
     const { data, error } = await supabase
       .from('match_results')
-      .upsert(
-        [{ game_id, session_id, match_number, team_a, team_b, score_a, score_b, goals }],
-        { onConflict: ['game_id', 'session_id', 'match_number'] }
-      );
+      .upsert([payload], {
+        onConflict: ['game_id', 'session_id', 'match_number']
+      });
 
     if (error) {
       console.error("❌ Supabase upsert error:", error);
