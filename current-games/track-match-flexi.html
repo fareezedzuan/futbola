@@ -1732,12 +1732,13 @@ function editMatchGoal(matchIndex, i) {
 function deleteMatchGoal(matchIndex, i) {
   if (!confirm("Delete this goal?")) return;
 
-  const goals = allGoals.filter(g => g.match_number === matchIndex + 1);
+  const matchNumber = matchIndex + 1;
+  const goals = allGoals.filter(g => g.match_number === matchNumber);
   const toDelete = goals[i];
 
-  // Find actual index in allGoals
+  // Find actual index in global array
   const globalIndex = allGoals.findIndex(g =>
-    g.match_number === matchIndex + 1 &&
+    g.match_number === matchNumber &&
     g.player === toDelete.player &&
     g.time === toDelete.time &&
     g.isOG === toDelete.isOG
@@ -1745,11 +1746,15 @@ function deleteMatchGoal(matchIndex, i) {
 
   if (globalIndex !== -1) {
     allGoals.splice(globalIndex, 1);
-    editMatchGoals(matchIndex); // Re-render the goal list
-    updateLeaderboard(); // Optional: if you want top scorer table to update too
+
+    // 🧠 Immediately update everything that's dependent on goals
     recalculateMatchResult(matchIndex);
-    updateLiveScoreboard();
     recalculateStandingsFromAllMatches();
+
+    // 🔄 UI refresh
+    editMatchGoals(matchIndex);
+    updateLeaderboard();
+    updateLiveScoreboard();
     updateMatchHistory();
   }
 }
@@ -1757,12 +1762,14 @@ function deleteMatchGoal(matchIndex, i) {
 function saveEditedMatchGoals(matchIndex) {
   alert(`✅ Saved edits for Match ${matchIndex + 1}.`);
 
-  // Debug logs
-  console.log("Goals for match", matchIndex + 1, allGoals.filter(g => g.match_number === matchIndex + 1));
+  const matchNumber = matchIndex + 1;
+  const updatedGoals = allGoals.filter(g => g.match_number === matchNumber);
+
+  console.log("Goals for match", matchNumber, updatedGoals);
   console.log("Match results BEFORE:", matchResults);
   console.log("Standings BEFORE:", JSON.parse(JSON.stringify(standings)));
 
-  // 🔁 Recalculate result from updated goals
+  // 🔁 Recalculate with updated goals
   recalculateMatchResult(matchIndex);
   recalculateStandingsFromAllMatches();
   updateLeaderboard();
@@ -1772,40 +1779,40 @@ function saveEditedMatchGoals(matchIndex) {
   console.log("Match results AFTER:", matchResults);
   console.log("Standings AFTER:", standings);
 
-  // ✅ Supabase save block
+  // 🔁 Pull updated match again (critical!)
   const match = matchResults[matchIndex];
-  if (!match) return;
+  if (!match) {
+    console.error("❌ Match not found at index", matchIndex);
+    return;
+  }
 
-  const updatedGoals = allGoals.filter(g => g.match_number === matchIndex + 1);
+  // 🔐 Prepare payload
+  const payload = {
+    game_id: sessionStorage.getItem("gameId"),
+    session_id: sessionStorage.getItem("sessionId"),
+    match_number: matchNumber,
+    team_a: match.tA,
+    team_b: match.tB,
+    score_a: match.gA,
+    score_b: match.gB,
+    goals: updatedGoals
+  };
 
-const payload = {
-  game_id: sessionStorage.getItem("gameId"),
-  session_id: sessionStorage.getItem("sessionId"),
-  match_number: matchIndex + 1,
-  team_a: match.tA,
-  team_b: match.tB,
-  score_a: match.gA,
-  score_b: match.gB,
-  goals: updatedGoals
-};
+  console.warn("📝 Edited match payload being sent:", payload);
 
-console.warn("📝 Edited match payload being sent:", payload);
+  if (!payload.game_id || !payload.session_id || !payload.team_a || !payload.team_b || isNaN(payload.score_a) || isNaN(payload.score_b)) {
+    console.error("🚫 Invalid payload detected. Aborting save.", payload);
+    alert("⚠️ Match data incomplete or corrupted. Could not save.");
+    return;
+  }
 
-if (!payload.game_id || !payload.session_id || !payload.team_a || !payload.team_b || isNaN(payload.score_a) || isNaN(payload.score_b)) {
-  console.error("🚫 Invalid payload detected. Aborting save.", payload);
-  alert("⚠️ Match data incomplete or corrupted. Could not save.");
-  return;
-}
+  console.log("📦 Edited match goals payload:", JSON.stringify(updatedGoals, null, 2));
 
-console.log("📦 Edited match goals payload:", JSON.stringify(updatedGoals, null, 2));
-
-fetch('/api/save-match-result', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify(payload)
-})
-
-  
+  fetch('/api/save-match-result', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  })
   .then(res => {
     if (!res.ok) throw new Error(`Server returned ${res.status}`);
     return res.json();
@@ -1816,16 +1823,8 @@ fetch('/api/save-match-result', {
   .catch(err => {
     console.error("❌ Failed to save edited match:", err);
 
-    // Fallback: save to localStorage as backup
     const failedData = {
-      game_id: sessionStorage.getItem("gameId"),
-      session_id: sessionStorage.getItem("sessionId"),
-      match_number: matchIndex + 1,
-      team_a: match.tA,
-      team_b: match.tB,
-      score_a: match.gA,
-      score_b: match.gB,
-      goals: updatedGoals,
+      ...payload,
       timestamp: Date.now()
     };
 
@@ -1836,7 +1835,6 @@ fetch('/api/save-match-result', {
     alert("⚠️ Could not sync to Supabase. Saved locally and will retry when online.");
   });
 }
-
 
 function recalculateStandingsFromAllMatches() {
   standings = {};
