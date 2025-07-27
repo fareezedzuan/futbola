@@ -1781,7 +1781,12 @@ function saveEditedMatchGoals(matchIndex) {
   recalculateMatchResult(matchIndex); // ✅ force refresh score from latest goals
 
   // 🔁 Pull updated match again (critical!)
-  const match = matchResults[matchIndex];
+  const goals = allGoals.filter(g => g.match_number === matchIndex + 1);
+const [tA, tB] = matchups[matchIndex];
+const gA = goals.filter(g => g.team === tA).length;
+const gB = goals.filter(g => g.team === tB).length;
+
+const match = { tA, tB, gA, gB };
   if (!match) {
     console.error("❌ Match not found at index", matchIndex);
     return;
@@ -1807,6 +1812,7 @@ function saveEditedMatchGoals(matchIndex) {
     return;
   }
 
+console.log("💾 FINAL payload:", payload);
   console.log("📦 Edited match goals payload:", JSON.stringify(updatedGoals, null, 2));
 
   fetch('/api/save-match-result', {
