@@ -233,6 +233,16 @@
 
 <div id="courtInputs"></div>
 
+<label for="groupCount">Number of Groups:</label>
+<select id="groupCount" onchange="generateGroupInputs()">
+  <option value="1" selected>1</option>
+  <option value="2">2</option>
+  <option value="3">3</option>
+  <option value="4">4</option>
+</select>
+
+<div id="groupInputs"></div>
+
 <!-- 🔁 Only show for round robin -->
 <div id="roundsInputWrapper">
   <label for="roundsInput" style="font-weight:bold;">Number of Rounds:</label>
@@ -654,6 +664,32 @@ async function loadTeamSetup() {
   }, 100);
 }
 
+function generateGroupInputs() {
+  const groupInputs = document.getElementById("groupInputs");
+  groupInputs.innerHTML = "";
+  const count = parseInt(document.getElementById("groupCount").value);
+
+  for (let i = 0; i < count; i++) {
+    const wrapper = document.createElement("div");
+    wrapper.style.marginTop = "10px";
+
+    const label = document.createElement("label");
+    label.textContent = `Group ${String.fromCharCode(65 + i)} Name:`;
+    label.style.display = "block";
+    label.style.fontWeight = "bold";
+    label.style.color = "#702963";
+
+    const input = document.createElement("input");
+    input.type = "text";
+    input.id = `groupName${i}`;
+    input.value = `Group ${String.fromCharCode(65 + i)}`;
+    input.style.width = "100%";
+
+    wrapper.appendChild(label);
+    wrapper.appendChild(input);
+    groupInputs.appendChild(wrapper);
+  }
+}
 
 async function startGame() {
   document.getElementById("popup").style.display = "none";
@@ -663,13 +699,20 @@ async function startGame() {
   const duration = parseInt(document.getElementById("duration").value);
   const teamNames = [], teamPlayers = [];
   const playStyle = document.getElementById("playStyle").value;
+  
   const courtCount = parseInt(document.getElementById("courtCount").value);
   const rounds = parseInt(document.getElementById("roundsInput").value);
-
   const courtNames = [];
     for (let i = 0; i < courtCount; i++) {
       const name = document.getElementById(`courtName${i}`)?.value.trim() || `Court ${i + 1}`;
       courtNames.push(name);
+    }
+
+  const groupCount = parseInt(document.getElementById("groupCount").value);
+    const groupNames = [];
+    for (let i = 0; i < groupCount; i++) {
+      const name = document.getElementById(`groupName${i}`)?.value.trim() || `Group ${String.fromCharCode(65 + i)}`;
+      groupNames.push(name);
     }
 
   await supabase.from('games_sessions').delete().eq('game_id', gameId);
@@ -682,6 +725,7 @@ async function startGame() {
       rounds: rounds,
       num_courts: courtCount,
       court_names: courtNames, // ✅ already saved here
+      group_names: groupNames, 
       match_duration: duration, // 👈 optional: save match duration too
       team_count: count         // 👈 optional: save number of teams
     }])
@@ -1037,6 +1081,7 @@ window.generateCourtInputs = generateCourtInputs;
 
 handlePlayStyleChange(); // 📌 add at the end of script
 generateCourtInputs(); // 👈 renders court name inputs on first load
+generateGroupInputs();
 
 
 
