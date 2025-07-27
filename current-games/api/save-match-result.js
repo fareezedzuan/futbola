@@ -9,6 +9,24 @@ export default async function handler(req, res) {
   console.log("📥 Incoming match save payload:", req.body);
   console.log("🔍 Upserting payload to Supabase:", {  game_id, session_id, match_number, team_a, team_b, score_a, score_b, goals });
 
+  // 🧠 Debug logs (you want to keep these!)
+  console.log("🎯 Final score submitted:", score_a, "-", score_b);
+  console.log("🎯 Goals submitted:", Array.isArray(goals) ? goals.length : 'invalid');
+  console.log("📦 Raw payload:", {
+    game_id,
+    session_id,
+    match_number,
+    team_a,
+    team_b,
+    score_a,
+    score_b
+  });
+
+  // Optional: Basic score sanity check
+  if (typeof score_a !== 'number' || typeof score_b !== 'number') {
+    console.warn("⚠️ Invalid score values detected:", score_a, score_b);
+  }
+
   const { data, error } = await supabase
     .from('match_results')
     .upsert(
