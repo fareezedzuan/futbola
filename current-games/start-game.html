@@ -234,7 +234,7 @@
 <div id="courtInputs"></div>
 
 <label for="groupCount">Number of Groups:</label>
-<select id="groupCount" onchange="generateGroupInputs()">
+<select id="groupCount">
   <option value="1" selected>1</option>
   <option value="2">2</option>
   <option value="3">3</option>
@@ -690,6 +690,8 @@ function generateGroupInputs() {
     groupInputs.appendChild(wrapper);
   }
 }
+
+document.getElementById("groupCount").addEventListener("change", generateGroupInputs);
 
 async function startGame() {
   document.getElementById("popup").style.display = "none";
