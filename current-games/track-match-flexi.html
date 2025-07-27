@@ -1346,7 +1346,9 @@ function updateMatchHistory() {
 function updateLeaderboard() {
   const tally = {};
   allGoals.forEach(g => {
-    if (!g.isOG) tally[g.player] = (tally[g.player] || 0) + 1;
+  if (!g.isOG && !g.player.toLowerCase().includes("others")) {
+    tally[g.player] = (tally[g.player] || 0) + 1;
+  }
   });
 
   const sorted = Object.entries(tally).sort((a, b) => b[1] - a[1]);
@@ -1460,7 +1462,9 @@ function exportSummary() {
   // 🎯 Top scorers
   const tally = {};
   allGoals.forEach(g => {
-    if (!g.isOG) tally[g.player] = (tally[g.player] || 0) + 1;
+    if (!g.isOG && !g.player.toLowerCase().includes("others")) {
+      tally[g.player] = (tally[g.player] || 0) + 1;
+    }
   });
   const top = Object.entries(tally).sort((a, b) => b[1] - a[1]);
 
