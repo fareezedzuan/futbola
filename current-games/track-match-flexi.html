@@ -1389,7 +1389,9 @@ function updateLeaderboard() {
 
 
 function updateStandings(tA, tB, gA, gB) {
-  const stats = name => standings[name] ||= { MP: 0, W: 0, D: 0, L: 0, Pts: 0, GF: 0, GA: 0 };
+  const stats = name => standings[name] ||= {
+    MP: 0, W: 0, D: 0, L: 0, Pts: 0, GF: 0, GA: 0, group: groupOf(name)
+  };
 
   stats(tA).MP++; stats(tB).MP++;
   stats(tA).GF += gA; stats(tA).GA += gB;
@@ -1399,52 +1401,66 @@ function updateStandings(tA, tB, gA, gB) {
   else if (gB > gA) { stats(tB).W++; stats(tA).L++; stats(tB).Pts += 3; }
   else { stats(tA).D++; stats(tB).D++; stats(tA).Pts += 1; stats(tB).Pts += 1; }
 
-  const rows = Object.entries(standings).map(([team, s]) => ({
-    team, ...s, GD: s.GF - s.GA
-  })).sort((a, b) =>
-    b.Pts - a.Pts || b.GD - a.GD || b.GF - a.GF
-  );
+  // 🔀 Group teams by group
+  const grouped = {};
+  Object.entries(standings).forEach(([team, s]) => {
+    const group = s.group || "A";
+    if (!grouped[group]) grouped[group] = [];
+    grouped[group].push({
+      team,
+      ...s,
+      GD: s.GF - s.GA
+    });
+  });
 
-  const tableHTML = `
-    <table>
-      <thead>
-        <tr>
-          <th>Pos</th>
-          <th>Team</th>
-          <th>P</th>
-          <th>W</th>
-          <th>D</th>
-          <th>L</th>
-          <th>GF</th>
-          <th>GA</th>
-          <th>GD</th>
-          <th>Pts</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${rows.map((r, i) => `
+  // 🎨 Render HTML for each group
+  const container = document.getElementById("standingsTable");
+  container.innerHTML = "";
+
+  Object.keys(grouped).sort().forEach(group => {
+    const rows = grouped[group].sort((a, b) =>
+      b.Pts - a.Pts || b.GD - a.GD || b.GF - a.GF
+    );
+
+    container.innerHTML += `
+      <h3 style="margin-top:1em;">Group ${group}</h3>
+      <table>
+        <thead>
           <tr>
-            <td class="pos">${i + 1}</td>
-            <td class="club">
-              <img src="${getTeamLogo(r.team)}" class="club-logo" />
-              <span>${r.team}</span>
-            </td>
-            <td>${r.MP}</td>
-            <td>${r.W}</td>
-            <td>${r.D}</td>
-            <td>${r.L}</td>
-            <td>${r.GF}</td>
-            <td>${r.GA}</td>
-            <td>${r.GD}</td>
-            <td class="points">${r.Pts}</td>
-          </tr>`).join("")}
-      </tbody>
-    </table>
-  `;
-
-  document.getElementById("standingsTable").innerHTML = tableHTML;
+            <th>Pos</th>
+            <th>Team</th>
+            <th>P</th>
+            <th>W</th>
+            <th>D</th>
+            <th>L</th>
+            <th>GF</th>
+            <th>GA</th>
+            <th>GD</th>
+            <th>Pts</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map((r, i) => `
+            <tr>
+              <td>${i + 1}</td>
+              <td class="club">
+                <img src="${getTeamLogo(r.team)}" class="club-logo" />
+                <span>${r.team}</span>
+              </td>
+              <td>${r.MP}</td>
+              <td>${r.W}</td>
+              <td>${r.D}</td>
+              <td>${r.L}</td>
+              <td>${r.GF}</td>
+              <td>${r.GA}</td>
+              <td>${r.GD}</td>
+              <td class="points">${r.Pts}</td>
+            </tr>`).join("")}
+        </tbody>
+      </table>
+    `;
+  });
 }
-
 
 function exportSummary() {
   const lastMatchIndex = matchNumber - 1;
