@@ -1784,8 +1784,17 @@ function saveEditedMatchGoals(matchIndex) {
   recalculateMatchResult(matchIndex); // ✅ force refresh score from latest goals
 
   // 🔁 Pull updated match again (critical!)
-  const goals = allGoals.filter(g => g.match_number === matchIndex + 1);
-const [tA, tB] = matchups[matchIndex];
+// 🔁 Pull updated match again (critical!)
+const goals = allGoals.filter(g => g.match_number === matchIndex + 1);
+
+// ✅ Fix destructure error
+const matchup = matchups[matchIndex];
+if (!matchup || matchup.length !== 2) {
+  console.error("❌ Invalid or missing matchup at index", matchIndex, matchups);
+  alert("⚠️ Match team info not found. Please reload the page.");
+  return;
+}
+const [tA, tB] = matchup;
 const gA = goals.filter(g => g.team === tA).length;
 const gB = goals.filter(g => g.team === tB).length;
 
