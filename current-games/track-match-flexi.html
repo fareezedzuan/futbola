@@ -1778,6 +1778,7 @@ function saveEditedMatchGoals(matchIndex) {
 
   console.log("Match results AFTER:", matchResults);
   console.log("Standings AFTER:", standings);
+  recalculateMatchResult(matchIndex); // ✅ force refresh score from latest goals
 
   // 🔁 Pull updated match again (critical!)
   const match = matchResults[matchIndex];
