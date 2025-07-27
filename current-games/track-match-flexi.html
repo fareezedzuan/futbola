@@ -2434,9 +2434,8 @@ async function loadMatches(sessionId) {
     courtNames = sessionMeta?.court_names || [];
 
     // 3. Reset global state
-    matchResults = matches.map(m => {
-  console.log("📋 Loaded match with court:", m.match_number, m.court_number); // ✅ INSERT HERE
-
+matchResults = matches.map(m => {
+  console.log("📋 Loaded match with court:", m.match_number, m.court_number);
   return {
     id: m.id,
     number: m.match_number,
@@ -2448,6 +2447,9 @@ async function loadMatches(sessionId) {
     status: "incoming"
   };
 });
+
+// 🔧 ADD THIS to rebuild matchups properly
+matchups = matchResults.map(m => [m.tA, m.tB]);
 
     allGoals = [];
 
