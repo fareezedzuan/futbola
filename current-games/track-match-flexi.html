@@ -1748,6 +1748,7 @@ function deleteMatchGoal(matchIndex, i) {
     editMatchGoals(matchIndex); // Re-render the goal list
     updateLeaderboard(); // Optional: if you want top scorer table to update too
     recalculateMatchResult(matchIndex);
+    updateLiveScoreboard();
     recalculateStandingsFromAllMatches();
     updateMatchHistory();
   }
@@ -2076,7 +2077,7 @@ function confirmAddGoalToMatch() {
   recalculateStandingsFromAllMatches();
   updateLeaderboard();
   updateMatchHistory();
-  
+
   closeEditAddGoalPopup();
   editMatchGoals(matchIndex);
 }
