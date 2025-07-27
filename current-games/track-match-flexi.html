@@ -1297,11 +1297,19 @@ function updateMatchHistory() {
       container.appendChild(heading);
 
       groupedByCourt[court].forEach(m => {
-        const row = document.createElement("div");
-        row.className = "match-result-row";
-                if (m.status === "pending") {
-          row.classList.add("blinking");
-        }
+      const row = document.createElement("div");
+      row.className = "match-result-row";
+      if (m.status === "pending") {
+        row.classList.add("blinking");
+      }
+
+      // 🆕 Make row clickable to edit
+      row.style.cursor = "pointer";
+      row.addEventListener("click", () => {
+        const index = matchResults.findIndex(m2 => m2.number === m.number);
+        editMatchGoals(index);
+        document.getElementById("matchTitle").scrollIntoView({ behavior: "smooth" });
+      });
 
 
         row.innerHTML = `
