@@ -1915,11 +1915,22 @@ function recalculateMatchResult(matchIndex) {
   const goals = allGoals.filter(g => g.match_number === matchIndex + 1);
   if (!matchups[matchIndex]) return;
 
+  // ✅ Add this after filtering goals
+  console.log("🧮 Recalculating result for Match", matchIndex + 1);
+  console.log("Goals:", goals);
+
   const [tA, tB] = matchups[matchIndex];
   const gA = goals.filter(g => g.team === tA).length;
   const gB = goals.filter(g => g.team === tB).length;
 
-  matchResults[matchIndex] = { tA, tB, gA, gB };
+  // ✅ Add this before updating matchResults
+  console.log("→ Score A:", gA, "| Score B:", gB);
+
+  // 🔁 Use Object.assign instead of overwrite
+  Object.assign(matchResults[matchIndex], { tA, tB, gA, gB });
+
+  // ✅ Add this right after update
+  console.log("→ Updated matchResults[matchIndex]:", matchResults[matchIndex]);
 }
 
 
