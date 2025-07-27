@@ -582,6 +582,27 @@
 @keyframes blink {
   50% { border-color: transparent; }
 }
+select.dropdown {
+  background-color: white;
+  border: 2px solid #ff5a5f;
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 16px;
+  font-weight: bold;
+  color: #702963;
+  margin: 6px 0 12px;
+  width: 100%;
+  appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg fill='%23702963' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+  background-repeat: no-repeat;
+  background-position-x: 98%;
+  background-position-y: center;
+}
+select.dropdown:focus {
+  outline: none;
+  border-color: #cc0000;
+  box-shadow: 0 0 0 2px rgba(255, 90, 95, 0.3);
+}
 
   </style>
 </head>
@@ -618,12 +639,12 @@
   </select>
 
   <label for="courtFilter">Filter by Court:</label>
-<select id="courtFilter">
+<select id="courtFilter" class="dropdown">
   <option value="all">All Courts</option>
 </select>
 
-<label for="groupFilter">Filter by Group:</label>
-<select id="groupFilter">
+<label for="groupFilter">Filter by Group: </label>
+<select id="groupFilter" class="dropdown">
   <option value="all">All Groups</option>
 </select>
 
