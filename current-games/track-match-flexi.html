@@ -1760,6 +1760,9 @@ function deleteMatchGoal(matchIndex, i) {
 }
 
 function saveEditedMatchGoals(matchIndex) {
+  console.warn("🧠 matchIndex:", matchIndex);
+  console.warn("🧠 matchResults.length:", matchResults.length);
+  console.warn("🧠 matchResults[matchIndex]:", matchResults[matchIndex]);
   alert(`✅ Saved edits for Match ${matchIndex + 1}.`);
 
   const matchNumber = matchIndex + 1;
@@ -1812,7 +1815,6 @@ const match = { tA, tB, gA, gB };
     return;
   }
 
-console.log("💾 FINAL payload:", payload);
   console.log("📦 Edited match goals payload:", JSON.stringify(updatedGoals, null, 2));
 
   fetch('/api/save-match-result', {
