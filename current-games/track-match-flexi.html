@@ -622,6 +622,11 @@
   <option value="all">All Courts</option>
 </select>
 
+<label for="groupFilter">Filter by Group:</label>
+<select id="groupFilter">
+  <option value="all">All Groups</option>
+</select>
+
 
   <label for="matchDropdown" style="font-weight:bold; color:#702963;">Select Match to Officiate:</label>
   <select id="matchDropdown" class="dropdown" style="width:100%; padding:8px; font-size:16px;">
@@ -2223,6 +2228,30 @@ try {
       courtFilter.appendChild(opt);
     });
 
+    // 🆕 Populate groupFilter dropdown
+    const groupFilter = document.getElementById("groupFilter");
+    try {
+      const { data: groups, error: groupError } = await supabaseClient
+        .from("session_matches")
+        .select("group_label")
+        .eq("game_session_id", sessionId)
+        .not("group_label", "is", null);
+
+      if (groupError) throw groupError;
+
+      const uniqueGroups = [...new Set(groups.map(g => g.group_label))];
+
+      groupFilter.innerHTML = `<option value="all">All Groups</option>`;
+      uniqueGroups.forEach(label => {
+        const opt = document.createElement("option");
+        opt.value = label;
+        opt.textContent = label;
+        groupFilter.appendChild(opt);
+      });
+    } catch (err) {
+      console.error("❌ Failed to load group labels:", err);
+    }
+
     // Load MVP players
     try {
       const { data: users, error } = await supabaseClient
@@ -2284,6 +2313,12 @@ setInterval(async () => {
     if (sessionId) loadMatches(sessionId);
   });
 
+  // 🆕 Filter matches by group
+  groupFilter.addEventListener("change", () => {
+    const sessionId = sessionDropdown.value;
+    if (sessionId) loadMatches(sessionId);
+  });
+
 
   // Load matches based on session + court
 async function loadMatches(sessionId) {
@@ -2306,6 +2341,11 @@ async function loadMatches(sessionId) {
   if (selectedCourt !== "all") {
     query = query.eq("court_number", parseInt(selectedCourt));
   }
+
+  const selectedGroup = document.getElementById("groupFilter")?.value;
+    if (selectedGroup && selectedGroup !== "all") {
+      query = query.eq("group_label", selectedGroup);
+    }
 
   try {
     // 1. Fetch matches
