@@ -243,6 +243,8 @@
 
 <div id="groupInputs"></div>
 
+<div id="groupAssignmentContainer"></div>
+
 <!-- 🔁 Only show for round robin -->
 <div id="roundsInputWrapper">
   <label for="roundsInput" style="font-weight:bold;">Number of Rounds:</label>
@@ -472,6 +474,13 @@ teamInputs.appendChild(wrapper);
 
       }
       generatePlayerAssignment();
+      const groupCount = parseInt(document.getElementById("groupCount")?.value || "1");
+const teamNames = [];
+for (let i = 0; i < count; i++) {
+  const val = document.getElementById(`team${i}`)?.value?.trim();
+  if (val) teamNames.push(val);
+}
+renderGroupAssignmentUI(groupCount, teamNames);
     }
 
     function getTeamLogo(colorName) {
@@ -688,6 +697,14 @@ function generateGroupInputs() {
     wrapper.appendChild(label);
     wrapper.appendChild(input);
     groupInputs.appendChild(wrapper);
+    // ✅ Also update group assignment UI when group count changes
+const teamCount = parseInt(document.getElementById("teamCount")?.value || "0");
+const teamNames = [];
+for (let i = 0; i < teamCount; i++) {
+  const val = document.getElementById(`team${i}`)?.value?.trim();
+  if (val) teamNames.push(val);
+}
+renderGroupAssignmentUI(count, teamNames);
   }
 }
 
@@ -716,6 +733,14 @@ async function startGame() {
       const name = document.getElementById(`groupName${i}`)?.value.trim() || `Group ${String.fromCharCode(65 + i)}`;
       groupNames.push(name);
     }
+  
+  const groupAssignment = {};
+  groupNames.forEach((group, i) => {
+    const groupLetter = String.fromCharCode(65 + i); // A, B, ...
+    const checkboxes = document.querySelectorAll(`input[name="group-${groupLetter}"]:checked`);
+    const teamsInGroup = Array.from(checkboxes).map(cb => cb.value);
+    groupAssignment[group] = teamsInGroup;
+  });
 
   await supabase.from('games_sessions').delete().eq('game_id', gameId);
 
@@ -728,6 +753,7 @@ async function startGame() {
       num_courts: courtCount,
       court_names: courtNames, // ✅ already saved here
       group_names: groupNames, 
+      group_assignment: groupAssignment,
       match_duration: duration, // 👈 optional: save match duration too
       team_count: count         // 👈 optional: save number of teams
     }])
@@ -1048,6 +1074,34 @@ if (playStyle === "multi_stage" && uniqueTeams.length === 8 && courtCount === 2)
       courtInputs.appendChild(wrapper);
     }
   }
+  
+function renderGroupAssignmentUI(groupCount, teamNames) {
+  const container = document.getElementById("groupAssignmentContainer");
+  container.innerHTML = "";
+
+  const groups = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".slice(0, groupCount).split("");
+
+  const usedTeams = new Set();
+
+  groups.forEach(group => {
+    const groupDiv = document.createElement("div");
+    groupDiv.className = "group-box";
+    groupDiv.innerHTML = `<h4>Group ${group}</h4>`;
+
+    teamNames.forEach(team => {
+      const label = document.createElement("label");
+      label.style.marginRight = "1em";
+      const id = `group-${group}-team-${team}`;
+      label.innerHTML = `
+        <input type="checkbox" id="${id}" name="group-${group}" value="${team}">
+        ${team}
+      `;
+      groupDiv.appendChild(label);
+    });
+
+    container.appendChild(groupDiv);
+  });
+}
 
   function handlePlayStyleChange() {
     const selectedStyle = document.getElementById("playStyle").value;
