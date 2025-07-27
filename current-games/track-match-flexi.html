@@ -662,7 +662,7 @@ select.dropdown:focus {
 
     <div class="row-display">
       <div class="team-block" onclick="triggerScorer('A')">
-        <img id="teamAIcon" src="./images/default.png" />
+        <img id="teamAIcon" src="./images/futbolaLogo.png" />
         <span id="teamAName">Team A</span>
         <div class="score-number" id="scoreA">0</div>
         <div class="goal-log" id="goalLogA"></div>
@@ -673,7 +673,7 @@ select.dropdown:focus {
       </div>
 
       <div class="team-block" onclick="triggerScorer('B')">
-        <img id="teamBIcon" src="./images/default.png" />
+        <img id="teamBIcon" src="./images/futbolaLogo.png" />
         <span id="teamBName">Team B</span>
         <div class="score-number" id="scoreB">0</div>
         <div class="goal-log" id="goalLogB"></div>
@@ -864,7 +864,7 @@ function getTeamLogo(colorName) {
     Blue: "../images/blue.png",
     Turquoise: "../images/turquoise.png"
   };
-  return logos[colorName] || "../images/default.png"; // fallback
+  return logos[colorName] || "../images/futbolaLogo.png"; // fallback
 }
 
 async function handleTimerClick() {
