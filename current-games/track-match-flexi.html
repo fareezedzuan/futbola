@@ -1799,10 +1799,14 @@ const gA = goals.filter(g => g.team === tA).length;
 const gB = goals.filter(g => g.team === tB).length;
 
 const match = { tA, tB, gA, gB };
+
   if (!match) {
     console.error("❌ Match not found at index", matchIndex);
     return;
   }
+  // ✅ Patch matchResults so the updated score reflects visually too
+matchResults[matchIndex].gA = gA;
+matchResults[matchIndex].gB = gB;
 
   // 🔐 Prepare payload
   const payload = {
