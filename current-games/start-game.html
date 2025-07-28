@@ -740,7 +740,12 @@ async function startGame() {
   const count = parseInt(document.getElementById("teamCount").value);
   const gameId = document.getElementById("gameSelect").value;
   const duration = parseInt(document.getElementById("duration").value);
-  const teamNames = [], teamPlayers = [];
+  const teamPlayers = [];
+  const teamNames = [];
+  for (let i = 0; i < count; i++) {
+    const val = document.getElementById(`team${i}`)?.value?.trim();
+    if (val) teamNames.push(val);
+  }
   const playStyle = document.getElementById("playStyle").value;
   
   const courtCount = parseInt(document.getElementById("courtCount").value);
