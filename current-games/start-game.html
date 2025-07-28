@@ -492,15 +492,14 @@ groupNames.forEach(group => groupAssignment[group] = []);
 
 teamNames.forEach(team => {
   const groupSelect = document.querySelector(`select[name="group-assignment-${team}"]`);
-  const selected = groupSelect ? groupSelect.value : "";
-  const assignedGroup = groupNames.find(g => g === selected || g.endsWith(selected)) || groupNames[0];
-  
-  if (groupAssignment[assignedGroup]) {
-    groupAssignment[assignedGroup].push(team);
-    console.log(`✅ Assigned ${team} → ${assignedGroup}`);
-  } else {
-    console.warn(`⚠️ Could not assign ${team}. Invalid group:`, assignedGroup);
+  const assignedGroup = groupSelect ? groupSelect.value : groupNames[0]; // ✅ use select value directly
+
+  if (!groupAssignment[assignedGroup]) {
+    groupAssignment[assignedGroup] = [];
   }
+
+  groupAssignment[assignedGroup].push(team);
+  console.log(`✅ Assigned ${team} → ${assignedGroup}`);
 });
 
 console.log("🧠 Final groupAssignment", groupAssignment);
