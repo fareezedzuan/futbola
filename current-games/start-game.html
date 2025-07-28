@@ -830,6 +830,38 @@ async function startGame() {
   const uniqueTeams = [...new Set(sessionTeams.map(t => t.team_color))];
 
   await supabase.from('session_matches').delete().eq('game_session_id', gameSessionId);
+  // 🧠 Generate round-robin matches per group
+let matchInsertData = [];
+let matchCounter = 1;
+
+for (const [groupLabel, teams] of Object.entries(groupAssignment)) {
+  const groupMatches = [];
+
+  for (let i = 0; i < teams.length - 1; i++) {
+    for (let j = i + 1; j < teams.length; j++) {
+      groupMatches.push({
+        game_session_id: gameSessionId,
+        team1_id: teams[i],
+        team2_id: teams[j],
+        round: 1,
+        match_number: matchCounter++,
+        court_number: ((matchCounter - 2) % courtCount) + 1,
+        stage: "group",
+        group_label: groupLabel
+      });
+    }
+  }
+
+  matchInsertData = matchInsertData.concat(groupMatches);
+}
+
+const { error: insertMatchErr } = await supabase.from('session_matches').insert(matchInsertData);
+
+if (insertMatchErr) {
+  console.error("❌ Failed to insert group matches:", insertMatchErr);
+} else {
+  console.log(`✅ Inserted ${matchInsertData.length} group matches.`);
+}
 
 if (playStyle === "multi_stage" && uniqueTeams.length === 8 && courtCount === 2) {
   const shuffled = [...uniqueTeams].sort(() => Math.random() - 0.5);
@@ -1121,6 +1153,7 @@ function renderGroupAssignmentUI(groupCount, teamNames) {
 
   container.appendChild(groupSelectRow);
 }
+
   function handlePlayStyleChange() {
     const selectedStyle = document.getElementById("playStyle").value;
     const roundsWrapper = document.getElementById("roundsInputWrapper");
