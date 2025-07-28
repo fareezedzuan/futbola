@@ -759,11 +759,39 @@ async function startGame() {
       groupNames.push(name);
     }
   
+    // ✅ Rebuild groupAssignment before saving
+const groupAssignment = {};
+groupNames.forEach(group => groupAssignment[group] = []);
+
+teamNames.forEach(team => {
+  const groupSelect = document.querySelector(`select[name="group-assignment-${team}"]`);
+  const assignedGroup = groupSelect ? groupSelect.value : groupNames[0];
+  if (groupAssignment[assignedGroup]) {
+    groupAssignment[assignedGroup].push(team);
+    console.log(`✅ Assigned ${team} → ${assignedGroup}`);
+  } else {
+    console.warn(`⚠️ Could not assign ${team}. Invalid group:`, assignedGroup);
+  }
+});
+
+console.log("🧠 Final groupAssignment", groupAssignment);
 
 
 
 
   await supabase.from('games_sessions').delete().eq('game_id', gameId);
+
+  console.log("📦 Saving game session with data:", {
+  game_id: gameId,
+  play_style: playStyle,
+  rounds: rounds,
+  num_courts: courtCount,
+  court_names: courtNames,
+  group_names: groupNames,
+  group_assignment: groupAssignment,
+  match_duration: duration,
+  team_count: count
+});
 
   const { data: gameSession, error: sessionError } = await supabase
     .from('games_sessions')
