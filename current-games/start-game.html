@@ -408,10 +408,12 @@ if (session.group_assignment && typeof session.group_assignment === "object") {
     if (el) el.value = groupName;
   });
 
-  // Set up team names
-  const allTeams = Object.values(session.group_assignment).flat();
-  document.getElementById("teamCount").value = allTeams.length;
-  generateTeamInputs();
+// Set up team names
+const allTeams = Object.values(session.group_assignment).flat();
+document.getElementById("teamCount").value = allTeams.length;
+window.__suppressGroupAssignment = true; // ⛔️ block auto-grouping
+generateTeamInputs();
+window.__suppressGroupAssignment = false;
 
   setTimeout(() => {
     // Assign team names
@@ -423,14 +425,19 @@ if (session.group_assignment && typeof session.group_assignment === "object") {
     // Re-render group assignment dropdowns
     renderGroupAssignmentUI(groupNames.length, allTeams);
 
-    // Set group assignment values
-    allTeams.forEach(team => {
-      const assignedGroup = groupNames.find(group => session.group_assignment[group].includes(team));
-      const selectEl = document.querySelector(`select[name="group-assignment-${team}"]`);
-      if (selectEl && assignedGroup) {
-        selectEl.value = assignedGroup.endsWith(" ") ? assignedGroup.trim().slice(-1) : assignedGroup.slice(-1);
-      }
-    });
+// 🧠 Apply saved group dropdown selections
+allTeams.forEach(team => {
+  const assignedGroup = groupNames.find(group => session.group_assignment[group]?.includes(team));
+  const selectEl = document.querySelector(`select[name="group-assignment-${team}"]`);
+  
+  if (selectEl && assignedGroup) {
+    // Use exact group name match — do NOT slice characters
+    selectEl.value = assignedGroup;
+    console.log(`✅ Set dropdown for ${team} → ${assignedGroup}`);
+  } else {
+    console.warn(`⚠️ Could not set group for ${team}`);
+  }
+});
 
     console.log("✅ Group assignment UI loaded.");
   }, 200);
@@ -518,36 +525,34 @@ teamInputs.appendChild(wrapper);
 
       }
       generatePlayerAssignment();
-      const groupCount = parseInt(document.getElementById("groupCount")?.value || "1");
-const teamNames = [];
-for (let i = 0; i < count; i++) {
-  const val = document.getElementById(`team${i}`)?.value?.trim();
-  if (val) teamNames.push(val);
-}
-// ✅ Rebuild groupAssignment after team selection
-const groupNames = Array.from({ length: groupCount }, (_, i) => {
-  const el = document.getElementById(`groupName${i}`);
-  return el ? el.value.trim() : `Group ${String.fromCharCode(65 + i)}`;
-});
-
-groupAssignment = {};
-groupNames.forEach(group => groupAssignment[group] = []);
-
-teamNames.forEach(team => {
-  const groupSelect = document.querySelector(`select[name="group-assignment-${team}"]`);
-  const assignedGroup = groupSelect ? groupSelect.value : groupNames[0]; // ✅ use select value directly
-
-  if (!groupAssignment[assignedGroup]) {
-    groupAssignment[assignedGroup] = [];
+if (!window.__suppressGroupAssignment) {
+  const groupCount = parseInt(document.getElementById("groupCount")?.value || "1");
+  const teamNames = [];
+  for (let i = 0; i < count; i++) {
+    const val = document.getElementById(`team${i}`)?.value?.trim();
+    if (val) teamNames.push(val);
   }
 
-  groupAssignment[assignedGroup].push(team);
-  console.log(`✅ Assigned ${team} → ${assignedGroup}`);
-});
+  const groupNames = Array.from({ length: groupCount }, (_, i) => {
+    const el = document.getElementById(`groupName${i}`);
+    return el ? el.value.trim() : `Group ${String.fromCharCode(65 + i)}`;
+  });
 
-console.log("🧠 Final groupAssignment", groupAssignment);
+  groupAssignment = {};
+  groupNames.forEach(group => groupAssignment[group] = []);
 
-renderGroupAssignmentUI(groupCount, teamNames);
+  teamNames.forEach(team => {
+    const groupSelect = document.querySelector(`select[name="group-assignment-${team}"]`);
+    const assignedGroup = groupSelect ? groupSelect.value : groupNames[0];
+    if (!groupAssignment[assignedGroup]) groupAssignment[assignedGroup] = [];
+    groupAssignment[assignedGroup].push(team);
+    console.log(`✅ Assigned ${team} → ${assignedGroup}`);
+  });
+
+  console.log("🧠 Final groupAssignment", groupAssignment);
+  renderGroupAssignmentUI(groupCount, teamNames);
+}
+
     }
 
     function getTeamLogo(colorName) {
