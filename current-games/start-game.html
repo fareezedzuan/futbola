@@ -487,14 +487,19 @@ const groupNames = Array.from({ length: groupCount }, (_, i) => {
   return el ? el.value.trim() : `Group ${String.fromCharCode(65 + i)}`;
 });
 
-groupAssignment = {};
+const groupAssignment = {};
 groupNames.forEach(group => groupAssignment[group] = []);
 
 teamNames.forEach(team => {
   const groupSelect = document.querySelector(`select[name="group-assignment-${team}"]`);
-  const assignedGroup = groupSelect ? groupSelect.value : "A";
-  const groupName = groupNames.find(g => g.endsWith(assignedGroup)) || groupNames[0];
-  groupAssignment[groupName].push(team);
+  const assignedGroup = groupSelect ? groupSelect.value : groupNames[0];
+  
+  if (groupAssignment[assignedGroup]) {
+    groupAssignment[assignedGroup].push(team);
+    console.log(`✅ Assigned ${team} → ${assignedGroup}`);
+  } else {
+    console.warn(`⚠️ Could not assign ${team}. Invalid group:`, assignedGroup);
+  }
 });
 
 console.log("🧠 Final groupAssignment", groupAssignment);
