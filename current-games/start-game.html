@@ -760,7 +760,7 @@ async function startGame() {
     }
   
     // ✅ Rebuild groupAssignment before saving
-const groupAssignment = {};
+groupAssignment = {}; // reuse the global one
 groupNames.forEach(group => groupAssignment[group] = []);
 
 teamNames.forEach(team => {
