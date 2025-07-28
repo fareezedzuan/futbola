@@ -323,6 +323,7 @@
     let selectedPlayerName = "";
     let currentPlayerIndex = null;
     let currentTeamIndex = null;
+    let groupAssignment = {};
     const teamColors = ["Red", "White", "Green", "Orange", "Black", "Yellow", "Blue", "Turquoise"];
 
     async function fetchGames() {
@@ -486,7 +487,7 @@ const groupNames = Array.from({ length: groupCount }, (_, i) => {
   return el ? el.value.trim() : `Group ${String.fromCharCode(65 + i)}`;
 });
 
-const groupAssignment = {};
+groupAssignment = {};
 groupNames.forEach(group => groupAssignment[group] = []);
 
 teamNames.forEach(team => {
@@ -495,6 +496,7 @@ teamNames.forEach(team => {
   const groupName = groupNames.find(g => g.endsWith(assignedGroup)) || groupNames[0];
   groupAssignment[groupName].push(team);
 });
+
 console.log("🧠 Final groupAssignment", groupAssignment);
 
 renderGroupAssignmentUI(groupCount, teamNames);
