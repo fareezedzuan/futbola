@@ -526,30 +526,6 @@ teamInputs.appendChild(wrapper);
       }
       generatePlayerAssignment();
 if (!window.__suppressGroupAssignment) {
-  const groupCount = parseInt(document.getElementById("groupCount")?.value || "1");
-  const teamNames = [];
-  for (let i = 0; i < count; i++) {
-    const val = document.getElementById(`team${i}`)?.value?.trim();
-    if (val) teamNames.push(val);
-  }
-
-  const groupNames = Array.from({ length: groupCount }, (_, i) => {
-    const el = document.getElementById(`groupName${i}`);
-    return el ? el.value.trim() : `Group ${String.fromCharCode(65 + i)}`;
-  });
-
-  groupAssignment = {};
-  groupNames.forEach(group => groupAssignment[group] = []);
-
-  teamNames.forEach(team => {
-    const groupSelect = document.querySelector(`select[name="group-assignment-${team}"]`);
-    const assignedGroup = groupSelect ? groupSelect.value : groupNames[0];
-    if (!groupAssignment[assignedGroup]) groupAssignment[assignedGroup] = [];
-    groupAssignment[assignedGroup].push(team);
-    console.log(`✅ Assigned ${team} → ${assignedGroup}`);
-  });
-
-  console.log("🧠 Final groupAssignment", groupAssignment);
   renderGroupAssignmentUI(groupCount, teamNames);
 }
 
