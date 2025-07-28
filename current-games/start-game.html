@@ -372,7 +372,7 @@
 // 🧠 Load saved session config
 const { data: session, error: sessionError } = await supabase
   .from("games_sessions")
-  .select("match_duration, rounds, team_count, play_style, num_courts, court_names")
+  .select("match_duration, rounds, team_count, play_style, num_courts, court_names, group_assignment, group_names")
   .eq("game_id", gameId)
   .single();
 
@@ -391,6 +391,49 @@ if (session) {
       if (el) el.value = name;
     });
   }
+  
+}
+
+if (session.group_assignment && typeof session.group_assignment === "object") {
+  console.log("🧠 Loaded saved group assignment:", session.group_assignment);
+
+  // Set group count based on saved group keys
+  const groupNames = Object.keys(session.group_assignment);
+  document.getElementById("groupCount").value = groupNames.length;
+  generateGroupInputs(); // rebuild group name inputs
+
+  // Set group name inputs
+  groupNames.forEach((groupName, i) => {
+    const el = document.getElementById(`groupName${i}`);
+    if (el) el.value = groupName;
+  });
+
+  // Set up team names
+  const allTeams = Object.values(session.group_assignment).flat();
+  document.getElementById("teamCount").value = allTeams.length;
+  generateTeamInputs();
+
+  setTimeout(() => {
+    // Assign team names
+    allTeams.forEach((team, i) => {
+      const el = document.getElementById(`team${i}`);
+      if (el) el.value = team;
+    });
+
+    // Re-render group assignment dropdowns
+    renderGroupAssignmentUI(groupNames.length, allTeams);
+
+    // Set group assignment values
+    allTeams.forEach(team => {
+      const assignedGroup = groupNames.find(group => session.group_assignment[group].includes(team));
+      const selectEl = document.querySelector(`select[name="group-assignment-${team}"]`);
+      if (selectEl && assignedGroup) {
+        selectEl.value = assignedGroup.endsWith(" ") ? assignedGroup.trim().slice(-1) : assignedGroup.slice(-1);
+      }
+    });
+
+    console.log("✅ Group assignment UI loaded.");
+  }, 200);
 }
 
       const { data: teamData, error } = await supabase
