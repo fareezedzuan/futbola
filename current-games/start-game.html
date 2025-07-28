@@ -480,6 +480,23 @@ for (let i = 0; i < count; i++) {
   const val = document.getElementById(`team${i}`)?.value?.trim();
   if (val) teamNames.push(val);
 }
+// ✅ Rebuild groupAssignment after team selection
+const groupNames = Array.from({ length: groupCount }, (_, i) => {
+  const el = document.getElementById(`groupName${i}`);
+  return el ? el.value.trim() : `Group ${String.fromCharCode(65 + i)}`;
+});
+
+const groupAssignment = {};
+groupNames.forEach(group => groupAssignment[group] = []);
+
+teamNames.forEach(team => {
+  const groupSelect = document.querySelector(`select[name="group-assignment-${team}"]`);
+  const assignedGroup = groupSelect ? groupSelect.value : "A";
+  const groupName = groupNames.find(g => g.endsWith(assignedGroup)) || groupNames[0];
+  groupAssignment[groupName].push(team);
+});
+console.log("🧠 Final groupAssignment", groupAssignment);
+
 renderGroupAssignmentUI(groupCount, teamNames);
     }
 
@@ -734,10 +751,7 @@ async function startGame() {
       groupNames.push(name);
     }
   
-  const groupAssignment = {};
-  groupNames.forEach((groupName, i) => {
-    groupAssignment[groupName] = [];
-  });
+
 
 
 
