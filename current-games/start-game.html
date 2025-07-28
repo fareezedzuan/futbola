@@ -487,7 +487,7 @@ const groupNames = Array.from({ length: groupCount }, (_, i) => {
   return el ? el.value.trim() : `Group ${String.fromCharCode(65 + i)}`;
 });
 
-const groupAssignment = {};
+groupAssignment = {};
 groupNames.forEach(group => groupAssignment[group] = []);
 
 teamNames.forEach(team => {
