@@ -739,13 +739,7 @@ async function startGame() {
     groupAssignment[groupName] = [];
   });
 
-  teamNames.forEach(team => {
-    const groupSelect = document.querySelector(`select[name="group-assignment-${team}"]`);
-    const assignedGroup = groupSelect ? groupSelect.value : "A";
-    const groupName = groupNames.find(g => g.endsWith(assignedGroup)) || groupNames[0];
-    if (!groupAssignment[groupName]) groupAssignment[groupName] = [];
-    groupAssignment[groupName].push(team);
-  });
+
 
   await supabase.from('games_sessions').delete().eq('game_id', gameId);
 
@@ -790,6 +784,13 @@ async function startGame() {
       });
     teamPlayers.push(selected);
   }
+    teamNames.forEach(team => {
+    const groupSelect = document.querySelector(`select[name="group-assignment-${team}"]`);
+    const assignedGroup = groupSelect ? groupSelect.value : "A";
+    const groupName = groupNames.find(g => g.endsWith(assignedGroup)) || groupNames[0];
+    if (!groupAssignment[groupName]) groupAssignment[groupName] = [];
+    groupAssignment[groupName].push(team);
+  });
 
   await Promise.all(
     activePlayers.map(p => {
@@ -946,7 +947,7 @@ if (playStyle === "multi_stage" && uniqueTeams.length === 8 && courtCount === 2)
   } else {
     console.log("✅ Inserted 24 multi-stage matches.");
   }
-} else if (playStyle === "round_robin") {
+} else if ("round_robin" && groupCount === 1) {
     function generateRoundRobinMatches(teams, rounds) {
       const matches = [];
       const padded = [...teams];
