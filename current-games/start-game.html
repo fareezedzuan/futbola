@@ -735,11 +735,16 @@ async function startGame() {
     }
   
   const groupAssignment = {};
-  groupNames.forEach((group, i) => {
-    const groupLetter = String.fromCharCode(65 + i); // A, B, ...
-    const checkboxes = document.querySelectorAll(`input[name="group-${groupLetter}"]:checked`);
-    const teamsInGroup = Array.from(checkboxes).map(cb => cb.value);
-    groupAssignment[group] = teamsInGroup;
+  groupNames.forEach((groupName, i) => {
+    groupAssignment[groupName] = [];
+  });
+
+  teamNames.forEach(team => {
+    const groupSelect = document.querySelector(`select[name="group-assignment-${team}"]`);
+    const assignedGroup = groupSelect ? groupSelect.value : "A";
+    const groupName = groupNames.find(g => g.endsWith(assignedGroup)) || groupNames[0];
+    if (!groupAssignment[groupName]) groupAssignment[groupName] = [];
+    groupAssignment[groupName].push(team);
   });
 
   await supabase.from('games_sessions').delete().eq('game_id', gameId);
@@ -1079,30 +1084,43 @@ function renderGroupAssignmentUI(groupCount, teamNames) {
   const container = document.getElementById("groupAssignmentContainer");
   container.innerHTML = "";
 
-  const groups = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".slice(0, groupCount).split("");
+  const groupLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".slice(0, groupCount).split("");
 
-  const usedTeams = new Set();
+  if (groupCount === 1) {
+    // Auto assign all to Group A (no manual input needed)
+    return;
+  }
 
-  groups.forEach(group => {
-    const groupDiv = document.createElement("div");
-    groupDiv.className = "group-box";
-    groupDiv.innerHTML = `<h4>Group ${group}</h4>`;
+  const groupSelectRow = document.createElement("div");
+  groupSelectRow.style.display = "grid";
+  groupSelectRow.style.gridTemplateColumns = "repeat(auto-fit, minmax(180px, 1fr))";
+  groupSelectRow.style.gap = "12px";
 
-    teamNames.forEach(team => {
-      const label = document.createElement("label");
-      label.style.marginRight = "1em";
-      const id = `group-${group}-team-${team}`;
-      label.innerHTML = `
-        <input type="checkbox" id="${id}" name="group-${group}" value="${team}">
-        ${team}
-      `;
-      groupDiv.appendChild(label);
+  teamNames.forEach(team => {
+    const wrapper = document.createElement("div");
+
+    const label = document.createElement("label");
+    label.textContent = `Group for ${team}`;
+    label.style.fontWeight = "bold";
+    label.style.color = "#702963";
+    label.style.display = "block";
+
+    const select = document.createElement("select");
+    select.name = `group-assignment-${team}`;
+    groupLetters.forEach(g => {
+      const opt = document.createElement("option");
+      opt.value = g;
+      opt.textContent = `Group ${g}`;
+      select.appendChild(opt);
     });
 
-    container.appendChild(groupDiv);
+    wrapper.appendChild(label);
+    wrapper.appendChild(select);
+    groupSelectRow.appendChild(wrapper);
   });
-}
 
+  container.appendChild(groupSelectRow);
+}
   function handlePlayStyleChange() {
     const selectedStyle = document.getElementById("playStyle").value;
     const roundsWrapper = document.getElementById("roundsInputWrapper");
