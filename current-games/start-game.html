@@ -805,18 +805,20 @@ async function startGame() {
 const groupAssignment = {};
 groupNames.forEach(group => groupAssignment[group] = []);
 
-groupAssignment = {};
-groupNames.forEach(g => groupAssignment[g] = []);
-
 teamNames.forEach(team => {
   const groupSelect = document.querySelector(`select[name="group-assignment-${team}"]`);
-  const assignedGroup = groupSelect ? groupSelect.value.trim() : "";
+  const selectedValue = groupSelect?.value;
 
-  if (groupAssignment[assignedGroup]) {
+  // 🔍 Match the full group name, not just "A", "B", etc.
+  const assignedGroup = groupNames.find(name =>
+    name === selectedValue || name.endsWith(selectedValue)
+  );
+
+  if (assignedGroup && groupAssignment[assignedGroup]) {
     groupAssignment[assignedGroup].push(team);
     console.log(`✅ Assigned ${team} → ${assignedGroup}`);
   } else {
-    console.warn(`⚠️ Could not assign ${team}. Invalid group:`, assignedGroup);
+    console.warn(`⚠️ Could not assign ${team}. Invalid group:`, selectedValue);
   }
 });
 
