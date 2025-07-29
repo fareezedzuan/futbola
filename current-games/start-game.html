@@ -539,22 +539,7 @@ if (!window.__suppressGroupAssignment) {
     return el ? el.value.trim() : `Group ${String.fromCharCode(65 + i)}`;
   });
 
-  groupAssignment = {};
-  groupNames.forEach(group => groupAssignment[group] = []);
-
-  teamNames.forEach(team => {
-    const groupSelect = document.querySelector(`select[name="group-assignment-${team}"]`);
-    const suffix = groupSelect ? groupSelect.value : "";
-    const assignedGroup = groupNames.find(g => g.endsWith(suffix)) || groupNames[0];
-
-    if (!groupAssignment[assignedGroup]) groupAssignment[assignedGroup] = [];
-    groupAssignment[assignedGroup].push(team);
-
-    console.log(`✅ Assigned ${team} → ${assignedGroup}`);
-  });
-
-  console.log("🧠 Final groupAssignment", groupAssignment);
-
+  // ❌ Don't rebuild groupAssignment here — only UI
   renderGroupAssignmentUI(groupCount, teamNames);
 }
 
