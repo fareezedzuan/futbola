@@ -415,31 +415,15 @@ window.__suppressGroupAssignment = true; // ⛔️ block auto-grouping
 generateTeamInputs();
 window.__suppressGroupAssignment = false;
 
-setTimeout(() => {
-  // ✅ 1. Set team names first
-  allTeams.forEach((team, i) => {
-    const el = document.getElementById(`team${i}`);
-    if (el) el.value = team;
-  });
+  setTimeout(() => {
+    // Assign team names
+    allTeams.forEach((team, i) => {
+      const el = document.getElementById(`team${i}`);
+      if (el) el.value = team;
+    });
 
-  // ✅ 2. Then re-render the group dropdowns
-  renderGroupAssignmentUI(groupNames.length, allTeams);
-
-  // ✅ 3. Set dropdown values to saved group
-  allTeams.forEach(team => {
-    const assignedGroup = groupNames.find(group => session.group_assignment[group]?.includes(team));
-    const selectEl = document.querySelector(`select[name="group-assignment-${team}"]`);
-    
-    if (selectEl && assignedGroup) {
-      selectEl.value = assignedGroup;
-      console.log(`✅ Set dropdown for ${team} → ${assignedGroup}`);
-    } else {
-      console.warn(`⚠️ Could not set group for ${team}`);
-    }
-  });
-
-  console.log("✅ Group assignment UI loaded.");
-}, 200);
+    // Re-render group assignment dropdowns
+    renderGroupAssignmentUI(groupNames.length, allTeams);
 
 // 🧠 Apply saved group dropdown selections
 allTeams.forEach(team => {
