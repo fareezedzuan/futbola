@@ -544,7 +544,8 @@ if (!window.__suppressGroupAssignment) {
 
   teamNames.forEach(team => {
     const groupSelect = document.querySelector(`select[name="group-assignment-${team}"]`);
-    const assignedGroup = groupSelect ? groupSelect.value : groupNames[0];
+    const suffix = groupSelect ? groupSelect.value : "";
+    const assignedGroup = groupNames.find(g => g.endsWith(suffix)) || groupNames[0];
 
     if (!groupAssignment[assignedGroup]) groupAssignment[assignedGroup] = [];
     groupAssignment[assignedGroup].push(team);
