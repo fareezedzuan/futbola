@@ -1208,7 +1208,11 @@ function renderGroupAssignmentUI(groupCount, teamNames) {
   const container = document.getElementById("groupAssignmentContainer");
   container.innerHTML = "";
 
-  const groupLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".slice(0, groupCount).split("");
+  const groupNames = [];
+  for (let i = 0; i < groupCount; i++) {
+    const input = document.getElementById(`groupName${i}`);
+    groupNames.push(input?.value?.trim() || `Group ${String.fromCharCode(65 + i)}`);
+  }
 
   if (groupCount === 1) {
     // Auto assign all to Group A (no manual input needed)
@@ -1231,10 +1235,10 @@ function renderGroupAssignmentUI(groupCount, teamNames) {
 
     const select = document.createElement("select");
     select.name = `group-assignment-${team}`;
-    groupLetters.forEach(g => {
+    groupNames.forEach(name => {
       const opt = document.createElement("option");
-      opt.value = g;
-      opt.textContent = `Group ${g}`;
+      opt.value = name;
+      opt.textContent = name;
       select.appendChild(opt);
     });
 
