@@ -810,8 +810,10 @@ teamNames.forEach(team => {
   const selectedValue = groupSelect?.value;
 
   // 🔍 Match the full group name, not just "A", "B", etc.
-  const assignedGroup = groupNames.find(name => name === selectedValue);
-  
+  const assignedGroup = groupNames.find(name =>
+    name === selectedValue || name.endsWith(selectedValue)
+  );
+
   if (assignedGroup && groupAssignment[assignedGroup]) {
     groupAssignment[assignedGroup].push(team);
     console.log(`✅ Assigned ${team} → ${assignedGroup}`);
