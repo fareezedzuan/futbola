@@ -536,7 +536,7 @@ if (!window.__suppressGroupAssignment) {
 
 const groupNames = Array.from({ length: groupCount }, (_, i) => {
   const el = document.getElementById(`groupName${i}`);
-  return el ? `Group ${el.value.trim()}` : `Group ${String.fromCharCode(65 + i)}`;
+  return el ? el.value.trim() : `Group ${String.fromCharCode(65 + i)}`;
 });
 
   // ❌ Don't rebuild groupAssignment here — only UI
@@ -1237,14 +1237,14 @@ for (let i = 0; i < groupCount; i++) {
     label.style.color = "#702963";
     label.style.display = "block";
 
-    const select = document.createElement("select");
-    select.name = `group-assignment-${team}`;
-    groupNames.forEach(name => {
-      const opt = document.createElement("option");
-      opt.value = name;
-      opt.textContent = name;
-      select.appendChild(opt);
-    });
+const select = document.createElement("select");
+select.name = `group-assignment-${team}`;
+groupNames.forEach(name => {
+  const opt = document.createElement("option");
+  opt.value = name;          // ✅ actual group name, e.g., "Cup"
+  opt.textContent = name;    // ✅ shown label matches
+  select.appendChild(opt);
+});
 
     wrapper.appendChild(label);
     wrapper.appendChild(select);
