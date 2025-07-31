@@ -395,7 +395,7 @@ if (session) {
 }
 
 if (session.group_assignment && typeof session.group_assignment === "object") {
-  console.log("🧠 Loaded saved group assignment:", session.group_assignment);
+  //console.log("🧠 Loaded saved group assignment:", session.group_assignment);
 
   // Set group count based on saved group keys
   const groupNames = Object.keys(session.group_assignment);
@@ -451,7 +451,7 @@ allTeams.forEach(team => {
   }
 });
 
-    console.log("✅ Group assignment UI loaded.");
+    //console.log("✅ Group assignment UI loaded.");
   }, 200);
 }
 
@@ -468,7 +468,7 @@ allTeams.forEach(team => {
       }
 
       if (teamData.length > 0) {
-        console.log("📥 Found existing session_teams:", teamData);
+        //console.log("📥 Found existing session_teams:", teamData);
 
         // 🔄 Auto-apply teams
         const teams = [...new Set(teamData.map(t => t.team_color))];
@@ -817,7 +817,7 @@ async function startGame() {
     }
   
 // ✅ Rebuild groupAssignment based on live selections
-console.log("📋 groupNames used to initialize groupAssignment:", groupNames);
+//console.log("📋 groupNames used to initialize groupAssignment:", groupNames);
 const groupAssignment = {};
 groupNames.forEach(group => groupAssignment[group] = []);
 console.log("✅ Available groupAssignment keys (init):", Object.keys(groupAssignment));
@@ -826,8 +826,8 @@ teamNames.forEach(team => {
   const groupSelect = document.querySelector(`select[name="group-assignment-${team}"]`);
   const selectedValue = groupSelect?.value;
 
-  console.log(`🔍 [Group Assignment] ${team} selected "${selectedValue}"`);
-  console.log("✅ Available groupAssignment keys:", Object.keys(groupAssignment));
+  // console.log(`🔍 [Group Assignment] ${team} selected "${selectedValue}"`);
+  // console.log("✅ Available groupAssignment keys:", Object.keys(groupAssignment));
 
   const assignedGroup = selectedValue;
 
@@ -844,7 +844,8 @@ console.log("🧠 Final groupAssignment", groupAssignment);
 // Clean old game session
 await supabase.from('games_sessions').delete().eq('game_id', gameId);
 
-console.log("📦 Saving game session with data:", {
+console.log("📦 Saving game session with data:", 
+{
   game_id: gameId,
   play_style: playStyle,
   rounds: rounds,
