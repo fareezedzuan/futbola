@@ -422,6 +422,18 @@ window.__suppressGroupAssignment = false;
       if (el) el.value = team;
     });
 
+  // Set group name inputs
+  groupNames.forEach((groupName, i) => {
+    const el = document.getElementById(`groupName${i}`);
+    if (el) el.value = groupName;
+  });
+
+  // ⛏️ Patch: ensure correct values used in dropdown
+  groupNames.forEach((name, i) => {
+    const el = document.getElementById(`groupName${i}`);
+    if (el) el.value = name;
+  });
+
     // Re-render group assignment dropdowns
     renderGroupAssignmentUI(groupNames.length, allTeams);
 
