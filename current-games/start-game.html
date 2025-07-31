@@ -534,10 +534,10 @@ if (!window.__suppressGroupAssignment) {
     if (val) teamNames.push(val);
   }
 
-  const groupNames = Array.from({ length: groupCount }, (_, i) => {
-    const el = document.getElementById(`groupName${i}`);
-    return el ? el.value.trim() : `Group ${String.fromCharCode(65 + i)}`;
-  });
+const groupNames = Array.from({ length: groupCount }, (_, i) => {
+  const el = document.getElementById(`groupName${i}`);
+  return el ? `Group ${el.value.trim()}` : `Group ${String.fromCharCode(65 + i)}`;
+});
 
   // ❌ Don't rebuild groupAssignment here — only UI
   renderGroupAssignmentUI(groupCount, teamNames);
@@ -802,6 +802,7 @@ async function startGame() {
     }
   
 // ✅ Rebuild groupAssignment based on live selections
+console.log("📋 groupNames used to initialize groupAssignment:", groupNames);
 const groupAssignment = {};
 groupNames.forEach(group => groupAssignment[group] = []);
 
