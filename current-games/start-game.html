@@ -772,13 +772,16 @@ function generateGroupInputs() {
     wrapper.appendChild(input);
     groupInputs.appendChild(wrapper);
     // ✅ Also update group assignment UI when group count changes
-const teamCount = parseInt(document.getElementById("teamCount")?.value || "0");
-const teamNames = [];
-for (let i = 0; i < teamCount; i++) {
-  const val = document.getElementById(`team${i}`)?.value?.trim();
-  if (val) teamNames.push(val);
-}
-renderGroupAssignmentUI(count, teamNames);
+// ✅ Patch: Refresh group assignment dropdowns after typing custom names
+setTimeout(() => {
+  const teamCount = parseInt(document.getElementById("teamCount")?.value || "0");
+  const teamNames = [];
+  for (let i = 0; i < teamCount; i++) {
+    const val = document.getElementById(`team${i}`)?.value?.trim();
+    if (val) teamNames.push(val);
+  }
+  renderGroupAssignmentUI(count, teamNames);
+}, 50);
   }
 }
 
