@@ -809,10 +809,9 @@ teamNames.forEach(team => {
   const groupSelect = document.querySelector(`select[name="group-assignment-${team}"]`);
   const selectedValue = groupSelect?.value;
 
-  // 🔍 Match the full group name, not just "A", "B", etc.
-  const assignedGroup = groupNames.find(name =>
-    name === selectedValue || name.endsWith(selectedValue)
-  );
+  console.log(`🔍 [Group Assignment] ${team} selected "${selectedValue}"`);
+
+  const assignedGroup = selectedValue;
 
   if (assignedGroup && groupAssignment[assignedGroup]) {
     groupAssignment[assignedGroup].push(team);
