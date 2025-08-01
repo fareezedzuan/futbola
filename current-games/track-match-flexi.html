@@ -1141,12 +1141,26 @@ function addGoal(team, player, isOG = false) {
   const formatted = `${Math.min(timeMin + 1, duration)}${extra}'`;
 
   currentGoals.push({ team, player, time: formatted, isOG });
+
   const scoreId = team === document.getElementById("teamAName").textContent ? "scoreA" : "scoreB";
-  document.getElementById(scoreId).textContent = parseInt(document.getElementById(scoreId).textContent) + 1;
+  const scoreEl = document.getElementById(scoreId);
+  scoreEl.textContent = parseInt(scoreEl.textContent) + 1;
+
+  // 🔄 Update current match object in memory
+  const matchIndex = matchNumber - 1;
+  const match = matchResults[matchIndex];
+  if (match) {
+    match.gA = parseInt(document.getElementById("scoreA").textContent);
+    match.gB = parseInt(document.getElementById("scoreB").textContent);
+    match.goals = [...currentGoals]; // clone goals array
+    match.status = "pending";
+  }
 
   renderGoalLog();
-  autoSaveMatchProgress(matchNumber - 1);  // 🔁 Live save here
   closePopup();
+
+  // 💾 Auto-save
+  autoSaveMatchProgress(matchIndex);
 }
 
 function renderGoalLog() {
