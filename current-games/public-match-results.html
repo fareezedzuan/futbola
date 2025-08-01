@@ -2490,6 +2490,7 @@ if (sessionInfo?.game_id) {
     const sessionInfo = sessions.find(s => s.id === sessionId);
     const gameId = sessionInfo?.game_id;
     const courtNames = sessionInfo?.court_names || [];
+    sessionStorage.setItem("gameId", gameId);
 
     document.getElementById("venueText").textContent = sessionInfo?.game?.venue || "Venue";
     document.getElementById("dateText").textContent = sessionInfo?.game?.game_date || "Date";
@@ -2501,6 +2502,7 @@ if (sessionInfo?.game_id) {
 
     sessionStorage.setItem("gameId", gameId);
     console.log("✅ gameId saved to sessionStorage:", gameId);
+    
 
     // 🟢 Fetch all teams + players for this game
 try {
