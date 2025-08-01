@@ -2475,10 +2475,6 @@ window.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
-    const sessionInfo = sessions.find(s => s.id === urlSessionId);
-  document.getElementById("venueText").textContent = sessionInfo?.game?.venue || "Venue";
-  document.getElementById("dateText").textContent = sessionInfo?.game?.game_date || "Date";
-
   // Handle session selection
   sessionDropdown.addEventListener("change", async (e) => {
     const sessionId = e.target.value;
@@ -2488,6 +2484,9 @@ window.addEventListener("DOMContentLoaded", async () => {
     const sessionInfo = sessions.find(s => s.id === sessionId);
     const gameId = sessionInfo?.game_id;
     const courtNames = sessionInfo?.court_names || [];
+
+    document.getElementById("venueText").textContent = sessionInfo?.game?.venue || "Venue";
+    document.getElementById("dateText").textContent = sessionInfo?.game?.game_date || "Date";
 
     if (!gameId) {
       console.warn("⚠️ No gameId for session");
