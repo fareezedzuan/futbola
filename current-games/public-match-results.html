@@ -730,27 +730,8 @@ select.dropdown:focus {
 <div class="container">
   <audio id="alarmSound" src="./audio/annoying-alarm.wav" preload="auto"></audio>
 
-  <div class="section" style="margin-bottom: 20px;">
-  <label for="sessionDropdown" style="font-weight:bold; color:#702963;">Select Game Session:</label>
-  <select id="sessionDropdown" class="dropdown" style="width:100%; padding:8px; font-size:16px; margin-bottom: 12px;">
-    <option disabled selected value="">-- Choose Session --</option>
-  </select>
-
-  <label for="courtFilter">Filter by Court:</label>
-<select id="courtFilter" class="dropdown">
-  <option value="all">All Courts</option>
-</select>
-
-<label for="groupFilter">Filter by Group: </label>
-<select id="groupFilter" class="dropdown">
-  <option value="all">All Groups</option>
-</select>
-
-
-  <label for="matchDropdown" style="font-weight:bold; color:#702963;">Select Match to Officiate:</label>
-  <select id="matchDropdown" class="dropdown" style="width:100%; padding:8px; font-size:16px;">
-    <option disabled selected value="">-- Choose Match --</option>
-  </select>
+<div id="venueHeader" style="text-align:center; font-size:20px; font-weight:bold; color:#702963; margin-bottom: 20px;">
+  📍 <span id="venueText">Venue</span> | 📅 <span id="dateText">Date</span>
 </div>
 
 
@@ -2477,6 +2458,8 @@ window.addEventListener("DOMContentLoaded", async () => {
 
     // Fetch session details
     const sessionInfo = sessions.find(s => s.id === sessionId);
+    document.getElementById("venueText").textContent = sessionInfo?.game?.venue || "Venue";
+    document.getElementById("dateText").textContent = sessionInfo?.game?.game_date || "Date";
     const gameId = sessionInfo?.game_id;
     const courtNames = sessionInfo?.court_names || [];
 
