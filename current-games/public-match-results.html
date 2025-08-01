@@ -93,21 +93,30 @@ async function loadPublicDisplay() {
   const gameId = getGameIdFromURL();
   if (!gameId) return;
 
-  const { data: sessions, error } = await supabaseClient
-    .from("games_sessions")
-    .select("id, game_id, court_names, game(venue, game_date)")
-    .eq("game_id", gameId)
-    .order("created_at", { ascending: false });
+// Step 1: Fetch latest session manually (no join)
+const { data: sessions, error } = await supabaseClient
+  .from("games_sessions")
+  .select("id, game_id, court_names, created_at")
+  .eq("game_id", gameId)
+  .order("created_at", { ascending: false });
 
-  if (error || !sessions || sessions.length === 0) return;
+if (error || !sessions || sessions.length === 0) return;
 
-  const latest = sessions[0];
-  const sessionId = latest.id;
-  const venue = latest.game?.venue || "Venue";
-  const date = latest.game?.game_date || "Date";
+const latest = sessions[0];
+const sessionId = latest.id;
 
-  document.getElementById("venueText").textContent = venue;
-  document.getElementById("dateText").textContent = date;
+// Step 2: Fetch game info separately (to get venue + date)
+const { data: gameData, error: gameErr } = await supabaseClient
+  .from("games")
+  .select("venue, game_date")
+  .eq("id", latest.game_id)
+  .single();
+
+const venue = gameData?.venue || "Venue";
+const date = gameData?.game_date || "Date";
+
+document.getElementById("venueText").textContent = venue;
+document.getElementById("dateText").textContent = date;
 
   await loadMatches(sessionId);
   setInterval(() => loadMatches(sessionId), 15000);
