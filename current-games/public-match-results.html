@@ -704,12 +704,14 @@ select.dropdown:focus {
   display: none !important;
 }
 
-.blink {
-  animation: blink-animation 1s steps(2, start) infinite;
+.blink-border {
+  border: 2px solid green;
+  animation: blink-border 1s linear infinite;
 }
-@keyframes blink-animation {
-  to {
-    visibility: hidden;
+
+@keyframes blink-border {
+  50% {
+    border-color: transparent;
   }
 }
 
@@ -1436,10 +1438,7 @@ function updateMatchHistory() {
       row.className = "match-result-row";
 
       if (m.status === "pending") {
-        row.classList.add("blink");
-      }
-      if (m.status === "pending") {
-        row.classList.add("blinking");
+        row.classList.add("blink-border");
       }
 
       // 🆕 Make row clickable to edit
