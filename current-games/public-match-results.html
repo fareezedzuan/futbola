@@ -2475,21 +2475,10 @@ window.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
-  const gameId = sessionStorage.getItem("gameId");
-
-if (gameId) {
-  const { data: gameMeta, error } = await supabaseClient
-    .from("games")
-    .select("venue, game_date")
-    .eq("id", gameId)
-    .single();
-
-  if (gameMeta) {
-    document.getElementById("venueText").textContent = gameMeta.venue || "Venue";
-    document.getElementById("dateText").textContent = gameMeta.game_date || "Date";
-  } else {
-    console.warn("⚠️ Could not load venue/date from games table:", error);
-  }
+  const sessionInfo = sessions.find(s => s.id === urlSessionId);
+if (sessionInfo?.game_id) {
+  sessionStorage.setItem("gameId", sessionInfo.game_id);
+  console.log("✅ Saved gameId:", sessionInfo.game_id);
 }
 
   // Handle session selection
