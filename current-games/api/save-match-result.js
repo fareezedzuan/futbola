@@ -27,13 +27,30 @@ export default async function handler(req, res) {
     console.warn("⚠️ Invalid score values detected:", score_a, score_b);
   }
 
+  // const { data, error } = await supabase
+  //   .from('match_results')
+  //   .upsert(
+  //     [{ game_id, session_id, match_number, team_a, team_b, score_a, score_b, goals }],
+  //     { onConflict: ['game_id', 'session_id', 'match_number'] }
+  //   );
+    
   const { data, error } = await supabase
     .from('match_results')
     .upsert(
-      [{ game_id, session_id, match_number, team_a, team_b, score_a, score_b, goals }],
+      [{
+        game_id,
+        session_id,
+        match_number,
+        team_a,
+        team_b,
+        score_a,
+        score_b,
+        goals,
+        status: req.body.status,
+        updated_at: req.body.updated_at
+      }],
       { onConflict: ['game_id', 'session_id', 'match_number'] }
     );
-    
 
   if (error) {
     console.error("❌ Supabase upsert error:", error.details || error.message || error);
