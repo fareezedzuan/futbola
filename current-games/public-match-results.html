@@ -1494,10 +1494,9 @@ function updateLeaderboard() {
   const container = document.getElementById("topScorersList");
 
   container.innerHTML = sorted.map(([name, count], index) => {
-    // ✅ Find player and team
-    const teamEntry = teamPlayersRaw.find(team => team.some(p => p.name === name)) || [];
-    const player = teamEntry.find(p => p.name === name) || {};
-    const team = player.team_color || "default";
+// Find team from actual goals recorded
+const goalEntry = allGoals.find(g => g.player === name && !g.isOG);
+const team = goalEntry ? goalEntry.team : "default";
 
     // ✅ Sanitize for file path
     const teamFile = team.toLowerCase().replace(/ /g, "-");
