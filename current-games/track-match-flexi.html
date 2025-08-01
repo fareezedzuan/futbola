@@ -492,6 +492,11 @@
       gap: 6px;
     }
 
+    /* Hide court headings inside Instagram export view */
+    #instagramExportDiv .court-heading {
+      display: none;
+    }
+
     .match-result-row {
       display: flex;
       align-items: center;
@@ -1353,6 +1358,7 @@ function updateMatchHistory() {
       const heading = document.createElement("h3");
       const courtIndex = parseInt(court) - 1;
       const courtLabel = courtNames?.[courtIndex] || `Court ${court}`;
+      heading.className = "court-heading"; // 🆕 add this line
       heading.textContent = `🏟️ ${courtLabel}`;
 
       heading.style.marginTop = "1.5em";
