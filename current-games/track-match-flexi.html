@@ -604,6 +604,44 @@ select.dropdown:focus {
   box-shadow: 0 0 0 2px rgba(255, 90, 95, 0.3);
 }
 
+/* ✅ Container for team + logo + scorers */
+.stacked-team {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5em;
+}
+
+/* ✅ Wraps team name and scorer info */
+.team-info {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.85em;
+}
+
+/* ✅ Team name styling */
+.team-name {
+  font-weight: bold;
+  color: #702963;
+}
+
+/* ✅ Scorer line under team name */
+.scorer-line {
+  font-size: 0.75em;
+  color: #666;
+  white-space: normal;
+  line-height: 1.2;
+}
+
+/* 🟢 Responsive: stack vertically on mobile */
+@media (max-width: 600px) {
+  .stacked-team {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+}
+
   </style>
 </head>
 
@@ -1312,17 +1350,28 @@ function updateMatchHistory() {
       });
 
 
-        row.innerHTML = `
-          <div class="team-side left">
-            <img class="team-logo" src="${getTeamLogo(m.tA)}" />
-            ${m.tA}
+      const formatScorers = (team) => {
+        const goals = (m.goals || []).filter(g => g.team === team);
+        return goals.map(g => `${g.player} ${g.time}`).join(", ");
+      };
+
+      row.innerHTML = `
+        <div class="team-side left">
+          <img class="team-logo" src="${getTeamLogo(m.tA)}" />
+          <div>
+            <div>${m.tA}</div>
+            <div style="font-size:12px; color:#666;">${formatScorers(m.tA)}</div>
           </div>
-          <div class="match-score">${m.gA ?? '-'} - ${m.gB ?? '-'}</div>
-          <div class="team-side right">
-            ${m.tB}
-            <img class="team-logo" src="${getTeamLogo(m.tB)}" />
+        </div>
+        <div class="match-score">${m.gA ?? '-'} - ${m.gB ?? '-'}</div>
+        <div class="team-side right">
+          <div>
+            <div>${m.tB}</div>
+            <div style="font-size:12px; color:#666;">${formatScorers(m.tB)}</div>
           </div>
-        `;
+          <img class="team-logo" src="${getTeamLogo(m.tB)}" />
+        </div>
+      `;
 
         container.appendChild(row);
       });
