@@ -2510,7 +2510,7 @@ try {
   });
 
   teamNames = Object.keys(teamMap);
-  teamPlayersRaw = teamNames.flatMap(color => teamMap[color]);
+  teamPlayersRaw = teamNames.map(color => teamMap[color]); // nested array
   updateLeaderboard(); // 🔥 call AFTER teamPlayersRaw is ready
   console.log("✅ teamNames", teamNames);
   console.log("✅ teamPlayersRaw", teamPlayersRaw);
