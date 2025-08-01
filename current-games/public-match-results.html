@@ -2511,7 +2511,7 @@ try {
 
   teamNames = Object.keys(teamMap);
   teamPlayersRaw = teamNames.map(color => teamMap[color]);
-
+  updateLeaderboard(); // 🔥 call AFTER teamPlayersRaw is ready
   console.log("✅ teamNames", teamNames);
   console.log("✅ teamPlayersRaw", teamPlayersRaw);
 } catch (err) {
