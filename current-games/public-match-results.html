@@ -1431,9 +1431,11 @@ function updateMatchHistory() {
       container.appendChild(heading);
 
       groupedByCourt[court].forEach(m => {
+
       const row = document.createElement("div");
       row.className = "match-result-row";
-      if (match.status === "pending") {
+
+      if (m.status === "pending") {
         row.classList.add("blink");
       }
       if (m.status === "pending") {
