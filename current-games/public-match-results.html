@@ -937,6 +937,11 @@ let registeredUsers = [];
 let selectedMVP = null;
 let courtNames = []; // 🔄 Make this global
 
+function getSessionIdFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get("session");
+}
+
 function generateRoundRobin(teams) {
   const rounds = [], t = [...teams];
   if (t.length % 2) t.push("BYE");
@@ -2422,6 +2427,13 @@ window.addEventListener("DOMContentLoaded", async () => {
     option.textContent = `${venue} (${date})`;
     sessionDropdown.appendChild(option);
   });
+
+  const urlSessionId = getSessionIdFromURL();
+  if (urlSessionId) {
+    sessionStorage.setItem("sessionId", urlSessionId);
+    sessionDropdown.value = urlSessionId;
+    sessionDropdown.dispatchEvent(new Event("change"));
+  }
 
   // Handle session selection
   sessionDropdown.addEventListener("change", async (e) => {
