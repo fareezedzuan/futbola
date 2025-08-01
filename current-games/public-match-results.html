@@ -2650,6 +2650,8 @@ const { data: results, error: resultError } = await supabaseClient
   .select("*")
   .eq("session_id", sessionId);
 
+  console.log("📥 match_results", results);
+
 if (resultError) {
   console.error("❌ Failed to fetch match results:", resultError);
 } else {
