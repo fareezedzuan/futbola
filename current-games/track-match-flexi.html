@@ -1133,6 +1133,7 @@ function addGoal(team, player, isOG = false) {
   document.getElementById(scoreId).textContent = parseInt(document.getElementById(scoreId).textContent) + 1;
 
   renderGoalLog();
+  autoSaveMatchProgress(matchNumber - 1);  // 🔁 Live save here
   closePopup();
 }
 
@@ -2227,6 +2228,35 @@ function closeMVPModal() {
   document.getElementById("mvpModal").style.display = "none";
 }
 
+async function autoSaveMatchProgress(matchIndex) {
+  const match = matchResults[matchIndex];
+  if (!match) return;
+
+  const payload = {
+    game_id: sessionStorage.getItem("gameId"),
+    session_id: sessionStorage.getItem("sessionId"),
+    match_number: matchIndex + 1,
+    team_a: match.tA,
+    team_b: match.tB,
+    score_a: match.gA ?? 0,
+    score_b: match.gB ?? 0,
+    goals: match.goals ?? [],
+    status: match.status ?? "pending",  // Optional
+    updated_at: new Date().toISOString()
+  };
+
+  try {
+    await fetch("/api/save-match-result", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    console.log("💾 Auto-saved match progress for Match", matchIndex + 1);
+  } catch (err) {
+    console.warn("⚠️ Auto-save failed:", err.message);
+  }
+}
 
 async function selectMVP() {
   const selectedUserId = document.getElementById("mvpSelect").value;
