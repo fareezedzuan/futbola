@@ -893,6 +893,7 @@ select.dropdown:focus {
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 <script>
+console.log("🚀 JS loaded");
 const { createClient } = supabase;
 const supabaseClient = createClient(
     'https://kdbqroxhypnadolcxxxc.supabase.co',
@@ -2372,6 +2373,7 @@ async function selectMVP() {
 }
 
 window.addEventListener("DOMContentLoaded", async () => {
+  console.log("✅ DOM fully loaded");
   sessionStorage.clear();
 
   const sessionDropdown = document.getElementById("sessionDropdown");
