@@ -2267,6 +2267,34 @@ function closeEditAddGoalPopup() {
   document.getElementById("editTimeInputSection").style.display = "none";
 }
 
+function renderTopScorers(results) {
+    const tally = {};
+
+    results.forEach(r => {
+      (r.goals || []).forEach(g => {
+        if (!g.isOG && g.player.toLowerCase() !== "others") {
+          const key = g.player.trim();
+          tally[key] = (tally[key] || 0) + 1;
+        }
+      });
+    });
+
+    const sorted = Object.entries(tally).sort((a, b) => b[1] - a[1]);
+    const container = document.getElementById("topScorers");
+    container.innerHTML = sorted.map(([player, count], index) => {
+      const team = scorerTeamMap[player] || "default";
+      const logoSrc = `../images/jerseys/${team.toLowerCase()}.png`;
+
+      return `
+        <div class="scorer-row">
+          <span class="scorer-rank">${index + 1}</span>
+          <span class="scorer-name">${player}</span>
+          <img src="${logoSrc}" class="scorer-icon" />
+          <span class="scorer-count">${count}</span>
+        </div>
+      `;
+    }).join("");
+  }
 
 
 
