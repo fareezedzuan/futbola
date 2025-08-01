@@ -1,237 +1,2754 @@
+<!-- track-match-flexi.html (MVP landscape layout version) -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>futbola Live Scoreboard</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Track Match - futbola</title>
   <link rel="icon" href="../images/futbola-favicon.ico" type="image/x-icon">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
       background-image: url('./images/backgroundOrangeGradient.jpg');
       margin: 0;
       padding: 0;
+      overflow-y: scroll;
     }
     .container {
       max-width: 1200px;
       margin: auto;
       padding: 20px;
     }
-    .header-info {
+
+    .main-display {
+    display: flex;
+    flex-direction: column;
+    background: white;
+    padding: 20px;
+    height: 480px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    border-top: 5px solid #ff5a5f;
+  }
+
+  .match-header {
+    font-size: 35px;
+    font-weight: bold;
+    text-align: center;
+    color: #702963;
+    margin-bottom: 10px;
+    width: 100%;
+  }
+
+  .row-display {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+  }
+
+    .team-block {
+      width: 30%;
       text-align: center;
-      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .team-block img {
+      height: 100px;
+      max-width: 80%;     /* Prevent image from stretching too wide */
+      margin-bottom: 10px;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .team-block span {
+      font-size: 40px;
       font-weight: bold;
       color: #702963;
-      margin-bottom: 20px;
     }
-    .section {
-      background: #fff;
-      padding: 20px;
-      border-radius: 10px;
-      margin-bottom: 20px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-    }
-    .section h3 {
+
+    .score-number {
+      font-size: 40px;
+      font-weight: bold;
       color: #702963;
-      margin-bottom: 10px;
+      margin-top: 5px;
     }
-    .match-result-row, .scorer-row {
+
+    .goal-log {
+      font-size: 14px;
+      margin-top: 10px;
+    }
+
+    .timer-block {
+      width: 35%;
+      text-align: center;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .center-timer {
+      font-size: clamp(24px, 7vw, 80px); /* Shrinks better on phones */
+      font-weight: bold;
+      color: black;
+      text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.2);
+      line-height: 1; /* Prevent weird spacing */
+      white-space: nowrap;
+    }
+
+    .btn-row {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .btn-primary {
+      background-color: #ff5a5f;
+      color: white;
+      font-weight: bold;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 5px;
+    }
+
+    .btn-primary:hover {
+      background-color: #cc0000;
+    }
+
+    .section {
+      background: #f3f3f3;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 20px;
+    }
+
+    .goal-line {
+      font-size: 13px;
+      color: #444;
+      margin: 4px 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 6px;
+      text-align: center;
+    }
+    th {
+      background-color: #ffe4e1;
+    }
+
+.overlay, .scorer-popup {
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.3);
+  z-index: 99;
+}
+
+.scorer-popup {
+  top: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: white;
+  z-index: 100;
+  padding: 20px;
+  border-radius: 10px;
+  border: 2px solid #ff5a5f;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  width: 90%;
+  max-width: 600px;
+  height: auto;
+}
+
+
+    .scorer-popup h4 {
+      text-align: center;
+      color: #702963;
+    }
+    .scorer-columns {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      background: #f9f9f9;
-      padding: 10px;
-      border-radius: 6px;
-      margin: 5px 0;
+      gap: 20px;
     }
-    .match-score, .scorer-goals {
+    .scorer-columns div {
+      width: 50%;
+    }
+    .scorer-columns button {
+      width: 100%;
+      margin-bottom: 6px;
+      padding: 8px;
+      background-color: #ff5a5f;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .close-popup {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      cursor: pointer;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .match-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: white;
+      border-radius: 10px;
+      padding: 8px 16px;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    .team {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: bold;
+      font-size: 18px;
+      color: #702963;
+      flex: 1;
+    }
+
+    .team img {
+      height: 28px;
+      width: 28px;
+      object-fit: contain;
+    }
+
+    .score-box {
+      font-size: 20px;
+      font-weight: bold;
+      background: #702963;
+      color: white;
+      padding: 4px 12px;
+      border-radius: 6px;
+      min-width: 64px;
+      text-align: center;
+    }
+    .match-result-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: white;
+      border-radius: 10px;
+      padding: 12px 16px;
+      margin: 10px 0;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .team-side {
+      display: flex;
+      align-items: center;
+      gap: 8px;
       font-weight: bold;
       color: #702963;
+      font-size: 16px;
     }
-    .club-logo, .team-logo, .scorer-logo {
+
+    .team-side.right > div {
+     text-align: right;
+    }
+
+    .match-score {
+      font-size: 20px;
+      font-weight: bold;
+      background-color: #702963;
+      color: white;
+      padding: 6px 16px;
+      border-radius: 8px;
+      text-align: center;
+      min-width: 70px;
+    }
+
+    .team-logo {
+      width: 28px;
+      height: 28px;
+      object-fit: contain;
+    }
+
+    .scorer-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #eee;
+      padding: 8px 12px;
+      font-size: 16px;
+    }
+
+    .scorer-pos {
+      width: 30px;
+      font-weight: bold;
+      color: #702963;
+      text-align: center;
+    }
+
+    .scorer-player {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-grow: 1;
+    }
+
+    .scorer-player strong {
+      font-weight: 600;
+    }
+
+    .scorer-logo {
       height: 24px;
       width: 24px;
       object-fit: contain;
     }
-    /* Hide interactive UI from track-match layout */
-    #sessionDropdown,
-    #courtFilter,
-    #groupFilter,
-    #matchDropdown,
-    .btn-row,
-    .score-buttons,
-    .instagram-share,
-    .start-btn,
-    .reset-btn,
-    .mvp-button,
-    .export-btn,
-    .popup,
-    .jersey-popup,
-    .popup-footer {
-      display: none !important;
+
+    .scorer-goals {
+      font-weight: bold;
+      color: #702963;
+      min-width: 30px;
+      text-align: right;
     }
+
+    #standingsTable table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      background: #fff;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    #standingsTable th {
+      background: #f4f4f4;
+      font-size: 14px;
+      color: #333;
+      text-align: left;
+      padding: 8px;
+    }
+
+    #standingsTable td {
+      padding: 8px;
+      font-size: 14px;
+      text-align: center;
+      border-bottom: 1px solid #eee;
+    }
+
+    #standingsTable .club {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-align: left;
+      font-weight: bold;
+      color: #702963;
+    }
+
+    .club-logo {
+      width: 24px;
+      height: 24px;
+      object-fit: contain;
+    }
+
+    #standingsTable .points {
+      font-weight: bold;
+      color: #000;
+    }
+
+    #roundPopup {
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      position: fixed;
+      display: none;
+      background-color: white;
+      padding: 30px;
+      border-radius: 10px;
+      border: 2px solid #ff5a5f;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+      z-index: 200;
+      text-align: center;
+      max-width: 90%;
+      width: 400px;
+    }
+
+    #roundOverlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.4);
+      z-index: 199;
+      display: none;
+    }
+
+    .btn-row {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .btn-primary {
+      background-color: #ff5a5f;
+      color: white;
+      font-weight: bold;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 5px;
+    }
+
+    #instagramExportDiv {
+      display: none;
+      width: 1080px;
+      height: 1526px;
+      background: linear-gradient(to bottom right, #ffa07a, #ffc0cb);
+      font-family: Arial, sans-serif;
+      padding: 20px 40px;
+      box-sizing: border-box;
+      color: #702963;
+      position: relative;
+    }
+
+    #instagramExportDiv h2 {
+      text-align: center;
+      font-size: 44px;
+      margin: 10px 0 5px;
+    }
+
+    #instagramExportDiv h3 {
+      text-align: center;
+      font-size: 28px;
+      margin: 5px 0 15px;
+    }
+
+    #instagramExportDiv .section {
+      background: white;
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    #instagramExportDiv .section > h3 {
+      margin: 0 0 10px;
+      font-size: 24px;
+    }
+
+    #instagramExportDiv table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 22px;
+    }
+    #instagramExportDiv th, #instagramExportDiv td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: center;
+    }
+    #instagramExportDiv .logo {
+      width: 32px;
+      height: 32px;
+      object-fit: contain;
+    }
+
+    #instagramExportDiv .footer-logo {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      opacity: 0.4;
+      width: 80px;
+    }
+
+    #instaMatchResults, #instaTopScorers {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 10px;
+    }
+
+    #instaMatchResults .match-result-row,
+    #instaTopScorers .scorer-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 20px;
+      background: #fff0f5;
+      padding: 6px 10px;
+      border-radius: 6px;
+    }
+
+    #instaTopScorers .scorer-player {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Hide court headings inside Instagram export view */
+    #instagramExportDiv .court-heading {
+      display: none;
+    }
+
+    .match-result-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: white;
+      border-radius: 10px;
+      padding: 10px 16px;
+      margin: 10px 0;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .team-side {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: bold;
+      color: #702963;
+      font-size: 18px;
+      flex: 1;
+    }
+
+    .team-side.left {
+      justify-content: flex-start;
+    }
+
+    .team-side.right {
+      justify-content: flex-end;
+    }
+
+    .match-score {
+      font-size: 22px;
+      font-weight: bold;
+      background-color: #702963;
+      color: white;
+      padding: 8px 18px;
+      border-radius: 12px;
+      min-width: 70px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .team-logo {
+      width: 28px;
+      height: 28px;
+      object-fit: contain;
+    }
+
+    #instagramExportDiv #instaTopScorers {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr); /* force 4-column layout */
+      gap: 12px;
+    }
+
+#mvpModal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 9999;
+
+  /* Centering with Flex */
+  align-items: center;
+  justify-content: center;
+}
+
+#mvpModal .scorer-popup {
+  position: relative;
+  z-index: 10000;
+  display: block;
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  border: 2px solid #ff5a5f;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  max-width: 400px;
+  width: 90%;
+  color: #333;
+}
+
+.blinking {
+  border: 2px solid limegreen;
+  animation: blink 1s step-start infinite;
+}
+
+@keyframes blink {
+  50% { border-color: transparent; }
+}
+select.dropdown {
+  background-color: white;
+  border: 2px solid #ff5a5f;
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 16px;
+  font-weight: bold;
+  color: #702963;
+  margin: 6px 0 12px;
+  width: 100%;
+  appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg fill='%23702963' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+  background-repeat: no-repeat;
+  background-position-x: 98%;
+  background-position-y: center;
+}
+select.dropdown:focus {
+  outline: none;
+  border-color: #cc0000;
+  box-shadow: 0 0 0 2px rgba(255, 90, 95, 0.3);
+}
+
+/* ✅ Container for team + logo + scorers */
+.stacked-team {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5em;
+}
+
+.stacked-team.right {
+  flex-direction: row-reverse;
+  text-align: right;
+  align-items: center;
+}
+
+/* ✅ Wraps team name and scorer info */
+.team-info {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.85em;
+}
+
+/* ✅ Team name styling */
+.team-name {
+  font-weight: bold;
+  color: #702963;
+}
+
+/* ✅ Scorer line under team name */
+.scorer-line {
+  font-size: 0.75em;
+  color: #666;
+  white-space: normal;
+  line-height: 1.2;
+}
+
+/* 🟢 Responsive: stack vertically on mobile */
+@media (max-width: 600px) {
+  .stacked-team {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .stacked-team.right {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+}
+
+/* Smaller layout for Instagram match result cards */
+#instagramExportDiv .match-result-row {
+  font-size: 16px;
+  padding: 4px 8px;
+}
+
+/* Reduce font size for team names and scorers */
+#instagramExportDiv .team-name {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+#instagramExportDiv .scorer-line {
+  font-size: 13px;
+  color: #444;
+}
+
+/* Shrink score box */
+#instagramExportDiv .match-score {
+  font-size: 18px;
+  padding: 4px 10px;
+  min-width: 50px;
+  border-radius: 6px;
+}
+
+/* Hide interactive UI from track-match layout */
+#sessionDropdown,
+#courtFilter,
+#groupFilter,
+#matchDropdown,
+.btn-row,
+.score-buttons,
+.instagram-share,
+.start-btn,
+.reset-btn,
+.mvp-button,
+.export-btn,
+.popup,
+.jersey-popup,
+.popup-footer {
+  display: none !important;
+}
+
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 </head>
+
 <body>
-  <div class="container">
-    <div class="header-info">
-      📍 <span id="venueText">Venue</span> | 📅 <span id="dateText">Date</span>
-    </div>
 
-    <div class="section">
-      <h3>📋 Match Results</h3>
-      <div id="matchHistory"></div>
-    </div>
+<div class="overlay" id="overlay" onclick="closePopup()"></div>
+<div class="scorer-popup" id="scorerPopup">
+  <div class="close-popup" onclick="closePopup()">×</div>
+  <h4>Select Scorer</h4>
+  <div class="scorer-columns">
+    <div><strong id="teamACol"></strong><div id="playersA"></div></div>
+    <div><strong id="teamBCol"></strong><div id="playersB"></div></div>
+  </div>
+</div>
 
-    <div class="section">
-      <h3>🏆 Standings</h3>
-      <div id="standingsTable"></div>
-    </div>
+<div class="overlay" id="confirmOverlay" onclick="cancelScorerConfirm()"></div>
+<div class="scorer-popup" id="confirmScorerPopup">
+  <div class="close-popup" onclick="cancelScorerConfirm()">×</div>
+  <h4 id="confirmScorerText">Confirm goal by:</h4>
+  <div style="text-align: center; margin-top: 10px;">
+    <button class="btn-primary" onclick="confirmScorerAdd()">✅ Confirm</button>
+    <button class="btn-primary" onclick="cancelScorerConfirm()">❌ Cancel</button>
+  </div>
+</div>
 
-    <div class="section">
-      <h3>🎯 Top Scorers</h3>
-      <div id="topScorersList"></div>
+<div class="container">
+  <audio id="alarmSound" src="./audio/annoying-alarm.wav" preload="auto"></audio>
+
+  <div class="section" style="margin-bottom: 20px;">
+  <label for="sessionDropdown" style="font-weight:bold; color:#702963;">Select Game Session:</label>
+  <select id="sessionDropdown" class="dropdown" style="width:100%; padding:8px; font-size:16px; margin-bottom: 12px;">
+    <option disabled selected value="">-- Choose Session --</option>
+  </select>
+
+  <label for="courtFilter">Filter by Court:</label>
+<select id="courtFilter" class="dropdown">
+  <option value="all">All Courts</option>
+</select>
+
+<label for="groupFilter">Filter by Group: </label>
+<select id="groupFilter" class="dropdown">
+  <option value="all">All Groups</option>
+</select>
+
+
+  <label for="matchDropdown" style="font-weight:bold; color:#702963;">Select Match to Officiate:</label>
+  <select id="matchDropdown" class="dropdown" style="width:100%; padding:8px; font-size:16px;">
+    <option disabled selected value="">-- Choose Match --</option>
+  </select>
+</div>
+
+
+  <div class="main-display">
+    <!-- Match Title should be outside of row for top alignment -->
+    <div class="match-header" id="matchTitle">Match 1</div>
+
+    <div class="row-display">
+      <div class="team-block" onclick="triggerScorer('A')">
+        <img id="teamAIcon" src="./images/futbolaLogo.png" />
+        <span id="teamAName">Team A</span>
+        <div class="score-number" id="scoreA">0</div>
+        <div class="goal-log" id="goalLogA"></div>
+      </div>
+
+      <div class="timer-block">
+        <div class="center-timer" id="timer">00:00</div>
+      </div>
+
+      <div class="team-block" onclick="triggerScorer('B')">
+        <img id="teamBIcon" src="./images/futbolaLogo.png" />
+        <span id="teamBName">Team B</span>
+        <div class="score-number" id="scoreB">0</div>
+        <div class="goal-log" id="goalLogB"></div>
+      </div>
     </div>
   </div>
+</div>
 
+
+  <div class="btn-row">
+    <button class="btn-primary" id="timerBtn" onclick="handleTimerClick()">Start Timer</button>
+    <button class="btn-primary" onclick="resetTimer()">Reset Timer</button>
+    <button class="btn-primary" onclick="openEditGoals()">Edit Goals</button>
+    <button class="btn-primary" onclick="saveCurrentMatch(matchNumber - 1)">Save Result</button>
+    <button class="btn-primary" onclick="exportSummary()">Export WhatsApp</button>
+    <button class="btn-primary" onclick="exportToInstagramImage()">Instagram Image</button>
+    <button class="btn-primary" onclick="updateStats()">Update Stats</button>
+    <button id="nominateMVPBtn" class="btn-primary">Nominate MVP</button>
+  </div>
+
+  <div class="section">
+    <h3>Match Results</h3>
+    <div id="matchHistory"></div>
+  </div>  
+
+  <div class="section">
+    <h3>Live Standings</h3>
+    <div id="standingsTable"></div>
+  </div>
+
+  <div class="section">
+    <h3>Top Scorers</h3>
+    <div id="topScorersList" class="scorer-list"></div>
+  </div>
+
+</div>
+
+<div class="overlay" id="editOverlay" onclick="closeEditPopup()"></div>
+<div class="scorer-popup" id="editGoalsPopup">
+  <div class="close-popup" onclick="closeEditPopup()">×</div>
+  <h4>Edit Goals</h4>
+  <div id="editGoalsList"></div>
+</div>
+
+<!-- Add this popup HTML near the end of track-match.html -->
+<div id="roundPopup" class="popup" style="display:none; z-index: 300;">
+  <h3>Round 1 Completed</h3>
+  <p style="text-align:center;">Do you want to continue to Round 2?</p>
+  <div class="popup-footer">
+    <button onclick="startNextRound()">✅ Continue to Round 2</button>
+    <button onclick="endGameNow()">❌ End Game Now</button>
+  </div>
+</div>
+
+<!-- Instagram Export Div (hidden for rendering only) -->
+<div id="instagramExportDiv">
+  <h2 id="instaVenue">futbola - Venue</h2>
+  <h3 id="instaDate">Date</h3>
+  <div class="section">
+    <h3>📋 Match Results</h3>
+    <div id="instaMatchResults"></div>
+  </div>
+  <div class="section">
+    <h3>🎯 Top Scorers</h3>
+    <div id="instaTopScorers"></div>
+  </div>
+  <div class="section">
+    <h3>🏆 Standings</h3>
+    <div id="instaStandings"></div>
+  </div>
+  <!-- <img class="footer-logo" src="../images/futbola-logo.png" alt="futbola logo" /> -->
+</div>
+
+
+<!-- <audio id="alarmSound" src="../audio/annoying-alarm.wav" preload="auto"></audio> -->
+<div id="roundOverlay" onclick="closeRoundPopup()"></div>
+<div id="roundPopup">
+  <h3>🎯 Round 1 Completed</h3>
+  <p>Do you want to continue to Round 2?</p>
+  <button class="btn-primary" onclick="startNextRound()">✅ Continue to Round 2</button>
+  <button class="btn-primary" onclick="endGameNow()">❌ End Game Now</button>
+</div>
+
+<div class="scorer-popup" id="editAddGoalPopup" style="display:none;">
+  <div class="close-popup" onclick="closeEditAddGoalPopup()">×</div>
+  <h4>Select Team</h4>
+  <div class="btn-row" id="editTeamSelector"></div>
+  <div id="editPlayerSelector" style="display:none;">
+    <h4>Select Player</h4>
+    <div class="scorer-columns">
+      <div><strong id="editLeftTeam"></strong><div id="editLeftPlayers"></div></div>
+      <div><strong id="editRightTeam"></strong><div id="editRightPlayers"></div></div>
+    </div>
+  </div>
+  <div id="editTimeInputSection" style="display:none; text-align:center; margin-top:10px;">
+    <label for="editGoalTime">Time (min): </label>
+    <input type="number" id="editGoalTime" min="1" max="60" value="5" style="width:80px;" />
+    <div class="btn-row">
+      <button class="btn-primary" onclick="confirmAddGoalToMatch()">✅ Confirm Goal</button>
+    </div>
+  </div>
+</div>
+
+<!-- MVP Modal -->
+<div id="mvpModal">
+  <div class="scorer-popup">
+    <span class="close-popup" onclick="closeMVPModal()">×</span>
+    <h4>🏅 Select MVP</h4>
+    <select id="mvpSelect" class="dropdown" style="width: 100%; padding: 10px; font-size: 16px;">
+      <option disabled selected>Select a player</option>
+    </select>
+    <div style="margin-top: 15px;">
+      <button onclick="selectMVP()" class="btn-primary" style="width: 100%;">✅ Confirm</button>
+      <button onclick="closeMVPModal()" class="btn-primary" style="background: #ccc; color: #333; margin-top: 8px;">❌ Cancel</button>
+    </div>
+  </div>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 <script>
-const supabaseClient = supabase.createClient(
-  'https://kdbqroxhypnadolcxxxc.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkYnFyb3hoeXBuYWRvbGN4eHhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3MjkwNzYsImV4cCI6MjA1NzMwNTA3Nn0.c7_RVxoFdJNqQ62R3t1emH2Wf4dSsQaunHsHmbQxOBA'
-);
+const { createClient } = supabase;
+const supabaseClient = createClient(
+    'https://kdbqroxhypnadolcxxxc.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkYnFyb3hoeXBuYWRvbGN4eHhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3MjkwNzYsImV4cCI6MjA1NzMwNTA3Nn0.c7_RVxoFdJNqQ62R3t1emH2Wf4dSsQaunHsHmbQxOBA'
+  );
+// Set session ID once
+if (!sessionStorage.getItem("sessionId")) {
+  sessionStorage.setItem("sessionId", Date.now().toString()); // or use a UUID if needed
+}
+// Paste your existing JS logic here from the MVP version (match tracking, popup, standings, export, etc.)
+// You already have all this working beautifully – just stitch into this layout.
+const duration = parseInt(sessionStorage.getItem("duration")) || 7;
+let teamNames = JSON.parse(sessionStorage.getItem("teamNames") || "[]");
+let teamPlayersRaw = JSON.parse(sessionStorage.getItem("teamPlayers") || "[]");
 
-function getGameIdFromURL() {
-  const params = new URLSearchParams(window.location.search);
-  return params.get("game");
+// Extract only names for backwards compatibility
+const teamPlayers = teamPlayersRaw.map(team => team.map(p => p.name));
+
+
+let matchNumber = 0;
+let timeElapsed = 0, timer = null, timerRunning = false, timerPaused = false;
+let alarmInterval;
+let currentGoals = [];
+let matchResults = [];
+let standings = {};
+let allGoals = [];
+let matchAlreadySaved = false;
+let pendingScorer = null;
+let pendingTeam = null;
+let pendingIsOG = false;
+let totalRounds = parseInt(sessionStorage.getItem("rounds")) || 1;
+let currentRound = 1;
+let baseMatchups = generateRoundRobin(teamNames); // keep base round
+let matchups = [...baseMatchups];
+let alarmTimeout;
+let alarmScheduledTime = 0; // when the alarm is supposed to trigger
+let alarmStartTimestamp = null; // when timer starts
+let matchTransitionInProgress = false;
+let roundTransitionInProgress = false;
+let savedMatchIndexes = new Set();
+let registeredUsers = [];
+let selectedMVP = null;
+let courtNames = []; // 🔄 Make this global
+
+function generateRoundRobin(teams) {
+  const rounds = [], t = [...teams];
+  if (t.length % 2) t.push("BYE");
+  const half = t.length / 2;
+  for (let i = 0; i < t.length - 1; i++) {
+    for (let j = 0; j < half; j++) {
+      const a = t[j], b = t[t.length - 1 - j];
+      if (a !== "BYE" && b !== "BYE") rounds.push([a, b]);
+    }
+    t.splice(1, 0, t.pop());
+  }
+  return rounds;
 }
 
-async function loadPublicDisplay() {
-  const gameId = getGameIdFromURL();
-  if (!gameId) return;
-
-// Step 1: Fetch latest session manually (no join)
-const { data: sessions, error } = await supabaseClient
-  .from("games_sessions")
-  .select("id, game_id, court_names, created_at")
-  .eq("game_id", gameId)
-  .order("created_at", { ascending: false });
-
-if (error || !sessions || sessions.length === 0) return;
-
-const latest = sessions[0];
-const sessionId = latest.id;
-
-// Step 2: Fetch game info separately (to get venue + date)
-const { data: gameData, error: gameErr } = await supabaseClient
-  .from("games")
-  .select("venue, game_date")
-  .eq("id", latest.game_id)
-  .single();
-
-const venue = gameData?.venue || "Venue";
-const date = gameData?.game_date || "Date";
-
-document.getElementById("venueText").textContent = venue;
-document.getElementById("dateText").textContent = date;
-
-  await loadMatches(sessionId);
-  setInterval(() => loadMatches(sessionId), 15000);
+function getTeamLogo(colorName) {
+  const logos = {
+    Red: "../images/red.png",
+    White: "../images/white.png",
+    Green: "../images/green.png",
+    Orange: "../images/orange.png",
+    Black: "../images/black.png",
+    Yellow: "../images/yellow.png",
+    Blue: "../images/blue.png",
+    Turquoise: "../images/turquoise.png"
+  };
+  return logos[colorName] || "../images/futbolaLogo.png"; // fallback
 }
 
-async function loadMatches(sessionId) {
-  const { data: matches } = await supabaseClient
-    .from("session_matches")
-    .select("match_number, team1_id, team2_id")
-    .eq("game_session_id", sessionId)
-    .order("match_number");
+async function handleTimerClick() {
+  if (!timerRunning) {
+    timerRunning = true;
+    timerPaused = false;
+    document.getElementById('timerBtn').textContent = "Pause";
 
-  const { data: results } = await supabaseClient
-    .from("match_results")
-    .select("match_number, team_a, team_b, score_a, score_b, goals")
-    .eq("session_id", sessionId);
+    // 🟢 Update match status to "pending"
+    const sessionId = sessionStorage.getItem("sessionId");
+    const gameId = sessionStorage.getItem("gameId");
+    const match = matchResults[matchNumber - 1];
 
-  const allGoals = (results || []).flatMap(r => (r.goals || []).map(g => ({ ...g, match_number: r.match_number })));
-  const matchResults = matches.map(m => {
-    const result = results.find(r => r.match_number === m.match_number) || {};
-    return {
-      number: m.match_number,
-      tA: m.team1_id,
-      tB: m.team2_id,
-      gA: result.score_a ?? '-',
-      gB: result.score_b ?? '-',
-      goals: result.goals || []
-    };
+    if (match && match.status !== "completed") {
+      try {
+        const payload = {
+          session_id: sessionId,
+          game_id: gameId,
+          match_number: match.number,
+          team_a: match.tA,
+          team_b: match.tB,
+          score_a: 0,
+          score_b: 0,
+          goals: [],
+          status: "pending",
+          updated_at: new Date().toISOString()
+        };
+
+        console.log("📤 Sending pending match to server:", payload);
+
+        const res = await fetch("/api/save-match-result", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) throw new Error(`Server responded ${res.status}`);
+        console.log("✅ Match row created with pending status");
+      } catch (err) {
+        console.warn("⚠️ Couldn't upsert pending match to DB:", err);
+      }
+    }
+
+    // 🔔 Start timer + alarm
+    alarmStartTimestamp = Date.now();
+    alarmScheduledTime = duration * 60 * 1000;
+
+    alarmTimeout = setTimeout(() => {
+      playAlarm();
+    }, alarmScheduledTime);
+
+    timer = setInterval(() => {
+      if (!timerPaused) {
+        timeElapsed++;
+        updateTimerDisplay();
+        if (timeElapsed >= duration * 60) {
+          clearInterval(timer);
+          timerRunning = false;
+          document.getElementById('timerBtn').textContent = "Start Timer";
+        }
+      }
+    }, 1000);
+
+  } else {
+    timerPaused = !timerPaused;
+    document.getElementById('timerBtn').textContent = timerPaused ? "Resume Timer" : "Pause Timer";
+
+    if (timerPaused) {
+      clearTimeout(alarmTimeout);
+    } else {
+      const now = Date.now();
+      const timePassed = now - alarmStartTimestamp;
+      const remaining = Math.max(alarmScheduledTime - timePassed, 0);
+
+      alarmStartTimestamp = Date.now();
+      alarmScheduledTime = remaining;
+
+      alarmTimeout = setTimeout(() => {
+        playAlarm();
+      }, remaining);
+    }
+  }
+}
+
+function updateTimerDisplay() {
+  const min = Math.floor(timeElapsed / 60);
+  const sec = timeElapsed % 60;
+  document.getElementById("timer").textContent = `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+}
+
+function stopAlarmOnce() {
+  playAlarm();
+}
+
+function playAlarm() {
+  const alarm = document.getElementById("alarmSound");
+  alarm.currentTime = 0;
+  alarm.play();
+
+  // Allow click to stop
+  document.body.addEventListener("click", stopAlarmOnce);
+}
+
+function stopAlarm() {
+  clearInterval(alarmInterval);
+  clearTimeout(alarmTimeout);
+  const alarm = document.getElementById("alarmSound");
+  alarm.currentTime = 0;
+  document.body.removeEventListener("click", stopAlarmOnce);
+}
+
+function stopAlarmOnce() {
+  stopAlarm();
+}
+
+function resetTimer() {
+  clearInterval(timer);
+  timeElapsed = 0;
+  timerRunning = false;
+  timerPaused = false;
+  updateTimerDisplay();
+  document.getElementById('timerBtn').textContent = "Start Timer";
+  clearTimeout(alarmTimeout);
+}
+
+async function startNextMatch(options = {}) {
+  const skipSave = options.skipSave || false;
+
+  if (matchTransitionInProgress) {
+    console.warn("🚫 startNextMatch skipped — already in progress");
+    return;
+  }
+  matchTransitionInProgress = true;
+
+  console.warn("🟢 startNextMatch called, matchNumber:", matchNumber);
+
+  if (!skipSave && matchNumber > 0) {
+    const actualMatchIndex = matchNumber - 1;
+    console.log("🎯 Actual match index to save:", actualMatchIndex);
+    const success = await saveCurrentMatch(actualMatchIndex);
+
+    if (!success) {
+      console.warn("❌ Match not saved — aborting transition.");
+      matchTransitionInProgress = false;
+      return;
+    }
+  }
+
+  resetTimer();
+  currentGoals = [];
+
+  document.getElementById("scoreA").textContent = "0";
+  document.getElementById("scoreB").textContent = "0";
+  document.getElementById("goalLogA").innerHTML = "";
+  document.getElementById("goalLogB").innerHTML = "";
+
+  const [teamA, teamB] = matchups[matchNumber];
+  document.getElementById("matchTitle").textContent = `Match ${matchNumber + 1}`;
+  document.getElementById("teamAName").textContent = teamA;
+  document.getElementById("teamBName").textContent = teamB;
+  document.getElementById("teamAIcon").src = getTeamLogo(teamA);
+  document.getElementById("teamBIcon").src = getTeamLogo(teamB);
+
+  checkRoundCompletion();
+  updateMatchHistory();
+
+  matchNumber++;
+  matchAlreadySaved = false;
+
+  console.warn("🟢 Completed startNextMatch. Next matchNumber is:", matchNumber);
+
+  setTimeout(() => {
+    matchTransitionInProgress = false;
+  }, 100);
+}
+
+function triggerScorer(side) {
+  const teamA = document.getElementById("teamAName").textContent;
+  const teamB = document.getElementById("teamBName").textContent;
+  const idxA = teamNames.indexOf(teamA);
+  const idxB = teamNames.indexOf(teamB);
+
+  const scoringTeam = side === 'A' ? teamA : teamB;
+  const opponentTeam = side === 'A' ? teamB : teamA;
+  const scoringIdx = side === 'A' ? idxA : idxB;
+  const opponentIdx = side === 'A' ? idxB : idxA;
+
+  document.getElementById("teamACol").textContent = scoringTeam;
+  document.getElementById("teamBCol").textContent = opponentTeam;
+
+const playersAHTML = (teamPlayersRaw[scoringIdx] || []).map(p =>
+  `<button onclick="promptScorerConfirm('${scoringTeam}', '${p.name}', false)">
+     ${p.name}${p.jersey ? ` (#${p.jersey})` : ""}
+   </button>`
+).join("") + `
+  <button onclick="promptScorerConfirm('${scoringTeam}', 'Others', false)">Others</button>
+`;
+document.getElementById("playersA").innerHTML = playersAHTML;
+
+
+const playersBHTML = (teamPlayersRaw[opponentIdx] || []).map(p =>
+  `<button onclick="promptScorerConfirm('${scoringTeam}', '${p.name}', true)">
+     ${p.name}${p.jersey ? ` (#${p.jersey})` : ""} (OG)
+   </button>`
+).join("") + `
+  <button onclick="promptScorerConfirm('${scoringTeam}', 'Others', true)">Others (OG)</button>
+`;
+document.getElementById("playersB").innerHTML = playersBHTML;
+
+
+
+  document.getElementById("overlay").style.display = "block";
+  document.getElementById("scorerPopup").style.display = "block";
+}
+
+function closePopup() {
+  document.getElementById("overlay").style.display = "none";
+  document.getElementById("scorerPopup").style.display = "none";
+}
+
+function addGoal(team, player, isOG = false) {
+  const timeMin = Math.floor(timeElapsed / 60);
+  const extra = timeMin >= duration ? `+${timeMin - duration}` : "";
+  const formatted = `${Math.min(timeMin + 1, duration)}${extra}'`;
+
+  currentGoals.push({ team, player, time: formatted, isOG });
+
+  const scoreId = team === document.getElementById("teamAName").textContent ? "scoreA" : "scoreB";
+  const scoreEl = document.getElementById(scoreId);
+  scoreEl.textContent = parseInt(scoreEl.textContent) + 1;
+
+  // 🔄 Update current match object in memory
+  const matchIndex = matchNumber - 1;
+  const match = matchResults[matchIndex];
+  if (match) {
+    match.gA = parseInt(document.getElementById("scoreA").textContent);
+    match.gB = parseInt(document.getElementById("scoreB").textContent);
+    match.goals = [...currentGoals]; // clone goals array
+    match.status = "pending";
+  }
+
+  renderGoalLog();
+  closePopup();
+
+  // 💾 Auto-save
+  autoSaveMatchProgress(matchIndex);
+}
+
+function renderGoalLog() {
+  const tA = document.getElementById("teamAName").textContent;
+  const tB = document.getElementById("teamBName").textContent;
+  const logA = {}, logB = {};
+
+  currentGoals.forEach(g => {
+    const teamLog = g.team === tA ? logA : logB;
+    const name = g.isOG ? `${g.player} (OG)` : g.player;
+    if (!teamLog[name]) teamLog[name] = [];
+    teamLog[name].push(g.time);
   });
 
-  // Match history
-  const container = document.getElementById("matchHistory");
-  container.innerHTML = matchResults.map(m => `
-    <div class="match-result-row">
-      <div>${m.tA}</div>
-      <div class="match-score">${m.gA} - ${m.gB}</div>
-      <div>${m.tB}</div>
-    </div>`).join("");
+  document.getElementById("goalLogA").innerHTML = Object.entries(logA)
+    .map(([p, times]) => `<div class='goal-line'>${p} ${times.join(", ")}</div>`).join("");
+  document.getElementById("goalLogB").innerHTML = Object.entries(logB)
+    .map(([p, times]) => `<div class='goal-line'>${p} ${times.join(", ")}</div>`).join("");
+}
 
-  // Top scorers
+function updateLiveScoreboard() {
+  const teamA = document.getElementById("teamAName").textContent;
+  const teamB = document.getElementById("teamBName").textContent;
+
+  const scoreA = currentGoals.filter(g => g.team === teamA).length;
+  const scoreB = currentGoals.filter(g => g.team === teamB).length;
+
+  document.getElementById("scoreA").textContent = scoreA;
+  document.getElementById("scoreB").textContent = scoreB;
+}
+
+async function saveCurrentMatchOnly() {
+  if (matchNumber === 0 || !matchResults.length) {
+    alert("⚠️ No match selected.");
+    return;
+  }
+
+  const match = matchResults[matchNumber - 1]; // matchNumber is 1-based
+  if (!match) {
+    alert("⚠️ Match data missing.");
+    return;
+  }
+
+  console.log("📝 Preparing to save result for Match", match.number);
+
+  const payload = {
+    game_id: sessionStorage.getItem("gameId"),
+    session_id: sessionStorage.getItem("sessionId"),
+    match_number: match.number,
+    team_a: match.tA,
+    team_b: match.tB,
+    goals_team_a: match.gA || 0,
+    goals_team_b: match.gB || 0,
+    updated_at: new Date().toISOString()
+  };
+
+  try {
+    const { data, error } = await supabaseClient
+      .from("match_results")
+      .upsert([payload], { onConflict: ['session_id', 'match_number'] });
+
+    if (error) throw error;
+
+    console.log("✅ Match result saved:", data);
+    alert(`✅ Match ${match.number} saved successfully.`);
+  } catch (err) {
+    console.error("❌ Failed to save match result:", err);
+    alert("❌ Error saving match. Check console.");
+  }
+}
+
+
+async function saveCurrentMatch(matchIndex) {
+  const tA = document.getElementById("teamAName").textContent;
+  const tB = document.getElementById("teamBName").textContent;
+  const gA = parseInt(document.getElementById("scoreA").textContent);
+  const gB = parseInt(document.getElementById("scoreB").textContent);
+
+  if ((gA == null || gA === '' || gA === 0) &&
+      (gB == null || gB === '' || gB === 0)) {
+    const proceed = confirm("⚠️ Both scores are 0 or empty. Are you sure you want to continue?");
+    if (!proceed) return false; // ❗ return false on cancel
+  }
+
+  matchResults[matchIndex] = {
+    ...matchResults[matchIndex], // ✅ Preserve existing id, number, court, etc.
+    tA,
+    tB,
+    gA,
+    gB
+  };
+
+
+  if (savedMatchIndexes.has(matchIndex)) {
+    console.warn(`🚫 Match ${matchIndex + 1} already saved — skipping`);
+    return false;
+  }
+
+  savedMatchIndexes.add(matchIndex);
+
+  console.log("Saving match to Supabase...");
+  console.warn("🟡 saveCurrentMatch() called for matchIndex:", matchIndex);
+  console.warn("→ matchNumber is:", matchNumber);
+
+  allGoals = allGoals.concat(
+    currentGoals.map(g => ({ ...g, match_number: matchIndex + 1 }))
+  );
+
+  updateMatchHistory();
+  updateLeaderboard();
+  updateStandings(tA, tB, gA, gB);
+
+  try {
+    const payload = {
+      game_id: sessionStorage.getItem("gameId"),
+      session_id: sessionStorage.getItem("sessionId"),
+      match_number: matchIndex + 1,
+      team_a: tA,
+      team_b: tB,
+      score_a: gA,
+      score_b: gB,
+      goals: currentGoals,
+      status: "completed"
+    };
+
+    console.log("📤 Sending match result to Supabase:", payload);
+
+    const res = await fetch('/api/save-match-result', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error(`Server returned ${res.status}: ${errorText}`);
+    }
+
+    const json = await res.json();
+    console.log("✅ Saved to Supabase:", json);
+    return true;
+
+  } catch (err) {
+    console.error("❌ Network or server error while saving match:", err);
+
+    const failedData = {
+      game_id: sessionStorage.getItem("gameId"),
+      session_id: sessionStorage.getItem("sessionId"),
+      match_number: matchIndex + 1,
+      team_a: tA,
+      team_b: tB,
+      score_a: gA,
+      score_b: gB,
+      goals: currentGoals,
+      status: "completed",
+      timestamp: Date.now()
+    };
+
+    const existing = JSON.parse(localStorage.getItem("unsyncedMatches") || "[]");
+    existing.push(failedData);
+    localStorage.setItem("unsyncedMatches", JSON.stringify(existing));
+
+    alert(`⚠️ Match ${matchIndex + 1} not saved due to network. Will retry when online.`);
+    return false;
+  }
+}
+
+
+function updateMatchHistory() {
+  const container = document.getElementById("matchHistory");
+  container.innerHTML = "";
+
+  if (!matchResults?.length) {
+    container.innerHTML = "<p style='text-align:center;'>No matches loaded.</p>";
+    return;
+  }
+
+  // 🔁 Group by court
+  const groupedByCourt = {};
+  matchResults.forEach(m => {
+    const court = m.court || 1;
+    if (!groupedByCourt[court]) groupedByCourt[court] = [];
+    groupedByCourt[court].push(m);
+  });
+
+  // 🎨 Render each court group
+  Object.keys(groupedByCourt)
+    .sort((a, b) => a - b)
+    .forEach(court => {
+      const heading = document.createElement("h3");
+      const courtIndex = parseInt(court) - 1;
+      const courtLabel = courtNames?.[courtIndex] || `Court ${court}`;
+      heading.className = "court-heading"; // 🆕 add this line
+      heading.textContent = `🏟️ ${courtLabel}`;
+
+      heading.style.marginTop = "1.5em";
+      heading.style.color = "#702963";
+      heading.style.textAlign = "left";
+
+      container.appendChild(heading);
+
+      groupedByCourt[court].forEach(m => {
+      const row = document.createElement("div");
+      row.className = "match-result-row";
+      if (m.status === "pending") {
+        row.classList.add("blinking");
+      }
+
+      // 🆕 Make row clickable to edit
+      row.style.cursor = "pointer";
+      row.addEventListener("click", () => {
+        const index = matchResults.findIndex(m2 => m2.number === m.number);
+        editMatchGoals(index);
+        document.getElementById("matchTitle").scrollIntoView({ behavior: "smooth" });
+      });
+
+
+      const formatScorers = (team) => {
+        const goals = (m.goals || []).filter(g => g.team === team);
+        return goals.map(g => `${g.player} ${g.time}`).join(", ");
+      };
+
+      row.innerHTML = `
+        <div class="team-side left">
+          <img class="team-logo" src="${getTeamLogo(m.tA)}" />
+          <div>
+            <div>${m.tA}</div>
+            <div style="font-size:12px; color:#666;">${formatScorers(m.tA)}</div>
+          </div>
+        </div>
+        <div class="match-score">${m.gA ?? '-'} - ${m.gB ?? '-'}</div>
+        <div class="team-side right">
+          <div>
+            <div>${m.tB}</div>
+            <div style="font-size:12px; color:#666;">${formatScorers(m.tB)}</div>
+          </div>
+          <img class="team-logo" src="${getTeamLogo(m.tB)}" />
+        </div>
+      `;
+
+        container.appendChild(row);
+      });
+    });
+}
+
+// function updateStandingsUI() {
+//   const container = document.getElementById("standingsTable");
+//   if (!container) return;
+
+//   container.innerHTML = ""; // Clear
+
+//   const teams = Object.keys(standings);
+//   if (teams.length === 0) {
+//     container.innerHTML = "<p>No standings available.</p>";
+//     return;
+//   }
+
+//   teams.sort((a, b) => standings[b].points - standings[a].points);
+
+//   teams.forEach(team => {
+//     const s = standings[team];
+//     const row = document.createElement("div");
+//     row.textContent = `${team}: ${s.points} pts (W:${s.wins}, D:${s.draws}, L:${s.losses}, GD:${s.gf - s.ga})`;
+//     container.appendChild(row);
+//   });
+// }
+
+function updateLeaderboard() {
+  const tally = {};
+  allGoals.forEach(g => {
+  if (!g.isOG && !g.player.toLowerCase().includes("others")) {
+    tally[g.player] = (tally[g.player] || 0) + 1;
+  }
+  });
+
+  const sorted = Object.entries(tally).sort((a, b) => b[1] - a[1]);
+  const container = document.getElementById("topScorersList");
+
+  container.innerHTML = sorted.map(([name, count], index) => {
+    // ✅ Find player and team
+    const teamEntry = teamPlayersRaw.find(team => team.some(p => p.name === name)) || [];
+    const player = teamEntry.find(p => p.name === name) || {};
+    const team = player.team_color || "default";
+
+    // ✅ Sanitize for file path
+    const teamFile = team.toLowerCase().replace(/ /g, "-");
+
+    console.log(`${name} → team: ${team}, file: ${teamFile}`);//debug purpose
+
+
+    return `
+      <div class="scorer-row">
+        <div class="scorer-pos">${index + 1}</div>
+        <div class="scorer-player">
+          <strong>${name}</strong>
+          <img class="scorer-logo" src="${getTeamLogo(team)}" alt="${team}" />
+        </div>
+        <div class="scorer-goals">${count}</div>
+      </div>
+    `;
+  }).join("");
+}
+
+
+function updateStandings(tA, tB, gA, gB) {
+  const stats = name => standings[name] ||= {
+    MP: 0, W: 0, D: 0, L: 0, Pts: 0, GF: 0, GA: 0, group: groupOf(name)
+  };
+
+  stats(tA).MP++; stats(tB).MP++;
+  stats(tA).GF += gA; stats(tA).GA += gB;
+  stats(tB).GF += gB; stats(tB).GA += gA;
+
+  if (gA > gB) { stats(tA).W++; stats(tB).L++; stats(tA).Pts += 3; }
+  else if (gB > gA) { stats(tB).W++; stats(tA).L++; stats(tB).Pts += 3; }
+  else { stats(tA).D++; stats(tB).D++; stats(tA).Pts += 1; stats(tB).Pts += 1; }
+
+  // 🔀 Group teams by group
+  const grouped = {};
+  Object.entries(standings).forEach(([team, s]) => {
+    const group = s.group || "A";
+    if (!grouped[group]) grouped[group] = [];
+    grouped[group].push({
+      team,
+      ...s,
+      GD: s.GF - s.GA
+    });
+  });
+
+  // 🎨 Render HTML for each group
+  const container = document.getElementById("standingsTable");
+  container.innerHTML = "";
+
+  Object.keys(grouped).sort().forEach(group => {
+    const rows = grouped[group].sort((a, b) =>
+      b.Pts - a.Pts || b.GD - a.GD || b.GF - a.GF
+    );
+
+    container.innerHTML += `
+      <h3 style="margin-top:1em;">Group ${group}</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Pos</th>
+            <th>Team</th>
+            <th>P</th>
+            <th>W</th>
+            <th>D</th>
+            <th>L</th>
+            <th>GF</th>
+            <th>GA</th>
+            <th>GD</th>
+            <th>Pts</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map((r, i) => `
+            <tr>
+              <td>${i + 1}</td>
+              <td class="club">
+                <img src="${getTeamLogo(r.team)}" class="club-logo" />
+                <span>${r.team}</span>
+              </td>
+              <td>${r.MP}</td>
+              <td>${r.W}</td>
+              <td>${r.D}</td>
+              <td>${r.L}</td>
+              <td>${r.GF}</td>
+              <td>${r.GA}</td>
+              <td>${r.GD}</td>
+              <td class="points">${r.Pts}</td>
+            </tr>`).join("")}
+        </tbody>
+      </table>
+    `;
+  });
+}
+
+function exportSummary() {
+  const lastMatchIndex = matchNumber - 1;
+
+  // ✅ Safe guard: only try to save if index is valid
+  if (lastMatchIndex >= 0 && lastMatchIndex < matchups.length) {
+    saveCurrentMatch(lastMatchIndex);
+  } else {
+    console.warn("⚠️ Skipping saveCurrentMatch — invalid match index:", lastMatchIndex);
+  }
+
+  const venue = sessionStorage.getItem("venue") || "futbola court";
+  const date = sessionStorage.getItem("date") || new Date().toLocaleDateString();
+
+  let message = `⚽ *Thank you for joining futbola!*\n📍 *Venue:* ${venue}\n📅 *Date:* ${date}\n\n`;
+
+  // 📋 Match results
+  message += `📋 *Match Results*\n`;
+  matchResults.forEach((r, i) => {
+    message += `Match ${i + 1}: ${r.tA} ${r.gA} - ${r.gB} ${r.tB}\n`;
+  });
+
+  // 🎯 Top scorers
   const tally = {};
   allGoals.forEach(g => {
     if (!g.isOG && !g.player.toLowerCase().includes("others")) {
       tally[g.player] = (tally[g.player] || 0) + 1;
     }
   });
-  const sorted = Object.entries(tally).sort((a, b) => b[1] - a[1]);
-  document.getElementById("topScorersList").innerHTML = sorted.map(([name, count], i) => `
-    <div class="scorer-row">
-      <div>${i + 1}. ${name}</div>
-      <div class="scorer-goals">${count}</div>
-    </div>`).join("");
+  const top = Object.entries(tally).sort((a, b) => b[1] - a[1]);
 
-  // Standings
-  const standings = {};
+  message += `\n🎯 *Top Scorers*\n`;
+  if (top.length > 0) {
+    top.forEach(([name, count], i) => {
+      const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : "•";
+      message += `${medal} ${name} – ${count}\n`;
+    });
+  } else {
+    message += "No goals recorded yet.\n";
+  }
+
+  // 🏆 Group standings
+  const rows = Object.entries(standings).map(([team, s]) => ({
+    team,
+    ...s,
+    GD: s.GF - s.GA
+  })).sort((a, b) =>
+    b.Pts - a.Pts || b.GD - a.GD || b.GF - a.GF
+  );
+
+  message += `\n🏆 *Group Table*\n# Team        MP  W D L  Pts\n`;
+  rows.forEach((r, i) => {
+    const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i + 1}.`;
+    const name = r.team.padEnd(11, ' ');
+    message += `${medal} ${name} ${r.MP}  ${r.W} ${r.D} ${r.L}   ${r.Pts}\n`;
+  });
+
+  navigator.clipboard.writeText(message).then(() =>
+    alert("Copied WhatsApp summary to clipboard 📋. Paste and share the vibes 💬!")
+  );
+}
+
+function openEditGoals() {
+  const container = document.getElementById("editGoalsList");
+  container.innerHTML = "";
+
+  if (currentGoals.length === 0) {
+    container.innerHTML = "<p>No goals to edit yet.</p>";
+  } else {
+    currentGoals.forEach((g, index) => {
+      const label = g.isOG ? `${g.player} (OG)` : g.player;
+      container.innerHTML += `
+        <div style="margin-bottom:10px;">
+          ${label} – ${g.time}
+          <button onclick="editGoal(${index})">✏️</button>
+          <button onclick="deleteGoal(${index})">🗑️</button>
+        </div>
+      `;
+    });
+  }
+
+  document.getElementById("editOverlay").style.display = "block";
+  document.getElementById("editGoalsPopup").style.display = "block";
+}
+
+function editMatchGoals(matchIndex) {
+  const match = matchResults[matchIndex];
+  if (!match) {
+    alert("No data found for this match.");
+    return;
+  }
+
+  const goals = allGoals.filter(g => g.match_number === matchIndex + 1);
+  const container = document.getElementById("editGoalsList");
+
+  // Set popup heading dynamically
+  document.getElementById("editGoalsPopup").querySelector("h4").innerText = `Edit Goals – Match ${matchIndex + 1}`;
+
+  // Always show Add Goal button
+  container.innerHTML = `
+    <button onclick="promptAddGoalToMatch(${matchIndex})" class="btn-primary" style="margin-bottom:10px;">➕ Add Goal</button>
+  `;
+
+  // Show existing goals (if any)
+  if (goals.length === 0) {
+    container.innerHTML += `<p>No goals recorded for this match, but you can still add or save.</p>`;
+  } else {
+    goals.forEach((g, i) => {
+      const label = g.isOG ? `${g.player} (OG)` : g.player;
+      container.innerHTML += `
+        <div style="margin-bottom:10px;">
+          ${label} – ${g.time}
+          <button onclick="editMatchGoal(${matchIndex}, ${i})">✏️</button>
+          <button onclick="deleteMatchGoal(${matchIndex}, ${i})">🗑️</button>
+        </div>
+      `;
+    });
+  }
+
+  // Always show Save Changes
+  container.innerHTML += `
+    <button class="btn-primary" onclick="saveEditedMatchGoals(${matchIndex})">💾 Save Changes</button>
+  `;
+
+  document.getElementById("editOverlay").style.display = "block";
+  document.getElementById("editGoalsPopup").style.display = "block";
+}
+
+function closeEditPopup() {
+  document.getElementById("editOverlay").style.display = "none";
+  document.getElementById("editGoalsPopup").style.display = "none";
+}
+
+function deleteGoal(index) {
+  if (confirm("Delete this goal?")) {
+    currentGoals.splice(index, 1);
+    renderGoalLog();
+    updateLiveScoreboard(); // ✅ Add this
+    openEditGoals(); // Refresh popup
+  }
+}
+
+
+function editGoal(index) {
+  const newPlayer = prompt("Enter new player name:", currentGoals[index].player);
+  if (newPlayer === null) return;
+
+  const newTime = prompt("Enter new time (e.g. 5'):", currentGoals[index].time);
+  if (newTime === null) return;
+
+  currentGoals[index].player = newPlayer;
+  currentGoals[index].time = newTime;
+
+  renderGoalLog();
+  updateLiveScoreboard(); // ✅ Add this
+  openEditGoals(); // Refresh popup
+}
+
+function promptScorerConfirm(team, player, isOG) {
+  pendingScorer = player;
+  pendingTeam = team;
+  pendingIsOG = isOG;
+
+  document.getElementById("confirmScorerText").textContent = 
+    `Confirm goal by: ${player}${isOG ? " (OG)" : ""}?`;
+
+  document.getElementById("confirmOverlay").style.display = "block";
+  document.getElementById("confirmScorerPopup").style.display = "block";
+}
+
+function confirmScorerAdd() {
+  addGoal(pendingTeam, pendingScorer, pendingIsOG);
+  cancelScorerConfirm();
+}
+
+function cancelScorerConfirm() {
+  document.getElementById("confirmOverlay").style.display = "none";
+  document.getElementById("confirmScorerPopup").style.display = "none";
+  pendingScorer = null;
+  pendingTeam = null;
+  pendingIsOG = false;
+}
+
+function checkRoundCompletion() {
+  const matchesPerRound = baseMatchups.length;
+  if (matchNumber === currentRound * matchesPerRound && currentRound < totalRounds) {
+    document.getElementById("roundPopup").style.display = "block";
+  }
+}
+
+function startNextRound() {
+  if (roundTransitionInProgress) {
+    console.warn("⏳ Round transition already in progress.");
+    return;
+  }
+
+  roundTransitionInProgress = true;
+  currentRound++;
+
+  const newRound = generateRoundRobin(teamNames);
+  matchups = matchups.concat(newRound);
+
+  // ✅ Correctly point to the start of the new round
+  matchNumber = matchups.length - newRound.length;
+
+  console.warn("🔄 Starting new round:", currentRound);
+  console.warn("🧮 matchNumber before startNextMatch:", matchNumber);
+
+  matchAlreadySaved = false;
+  document.getElementById("roundPopup").style.display = "none";
+
+  // 🛠️ Skip saving on round start to avoid double-save
+  startNextMatch({ skipSave: true });
+
+  setTimeout(() => {
+    roundTransitionInProgress = false;
+  }, 300);
+}
+
+function endGameNow() {
+  document.getElementById("roundPopup").style.display = "none";
+  // Let user stay on screen and export WhatsApp results manually
+}
+
+function closeRoundPopup() {
+  document.getElementById("roundPopup").style.display = "none";
+  document.getElementById("roundOverlay").style.display = "none";
+}
+
+function showRoundPopup() {
+  document.getElementById("roundPopup").style.display = "block";
+  document.getElementById("roundOverlay").style.display = "block";
+}
+
+function exportToInstagramImage() {
+  const venue = sessionStorage.getItem("venue") || "futbola court";
+  const date = sessionStorage.getItem("date") || new Date().toLocaleDateString();
+
+  document.getElementById("instaVenue").textContent = `futbola - ${venue}`;
+  document.getElementById("instaDate").textContent = date;
+
+  // Copy match results
+  document.getElementById("instaMatchResults").innerHTML = document.getElementById("matchHistory").innerHTML;
+
+  // Copy top scorers
+  document.getElementById("instaTopScorers").innerHTML = document.getElementById("topScorersList").innerHTML;
+
+  // Copy standings
+  document.getElementById("instaStandings").innerHTML = document.getElementById("standingsTable").innerHTML;
+
+  const exportDiv = document.getElementById("instagramExportDiv");
+  exportDiv.style.display = "block";
+
+  html2canvas(exportDiv, { width: 1080, height: 1526 }).then(canvas => {
+    const link = document.createElement('a');
+    link.download = `futbola_summary_${new Date().toISOString().slice(0,10)}.png`;
+    link.href = canvas.toDataURL();
+    link.click();
+    exportDiv.style.display = "none";
+  });
+}
+
+function editMatchGoal(matchIndex, i) {
+  const goals = allGoals.filter(g => g.match_number === matchIndex + 1);
+  const original = goals[i];
+  const globalIndex = allGoals.findIndex(g =>
+    g.match_number === matchIndex + 1 &&
+    g.player === original.player &&
+    g.time === original.time &&
+    g.isOG === original.isOG
+  );
+
+  const newPlayer = prompt("Enter new player name:", original.player);
+  if (newPlayer === null) return;
+
+  const newTime = prompt("Enter new time (e.g. 5'):", original.time);
+  if (newTime === null) return;
+
+  allGoals[globalIndex].player = newPlayer;
+  allGoals[globalIndex].time = newTime;
+
+  editMatchGoals(matchIndex); // Re-render the popup with updated goal
+}
+
+function deleteMatchGoal(matchIndex, i) {
+  if (!confirm("Delete this goal?")) return;
+
+  const matchNumber = matchIndex + 1;
+  const goals = allGoals.filter(g => g.match_number === matchNumber);
+  const toDelete = goals[i];
+
+  // Find actual index in global array
+  const globalIndex = allGoals.findIndex(g =>
+    g.match_number === matchNumber &&
+    g.player === toDelete.player &&
+    g.time === toDelete.time &&
+    g.isOG === toDelete.isOG
+  );
+
+  if (globalIndex !== -1) {
+    allGoals.splice(globalIndex, 1);
+
+    // 🧠 Immediately update everything that's dependent on goals
+    recalculateMatchResult(matchIndex);
+    recalculateStandingsFromAllMatches();
+
+    // 🔄 UI refresh
+    editMatchGoals(matchIndex);
+    updateLeaderboard();
+    updateLiveScoreboard();
+    updateMatchHistory();
+  }
+}
+
+function saveEditedMatchGoals(matchIndex) {
+  console.warn("🧠 matchIndex:", matchIndex);
+  console.warn("🧠 matchResults.length:", matchResults.length);
+  console.warn("🧠 matchResults[matchIndex]:", matchResults[matchIndex]);
+  alert(`✅ Saved edits for Match ${matchIndex + 1}.`);
+
+  const matchNumber = matchIndex + 1;
+  const updatedGoals = allGoals.filter(g => g.match_number === matchNumber);
+
+  console.log("Goals for match", matchNumber, updatedGoals);
+  console.log("Match results BEFORE:", matchResults);
+  console.log("Standings BEFORE:", JSON.parse(JSON.stringify(standings)));
+
+  // 🔁 Recalculate with updated goals
+  recalculateMatchResult(matchIndex);
+  recalculateStandingsFromAllMatches();
+  updateLeaderboard();
+  updateMatchHistory();
+  closeEditPopup();
+
+  console.log("Match results AFTER:", matchResults);
+  console.log("Standings AFTER:", standings);
+  recalculateMatchResult(matchIndex); // ✅ force refresh score from latest goals
+
+  // 🔁 Pull updated match again (critical!)
+// 🔁 Pull updated match again (critical!)
+const goals = allGoals.filter(g => g.match_number === matchIndex + 1);
+
+// ✅ Fix destructure error
+const matchup = matchups[matchIndex];
+if (!matchup || matchup.length !== 2) {
+  console.error("❌ Invalid or missing matchup at index", matchIndex, matchups);
+  alert("⚠️ Match team info not found. Please reload the page.");
+  return;
+}
+const [tA, tB] = matchup;
+const gA = goals.filter(g => g.team === tA).length;
+const gB = goals.filter(g => g.team === tB).length;
+
+const match = { tA, tB, gA, gB };
+
+  if (!match) {
+    console.error("❌ Match not found at index", matchIndex);
+    return;
+  }
+  // ✅ Patch matchResults so the updated score reflects visually too
+matchResults[matchIndex].gA = gA;
+matchResults[matchIndex].gB = gB;
+
+  // 🔐 Prepare payload
+  const payload = {
+    game_id: sessionStorage.getItem("gameId"),
+    session_id: sessionStorage.getItem("sessionId"),
+    match_number: matchNumber,
+    team_a: match.tA,
+    team_b: match.tB,
+    score_a: match.gA,
+    score_b: match.gB,
+    goals: updatedGoals
+  };
+
+  console.warn("📝 Edited match payload being sent:", payload);
+
+  if (!payload.game_id || !payload.session_id || !payload.team_a || !payload.team_b || isNaN(payload.score_a) || isNaN(payload.score_b)) {
+    console.error("🚫 Invalid payload detected. Aborting save.", payload);
+    alert("⚠️ Match data incomplete or corrupted. Could not save.");
+    return;
+  }
+
+  console.log("📦 Edited match goals payload:", JSON.stringify(updatedGoals, null, 2));
+
+  fetch('/api/save-match-result', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  })
+  .then(res => {
+    if (!res.ok) throw new Error(`Server returned ${res.status}`);
+    return res.json();
+  })
+  .then(json => {
+    console.log("✅ Edited match saved to Supabase:", json);
+  })
+  .catch(err => {
+    console.error("❌ Failed to save edited match:", err);
+
+    const failedData = {
+      ...payload,
+      timestamp: Date.now()
+    };
+
+    const existing = JSON.parse(localStorage.getItem("unsyncedMatches") || "[]");
+    existing.push(failedData);
+    localStorage.setItem("unsyncedMatches", JSON.stringify(existing));
+
+    alert("⚠️ Could not sync to Supabase. Saved locally and will retry when online.");
+  });
+}
+
+function recalculateStandingsFromAllMatches() {
+  standings = {};
+
+  // 1. Initialize all teams to zero stats
   matchResults.forEach(m => {
-    const { tA, tB, gA, gB } = m;
-    if (gA === '-' || gB === '-') return;
-    [tA, tB].forEach(t => standings[t] ||= { MP: 0, W: 0, D: 0, L: 0, GF: 0, GA: 0, Pts: 0 });
-    const a = standings[tA], b = standings[tB];
+    if (!standings[m.tA]) standings[m.tA] = { team: m.tA, MP: 0, W: 0, D: 0, L: 0, GF: 0, GA: 0, Pts: 0 };
+    if (!standings[m.tB]) standings[m.tB] = { team: m.tB, MP: 0, W: 0, D: 0, L: 0, GF: 0, GA: 0, Pts: 0 };
+  });
+
+  // 2. Recalculate based on played matches (non-null scores)
+  matchResults.forEach(m => {
+    if (m.gA == null || m.gB == null) return;
+
+    const a = standings[m.tA];
+    const b = standings[m.tB];
+
     a.MP++; b.MP++;
-    a.GF += gA; a.GA += gB;
-    b.GF += gB; b.GA += gA;
-    if (gA > gB) { a.W++; b.L++; a.Pts += 3; }
-    else if (gB > gA) { b.W++; a.L++; b.Pts += 3; }
+    a.GF += m.gA; a.GA += m.gB;
+    b.GF += m.gB; b.GA += m.gA;
+
+    if (m.gA > m.gB) { a.W++; b.L++; a.Pts += 3; }
+    else if (m.gB > m.gA) { b.W++; a.L++; b.Pts += 3; }
     else { a.D++; b.D++; a.Pts += 1; b.Pts += 1; }
   });
 
-  const sortedTeams = Object.entries(standings).map(([team, s]) => ({ team, ...s, GD: s.GF - s.GA }))
-    .sort((a, b) => b.Pts - a.Pts || b.GD - a.GD || b.GF - a.GF);
+  const rows = Object.values(standings).map(t => ({
+    ...t,
+    GD: t.GF - t.GA
+  }));
 
-  const standingsHTML = sortedTeams.map((s, i) => `
-    <tr>
-      <td>${i + 1}</td>
-      <td>${s.team}</td>
-      <td>${s.MP}</td>
-      <td>${s.W}</td>
-      <td>${s.D}</td>
-      <td>${s.L}</td>
-      <td>${s.GF}</td>
-      <td>${s.GA}</td>
-      <td>${s.GD}</td>
-      <td>${s.Pts}</td>
-    </tr>`).join("");
+  rows.sort((a, b) =>
+    b.Pts - a.Pts || b.GD - a.GD || b.GF - a.GF
+  );
 
-  document.getElementById("standingsTable").innerHTML = `
-    <table style="width:100%; border-collapse: collapse;">
-      <thead>
-        <tr style="background:#eee">
-          <th>Pos</th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th>
-          <th>GF</th><th>GA</th><th>GD</th><th>Pts</th>
+document.getElementById("standingsTable").innerHTML = `
+  <table class="leaderboard-table">
+    <thead>
+      <tr>
+        <th>Pos</th>
+        <th>Team</th>
+        <th>P</th>
+        <th>W</th>
+        <th>D</th>
+        <th>L</th>
+        <th>GF</th>
+        <th>GA</th>
+        <th>GD</th>
+        <th>Pts</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${rows.map((t, i) => `
+        <tr>
+          <td>${i + 1}</td>
+          <td class="club">
+            <img src="${getTeamLogo(t.team)}" class="club-logo" />
+            <span>${t.team}</span>
+          </td>
+          <td>${t.MP}</td>
+          <td>${t.W}</td>
+          <td>${t.D}</td>
+          <td>${t.L}</td>
+          <td>${t.GF}</td>
+          <td>${t.GA}</td>
+          <td>${t.GD}</td>
+          <td class="points">${t.Pts}</td>
         </tr>
-      </thead>
-      <tbody>${standingsHTML}</tbody>
-    </table>`;
+      `).join("")}
+    </tbody>
+  </table>
+`;
+
 }
 
-window.addEventListener("DOMContentLoaded", loadPublicDisplay);
+function recalculateMatchResult(matchIndex) {
+  const goals = allGoals.filter(g => g.match_number === matchIndex + 1);
+  if (!matchups[matchIndex]) return;
+
+  // ✅ Add this after filtering goals
+  console.log("🧮 Recalculating result for Match", matchIndex + 1);
+  console.log("Goals:", goals);
+
+  const [tA, tB] = matchups[matchIndex];
+  const gA = goals.filter(g => g.team === tA).length;
+  const gB = goals.filter(g => g.team === tB).length;
+
+  // ✅ Add this before updating matchResults
+  console.log("→ Score A:", gA, "| Score B:", gB);
+
+  // 🔁 Use Object.assign instead of overwrite
+  Object.assign(matchResults[matchIndex], { tA, tB, gA, gB });
+
+  // ✅ Add this right after update
+  console.log("→ Updated matchResults[matchIndex]:", matchResults[matchIndex]);
+}
+
+
+updateTimerDisplay();
+
+window.addEventListener('online', attemptResync);
+
+function checkAllMatchesDone() {
+  if (matchups.length > 0 && matchNumber >= matchups.length) {
+    if (currentRound < totalRounds) {
+      showRoundPopup();
+    } else {
+      alert("All matches done!");
+    }
+    matchTransitionInProgress = false;
+    return;
+  }
+}
+
+function attemptResync() {
+  const queue = JSON.parse(localStorage.getItem("unsyncedMatches") || "[]");
+  if (!queue.length) return;
+
+  const remaining = [];
+
+  queue.forEach(async (data) => {
+    try {
+      const res = await fetch('/api/save-match-result', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      if (res.ok) {
+        console.log(`✅ Resynced Match ${data.match_number}`);
+      } else {
+        throw new Error(`Server returned ${res.status}`);
+      }
+    } catch (err) {
+      console.warn(`🔁 Retry failed for Match ${data.match_number}`, err);
+      remaining.push(data); // Keep it for next retry
+    }
+  });
+
+  localStorage.setItem("unsyncedMatches", JSON.stringify(remaining));
+}
+
+function continueToNextRound(button) {
+  button.disabled = true;
+  startNextRound();
+}
+
+checkAllMatchesDone()
+
+
+async function updateStats() {
+  const btn = document.querySelector('[onclick="updateStats()"]');
+  btn.disabled = true;
+  btn.textContent = "Updating...";
+
+  try {
+    // ✅ Save MVP if selected
+    if (selectedMVP && gameId) {
+      const { error: mvpError } = await supabaseClient
+        .from("games")
+        .update({ mvp_user_id: selectedMVP })
+        .eq("id", gameId);
+
+      if (mvpError) {
+        console.error("❌ Error saving MVP:", mvpError);
+        alert("Failed to save MVP.");
+        return;
+      } else {
+        console.log(`✅ MVP saved successfully for game: ${gameId}`);
+      }
+    }
+
+    // ✅ Confirm update
+    if (!confirm("Update player stats now?")) return;
+
+    // ✅ Call stored procedure to update stats
+    const { data, error: statsError } = await supabaseClient.rpc("update_player_stats");
+
+    if (statsError) {
+      console.error("❌ Failed to update player stats:", statsError.message);
+      alert("❌ Failed to update stats!");
+    } else {
+      console.log("✅ Player stats updated:", data);
+      alert("✅ Player stats updated!");
+    }
+
+    // 🔄 Optional: Reload to reflect updated data
+    window.location.reload();
+  } catch (e) {
+    console.error("Unexpected error during updateStats():", e);
+    alert("❌ Something went wrong!");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Update Stats";
+  }
+}
+
+function promptAddGoalToMatch(matchIndex) {
+  window.pendingEditMatchIndex = matchIndex;
+  const [teamA, teamB] = matchups[matchIndex];
+
+  document.getElementById("editTeamSelector").innerHTML = `
+    <button class="btn-primary" onclick="selectEditTeam('${teamA}', '${teamB}')">${teamA}</button>
+    <button class="btn-primary" onclick="selectEditTeam('${teamB}', '${teamA}')">${teamB}</button>
+  `;
+
+  document.getElementById("editAddGoalPopup").style.display = "block";
+  document.getElementById("overlay").style.display = "block";
+}
+
+function selectEditTeam(scoringTeam, opponentTeam) {
+  const scoringIdx = teamNames.indexOf(scoringTeam);
+  const opponentIdx = teamNames.indexOf(opponentTeam);
+
+  document.getElementById("editLeftTeam").textContent = scoringTeam;
+  document.getElementById("editRightTeam").textContent = opponentTeam;
+
+  document.getElementById("editLeftPlayers").innerHTML = (teamPlayersRaw[scoringIdx] || []).map(p =>
+    `<button onclick="selectEditPlayer('${scoringTeam}', '${p.name}', false)">${p.name}</button>`
+  ).join("");
+
+  document.getElementById("editRightPlayers").innerHTML = (teamPlayersRaw[opponentIdx] || []).map(p =>
+    `<button onclick="selectEditPlayer('${scoringTeam}', '${p.name}', true)">${p.name} (OG)</button>`
+  ).join("");
+
+  document.getElementById("editPlayerSelector").style.display = "block";
+  document.getElementById("editTimeInputSection").style.display = "none";
+}
+
+function selectEditPlayer(team, player, isOG) {
+  window.pendingEditGoal = { team, player, isOG };
+  document.getElementById("editTimeInputSection").style.display = "block";
+}
+
+function confirmAddGoalToMatch() {
+  const matchIndex = window.pendingEditMatchIndex;
+  const { team, player, isOG } = window.pendingEditGoal;
+  const timeVal = document.getElementById("editGoalTime").value;
+  const time = `${timeVal}'`;
+
+  allGoals.push({
+    match_number: matchIndex + 1,
+    player,
+    team,
+    time,
+    isOG
+  });
+  recalculateMatchResult(matchIndex);
+  recalculateStandingsFromAllMatches();
+  updateLeaderboard();
+  updateMatchHistory();
+
+  closeEditAddGoalPopup();
+  editMatchGoals(matchIndex);
+}
+
+function closeEditAddGoalPopup() {
+  document.getElementById("editAddGoalPopup").style.display = "none";
+  document.getElementById("overlay").style.display = "none";
+  document.getElementById("editPlayerSelector").style.display = "none";
+  document.getElementById("editTimeInputSection").style.display = "none";
+}
+
+
+
+
+function populateMVPDropdown() {
+  const select = document.getElementById("mvpSelect");
+  select.innerHTML = `<option disabled selected>Select a player</option>`;
+
+  registeredUsers.forEach(user => {
+    const option = document.createElement("option");
+    option.value = user.id;
+    option.textContent = user.name;
+    select.appendChild(option);
+  });
+}
+
+function showMVPSelector() {
+  if (registeredUsers.length === 0) {
+    alert("⚠️ No players available for MVP selection.");
+    return;
+  }
+
+  populateMVPDropdown();
+  document.getElementById("mvpModal").style.display = "block";
+}
+
+function selectMVP() {
+  const select = document.getElementById("mvpSelect");
+  selectedMVP = select.value;
+
+  if (!selectedMVP) {
+    alert("❗ Please select a valid player.");
+    return;
+  }
+
+  alert(`✅ MVP selected: ${select.options[select.selectedIndex].text}`);
+  closeMVPModal();
+}
+
+function closeMVPModal() {
+  document.getElementById("mvpModal").style.display = "none";
+}
+
+async function autoSaveMatchProgress(matchIndex) {
+  const match = matchResults[matchIndex];
+  if (!match) return;
+
+  const payload = {
+    game_id: sessionStorage.getItem("gameId"),
+    session_id: sessionStorage.getItem("sessionId"),
+    match_number: matchIndex + 1,
+    team_a: match.tA,
+    team_b: match.tB,
+    score_a: match.gA ?? 0,
+    score_b: match.gB ?? 0,
+    goals: match.goals ?? [],
+    status: match.status ?? "pending",
+    updated_at: new Date().toISOString()
+  };
+
+  console.log("📤 Auto-saving match:", payload);
+
+  try {
+    const res = await fetch("/api/save-match-result", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    const result = await res.json();
+
+    if (res.ok) {
+      console.log("✅ Auto-save to Supabase successful:", result);
+    } else {
+      console.warn("❌ Auto-save rejected by Supabase:", result);
+    }
+
+  } catch (err) {
+    console.warn("⚠️ Auto-save failed:", err.message);
+  }
+}
+
+async function selectMVP() {
+  const selectedUserId = document.getElementById("mvpSelect").value;
+  const gameId = sessionStorage.getItem("gameId");
+
+  if (!selectedUserId || !gameId) {
+    alert("⚠️ Please select a player and ensure a game is loaded.");
+    return;
+  }
+
+  const { error } = await supabaseClient
+    .from("games")
+    .update({ mvp_user_id: selectedUserId })
+    .eq("id", gameId);
+
+  if (error) {
+    console.error("❌ Error saving MVP:", error);
+    alert("Failed to save MVP.");
+  } else {
+    console.log("✅ MVP saved successfully for game:", gameId);
+    alert("🎉 MVP saved!");
+    closeMVPModal();
+  }
+}
+
+window.addEventListener("DOMContentLoaded", async () => {
+  sessionStorage.clear();
+
+  const sessionDropdown = document.getElementById("sessionDropdown");
+  const matchDropdown = document.getElementById("matchDropdown");
+  const courtFilter = document.getElementById("courtFilter");
+  const mvpBtn = document.getElementById("nominateMVPBtn");
+
+  // Hide overlays
+  ["editPlayerSelector", "editAddGoalPopup", "editGoalsPopup", "overlay", "editOverlay", "confirmScorerPopup", "confirmOverlay"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = "none";
+  });
+
+  // MVP button
+  if (mvpBtn) {
+    mvpBtn.addEventListener("click", showMVPSelector);
+    console.log("✅ MVP button click listener wired up");
+  }
+
+  // Fetch all sessions (for dropdown)
+  let sessions = [];
+  try {
+    const { data, error } = await supabaseClient
+      .from("games_sessions")
+      .select(`
+        id,
+        game_id,
+        play_style,
+        rounds,
+        num_courts,
+        created_at,
+        court_names,
+        game:games (
+          game_date,
+          venue
+        )
+      `)
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+    sessions = data;
+  } catch (err) {
+    console.error("❌ Failed to fetch sessions:", err);
+  }
+
+  // Populate session dropdown
+  sessionDropdown.innerHTML = `<option disabled selected value="">-- Choose Session --</option>`;
+  sessions.forEach(sess => {
+    const date = sess.game?.game_date || "No Date";
+    const venue = sess.game?.venue || "No Venue";
+    const option = document.createElement("option");
+    option.value = sess.id;
+    option.textContent = `${venue} (${date})`;
+    sessionDropdown.appendChild(option);
+  });
+
+  // Handle session selection
+  sessionDropdown.addEventListener("change", async (e) => {
+    const sessionId = e.target.value;
+    sessionStorage.setItem("sessionId", sessionId);
+
+    // Fetch session details
+    const sessionInfo = sessions.find(s => s.id === sessionId);
+    const gameId = sessionInfo?.game_id;
+    const courtNames = sessionInfo?.court_names || [];
+
+    if (!gameId) {
+      console.warn("⚠️ No gameId for session");
+      return;
+    }
+
+    sessionStorage.setItem("gameId", gameId);
+    console.log("✅ gameId saved to sessionStorage:", gameId);
+
+    // 🟢 Fetch all teams + players for this game
+try {
+  const { data: teamData, error: teamError } = await supabaseClient
+    .from("session_teams")
+    .select("team_color, jersey_name")
+    .eq("game_id", gameId);
+
+  if (teamError) throw teamError;
+
+  const teamMap = {}; // { Red: [{ name }] }
+
+  teamData.forEach(row => {
+    const color = row.team_color;
+    if (!teamMap[color]) teamMap[color] = [];
+    teamMap[color].push({
+      name: row.jersey_name || "Unnamed",
+      team_color: color
+    });
+  });
+
+  teamNames = Object.keys(teamMap);
+  teamPlayersRaw = teamNames.map(color => teamMap[color]);
+
+  console.log("✅ teamNames", teamNames);
+  console.log("✅ teamPlayersRaw", teamPlayersRaw);
+} catch (err) {
+  console.error("❌ Failed to fetch teams/players for MVP/scorer use:", err);
+}
+
+    // Populate courtFilter
+    courtFilter.innerHTML = `<option value="all">All Courts</option>`;
+    courtNames.forEach((name, idx) => {
+      const opt = document.createElement("option");
+      opt.value = idx + 1;
+      opt.textContent = name;
+      courtFilter.appendChild(opt);
+    });
+
+    // 🆕 Populate groupFilter dropdown
+    const groupFilter = document.getElementById("groupFilter");
+    try {
+      const { data: groups, error: groupError } = await supabaseClient
+        .from("session_matches")
+        .select("group_label")
+        .eq("game_session_id", sessionId)
+        .not("group_label", "is", null);
+
+      if (groupError) throw groupError;
+
+      const uniqueGroups = [...new Set(groups.map(g => g.group_label))];
+
+      groupFilter.innerHTML = `<option value="all">All Groups</option>`;
+      uniqueGroups.forEach(label => {
+        const opt = document.createElement("option");
+        opt.value = label;
+        opt.textContent = label;
+        groupFilter.appendChild(opt);
+      });
+    } catch (err) {
+      console.error("❌ Failed to load group labels:", err);
+    }
+
+    // Load MVP players
+    try {
+      const { data: users, error } = await supabaseClient
+        .from("session_teams")
+        .select("user_id, profiles(full_name)")
+        .eq("game_id", gameId);
+
+      if (error) throw error;
+
+      registeredUsers = users
+        .filter(u => u.profiles?.full_name)
+        .map(u => ({ id: u.user_id, name: u.profiles.full_name }));
+
+      console.log("✅ MVP players loaded:", registeredUsers);
+    } catch (err) {
+      console.error("❌ Failed to load MVP players:", err);
+    }
+
+    // Load matches
+    loadMatches(sessionId);
+
+// 🔁 Periodic refresh every 15s
+setInterval(async () => {
+  const currentSessionId = sessionStorage.getItem("sessionId");
+  if (!currentSessionId) return;
+
+  console.log("🔄 Periodic update: fetching matches & goals...");
+
+  const prevMatchNumber = matchNumber;
+  const prevGoals = currentGoals.slice(); // backup current goals
+
+  await loadMatches(currentSessionId); // reload matchResults
+
+  // 🛠 Restore current match if still valid
+  if (prevMatchNumber > 0 && prevMatchNumber <= matchResults.length) {
+    matchNumber = prevMatchNumber;
+    currentGoals = prevGoals;
+
+    const match = matchResults[matchNumber - 1];
+    if (match) {
+      document.getElementById("teamAName").textContent = match.tA;
+      document.getElementById("teamBName").textContent = match.tB;
+      document.getElementById("teamAIcon").src = getTeamLogo(match.tA);
+      document.getElementById("teamBIcon").src = getTeamLogo(match.tB);
+      document.getElementById("matchTitle").textContent = `Match ${match.number}`;
+
+      updateLiveScoreboard();
+      renderGoalLog();
+    }
+  }
+}, 15000);
+
+
+  });
+
+  // Filter matches by court
+  courtFilter.addEventListener("change", () => {
+    const sessionId = sessionDropdown.value;
+    if (sessionId) loadMatches(sessionId);
+  });
+
+  // 🆕 Filter matches by group
+  groupFilter.addEventListener("change", () => {
+    const sessionId = sessionDropdown.value;
+    if (sessionId) loadMatches(sessionId);
+  });
+
+
+  // Load matches based on session + court
+async function loadMatches(sessionId) {
+    if (!sessionId) {
+    console.warn("⚠️ No sessionId provided. Skipping match load.");
+    return;
+  }
+
+  console.log("✅ Loading matches for session:", sessionId);
+
+  const selectedCourt = courtFilter.value;
+  matchDropdown.innerHTML = `<option disabled selected>Loading matches...</option>`;
+
+  let query = supabaseClient
+    .from("session_matches")
+    .select("id, match_number, team1_id, team2_id, court_number")
+    .eq("game_session_id", sessionId)
+    .order("match_number");
+
+  if (selectedCourt !== "all") {
+    query = query.eq("court_number", parseInt(selectedCourt));
+  }
+
+  const selectedGroup = document.getElementById("groupFilter")?.value;
+    if (selectedGroup && selectedGroup !== "all") {
+      query = query.eq("group_label", selectedGroup);
+    }
+
+  try {
+    // 1. Fetch matches
+    const { data: matches, error } = await query;
+    if (error) throw error;
+
+    // 2. Fetch court names from games_sessions
+    const { data: sessionMeta, error: metaError } = await supabaseClient
+      .from("games_sessions")
+      .select("court_names")
+      .eq("id", sessionId)
+      .single();
+
+    courtNames = sessionMeta?.court_names || [];
+
+    // 3. Reset global state
+matchResults = matches.map(m => {
+  console.log("📋 Loaded match with court:", m.match_number, m.court_number);
+  return {
+    id: m.id,
+    number: m.match_number,
+    tA: m.team1_id,
+    tB: m.team2_id,
+    gA: null,
+    gB: null,
+    court: m.court_number || 1,
+    status: "incoming"
+  };
+});
+
+// 🔧 ADD THIS to rebuild matchups properly
+matchups = matchResults.map(m => [m.tA, m.tB]);
+
+    allGoals = [];
+
+    // 🧠 Merge results from match_results into matchResults
+const { data: results, error: resultError } = await supabaseClient
+  .from("match_results")
+  .select("*")
+  .eq("session_id", sessionId);
+
+if (resultError) {
+  console.error("❌ Failed to fetch match results:", resultError);
+} else {
+  results.forEach(r => {
+    const match = matchResults.find(m => m.number === r.match_number);
+    if (match) {
+      match.gA = r.score_a ?? null;
+      match.gB = r.score_b ?? null;
+      match.goals = r.goals ?? [];
+      match.status = r.status ?? "incoming";
+
+      (match.goals || []).forEach(goal => {
+        allGoals.push({ ...goal, match_number: r.match_number });
+      });
+    }
+  });
+}
+
+
+    // 4. Build grouped dropdown by court name
+    matchDropdown.innerHTML = `<option disabled selected>-- Select Match --</option>`;
+    const grouped = {};
+
+    matchResults.forEach(m => {
+      const court = m.court || 1;
+      if (!grouped[court]) grouped[court] = [];
+      grouped[court].push(m);
+    });
+
+    Object.keys(grouped)
+      .sort((a, b) => a - b)
+      .forEach(court => {
+        const courtLabel = courtNames[court - 1] || `Court ${court}`;
+        const label = document.createElement("option");
+        label.disabled = true;
+        label.textContent = `--- ${courtLabel} ---`;
+        matchDropdown.appendChild(label);
+
+        grouped[court].forEach(m => {
+          const opt = document.createElement("option");
+          opt.value = m.id;
+          opt.textContent = `Match ${m.number}: ${m.tA} vs ${m.tB}`;
+          matchDropdown.appendChild(opt);
+        });
+      });
+
+    updateMatchHistory();
+    updateLeaderboard();
+    recalculateStandingsFromAllMatches();
+    // updateStandingsUI();
+
+  } catch (err) {
+    console.error("❌ Failed to load matches:", err);
+    matchDropdown.innerHTML = `<option disabled selected>⚠️ Failed to load matches</option>`;
+  }
+}
+
+
+
+  // Handle match selection
+matchDropdown.addEventListener("change", async (e) => {
+  const matchId = e.target.value;
+  const matchObj = matchResults.find(m => m.id === matchId);
+
+  if (!matchObj) {
+    alert("⚠️ Match not found.");
+    return;
+  }
+  
+
+  // Show court name in UI
+  const courtLabel = courtNames[matchObj.court - 1] || `Court ${matchObj.court}`;
+  //document.getElementById("courtLabel").textContent = courtLabel;
+
+  try {
+    const { data, error } = await supabaseClient
+      .from("session_matches")
+      .select("team1_id, team2_id")
+      .eq("id", matchId)
+      .single();
+
+    if (error || !data) {
+      alert("⚠️ Failed to load match details.");
+      return;
+    }
+
+    // Set up scoreboard UI
+    document.getElementById("teamAName").textContent = data.team1_id;
+    document.getElementById("teamBName").textContent = data.team2_id;
+    document.getElementById("teamAIcon").src = getTeamLogo(data.team1_id);
+    document.getElementById("teamBIcon").src = getTeamLogo(data.team2_id);
+    document.getElementById("scoreA").textContent = "0";
+    document.getElementById("scoreB").textContent = "0";
+    document.getElementById("goalLogA").innerHTML = "";
+    document.getElementById("goalLogB").innerHTML = "";
+
+    matchNumber = matchObj.number; // e.g. match 3 = index 2 + 1
+    document.getElementById("matchTitle").textContent = `Match ${matchNumber}`;
+
+    currentGoals = allGoals.filter(g => g.match_number === matchNumber);
+
+    updateLiveScoreboard();
+    renderGoalLog();
+  } catch (err) {
+    console.error("❌ Failed to load match from DB:", err);
+  }
+});
+
+});
+
 </script>
+
 </body>
 </html>
