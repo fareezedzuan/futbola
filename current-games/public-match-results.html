@@ -2432,6 +2432,7 @@ window.addEventListener("DOMContentLoaded", async () => {
 
   const urlSessionId = getSessionIdFromURL();
   if (urlSessionId) {
+    console.log("📌 sessionId from URL:", urlSessionId);
     sessionStorage.setItem("sessionId", urlSessionId);
     sessionDropdown.value = urlSessionId;
     sessionDropdown.dispatchEvent(new Event("change"));
