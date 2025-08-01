@@ -704,6 +704,15 @@ select.dropdown:focus {
   display: none !important;
 }
 
+.blink {
+  animation: blink-animation 1s steps(2, start) infinite;
+}
+@keyframes blink-animation {
+  to {
+    visibility: hidden;
+  }
+}
+
   </style>
 </head>
 
@@ -1424,6 +1433,9 @@ function updateMatchHistory() {
       groupedByCourt[court].forEach(m => {
       const row = document.createElement("div");
       row.className = "match-result-row";
+      if (match.status === "pending") {
+        row.classList.add("blink");
+      }
       if (m.status === "pending") {
         row.classList.add("blinking");
       }
@@ -2828,6 +2840,15 @@ matchDropdown.addEventListener("change", async (e) => {
     console.error("❌ Failed to load match from DB:", err);
   }
 });
+
+  // 🔁 Auto-refresh every 15 seconds
+  setInterval(async () => {
+    const sessionId = sessionStorage.getItem("sessionId");
+    if (!sessionId) return;
+
+    console.log("🔁 Auto-refreshing match results...");
+    await loadMatches(sessionId);
+  }, 15000);
 
 });
 
