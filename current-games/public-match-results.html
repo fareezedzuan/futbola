@@ -2436,6 +2436,11 @@ window.addEventListener("DOMContentLoaded", async () => {
     sessionStorage.setItem("sessionId", urlSessionId);
     sessionDropdown.value = urlSessionId;
     sessionDropdown.dispatchEvent(new Event("change"));
+    const forcedSessionId = getSessionIdFromURL();
+    if (forcedSessionId) {
+      console.log("🚀 Forcing match load for session from URL:", forcedSessionId);
+      await loadMatches(forcedSessionId);
+    }
   }
 
   // Handle session selection
@@ -2589,7 +2594,7 @@ setInterval(async () => {
   // Load matches based on session + court
 async function loadMatches(sessionId) {
   console.log("🔍 Attempting to load match results for sessionId:", sessionId);
-  
+
     if (!sessionId) {
     console.warn("⚠️ No sessionId provided. Skipping match load.");
     return;
