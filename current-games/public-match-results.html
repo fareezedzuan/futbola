@@ -2479,6 +2479,22 @@ window.addEventListener("DOMContentLoaded", async () => {
 if (sessionInfo?.game_id) {
   sessionStorage.setItem("gameId", sessionInfo.game_id);
   console.log("✅ Saved gameId:", sessionInfo.game_id);
+  const gameId = sessionInfo.game_id;
+if (gameId) {
+  const { data: gameMeta, error } = await supabaseClient
+    .from("games")
+    .select("venue, game_date")
+    .eq("id", gameId)
+    .single();
+
+  if (error) {
+    console.warn("⚠️ Failed to load venue/game_date:", error);
+  } else {
+    document.getElementById("venueText").textContent = gameMeta.venue || "Venue";
+    document.getElementById("dateText").textContent = gameMeta.game_date || "Date";
+    console.log("🏟️ Venue set:", gameMeta.venue, "📅 Date set:", gameMeta.game_date);
+  }
+}
 }
 
   // Handle session selection
@@ -2502,7 +2518,7 @@ if (sessionInfo?.game_id) {
 
     sessionStorage.setItem("gameId", gameId);
     console.log("✅ gameId saved to sessionStorage:", gameId);
-    
+
 
     // 🟢 Fetch all teams + players for this game
 try {
