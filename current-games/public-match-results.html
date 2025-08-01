@@ -752,6 +752,10 @@ select.dropdown:focus {
   <select id="matchDropdown" class="dropdown" style="width:100%; padding:8px; font-size:16px;">
     <option disabled selected value="">-- Choose Match --</option>
   </select>
+
+  <div id="venueHeader" style="text-align:center; font-size:20px; font-weight:bold; color:#702963; margin-bottom: 20px;">
+  📍 <span id="venueText">Venue</span> | 📅 <span id="dateText">Date</span>
+</div>
 </div>
 
 
@@ -2480,6 +2484,9 @@ window.addEventListener("DOMContentLoaded", async () => {
     const sessionInfo = sessions.find(s => s.id === sessionId);
     const gameId = sessionInfo?.game_id;
     const courtNames = sessionInfo?.court_names || [];
+
+    document.getElementById("venueText").textContent = sessionInfo?.game?.venue || "Venue";
+    document.getElementById("dateText").textContent = sessionInfo?.game?.game_date || "Date";
 
     if (!gameId) {
       console.warn("⚠️ No gameId for session");
