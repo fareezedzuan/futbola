@@ -2588,6 +2588,8 @@ setInterval(async () => {
 
   // Load matches based on session + court
 async function loadMatches(sessionId) {
+  console.log("🔍 Attempting to load match results for sessionId:", sessionId);
+  
     if (!sessionId) {
     console.warn("⚠️ No sessionId provided. Skipping match load.");
     return;
