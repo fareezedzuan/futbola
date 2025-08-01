@@ -612,6 +612,12 @@ select.dropdown:focus {
   gap: 0.5em;
 }
 
+.stacked-team.right {
+  flex-direction: row-reverse;
+  text-align: right;
+  align-items: center;
+}
+
 /* ✅ Wraps team name and scorer info */
 .team-info {
   display: flex;
@@ -636,6 +642,12 @@ select.dropdown:focus {
 /* 🟢 Responsive: stack vertically on mobile */
 @media (max-width: 600px) {
   .stacked-team {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .stacked-team.right {
     flex-direction: column;
     align-items: center;
     text-align: center;
@@ -2241,18 +2253,27 @@ async function autoSaveMatchProgress(matchIndex) {
     score_a: match.gA ?? 0,
     score_b: match.gB ?? 0,
     goals: match.goals ?? [],
-    status: match.status ?? "pending",  // Optional
+    status: match.status ?? "pending",
     updated_at: new Date().toISOString()
   };
 
+  console.log("📤 Auto-saving match:", payload);
+
   try {
-    await fetch("/api/save-match-result", {
+    const res = await fetch("/api/save-match-result", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     });
 
-    console.log("💾 Auto-saved match progress for Match", matchIndex + 1);
+    const result = await res.json();
+
+    if (res.ok) {
+      console.log("✅ Auto-save to Supabase successful:", result);
+    } else {
+      console.warn("❌ Auto-save rejected by Supabase:", result);
+    }
+
   } catch (err) {
     console.warn("⚠️ Auto-save failed:", err.message);
   }
