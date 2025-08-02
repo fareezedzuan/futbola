@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Create Game | Futbola Host</title>
+  <script src="./js/supabaseClient.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      max-width: 500px;
+      margin: 2em auto;
+      padding: 1em;
+    }
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 1em;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 8px;
+      margin-top: 4px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+    button {
+      margin-top: 2em;
+      width: 100%;
+      padding: 12px;
+      background-color: #702963;
+      color: white;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .error { color: red; margin-top: 1em; }
+    .success { color: green; margin-top: 1em; }
+  </style>
+</head>
+<body>
+  <h2>Create a New Game</h2>
+  <form id="createGameForm">
+    <label for="venue">Venue</label>
+    <input type="text" id="venue" required />
+
+    <label for="game_date">Game Date</label>
+    <input type="date" id="game_date" required />
+
+    <label for="game_time">Game Time</label>
+    <input type="time" id="game_time" required />
+
+    <label for="play_level">Level (Casual / Intermediate / Pro)</label>
+    <select id="play_level">
+      <option value="Casual">Casual</option>
+      <option value="Intermediate">Intermediate</option>
+      <option value="Pro">Pro</option>
+    </select>
+
+    <label for="num_courts">Number of Courts</label>
+    <input type="number" id="num_courts" value="1" min="1" />
+
+    <label for="court_names">Court Names (comma-separated)</label>
+    <input type="text" id="court_names" placeholder="e.g. Court A, Court B" />
+
+    <label for="price">Price (per person)</label>
+    <input type="number" id="price" min="0" />
+
+    <label for="whatsapp_link">WhatsApp Group Link</label>
+    <input type="url" id="whatsapp_link" />
+
+    <label><input type="checkbox" id="agreeTos" required /> I agree to the Terms & Conditions</label>
+
+    <button type="submit">Create Game</button>
+    <div id="status"></div>
+  </form>
+
+  <script>
+    const form = document.getElementById("createGameForm");
+    const statusDiv = document.getElementById("status");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      statusDiv.textContent = "";
+
+      const user = (await supabase.auth.getUser()).data.user;
+      if (!user) {
+        statusDiv.innerHTML = '<p class="error">You must be logged in to create a game.</p>';
+        return;
+      }
+
+      const payload = {
+        venue: document.getElementById("venue").value,
+        game_date: document.getElementById("game_date").value,
+        game_time: document.getElementById("game_time").value,
+        play_level: document.getElementById("play_level").value,
+        num_courts: parseInt(document.getElementById("num_courts").value),
+        court_names: document.getElementById("court_names").value.split(",").map(s => s.trim()),
+        price: parseFloat(document.getElementById("price").value),
+        whatsapp_link: document.getElementById("whatsapp_link").value,
+        host_id: user.id,
+        host_email: user.email,
+        created_at: new Date().toISOString()
+      };
+
+      const { error } = await supabase
+        .from("games")
+        .insert([payload]);
+
+      if (error) {
+        statusDiv.innerHTML = '<p class="error">❌ ' + error.message + '</p>';
+      } else {
+        form.reset();
+        statusDiv.innerHTML = '<p class="success">✅ Game created successfully!</p>';
+      }
+    });
+  </script>
+</body>
+</html>
