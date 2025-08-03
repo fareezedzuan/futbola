@@ -248,28 +248,34 @@
 <script type="module">
   import { supabase } from './js/supabaseClient.js';
 
+  // 🔐 Check Auth
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
     alert("Not logged in. Redirecting...");
     window.location.href = "/login.html";
   }
 
-  const { data: profile } = await supabase
+  // 🛡️ Role Authorization
+  const { data: profile, error } = await supabase
     .from("profiles")
     .select("category_role")
     .eq("id", user.id)
     .single();
 
-  const allowedRoles = ["Organizer", "Manager"];
-  const hasHostAccess = profile?.category_role?.some(role => allowedRoles.includes(role));
+  const allowedRoles = ["Organizer", "Admin"];
+  const userRoles = profile?.category_role || [];
 
-  if (!hasHostAccess) {
-    alert("Access denied: Hosts only");
+  const isAuthorized = allowedRoles.some(role => userRoles.includes(role));
+
+  if (!isAuthorized) {
+    alert("Access denied: Only Organizers or Admins can create games.");
     window.location.href = "/";
   }
 
+  // 🎯 Create Game Logic
   document.getElementById("submitGameButton").addEventListener("click", async () => {
     const data = {
+      host_id: user.id, // 🆕 Attach host ID
       session_title: document.getElementById("session_title").value,
       venue: document.getElementById("venue").value,
       game_date: document.getElementById("game_date").value,
@@ -303,6 +309,7 @@
       const result = await response.json();
       if (response.ok) {
         alert("Game created successfully!");
+        // Optionally redirect
       } else {
         alert("Failed: " + result.error);
       }
@@ -311,6 +318,7 @@
     }
   });
 
+  // 🧩 Conditional Display for Contact Link
   document.getElementById("contact_method").addEventListener("change", function () {
     const selected = this.value;
     const container = document.getElementById("contactLinkContainer");
