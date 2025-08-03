@@ -16,22 +16,24 @@
       overflow-y: auto;
       margin: 0;
     }
+
     .container {
       background: white;
       padding: 30px;
       border-radius: 10px;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
       width: 100%;
-      max-width: 500px;
+      max-width: 450px;
       text-align: center;
       border-top: 5px solid #ff5a5f;
     }
+
     h2 {
       color: #702963;
       margin-bottom: 10px;
       font-weight: bold;
-      text-align: center;
     }
+
     label {
       display: block;
       text-align: left;
@@ -39,7 +41,8 @@
       font-weight: bold;
       color: #ff5a5f;
     }
-    input, select, textarea {
+
+    input, select {
       width: 100%;
       padding: 10px;
       margin-top: 5px;
@@ -47,6 +50,7 @@
       border-radius: 5px;
       font-size: 16px;
     }
+
     button {
       background-color: #ff0000;
       color: white;
@@ -58,84 +62,116 @@
       cursor: pointer;
       width: 100%;
     }
+
     button:hover {
       background-color: #cc0000;
     }
+
     .footer {
       margin-top: 20px;
       font-size: 14px;
       color: #777;
     }
-    .toggle-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 10px;
+
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 50px;
+      height: 24px;
+      margin-left: 10px;
     }
-    .toggle-row label {
-      margin: 0;
+
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0;
+      right: 0; bottom: 0;
+      background-color: #ccc;
+      transition: .4s;
+      border-radius: 24px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+
+    .toggle-switch input:checked + .slider {
+      background-color: #ff5a5f;
+    }
+
+    .toggle-switch input:checked + .slider:before {
+      transform: translateX(26px);
     }
   </style>
 </head>
 <body>
   <div class="container">
     <h2>Create a New Game</h2>
+
     <form id="createGameForm">
       <label for="session_title">Session Title:</label>
-      <input type="text" id="session_title" name="session_title" placeholder="e.g. Casual Futsal for Fun" required />
+      <input type="text" id="session_title" placeholder="Casual Futsal for Fun, For Beginner, Female Only, etc." required />
 
       <label for="venue">Venue:</label>
-      <input type="text" id="venue" name="venue" required />
+      <input type="text" id="venue" required />
 
       <label for="game_date">Game Date:</label>
-      <input type="date" id="game_date" name="game_date" required />
+      <input type="date" id="game_date" required />
 
       <label for="start_time">Start Time:</label>
-      <input type="time" id="start_time" name="start_time" required />
+      <input type="time" id="start_time" required />
 
       <label for="end_time">End Time:</label>
-      <input type="time" id="end_time" name="end_time" required />
+      <input type="time" id="end_time" required />
 
-      <label for="sport_type">Sport Type:</label>
-      <select id="sport_type" name="sport_type" required>
-        <option value="">Select</option>
+      <label for="sport">Sport Type:</label>
+      <select id="sport" required>
+        <option value="" disabled selected>Select sport</option>
         <option value="football">Football</option>
         <option value="futsal">Futsal</option>
         <option value="other">Other</option>
       </select>
 
-      <label for="level">Level:</label>
-      <select id="level" name="level" required>
-        <option value="">Select</option>
+      <label for="level">Player Level:</label>
+      <select id="level" required>
+        <option value="" disabled selected>Select level</option>
         <option value="casual">Casual</option>
         <option value="semi-competitive">Casual-Competitive</option>
         <option value="tournament">Tournament</option>
         <option value="training">Training</option>
+        <option value="other">Other</option>
       </select>
 
-      <label for="play_style">Play Style:</label>
-      <select id="play_style" name="play_style" required>
-        <option value="">Select</option>
-        <option value="round-robin">Round Robin</option>
-        <option value="king-stay">King Stay</option>
-        <option value="friendly">Friendly</option>
-      </select>
-
-      <label for="players_per_team">Players per Team:</label>
-      <select id="players_per_team" name="players_per_team" required>
-        <option value="">Select</option>
-        <option value="5">5-a-side</option>
-        <option value="6">6-a-side</option>
-        <option value="7">7-a-side</option>
-        <option value="8">8-a-side</option>
-        <option value="9">9-a-side</option>
-        <option value="10">10-a-side</option>
-        <option value="11">11-a-side</option>
+      <label for="team_size">Players per Team:</label>
+      <select id="team_size" required>
+        <option value="" disabled selected>Select size</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+        <option value="7">7</option>
+        <option value="8">8</option>
+        <option value="9">9</option>
+        <option value="10">10</option>
+        <option value="11">11</option>
+        <option value="other">Other</option>
       </select>
 
       <label for="team_count">Number of Teams:</label>
-      <select id="team_count" name="team_count" required>
-        <option value="">Select</option>
+      <select id="team_count" required>
+        <option value="" disabled selected>Select number</option>
         <option value="2">2</option>
         <option value="3">3</option>
         <option value="4">4</option>
@@ -143,41 +179,45 @@
         <option value="6">6</option>
         <option value="7">7</option>
         <option value="8">8</option>
+        <option value="other">Other</option>
       </select>
 
-      <label for="court_count">Court Count:</label>
-      <select id="court_count" name="court_count" required>
+      <label for="court_count">Number of Courts:</label>
+      <select id="court_count" required>
+        <option value="" disabled selected>Select count</option>
         <option value="1">1</option>
         <option value="2">2</option>
+        <option value="other">Other</option>
       </select>
 
-      <label for="minutes_per_period">Minutes per Period:</label>
-      <input type="number" id="minutes_per_period" name="minutes_per_period" min="1" max="99" required />
+      <label for="minutes">Minutes per Period:</label>
+      <input type="number" id="minutes" placeholder="e.g. 15, 20, 30" min="5" max="99" required />
 
-      <label for="other_notes">Other Notes:</label>
-      <textarea id="other_notes" name="other_notes" placeholder="e.g. Keeper rotate every 5 mins"></textarea>
+      <label for="format">Game Format:</label>
+      <select id="format" required>
+        <option value="" disabled selected>Select format</option>
+        <option value="round robin">Round Robin</option>
+        <option value="king stay">King Stay</option>
+        <option value="friendly">Friendly</option>
+        <option value="knockout">Knockout</option>
+        <option value="other">Other</option>
+      </select>
 
-      <label for="price">Price (RM):</label>
-      <input type="number" id="price" name="price" min="0" step="0.01" required />
+      <label for="notes">Other Notes:</label>
+      <input type="text" id="notes" placeholder="e.g. No sub, rotate keeper" />
 
       <label for="max_players">Max Players:</label>
-      <input type="number" id="max_players" name="max_players" min="1" max="99" required />
+      <input type="number" id="max_players" min="1" required />
 
-      <label for="wa_group">WhatsApp Group Link (optional):</label>
-      <input type="url" id="wa_group" name="wa_group" placeholder="https://chat.whatsapp.com/..." />
-
-      <div class="toggle-row">
-        <label for="is_tournament">Is Tournament?</label>
-        <input type="checkbox" id="is_tournament" name="is_tournament" />
+      <label for="deadline">Set Booking Deadline?</label>
+      <div class="toggle-switch">
+        <input type="checkbox" id="deadlineToggle">
+        <span class="slider"></span>
       </div>
 
-      <div class="toggle-row">
-        <label for="is_public">Make Public?</label>
-        <input type="checkbox" id="is_public" name="is_public" checked />
-      </div>
-
-      <button type="submit">Create Game</button>
+      <button type="button" id="submitGameButton">Create Game</button>
     </form>
+
     <p class="footer">Follow us on Instagram <a href="https://www.instagram.com/futbola_my" target="_blank">@futbola_my</a></p>
   </div>
 </body>
