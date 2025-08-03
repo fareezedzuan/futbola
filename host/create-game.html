@@ -16,25 +16,22 @@
       overflow-y: auto;
       margin: 0;
     }
-
     .container {
       background: white;
       padding: 30px;
       border-radius: 10px;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
       width: 100%;
-      max-width: 400px;
+      max-width: 500px;
       text-align: center;
       border-top: 5px solid #ff5a5f;
     }
-
     h2 {
       color: #702963;
       margin-bottom: 10px;
       font-weight: bold;
       text-align: center;
     }
-
     label {
       display: block;
       text-align: left;
@@ -42,8 +39,7 @@
       font-weight: bold;
       color: #ff5a5f;
     }
-
-    input, select {
+    input, select, textarea {
       width: 100%;
       padding: 10px;
       margin-top: 5px;
@@ -51,7 +47,6 @@
       border-radius: 5px;
       font-size: 16px;
     }
-
     button {
       background-color: #ff0000;
       color: white;
@@ -63,28 +58,34 @@
       cursor: pointer;
       width: 100%;
     }
-
     button:hover {
       background-color: #cc0000;
     }
-
     .footer {
       margin-top: 20px;
       font-size: 14px;
       color: #777;
+    }
+    .toggle-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 10px;
+    }
+    .toggle-row label {
+      margin: 0;
     }
   </style>
 </head>
 <body>
   <div class="container">
     <h2>Create a New Game</h2>
-
     <form id="createGameForm">
-      <label for="host_name">Host Name:</label>
-      <input type="text" id="host_name" name="host_name" placeholder="e.g. John Doe" required />
+      <label for="session_title">Session Title:</label>
+      <input type="text" id="session_title" name="session_title" placeholder="e.g. Casual Female Futsal" required />
 
       <label for="venue">Venue:</label>
-      <input type="text" id="venue" name="venue" placeholder="e.g. Bangi Uptown Sports" required />
+      <input type="text" id="venue" name="venue" required />
 
       <label for="game_date">Game Date:</label>
       <input type="date" id="game_date" name="game_date" required />
@@ -95,82 +96,89 @@
       <label for="end_time">End Time:</label>
       <input type="time" id="end_time" name="end_time" required />
 
-      <label for="level">Recommended Level:</label>
-      <select id="level" name="level" required>
-        <option value="" disabled selected>Select level</option>
-        <option value="casual">Casual</option>
-        <option value="semi-competitive">Semi-Competitive</option>
-        <option value="competitive">Competitive</option>
-        <option value="any">All levels welcome</option>
+      <label for="sport_type">Sport Type:</label>
+      <select id="sport_type" name="sport_type" required>
+        <option value="">Select</option>
+        <option value="football">Football</option>
+        <option value="futsal">Futsal</option>
+        <option value="other">Other</option>
       </select>
 
-      <label for="play_style">Play Style / Format:</label>
-      <input type="text" id="play_style" name="play_style" placeholder="e.g. 5-a-side, 3 teams rotation" required>
+      <label for="level">Level:</label>
+      <select id="level" name="level" required>
+        <option value="">Select</option>
+        <option value="casual">Casual</option>
+        <option value="semi-competitive">Casual-Competitive</option>
+        <option value="tournament">Tournament</option>
+        <option value="training">Training</option>
+      </select>
+
+      <label for="play_style">Play Style:</label>
+      <select id="play_style" name="play_style" required>
+        <option value="">Select</option>
+        <option value="round-robin">Round Robin</option>
+        <option value="king-stay">King Stay</option>
+        <option value="friendly">Friendly</option>
+      </select>
+
+      <label for="players_per_team">Players per Team:</label>
+      <select id="players_per_team" name="players_per_team" required>
+        <option value="">Select</option>
+        <option value="5">5-a-side</option>
+        <option value="6">6-a-side</option>
+        <option value="7">7-a-side</option>
+        <option value="8">8-a-side</option>
+        <option value="9">9-a-side</option>
+        <option value="10">10-a-side</option>
+        <option value="11">11-a-side</option>
+      </select>
+
+      <label for="team_count">Number of Teams:</label>
+      <select id="team_count" name="team_count" required>
+        <option value="">Select</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+        <option value="7">7</option>
+        <option value="8">8</option>
+      </select>
+
+      <label for="court_count">Court Count:</label>
+      <select id="court_count" name="court_count" required>
+        <option value="1">1</option>
+        <option value="2">2</option>
+      </select>
+
+      <label for="minutes_per_period">Minutes per Period:</label>
+      <input type="number" id="minutes_per_period" name="minutes_per_period" min="1" max="99" required />
+
+      <label for="other_notes">Other Notes:</label>
+      <textarea id="other_notes" name="other_notes" placeholder="e.g. Keeper rotate every 5 mins"></textarea>
 
       <label for="price">Price (RM):</label>
-      <input type="number" id="price" name="price" min="0" step="0.01" placeholder="e.g. 35.00" required />
+      <input type="number" id="price" name="price" min="0" step="0.01" required />
 
       <label for="max_players">Max Players:</label>
-      <input type="number" id="max_players" name="max_players" min="1" max="30" required />
+      <input type="number" id="max_players" name="max_players" min="1" max="99" required />
 
-      <label for="game_type">Game Type:</label>
-      <select id="game_type" name="game_type" required>
-        <option value="">Select type</option>
-        <option value="regular">Regular Session</option>
-        <option value="tournament">Tournament</option>
-        <option value="special">Special Event</option>
-      </select>
+      <label for="wa_group">WhatsApp Group Link (optional):</label>
+      <input type="url" id="wa_group" name="wa_group" placeholder="https://chat.whatsapp.com/..." />
 
-      <label for="whatsapp_link">WhatsApp Group Link:</label>
-      <input type="url" id="whatsapp_link" name="whatsapp_link" placeholder="e.g. https://wa.me/1234567890" />
+      <div class="toggle-row">
+        <label for="is_tournament">Is Tournament?</label>
+        <input type="checkbox" id="is_tournament" name="is_tournament" />
+      </div>
 
-      <label for="admin_code">Admin Code (optional):</label>
-      <input type="text" id="admin_code" name="admin_code" placeholder="Enter if provided" />
+      <div class="toggle-row">
+        <label for="is_public">Make Public?</label>
+        <input type="checkbox" id="is_public" name="is_public" checked />
+      </div>
 
-      <label><input type="checkbox" id="tos" required /> I agree to the Terms & Conditions</label>
-
-      <button type="button" id="submitGameButton">Create Game</button>
+      <button type="submit">Create Game</button>
     </form>
-
     <p class="footer">Follow us on Instagram <a href="https://www.instagram.com/futbola_my" target="_blank">@futbola_my</a></p>
   </div>
-
-  <script>
-    document.getElementById("submitGameButton").addEventListener("click", async () => {
-      const data = {
-        host_name: document.getElementById("host_name").value,
-        venue: document.getElementById("venue").value,
-        game_date: document.getElementById("game_date").value,
-        start_time: document.getElementById("start_time").value,
-        end_time: document.getElementById("end_time").value,
-        level: document.getElementById("level").value,
-        play_style: document.getElementById("play_style").value,
-        price: parseFloat(document.getElementById("price").value),
-        max_players: parseInt(document.getElementById("max_players").value),
-        game_type: document.getElementById("game_type").value,
-        whatsapp_link: document.getElementById("whatsapp_link").value,
-        admin_code: document.getElementById("admin_code").value
-      };
-
-      try {
-        const response = await fetch("https://futbola-backend-fareezedzuans-projects.vercel.app/api/create-game", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify(data)
-        });
-
-        const result = await response.json();
-        if (response.ok) {
-          alert("Game created successfully!");
-        } else {
-          alert("Failed: " + result.error);
-        }
-      } catch (err) {
-        alert("Error: " + err.message);
-      }
-    });
-  </script>
 </body>
 </html>
