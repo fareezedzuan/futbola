@@ -23,7 +23,7 @@
       border-radius: 10px;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
       width: 100%;
-      max-width: 450px;
+      max-width: 400px;
       text-align: center;
       border-top: 5px solid #ff5a5f;
     }
@@ -32,6 +32,7 @@
       color: #702963;
       margin-bottom: 10px;
       font-weight: bold;
+      text-align: center;
     }
 
     label {
@@ -49,6 +50,56 @@
       border: 1px solid #ccc;
       border-radius: 5px;
       font-size: 16px;
+    }
+
+    .toggle-container {
+      display: flex;
+      align-items: center;
+      margin-top: 10px;
+      justify-content: space-between;
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 50px;
+      height: 24px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0;
+      right: 0; bottom: 0;
+      background-color: #ccc;
+      transition: .4s;
+      border-radius: 34px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: #ff5a5f;
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(26px);
     }
 
     button {
@@ -72,50 +123,6 @@
       font-size: 14px;
       color: #777;
     }
-
-    .toggle-switch {
-      position: relative;
-      display: inline-block;
-      width: 50px;
-      height: 24px;
-      margin-left: 10px;
-    }
-
-    .toggle-switch input {
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
-
-    .slider {
-      position: absolute;
-      cursor: pointer;
-      top: 0; left: 0;
-      right: 0; bottom: 0;
-      background-color: #ccc;
-      transition: .4s;
-      border-radius: 24px;
-    }
-
-    .slider:before {
-      position: absolute;
-      content: "";
-      height: 18px;
-      width: 18px;
-      left: 3px;
-      bottom: 3px;
-      background-color: white;
-      transition: .4s;
-      border-radius: 50%;
-    }
-
-    .toggle-switch input:checked + .slider {
-      background-color: #ff5a5f;
-    }
-
-    .toggle-switch input:checked + .slider:before {
-      transform: translateX(26px);
-    }
   </style>
 </head>
 <body>
@@ -124,54 +131,46 @@
 
     <form id="createGameForm">
       <label for="session_title">Session Title:</label>
-      <input type="text" id="session_title" placeholder="Casual Futsal for Fun, For Beginner, Female Only, etc." required />
+      <input type="text" id="session_title" name="session_title" placeholder="Casual Futsal for Fun, For Beginner, Female Only, etc." required />
 
       <label for="venue">Venue:</label>
-      <input type="text" id="venue" required />
+      <input type="text" id="venue" name="venue" required />
 
       <label for="game_date">Game Date:</label>
-      <input type="date" id="game_date" required />
+      <input type="date" id="game_date" name="game_date" required />
 
       <label for="start_time">Start Time:</label>
-      <input type="time" id="start_time" required />
+      <input type="time" id="start_time" name="start_time" required />
 
       <label for="end_time">End Time:</label>
-      <input type="time" id="end_time" required />
+      <input type="time" id="end_time" name="end_time" required />
 
-      <label for="sport">Sport Type:</label>
-      <select id="sport" required>
-        <option value="" disabled selected>Select sport</option>
-        <option value="football">Football</option>
-        <option value="futsal">Futsal</option>
-        <option value="other">Other</option>
-      </select>
-
-      <label for="level">Player Level:</label>
-      <select id="level" required>
-        <option value="" disabled selected>Select level</option>
+      <label for="level">Game Level:</label>
+      <select id="level" name="level" required>
+        <option disabled selected>Select level</option>
         <option value="casual">Casual</option>
-        <option value="semi-competitive">Casual-Competitive</option>
+        <option value="casual-competitive">Casual-Competitive</option>
         <option value="tournament">Tournament</option>
         <option value="training">Training</option>
         <option value="other">Other</option>
       </select>
 
-      <label for="team_size">Players per Team:</label>
-      <select id="team_size" required>
-        <option value="" disabled selected>Select size</option>
-        <option value="5">5</option>
-        <option value="6">6</option>
-        <option value="7">7</option>
-        <option value="8">8</option>
-        <option value="9">9</option>
-        <option value="10">10</option>
-        <option value="11">11</option>
+      <label for="player_format">Players per Team:</label>
+      <select id="player_format" name="player_format" required>
+        <option disabled selected>Select format</option>
+        <option value="5">5-a-side</option>
+        <option value="6">6-a-side</option>
+        <option value="7">7-a-side</option>
+        <option value="8">8-a-side</option>
+        <option value="9">9-a-side</option>
+        <option value="10">10-a-side</option>
+        <option value="11">11-a-side</option>
         <option value="other">Other</option>
       </select>
 
-      <label for="team_count">Number of Teams:</label>
-      <select id="team_count" required>
-        <option value="" disabled selected>Select number</option>
+      <label for="teams">Number of Teams:</label>
+      <select id="teams" name="teams" required>
+        <option disabled selected>Select number</option>
         <option value="2">2</option>
         <option value="3">3</option>
         <option value="4">4</option>
@@ -182,37 +181,52 @@
         <option value="other">Other</option>
       </select>
 
-      <label for="court_count">Number of Courts:</label>
-      <select id="court_count" required>
-        <option value="" disabled selected>Select count</option>
+      <label for="courts">Number of Courts:</label>
+      <select id="courts" name="courts" required>
+        <option disabled selected>Select number</option>
         <option value="1">1</option>
         <option value="2">2</option>
         <option value="other">Other</option>
       </select>
 
       <label for="minutes">Minutes per Period:</label>
-      <input type="number" id="minutes" placeholder="e.g. 15, 20, 30" min="5" max="99" required />
+      <input type="number" id="minutes" name="minutes" min="10" max="99" required />
 
-      <label for="format">Game Format:</label>
-      <select id="format" required>
-        <option value="" disabled selected>Select format</option>
-        <option value="round robin">Round Robin</option>
-        <option value="king stay">King Stay</option>
-        <option value="friendly">Friendly</option>
-        <option value="knockout">Knockout</option>
+      <label for="play_style">Game Style / Notes:</label>
+      <input type="text" id="play_style" name="play_style" placeholder="Round Robin, King Stay, Friendly, etc." />
+
+      <label for="wa_link">WhatsApp Group Link:</label>
+      <input type="url" id="wa_link" name="wa_link" placeholder="https://wa.me/xxxxxxxx" />
+
+      <label for="payment_type">Payment Type:</label>
+      <select id="payment_type" name="payment_type">
+        <option disabled selected>Select payment</option>
+        <option value="pay_on_court">Pay on Court</option>
+        <option value="pay_full">Full Payment</option>
+        <option value="pay_booking">Booking Fee</option>
         <option value="other">Other</option>
       </select>
 
-      <label for="notes">Other Notes:</label>
-      <input type="text" id="notes" placeholder="e.g. No sub, rotate keeper" />
+      <label for="price">Price (RM):</label>
+      <input type="number" id="price" name="price" min="0" step="0.01" required />
 
       <label for="max_players">Max Players:</label>
-      <input type="number" id="max_players" min="1" required />
+      <input type="number" id="max_players" name="max_players" min="1" max="30" required />
 
-      <label for="deadline">Set Booking Deadline?</label>
-      <div class="toggle-switch">
-        <input type="checkbox" id="deadlineToggle">
-        <span class="slider"></span>
+      <div class="toggle-container">
+        <span>Public Session</span>
+        <label class="switch">
+          <input type="checkbox" id="is_public" name="is_public">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="toggle-container">
+        <span>Recurring Session</span>
+        <label class="switch">
+          <input type="checkbox" id="is_recurring" name="is_recurring">
+          <span class="slider"></span>
+        </label>
       </div>
 
       <button type="button" id="submitGameButton">Create Game</button>
@@ -220,5 +234,48 @@
 
     <p class="footer">Follow us on Instagram <a href="https://www.instagram.com/futbola_my" target="_blank">@futbola_my</a></p>
   </div>
+
+  <script>
+    document.getElementById("submitGameButton").addEventListener("click", async () => {
+      const data = {
+        session_title: document.getElementById("session_title").value,
+        venue: document.getElementById("venue").value,
+        game_date: document.getElementById("game_date").value,
+        start_time: document.getElementById("start_time").value,
+        end_time: document.getElementById("end_time").value,
+        level: document.getElementById("level").value,
+        player_format: document.getElementById("player_format").value,
+        teams: document.getElementById("teams").value,
+        courts: document.getElementById("courts").value,
+        minutes: parseInt(document.getElementById("minutes").value),
+        play_style: document.getElementById("play_style").value,
+        wa_link: document.getElementById("wa_link").value,
+        payment_type: document.getElementById("payment_type").value,
+        price: parseFloat(document.getElementById("price").value),
+        max_players: parseInt(document.getElementById("max_players").value),
+        is_public: document.getElementById("is_public").checked,
+        is_recurring: document.getElementById("is_recurring").checked
+      };
+
+      try {
+        const response = await fetch("https://futbola-backend-fareezedzuans-projects.vercel.app/api/create-game", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+        if (response.ok) {
+          alert("Game created successfully!");
+        } else {
+          alert("Failed: " + result.error);
+        }
+      } catch (err) {
+        alert("Error: " + err.message);
+      }
+    });
+  </script>
 </body>
 </html>
