@@ -195,8 +195,18 @@
       <label for="play_style">Game Style / Notes:</label>
       <input type="text" id="play_style" name="play_style" placeholder="Round Robin, King Stay, Friendly, etc." />
 
-      <label for="wa_link">WhatsApp Group Link:</label>
-      <input type="url" id="wa_link" name="wa_link" placeholder="https://wa.me/xxxxxxxx" />
+      <label for="contact_method">Preferred Contact Method:</label>
+        <select id="contact_method" name="contact_method" required>
+        <option value="none" selected>None</option>
+        <option value="whatsapp">WhatsApp Group</option>
+        <option value="telegram">Telegram Group</option>
+        <option value="manual">Manual Contact</option>
+        </select>
+
+        <div id="contactLinkContainer" style="display: none;">
+            <label for="contact_link">Group/Contact Link:</label>
+            <input type="url" id="contact_link" name="contact_link" placeholder="Paste link (WhatsApp, Telegram, etc.)" />
+        </div>
 
       <label for="payment_type">Payment Type:</label>
       <select id="payment_type" name="payment_type">
@@ -254,7 +264,9 @@
         price: parseFloat(document.getElementById("price").value),
         max_players: parseInt(document.getElementById("max_players").value),
         is_public: document.getElementById("is_public").checked,
-        is_recurring: document.getElementById("is_recurring").checked
+        is_recurring: document.getElementById("is_recurring").checked,
+        contact_method: document.getElementById("contact_method").value,
+        contact_link: document.getElementById("contact_link").value || null
       };
 
       try {
@@ -275,6 +287,12 @@
       } catch (err) {
         alert("Error: " + err.message);
       }
+    });
+
+    document.getElementById("contact_method").addEventListener("change", function () {
+        const selected = this.value;
+        const container = document.getElementById("contactLinkContainer");
+        container.style.display = (selected === "whatsapp" || selected === "telegram") ? "block" : "none";
     });
   </script>
 </body>
