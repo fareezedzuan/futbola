@@ -137,13 +137,17 @@
     }
 
     .calendar-box.nogame {
-      opacity: 0.4;
-      border-style: dashed;
+      opacity: 1;
+      border: 2px dashed #ff0000;
+      color: #444;
     }
 
     .calendar-box.past {
-      opacity: 0.3;
+      opacity: 0.2;
+      background: #f6f6f6;
+      border: 2px solid #bbb;
       pointer-events: none;
+      color: #999;
     }
 
     .calendar-header {
@@ -152,6 +156,15 @@
       font-size: 18px;
       margin-bottom: 8px;
       color: #702963;
+    }
+    #calendarGridWrapper {
+      border: 2px solid #702963;
+      border-radius: 10px;
+      padding: 20px 10px;
+      background: white;
+      max-width: 640px;
+      margin: 0 auto 30px auto;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.05);
     }
 
     @media (max-width: 600px) {
@@ -164,11 +177,10 @@
 <body>
 <h2>Book Game</h2>
 <div id="logoutContainer" style="text-align: center; margin-bottom: 20px;"></div>
-<div class="calendar-header">August 2025</div>
-<div id="calendarGrid"></div>
-<!-- <div id="calendarSection" style="text-align:center; margin-bottom: 30px;">
-  <input type="date" id="datePicker" />
-</div> -->
+<div id="calendarGridWrapper">
+  <div class="calendar-header">August 2025</div>
+  <div id="calendarGrid"></div>
+</div>
 
 <div id="gameContainer"></div>
 
