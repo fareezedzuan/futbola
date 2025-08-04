@@ -303,6 +303,7 @@
     };
 
     try {
+        console.log("🚀 Submitting game data:", data);
         const response = await fetch("https://futbola-backend-fareezedzuans-projects.vercel.app/api/create-game", {
         method: "POST",
         headers: {
