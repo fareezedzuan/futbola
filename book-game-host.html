@@ -301,6 +301,7 @@ function renderCalendarGrid() {
       <div style="font-size: 11px; color: #702963;">${weekday}</div>
       <div style="font-size: 14px; font-weight: bold;">${dayNum}/${monthNum}</div>
     `;
+    let statusClass = "nogame";
 
     // class logic
     box.classList.add(statusClass);
@@ -312,7 +313,6 @@ function renderCalendarGrid() {
     }
 
     const gameList = gameMap[dateStr] || [];
-    let statusClass = "nogame";
     if (gameList.length) {
       let totalSlots = 0;
       let filledSlots = 0;
