@@ -95,21 +95,23 @@
       display: grid;
       grid-template-columns: repeat(7, 1fr);
       gap: 10px;
-      max-width: 600px;
+      max-width: 620px;
       margin: 0 auto 30px auto;
-      padding: 10px;
-      box-sizing: border-box;
+      padding: 10px 0;
     }
 
     .calendar-box {
-      background-color: #eee;
+      background-color: white;
+      color: black;
       text-align: center;
-      padding: 12px 8px;
-      border-radius: 10px;
-      font-size: 14px;
+      padding: 12px 6px;
+      border-radius: 8px;
+      font-size: 13px;
       font-weight: bold;
-      border: 2px solid transparent;
-      transition: 0.2s ease;
+      border: 2px solid #ff0000;
+      box-shadow: 1px 1px 4px rgba(0,0,0,0.05);
+      transition: all 0.2s ease;
+      cursor: pointer;
     }
 
     .calendar-box:hover {
@@ -119,16 +121,37 @@
     .calendar-box.selected {
       border-color: #ff0000;
       background-color: #ffe5e5;
+      color: #702963;
     }
 
-    .calendar-box.available { background-color: #d4f8d4; }
-    .calendar-box.almost { background-color: #fff5d1; }
-    .calendar-box.full { background-color: #f8d4d4; }
-    .calendar-box.nogame { background-color: #e0e0e0; }
+    .calendar-box.available {
+      border-color: #28a745;
+    }
+
+    .calendar-box.almost {
+      border-color: #ffc107;
+    }
+
+    .calendar-box.full {
+      border-color: #dc3545;
+    }
+
+    .calendar-box.nogame {
+      opacity: 0.4;
+      border-style: dashed;
+    }
 
     .calendar-box.past {
-      opacity: 0.4;
+      opacity: 0.3;
       pointer-events: none;
+    }
+
+    .calendar-header {
+      text-align: center;
+      font-weight: bold;
+      font-size: 18px;
+      margin-bottom: 8px;
+      color: #702963;
     }
 
     @media (max-width: 600px) {
@@ -141,6 +164,7 @@
 <body>
 <h2>Book Game</h2>
 <div id="logoutContainer" style="text-align: center; margin-bottom: 20px;"></div>
+<div class="calendar-header">August 2025</div>
 <div id="calendarGrid"></div>
 <!-- <div id="calendarSection" style="text-align:center; margin-bottom: 30px;">
   <input type="date" id="datePicker" />
@@ -276,6 +300,7 @@ function renderCalendarGrid() {
     if (dateObj < todayDate) {
       box.classList.add("past");
     }
+    
   });
 }
 
