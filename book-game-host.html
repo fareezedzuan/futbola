@@ -94,24 +94,31 @@
     #calendarGrid {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
-      gap: 10px;
-      max-width: 620px;
-      margin: 0 auto 30px auto;
-      padding: 10px 0;
+      gap: 4px;                      /* reduced from 10px */
+      max-width: 100%;               /* allow full width use */
+      margin: 0 auto 20px auto;
+      padding: 5px 6px;
     }
 
     .calendar-box {
       background-color: white;
       color: black;
       text-align: center;
-      padding: 12px 6px;
-      border-radius: 8px;
-      font-size: 13px;
+      padding: 6px 2px;              /* reduced from 12px 6px */
+      border-radius: 6px;            /* slightly tighter */
+      font-size: 12px;               /* one step down */
       font-weight: bold;
       border: 2px solid #ff0000;
       box-shadow: 1px 1px 4px rgba(0,0,0,0.05);
       transition: all 0.2s ease;
       cursor: pointer;
+      min-width: 34px;               /* force narrow fit */
+      height: 50px;                  /* consistent vertical fit */
+      display: flex;                /* better layout */
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      line-height: 1.1;
     }
 
     .calendar-box:hover {
@@ -167,11 +174,6 @@
       box-shadow: 0 3px 6px rgba(0,0,0,0.05);
     }
 
-    /* @media (max-width: 600px) {
-      #calendarGrid {
-        grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
-      }
-    } */
   </style>
 </head>
 <body>
