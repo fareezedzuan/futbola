@@ -253,6 +253,16 @@ const { data: games, error } = await supabase
   .gte("game_date", todayStr)
   .order("game_date", { ascending: true });
 
+const { data: allBookings } = await supabase
+  .from("game_bookings")
+  .select("game_id");
+
+const bookingCountMap = {};
+allBookings.forEach(b => {
+  if (!bookingCountMap[b.game_id]) bookingCountMap[b.game_id] = 0;
+  bookingCountMap[b.game_id]++;
+});
+
 if (error) {
   container.innerHTML = "<p>Error loading games</p>";
   console.error(error);
@@ -287,8 +297,19 @@ function renderCalendarGrid() {
     const gameList = gameMap[dateStr] || [];
     let statusClass = "nogame";
     if (gameList.length) {
-      // 🔁 Optional: plug in booking count logic here later
-      statusClass = "available"; // or 'almost' / 'full'
+      let totalSlots = 0;
+      let filledSlots = 0;
+
+      gameList.forEach(g => {
+        totalSlots += g.max_players || 0;
+        filledSlots += bookingCountMap[g.id] || 0;
+      });
+
+      const ratio = totalSlots === 0 ? 0 : filledSlots / totalSlots;
+
+      if (ratio >= 1) statusClass = "full";
+      else if (ratio >= 0.7) statusClass = "almost";
+      else statusClass = "available";
     }
 
     box.classList.add(statusClass);
