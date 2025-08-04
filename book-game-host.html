@@ -155,19 +155,11 @@ if (user) {
 
 const today = new Date().toISOString().split("T")[0];
 
-const { data: sessions, error } = await supabase
-  .from("game_sessions")
-  .select(`
-    *,
-    games (
-      venue, level, play_style, price
-    ),
-    profiles (
-      jersey_name
-    )
-  `)
-  .gte("date", today)
-  .order("date", { ascending: true });
+const { data: games, error } = await supabase
+  .from("games")
+  .select("*")
+  .gte("game_date", today)
+  .order("game_date", { ascending: true });
 
 if (error) {
   container.innerHTML = "<p>Error loading games</p>";
@@ -176,37 +168,37 @@ if (error) {
 const calendar = document.getElementById("datePicker");
 calendar.addEventListener("change", () => {
   const selected = calendar.value;
-  renderSessions(selected);
+  renderGames(selected);
 });
 
-const premiumSessions = sessions.filter(s => s.premium);
-const datedSessions = sessions.filter(s => !s.premium);
+const premiumSessions = games.filter(s => g.premium);
+const datedSessions = games.filter(s => !g.premium);
 
-renderSessions(today);
+renderGames(today);
 
-function renderSessions(selectedDate = null) {
+function renderGames(selectedDate = null) {
   container.innerHTML = "";
 
   const filtered = selectedDate
-    ? datedSessions.filter(s => s.date === selectedDate)
+    ? datedSessions.filter(s => g.date === selectedDate)
     : datedSessions.slice(0, 3); // or show all by default if you prefer
 
-  [...filtered, ...premiumSessions].forEach(session => {
+  [...filtered, ...premiumSessions].forEach(game => {
     const div = document.createElement("div");
     div.className = "game-card";
     div.innerHTML = `
       <div class="game-info">
-        <p><strong>📛 Title:</strong> ${session.session_title || 'Untitled'}</p>
-        <p><strong>🧑 Host:</strong> ${session.profiles?.jersey_name || 'Host'}</p>
-        <p><strong>📍 Venue:</strong> ${session.games.venue}</p>
-        <p><strong>📅 Date:</strong> ${session.date}</p>
-        <p><strong>🕒 Time:</strong> ${session.start_time} – ${session.end_time}</p>
-        <p><strong>💰 Price:</strong> RM ${parseFloat(session.games.price || 0).toFixed(2)}</p>
-        <p><strong>💳 Payment:</strong> ${session.payment_mode || 'Manual'}</p>
-        ${session.premium ? `<p style="color:goldenrod;">⭐ Premium</p>` : ""}
+        <p><strong>📛 Title:</strong> ${game.session_title || 'Untitled'}</p>
+        <p><strong>🧑 Host:</strong> ${game.profiles?.jersey_name || 'Host'}</p>
+        <p><strong>📍 Venue:</strong> ${game.games.venue}</p>
+        <p><strong>📅 Date:</strong> ${game.date}</p>
+        <p><strong>🕒 Time:</strong> ${game.start_time} – ${game.end_time}</p>
+        <p><strong>💰 Price:</strong> RM ${parseFloat(game.games.price || 0).toFixed(2)}</p>
+        <p><strong>💳 Payment:</strong> ${game.payment_mode || 'Manual'}</p>
+        ${game.premium ? `<p style="color:goldenrod;">⭐ Premium</p>` : ""}
         <p class="availability">Slots: loading...</p>
       </div>
-      <form class="form-section" id="form-${session.id}">
+      <form class="form-section" id="form-${game.id}">
         ${user ? `
           <div style="display: flex; align-items: center; margin-bottom: 10px;">
             <div style="width: 10%; min-width: 30px;">
@@ -224,13 +216,13 @@ function renderSessions(selectedDate = null) {
         `}
         <button type="submit">✅ Book Now</button>
       </form>
-      <div class="player-list" id="players-${session.id}"></div>
+      <div class="player-list" id="players-${game.id}"></div>
     `;
     container.appendChild(div);
 
     // guest toggle
     if (user) {
-      const form = document.getElementById(`form-${session.id}`);
+      const form = document.getElementById(`form-${game.id}`);
       const checkbox = form.querySelector('input[name="selfBooking"]');
       const guestFields = form.querySelector('.guest-fields');
       checkbox.addEventListener("change", () => {
@@ -243,13 +235,13 @@ function renderSessions(selectedDate = null) {
     }
 
     // bind form submit
-    document.getElementById(`form-${session.id}`)?.addEventListener("submit", (e) => {
+    document.getElementById(`form-${game.id}`)?.addEventListener("submit", (e) => {
       e.preventDefault();
-      bookGame(session.id, e.target);
+      bookGame(game.id, e.target);
     });
 
-    // load players (optional: hook up session logic)
-    // loadPlayers(session.id);
+    // load players (optional: hook up game logic)
+    // loadPlayers(game.id);
   });
 }
 }
