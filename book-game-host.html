@@ -222,8 +222,6 @@ renderCalendarGrid();
 
 function renderCalendarGrid() {
   calendarGrid.innerHTML = "";
-  const todayStr = today;
-
   allDates.forEach(dateObj => {
     const dateStr = dateObj.toISOString().split("T")[0];
     const dayLabel = dateObj.toLocaleDateString("en-MY", { weekday: 'short', day: 'numeric' });
