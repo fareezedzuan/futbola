@@ -96,6 +96,10 @@
 <h2>Book Game</h2>
 <div id="logoutContainer" style="text-align: center; margin-bottom: 20px;"></div>
 
+<div id="calendarSection" style="text-align:center; margin-bottom: 30px;">
+  <input type="date" id="datePicker" />
+</div>
+
 <div id="gameContainer"></div>
 
 <a class="button" href="/"
@@ -169,67 +173,85 @@ if (error) {
   container.innerHTML = "<p>Error loading games</p>";
   console.error(error);
 } else {
-  games.forEach(game => {
+const calendar = document.getElementById("datePicker");
+calendar.addEventListener("change", () => {
+  const selected = calendar.value;
+  renderSessions(selected);
+});
+
+const premiumSessions = sessions.filter(s => s.premium);
+const datedSessions = sessions.filter(s => !s.premium);
+
+renderSessions(today);
+
+function renderSessions(selectedDate = null) {
+  container.innerHTML = "";
+
+  const filtered = selectedDate
+    ? datedSessions.filter(s => s.date === selectedDate)
+    : datedSessions.slice(0, 3); // or show all by default if you prefer
+
+  [...filtered, ...premiumSessions].forEach(session => {
     const div = document.createElement("div");
     div.className = "game-card";
     div.innerHTML = `
-  <div class="game-info">
-    <p><strong>📍 Venue:</strong> ${game.venue}</p>
-    <p><strong>📅 Date:</strong> ${game.game_date}</p>
-    <p><strong>🕒 Time:</strong> ${game.start_time} - ${game.end_time}</p>
-    <p><strong>🏷️ Level:</strong> ${game.level}</p>
-    <p><strong>🎮 Play Style:</strong> ${game.play_style}</p>
-    <p><strong>💰 Price:</strong> RM ${parseFloat(game.price).toFixed(2)}</p>
-    <p class="availability">Slots: loading...</p>
-  </div>
-  <form class="form-section" id="form-${game.id}">
-    ${user ? `
-<div style="display: flex; align-items: center; margin-bottom: 10px;">
-  <div style="width: 10%; min-width: 30px;">
-    <input type="checkbox" name="selfBooking" checked style="margin: 0;" />
-  </div>
-  <label style="margin: 0; font-size: 14px;">I am playing</label>
-</div>
-
-
-
-      <div class="guest-fields" style="display: none;">
-        <input name="jersey_name" placeholder="Enter player's jersey name" />
-        <input name="phone" placeholder="Enter player's phone number" type="tel" />
+      <div class="game-info">
+        <p><strong>📛 Title:</strong> ${session.session_title || 'Untitled'}</p>
+        <p><strong>🧑 Host:</strong> ${session.profiles?.jersey_name || 'Host'}</p>
+        <p><strong>📍 Venue:</strong> ${session.games.venue}</p>
+        <p><strong>📅 Date:</strong> ${session.date}</p>
+        <p><strong>🕒 Time:</strong> ${session.start_time} – ${session.end_time}</p>
+        <p><strong>💰 Price:</strong> RM ${parseFloat(session.games.price || 0).toFixed(2)}</p>
+        <p><strong>💳 Payment:</strong> ${session.payment_mode || 'Manual'}</p>
+        ${session.premium ? `<p style="color:goldenrod;">⭐ Premium</p>` : ""}
+        <p class="availability">Slots: loading...</p>
       </div>
-    ` : `
-      <input name="jersey_name" placeholder="Enter jersey name" required />
-      <input name="phone" placeholder="Enter phone number" type="tel" required />
-    `}
-    <button type="submit">✅ Book Now</button>
-  </form>
-  <div class="player-list" id="players-${game.id}"></div>
-`;
-
+      <form class="form-section" id="form-${session.id}">
+        ${user ? `
+          <div style="display: flex; align-items: center; margin-bottom: 10px;">
+            <div style="width: 10%; min-width: 30px;">
+              <input type="checkbox" name="selfBooking" checked style="margin: 0;" />
+            </div>
+            <label style="margin: 0; font-size: 14px;">I am playing</label>
+          </div>
+          <div class="guest-fields" style="display: none;">
+            <input name="jersey_name" placeholder="Enter player's jersey name" />
+            <input name="phone" placeholder="Enter player's phone number" type="tel" />
+          </div>
+        ` : `
+          <input name="jersey_name" placeholder="Enter jersey name" required />
+          <input name="phone" placeholder="Enter phone number" type="tel" required />
+        `}
+        <button type="submit">✅ Book Now</button>
+      </form>
+      <div class="player-list" id="players-${session.id}"></div>
+    `;
     container.appendChild(div);
 
-if (user) {
-  const form = document.getElementById(`form-${game.id}`);
-  const checkbox = form.querySelector('input[name="selfBooking"]');
-  const guestFields = form.querySelector('.guest-fields');
+    // guest toggle
+    if (user) {
+      const form = document.getElementById(`form-${session.id}`);
+      const checkbox = form.querySelector('input[name="selfBooking"]');
+      const guestFields = form.querySelector('.guest-fields');
+      checkbox.addEventListener("change", () => {
+        const showGuest = !checkbox.checked;
+        guestFields.style.display = showGuest ? "block" : "none";
+        guestFields.querySelectorAll("input").forEach(input => {
+          input.required = showGuest;
+        });
+      });
+    }
 
-  checkbox.addEventListener("change", () => {
-    const showGuest = !checkbox.checked;
-    guestFields.style.display = showGuest ? "block" : "none";
-    guestFields.querySelectorAll("input").forEach(input => {
-      input.required = showGuest;
+    // bind form submit
+    document.getElementById(`form-${session.id}`)?.addEventListener("submit", (e) => {
+      e.preventDefault();
+      bookGame(session.id, e.target);
     });
+
+    // load players (optional: hook up session logic)
+    // loadPlayers(session.id);
   });
 }
-
-    loadPlayers(game.id);
-
-    // ✅ Bind submit listener
-    document.getElementById(`form-${game.id}`)?.addEventListener("submit", (e) => {
-      e.preventDefault();
-      bookGame(game.id, e.target);
-    });
-  });
 }
 
 async function loadPlayers(gameId) {
