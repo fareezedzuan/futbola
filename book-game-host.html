@@ -151,11 +151,19 @@ if (user) {
 
 const today = new Date().toISOString().split("T")[0];
 
-const { data: games, error } = await supabase
-  .from("games")
-  .select("*")
-  .gte("game_date", today)
-  .order("game_date", { ascending: true });
+const { data: sessions, error } = await supabase
+  .from("game_sessions")
+  .select(`
+    *,
+    games (
+      venue, level, play_style, price
+    ),
+    profiles (
+      jersey_name
+    )
+  `)
+  .gte("date", today)
+  .order("date", { ascending: true });
 
 if (error) {
   container.innerHTML = "<p>Error loading games</p>";
