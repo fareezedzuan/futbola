@@ -90,13 +90,14 @@
       max-width: 60px;
       overflow-wrap: break-word;
     }
+
     #calendarGrid {
-      display: flex;
-      overflow-x: auto;
-      gap: 10px;
-      padding-bottom: 20px;
-      margin-bottom: 10px;
-      justify-content: center;
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      grid-auto-rows: 1fr;
+      gap: 8px;
+      max-width: 550px;
+      margin: 0 auto 20px;
     }
 
     .calendar-box {
@@ -177,16 +178,14 @@ if (user) {
   `;
 }
 
-
-
-const today = new Date().toISOString().split("T")[0];
-
 const calendarGrid = document.getElementById("calendarGrid");
+const todayDate = new Date();
+const todayStr = todayDate.toISOString().split("T")[0];
 
-const start = new Date();
-start.setDate(start.getDate() - 7);
-const end = new Date();
-end.setDate(end.getDate() + 21);
+const start = new Date(todayDate);
+start.setDate(start.getDate() - todayDate.getDay() - 6); // lock to previous Monday - 7
+const end = new Date(start);
+end.setDate(start.getDate() + 27); // 4 full weeks
 
 const allDates = [];
 for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
