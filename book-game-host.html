@@ -347,6 +347,7 @@ function renderGames(selectedDate = null) {
     : datedGames.slice(0, 3);
 
   [...filtered, ...premiumGames].forEach(game => {
+    const isPast = new Date(game.game_date) < todayDate;
     const div = document.createElement("div");
     div.className = "game-card";
     div.innerHTML = `
@@ -361,6 +362,9 @@ function renderGames(selectedDate = null) {
         ${game.premium ? `<p style="color:goldenrod;">⭐ Premium</p>` : ""}
         <p class="availability">Slots: loading...</p>
       </div>
+    ${isPast ? `
+      <p style="color:#999; font-size:14px; font-weight:bold; margin:10px 0;">📅 Past session</p>
+    ` : `
       <form class="form-section" id="form-${game.id}">
         ${user ? `
           <div style="display: flex; align-items: center; margin-bottom: 10px;">
@@ -379,6 +383,7 @@ function renderGames(selectedDate = null) {
         `}
         <button type="submit">✅ Book Now</button>
       </form>
+    `}
       <div class="player-list" id="players-${game.id}"></div>
     `;
     container.appendChild(div);
