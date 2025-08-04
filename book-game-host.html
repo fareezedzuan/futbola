@@ -94,29 +94,48 @@
     #calendarGrid {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
-      grid-auto-rows: 1fr;
-      gap: 8px;
-      max-width: 550px;
-      margin: 0 auto 20px;
+      gap: 10px;
+      max-width: 600px;
+      margin: 0 auto 30px auto;
+      padding: 10px;
+      box-sizing: border-box;
     }
 
     .calendar-box {
-      flex: 0 0 auto;
-      width: 75px;
-      padding: 10px;
+      background-color: #eee;
       text-align: center;
-      border-radius: 8px;
+      padding: 12px 8px;
+      border-radius: 10px;
+      font-size: 14px;
       font-weight: bold;
-      font-size: 13px;
-      cursor: pointer;
       border: 2px solid transparent;
+      transition: 0.2s ease;
+    }
+
+    .calendar-box:hover {
+      border-color: #702963;
+    }
+
+    .calendar-box.selected {
+      border-color: #ff0000;
+      background-color: #ffe5e5;
     }
 
     .calendar-box.available { background-color: #d4f8d4; }
     .calendar-box.almost { background-color: #fff5d1; }
     .calendar-box.full { background-color: #f8d4d4; }
     .calendar-box.nogame { background-color: #e0e0e0; }
-    .calendar-box.selected { border-color: #ff0000; }
+
+    .calendar-box.past {
+      opacity: 0.4;
+      pointer-events: none;
+    }
+
+    @media (max-width: 600px) {
+      #calendarGrid {
+        grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+      }
+    }
   </style>
 </head>
 <body>
@@ -253,6 +272,10 @@ function renderCalendarGrid() {
     });
 
     calendarGrid.appendChild(box);
+
+    if (dateObj < todayDate) {
+      box.classList.add("past");
+    }
   });
 }
 
