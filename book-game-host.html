@@ -304,6 +304,7 @@ function renderCalendarGrid() {
     let statusClass = "nogame";
 
     // class logic
+    const isPast = dateObj < todayDate;
     box.classList.add(statusClass);
     if (isPast && gameList.length > 0) {
       box.style.border = "2px solid #cc0000";
@@ -329,7 +330,6 @@ function renderCalendarGrid() {
       else statusClass = "available";
     }
 
-    const isPast = dateObj < todayDate;
     if (isPast && gameList.length > 0) {
       box.style.border = "2px solid #cc0000"; // Red border for past played days
     }
