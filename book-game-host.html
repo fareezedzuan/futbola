@@ -307,7 +307,6 @@ function renderCalendarGrid() {
     `;
 
     // class logic
-    box.classList.add(statusClass);
     if (isPast && gameList.length > 0) {
       box.style.border = "2px solid #cc0000";
     }
@@ -331,6 +330,8 @@ function renderCalendarGrid() {
       else if (ratio >= 0.7) statusClass = "almost";
       else statusClass = "available";
     }
+
+    box.classList.add(statusClass);
 
     if (isPast && gameList.length > 0) {
       box.style.border = "2px solid #cc0000"; // Red border for past played days
