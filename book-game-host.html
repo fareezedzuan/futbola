@@ -245,14 +245,14 @@ function renderCalendarGrid() {
 
     if (dateStr === todayStr) {
       box.classList.add("selected");
-      calendar.value = dateStr;
+      //calendar.value = dateStr;
       renderGames(dateStr);
     }
 
     box.addEventListener("click", () => {
       document.querySelectorAll(".calendar-box").forEach(b => b.classList.remove("selected"));
       box.classList.add("selected");
-      calendar.value = dateStr;
+      //calendar.value = dateStr;
       renderGames(dateStr);
     });
 
@@ -260,7 +260,7 @@ function renderCalendarGrid() {
   });
 }
 
-renderGames(today);
+//renderGames(today);
 
 function renderGames(selectedDate = null) {
   container.innerHTML = "";
