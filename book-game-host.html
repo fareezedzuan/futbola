@@ -313,6 +313,11 @@ function renderCalendarGrid() {
     }
 
     box.classList.add(statusClass);
+
+    if (dateObj < todayDate) {
+      box.classList.add("past");
+    }
+    
     box.textContent = dayLabel;
 
     if (dateStr === todayStr) {
@@ -329,10 +334,6 @@ function renderCalendarGrid() {
     });
 
     calendarGrid.appendChild(box);
-
-    if (dateObj < todayDate) {
-      box.classList.add("past");
-    }
     
   });
 }
