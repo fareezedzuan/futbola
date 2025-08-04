@@ -480,16 +480,18 @@ async function loadPlayers(gameId, gameDate) {
     if (count >= game.max_players) {
       countEl.textContent = `❌ FULL (${count}/${game.max_players})`;
       countEl.style.color = "gray";
-      const form = parentCard.querySelector("form");
-      if (!isPastGame && form) {
-        form.innerHTML = "<p style='color: gray; font-weight: bold;'>⚠️ Booking Full</p>";
+
+      // ✅ only attempt to access form if it's a future game
+      if (!isPastGame) {
+        const form = parentCard.querySelector("form");
+        if (form) {
+          form.innerHTML = "<p style='color: gray; font-weight: bold;'>⚠️ Booking Full</p>";
+        }
       }
     } else {
-      if (isPastGame) {
-        countEl.textContent = `📅 ${count} players joined`;
-      } else {
-        countEl.textContent = `👥 ${count}/${game.max_players} slots filled`;
-      }
+      countEl.textContent = isPastGame
+        ? `📅 ${count} players joined`
+        : `👥 ${count}/${game.max_players} slots filled`;
     }
   }
 }
