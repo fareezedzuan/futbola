@@ -351,6 +351,7 @@ function renderGames(selectedDate = null) {
     const isPast = new Date(game.game_date) < todayDate;
     const div = document.createElement("div");
     div.className = "game-card";
+    if (isPast) div.style.border = "2px solid #cc0000";
     div.innerHTML = `
       <div class="game-info">
         <p><strong>📛 Title:</strong> ${game.session_title || 'Untitled'}</p>
