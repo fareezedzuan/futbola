@@ -472,7 +472,9 @@ async function loadPlayers(gameId, gameDate) {
   target.innerHTML = html;
 
   const parentCard = target.closest(".game-card");
-  const countEl = parentCard ? parentCard.querySelector(".availability") : null;
+  if (!parentCard) return;
+
+  const countEl = parentCard.querySelector(".availability");
 
   if (countEl) {
     if (count >= game.max_players) {
