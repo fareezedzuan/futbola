@@ -433,7 +433,7 @@ async function loadPlayers(gameId) {
     target.innerHTML = "<p>Failed to load players</p>";
     return;
   }
-
+  const count = bookings.length;
   const html = bookings.map(b => {
     const initial = (b.jersey_name || 'P')[0].toUpperCase();
     //const label = b.jersey_name || 'Player';
@@ -480,7 +480,11 @@ async function loadPlayers(gameId) {
       const form = parentCard.querySelector("form");
       if (form) form.innerHTML = "<p style='color: gray; font-weight: bold;'>⚠️ Booking Full</p>";
     } else {
-      countEl.textContent = `👥 ${count}/${game.max_players} slots filled`;
+      if (isPastGame) {
+        countEl.textContent = `📅 ${count} players joined`;
+      } else {
+        countEl.textContent = `👥 ${count}/${game.max_players} slots filled`;
+      }
     }
   }
 }
