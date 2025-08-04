@@ -90,15 +90,41 @@
       max-width: 60px;
       overflow-wrap: break-word;
     }
+    #calendarGrid {
+      display: flex;
+      overflow-x: auto;
+      gap: 10px;
+      padding-bottom: 20px;
+      margin-bottom: 10px;
+      justify-content: center;
+    }
+
+    .calendar-box {
+      flex: 0 0 auto;
+      width: 75px;
+      padding: 10px;
+      text-align: center;
+      border-radius: 8px;
+      font-weight: bold;
+      font-size: 13px;
+      cursor: pointer;
+      border: 2px solid transparent;
+    }
+
+    .calendar-box.available { background-color: #d4f8d4; }
+    .calendar-box.almost { background-color: #fff5d1; }
+    .calendar-box.full { background-color: #f8d4d4; }
+    .calendar-box.nogame { background-color: #e0e0e0; }
+    .calendar-box.selected { border-color: #ff0000; }
   </style>
 </head>
 <body>
 <h2>Book Game</h2>
 <div id="logoutContainer" style="text-align: center; margin-bottom: 20px;"></div>
-
-<div id="calendarSection" style="text-align:center; margin-bottom: 30px;">
+<div id="calendarGrid"></div>
+<!-- <div id="calendarSection" style="text-align:center; margin-bottom: 30px;">
   <input type="date" id="datePicker" />
-</div>
+</div> -->
 
 <div id="gameContainer"></div>
 
@@ -155,6 +181,18 @@ if (user) {
 
 const today = new Date().toISOString().split("T")[0];
 
+const calendarGrid = document.getElementById("calendarGrid");
+
+const start = new Date();
+start.setDate(start.getDate() - 7);
+const end = new Date();
+end.setDate(end.getDate() + 21);
+
+const allDates = [];
+for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+  allDates.push(new Date(d));
+}
+
 const { data: games, error } = await supabase
   .from("games")
   .select("*")
@@ -173,6 +211,53 @@ calendar.addEventListener("change", () => {
 
 const premiumGames = games.filter(g => g.premium);
 const datedGames = games.filter(g => !g.premium);
+
+const gameMap = {};
+games.forEach(g => {
+  const date = g.game_date;
+  if (!gameMap[date]) gameMap[date] = [];
+  gameMap[date].push(g);
+});
+
+renderCalendarGrid();
+
+function renderCalendarGrid() {
+  calendarGrid.innerHTML = "";
+  const todayStr = today;
+
+  allDates.forEach(dateObj => {
+    const dateStr = dateObj.toISOString().split("T")[0];
+    const dayLabel = dateObj.toLocaleDateString("en-MY", { weekday: 'short', day: 'numeric' });
+
+    const box = document.createElement("div");
+    box.classList.add("calendar-box");
+
+    const gameList = gameMap[dateStr] || [];
+    let statusClass = "nogame";
+    if (gameList.length) {
+      // 🔁 Optional: plug in booking count logic here later
+      statusClass = "available"; // or 'almost' / 'full'
+    }
+
+    box.classList.add(statusClass);
+    box.textContent = dayLabel;
+
+    if (dateStr === todayStr) {
+      box.classList.add("selected");
+      calendar.value = dateStr;
+      renderGames(dateStr);
+    }
+
+    box.addEventListener("click", () => {
+      document.querySelectorAll(".calendar-box").forEach(b => b.classList.remove("selected"));
+      box.classList.add("selected");
+      calendar.value = dateStr;
+      renderGames(dateStr);
+    });
+
+    calendarGrid.appendChild(box);
+  });
+}
 
 renderGames(today);
 
