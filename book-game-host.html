@@ -481,7 +481,9 @@ async function loadPlayers(gameId, gameDate) {
       countEl.textContent = `❌ FULL (${count}/${game.max_players})`;
       countEl.style.color = "gray";
       const form = parentCard.querySelector("form");
-      if (form) form.innerHTML = "<p style='color: gray; font-weight: bold;'>⚠️ Booking Full</p>";
+      if (!isPastGame && form) {
+        form.innerHTML = "<p style='color: gray; font-weight: bold;'>⚠️ Booking Full</p>";
+      }
     } else {
       if (isPastGame) {
         countEl.textContent = `📅 ${count} players joined`;
