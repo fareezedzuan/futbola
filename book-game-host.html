@@ -235,7 +235,7 @@ if (user) {
 
 const calendarGrid = document.getElementById("calendarGrid");
 const todayDate = new Date();
-const todayStr = todayDate.toISOString().split("T")[0];
+const todayStr = `${todayDate.getFullYear()}-${String(todayDate.getMonth() + 1).padStart(2, '0')}-${String(todayDate.getDate()).padStart(2, '0')}`;
 
 const start = new Date(todayDate);
 start.setDate(start.getDate() - todayDate.getDay() - 6); // lock to previous Monday - 7
