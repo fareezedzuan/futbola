@@ -138,8 +138,8 @@
 
     .calendar-box.nogame {
       opacity: 1;
-      border: 2px dashed #ff0000;
-      color: #444;
+      border: 2px solid black;
+      color: #333;
     }
 
     .calendar-box.past {
@@ -167,11 +167,11 @@
       box-shadow: 0 3px 6px rgba(0,0,0,0.05);
     }
 
-    @media (max-width: 600px) {
+    /* @media (max-width: 600px) {
       #calendarGrid {
         grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
       }
-    }
+    } */
   </style>
 </head>
 <body>
@@ -289,10 +289,27 @@ function renderCalendarGrid() {
   calendarGrid.innerHTML = "";
   allDates.forEach(dateObj => {
     const dateStr = dateObj.toISOString().split("T")[0];
-    const dayLabel = dateObj.toLocaleDateString("en-MY", { weekday: 'short', day: 'numeric' });
+    const weekday = dateObj.toLocaleDateString("en-MY", { weekday: 'short' });
+    const dayNum = dateObj.getDate();
+    const monthNum = dateObj.getMonth() + 1;
 
     const box = document.createElement("div");
     box.classList.add("calendar-box");
+
+    // layout content
+    box.innerHTML = `
+      <div style="font-size: 11px; color: #702963;">${weekday}</div>
+      <div style="font-size: 14px; font-weight: bold;">${dayNum}/${monthNum}</div>
+    `;
+
+    // class logic
+    box.classList.add(statusClass);
+    if (isPast && gameList.length > 0) {
+      box.style.border = "2px solid #cc0000";
+    }
+    if (dateObj < todayDate) {
+      box.classList.add("past");
+    }
 
     const gameList = gameMap[dateStr] || [];
     let statusClass = "nogame";
@@ -323,8 +340,6 @@ function renderCalendarGrid() {
       box.classList.add("past");
     }
 
-    box.textContent = dayLabel;
-
     if (dateStr === todayStr) {
       box.classList.add("selected");
       //calendar.value = dateStr;
@@ -343,7 +358,7 @@ function renderCalendarGrid() {
   });
 }
 
-//renderGames(today);
+//renderGames(today); box.textContent = dayLabel;
 
 function renderGames(selectedDate = null) {
   container.innerHTML = "";
