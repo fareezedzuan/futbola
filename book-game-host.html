@@ -415,13 +415,14 @@ function renderGames(selectedDate = null) {
     });
 
     // load players (optional: hook up game logic)
-    loadPlayers(game.id);
+    loadPlayers(game.id, game.game_date);
   });
 }
 }
 
-async function loadPlayers(gameId) {
+async function loadPlayers(gameId, gameDate) {
   const target = document.getElementById("players-" + gameId);
+  const isPastGame = new Date(gameDate) < todayDate;
 
   const [{ data: bookings, error: bookingError }, { data: game, error: gameError }] = await Promise.all([
     //supabase.from("game_bookings").select("*").eq("game_id", gameId),
