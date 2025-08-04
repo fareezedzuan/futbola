@@ -296,15 +296,17 @@ function renderCalendarGrid() {
     const box = document.createElement("div");
     box.classList.add("calendar-box");
 
+    const gameList = gameMap[dateStr] || [];
+    const isPast = dateObj < todayDate;
+    let statusClass = "nogame";
+
     // layout content
     box.innerHTML = `
       <div style="font-size: 11px; color: #702963;">${weekday}</div>
       <div style="font-size: 14px; font-weight: bold;">${dayNum}/${monthNum}</div>
     `;
-    let statusClass = "nogame";
 
     // class logic
-    const isPast = dateObj < todayDate;
     box.classList.add(statusClass);
     if (isPast && gameList.length > 0) {
       box.style.border = "2px solid #cc0000";
@@ -313,7 +315,7 @@ function renderCalendarGrid() {
       box.classList.add("past");
     }
 
-    const gameList = gameMap[dateStr] || [];
+    
     if (gameList.length) {
       let totalSlots = 0;
       let filledSlots = 0;
