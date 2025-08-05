@@ -90,11 +90,99 @@
       max-width: 60px;
       overflow-wrap: break-word;
     }
+
+    #calendarGrid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;                      /* reduced from 10px */
+      max-width: 100%;               /* allow full width use */
+      margin: 0 auto 20px auto;
+      padding: 5px 6px;
+    }
+
+    .calendar-box {
+      background-color: white;
+      color: black;
+      text-align: center;
+      padding: 6px 2px;              /* reduced from 12px 6px */
+      border-radius: 6px;            /* slightly tighter */
+      font-size: 12px;               /* one step down */
+      font-weight: bold;
+      border: 2px solid #ff0000;
+      box-shadow: 1px 1px 4px rgba(0,0,0,0.05);
+      transition: all 0.2s ease;
+      cursor: pointer;
+      min-width: 34px;               /* force narrow fit */
+      height: 50px;                  /* consistent vertical fit */
+      display: flex;                /* better layout */
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      line-height: 1.1;
+    }
+
+    .calendar-box:hover {
+      border-color: #702963;
+    }
+
+    .calendar-box.selected {
+      border-color: #ff0000;
+      background-color: #ffe5e5;
+      color: #702963;
+    }
+
+    .calendar-box.available {
+      border-color: #28a745;
+    }
+
+    .calendar-box.almost {
+      border-color: #ffc107;
+    }
+
+    .calendar-box.full {
+      border-color: #dc3545;
+    }
+
+    .calendar-box.nogame {
+      opacity: 1;
+      border: 2px solid black;
+      color: #333;
+    }
+
+    .calendar-box.past {
+      opacity: 0.4;
+      background: #f6f6f6;
+      border: 2px solid #bbb;
+      cursor: default;
+      color: #999;
+    }
+
+    .calendar-header {
+      text-align: center;
+      font-weight: bold;
+      font-size: 18px;
+      margin-bottom: 8px;
+      color: #702963;
+    }
+    #calendarGridWrapper {
+      border: 2px solid #702963;
+      border-radius: 10px;
+      padding: 20px 10px;
+      background: white;
+      max-width: 640px;
+      margin: 0 auto 30px auto;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.05);
+    }
+
   </style>
 </head>
 <body>
 <h2>Book Game</h2>
 <div id="logoutContainer" style="text-align: center; margin-bottom: 20px;"></div>
+<div id="calendarGridWrapper">
+  <div class="calendar-header">August 2025</div>
+  <div id="calendarGrid"></div>
+</div>
 
 <div id="gameContainer"></div>
 
@@ -147,85 +235,258 @@ if (user) {
   `;
 }
 
+const calendarGrid = document.getElementById("calendarGrid");
+const todayDate = new Date();
+const todayStr = `${todayDate.getFullYear()}-${String(todayDate.getMonth() + 1).padStart(2, '0')}-${String(todayDate.getDate()).padStart(2, '0')}`;
 
+const start = new Date(todayDate);
+start.setDate(start.getDate() - todayDate.getDay() - 6); // lock to previous Monday - 7
+const end = new Date(start);
+end.setDate(start.getDate() + 27); // 4 full weeks
 
-const today = new Date().toISOString().split("T")[0];
+const allDates = [];
+for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+  allDates.push(new Date(d));
+}
 
 const { data: games, error } = await supabase
   .from("games")
   .select("*")
-  .gte("game_date", today)
+  .gte("game_date", start.toISOString().split("T")[0])
   .order("game_date", { ascending: true });
+
+const { data: allBookings } = await supabase
+  .from("game_bookings")
+  .select("game_id");
+
+const bookingCountMap = {};
+allBookings.forEach(b => {
+  if (!bookingCountMap[b.game_id]) bookingCountMap[b.game_id] = 0;
+  bookingCountMap[b.game_id]++;
+});
 
 if (error) {
   container.innerHTML = "<p>Error loading games</p>";
   console.error(error);
 } else {
-  games.forEach(game => {
-    const div = document.createElement("div");
-    div.className = "game-card";
-    div.innerHTML = `
-  <div class="game-info">
-    <p><strong>📍 Venue:</strong> ${game.venue}</p>
-    <p><strong>📅 Date:</strong> ${game.game_date}</p>
-    <p><strong>🕒 Time:</strong> ${game.start_time} - ${game.end_time}</p>
-    <p><strong>🏷️ Level:</strong> ${game.level}</p>
-    <p><strong>🎮 Play Style:</strong> ${game.play_style}</p>
-    <p><strong>💰 Price:</strong> RM ${parseFloat(game.price).toFixed(2)}</p>
-    <p class="availability">Slots: loading...</p>
-  </div>
-  <form class="form-section" id="form-${game.id}">
-    ${user ? `
-<div style="display: flex; align-items: center; margin-bottom: 10px;">
-  <div style="width: 10%; min-width: 30px;">
-    <input type="checkbox" name="selfBooking" checked style="margin: 0;" />
-  </div>
-  <label style="margin: 0; font-size: 14px;">I am playing</label>
-</div>
+// const calendar = document.getElementById("datePicker");
+// calendar.addEventListener("change", () => {
+//   const selected = calendar.value;
+//   renderGames(selected);
+//};
 
+const premiumGames = games.filter(g => g.premium);
+const datedGames = games.filter(g => !g.premium);
 
+const gameMap = {};
+games.forEach(g => {
+  const date = g.game_date;
+  if (!gameMap[date]) gameMap[date] = [];
+  gameMap[date].push(g);
+});
 
-      <div class="guest-fields" style="display: none;">
-        <input name="jersey_name" placeholder="Enter player's jersey name" />
-        <input name="phone" placeholder="Enter player's phone number" type="tel" />
-      </div>
-    ` : `
-      <input name="jersey_name" placeholder="Enter jersey name" required />
-      <input name="phone" placeholder="Enter phone number" type="tel" required />
-    `}
-    <button type="submit">✅ Book Now</button>
-  </form>
-  <div class="player-list" id="players-${game.id}"></div>
-`;
+renderCalendarGrid();
 
-    container.appendChild(div);
+function renderCalendarGrid() {
+  calendarGrid.innerHTML = "";
+  allDates.forEach(dateObj => {
+    const dateStr = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
+    const weekday = dateObj.toLocaleDateString("en-MY", { weekday: 'short' });
+    const dayNum = dateObj.getDate();
+    const monthNum = dateObj.getMonth() + 1;
 
-if (user) {
-  const form = document.getElementById(`form-${game.id}`);
-  const checkbox = form.querySelector('input[name="selfBooking"]');
-  const guestFields = form.querySelector('.guest-fields');
+    const box = document.createElement("div");
+    box.classList.add("calendar-box");
 
-  checkbox.addEventListener("change", () => {
-    const showGuest = !checkbox.checked;
-    guestFields.style.display = showGuest ? "block" : "none";
-    guestFields.querySelectorAll("input").forEach(input => {
-      input.required = showGuest;
+    const gameList = gameMap[dateStr] || [];
+    const isPast = dateObj < todayDate;
+    let statusClass = "nogame";
+
+    // layout content
+    box.innerHTML = `
+      <div style="font-size: 11px; color: #702963;">${weekday}</div>
+      <div style="font-size: 14px; font-weight: bold;">${dayNum}/${monthNum}</div>
+      <div class="dot-container"></div>
+    `;
+
+    const dotContainer = box.querySelector('.dot-container');
+    dotContainer.style.marginTop = "4px";
+    dotContainer.style.display = "flex";
+    dotContainer.style.justifyContent = "center";
+    dotContainer.style.gap = "3px";
+
+    gameList.forEach(g => {
+      const filled = bookingCountMap[g.id] || 0;
+      const max = g.max_players || 0;
+      let dotColor = 'gray';
+
+      if (max > 0) {
+        const ratio = filled / max;
+        if (ratio >= 1) dotColor = 'red';
+        else if (ratio >= 0.7) dotColor = 'orange';
+        else dotColor = 'green';
+      }
+
+      const dot = document.createElement("span");
+      dot.style.width = "6px";
+      dot.style.height = "6px";
+      dot.style.borderRadius = "50%";
+      dot.style.backgroundColor = dotColor;
+      dot.style.display = "inline-block";
+
+      dotContainer.appendChild(dot);
     });
+
+    if (gameList.length > 0) {
+    if (isPast) {
+      box.style.border = "2px solid #cc0000"; // Red border = past w/ game
+    } else {
+      box.style.border = "2px solid black";   // Normal border
+    }
+  } else {
+    box.style.border = "1px solid #ddd";       // No games
+  }
+
+    // class logic
+    if (isPast && gameList.length > 0) {
+      box.style.border = "2px solid #cc0000";
+    }
+    if (dateObj < todayDate) {
+      box.classList.add("past");
+    }
+
+    
+    if (gameList.length) {
+      let totalSlots = 0;
+      let filledSlots = 0;
+
+      gameList.forEach(g => {
+        totalSlots += g.max_players || 0;
+        filledSlots += bookingCountMap[g.id] || 0;
+      });
+
+      const ratio = totalSlots === 0 ? 0 : filledSlots / totalSlots;
+
+      if (ratio >= 1) statusClass = "full";
+      else if (ratio >= 0.7) statusClass = "almost";
+      else statusClass = "available";
+    }
+
+    box.classList.add(statusClass);
+
+    if (isPast && gameList.length > 0) {
+      box.style.border = "2px solid #cc0000"; // Red border for past played days
+    }
+
+    box.classList.add(statusClass);
+
+    if (dateObj < todayDate) {
+      box.classList.add("past");
+    }
+
+    if (dateStr === todayStr) {
+      box.classList.add("selected");
+      //calendar.value = dateStr;
+      renderGames(dateStr);
+    }
+
+    box.addEventListener("click", () => {
+      document.querySelectorAll(".calendar-box").forEach(b => b.classList.remove("selected"));
+      box.classList.add("selected");
+      //calendar.value = dateStr;
+      renderGames(dateStr);
+    });
+
+    calendarGrid.appendChild(box);
+    
   });
 }
 
-    loadPlayers(game.id);
+//renderGames(today); box.textContent = dayLabel;
 
-    // ✅ Bind submit listener
+function renderGames(selectedDate = null) {
+  container.innerHTML = "";
+
+  const filtered = selectedDate
+    ? datedGames.filter(g => g.game_date === selectedDate)
+    : datedGames.slice(0, 3);
+
+  [...filtered, ...premiumGames].forEach(game => {
+    const startDateTime = new Date(`${game.game_date}T${game.start_time}`);
+    const isPast = startDateTime < new Date();
+    const div = document.createElement("div");
+    div.className = "game-card";
+    div.innerHTML = `
+      <div class="game-info">
+        <p><strong>📛 Title:</strong> ${game.session_title || 'Untitled'}</p>
+        <p><strong>🧑 Host:</strong> ${game.host_name || 'Host'}</p>
+        <p><strong>📍 Venue:</strong> ${game.venue}</p>
+        <p><strong>📅 Date:</strong> ${game.game_date}</p>
+        <p><strong>🕒 Time:</strong> ${game.start_time} – ${game.end_time}</p>
+        <p><strong>💰 Price:</strong> RM ${parseFloat(game.price || 0).toFixed(2)}</p>
+        <p><strong>💳 Payment:</strong> ${formatPayment(game.payment_type) || 'Manual'}</p>
+        ${game.premium ? `<p style="color:goldenrod;">⭐ Premium</p>` : ""}
+        <p class="availability">Slots: loading...</p>
+      </div>
+    ${isPast ? `
+      <p style="color:#999; font-size:14px; font-weight:bold; margin:10px 0;">📅 Past session</p>
+    ` : `
+      <form class="form-section" id="form-${game.id}">
+        ${user ? `
+          <div style="display: flex; align-items: center; margin-bottom: 10px;">
+            <div style="width: 10%; min-width: 30px;">
+              <input type="checkbox" name="selfBooking" checked style="margin: 0;" />
+            </div>
+            <label style="margin: 0; font-size: 14px;">I am playing</label>
+          </div>
+          <div class="guest-fields" style="display: none;">
+            <input name="jersey_name" placeholder="Enter player's jersey name" />
+            <input name="phone" placeholder="Enter player's phone number" type="tel" />
+          </div>
+        ` : `
+          <input name="jersey_name" placeholder="Enter jersey name" required />
+          <input name="phone" placeholder="Enter phone number" type="tel" required />
+        `}
+        <button type="submit">✅ Book Now</button>
+      </form>
+    `}
+      <div class="player-list" id="players-${game.id}"></div>
+    `;
+    container.appendChild(div);
+
+    // guest toggle
+    if (user && !isPast) {
+      const form = document.getElementById(`form-${game.id}`);
+      if (form) {
+        const checkbox = form.querySelector('input[name="selfBooking"]');
+        const guestFields = form.querySelector('.guest-fields');
+        if (checkbox && guestFields) {
+          checkbox.addEventListener("change", () => {
+            const showGuest = !checkbox.checked;
+            guestFields.style.display = showGuest ? "block" : "none";
+            guestFields.querySelectorAll("input").forEach(input => {
+              input.required = showGuest;
+            });
+          });
+        }
+      }
+    }
+
+    // bind form submit
     document.getElementById(`form-${game.id}`)?.addEventListener("submit", (e) => {
       e.preventDefault();
       bookGame(game.id, e.target);
     });
+
+    // load players (optional: hook up game logic)
+    loadPlayers(game.id, game.game_date);
   });
 }
+}
 
-async function loadPlayers(gameId) {
+async function loadPlayers(gameId, gameDate) {
   const target = document.getElementById("players-" + gameId);
+  const isPastGame = new Date(gameDate) < todayDate;
 
   const [{ data: bookings, error: bookingError }, { data: game, error: gameError }] = await Promise.all([
     //supabase.from("game_bookings").select("*").eq("game_id", gameId),
@@ -237,7 +498,7 @@ async function loadPlayers(gameId) {
     target.innerHTML = "<p>Failed to load players</p>";
     return;
   }
-
+  const count = bookings.length;
   const html = bookings.map(b => {
     const initial = (b.jersey_name || 'P')[0].toUpperCase();
     //const label = b.jersey_name || 'Player';
@@ -274,15 +535,28 @@ async function loadPlayers(gameId) {
 
   target.innerHTML = html;
 
-  const count = bookings.length;
-  const countEl = target.closest(".game-card").querySelector(".availability");
-  if (count >= game.max_players) {
-    countEl.textContent = `❌ FULL (${count}/${game.max_players})`;
-    countEl.style.color = "gray";
-    const form = target.closest(".game-card").querySelector("form");
-    if (form) form.innerHTML = "<p style='color: gray; font-weight: bold;'>⚠️ Booking Full</p>";
-  } else {
-    countEl.textContent = `👥 ${count}/${game.max_players} slots filled`;
+  const parentCard = target.closest(".game-card");
+  if (!parentCard) return;
+
+  const countEl = parentCard.querySelector(".availability");
+
+  if (countEl) {
+    if (count >= game.max_players) {
+      countEl.textContent = `❌ FULL (${count}/${game.max_players})`;
+      countEl.style.color = "gray";
+
+      // ✅ only attempt to access form if it's a future game
+      if (!isPastGame) {
+        const form = parentCard.querySelector("form");
+        if (form) {
+          form.innerHTML = "<p style='color: gray; font-weight: bold;'>⚠️ Booking Full</p>";
+        }
+      }
+    } else {
+      countEl.textContent = isPastGame
+        ? `📅 ${count} players joined`
+        : `👥 ${count}/${game.max_players} slots filled`;
+    }
   }
 }
 
@@ -387,10 +661,36 @@ async function bookGame(gameId, form) {
     submitButton.textContent = "✅ Book Now";
   } else {
     alert("Booking successful!");
+
+    const { data: gameDetails } = await supabase
+      .from("games")
+      .select("contact_method, contact_link")
+      .eq("id", gameId)
+      .single();
+
+    if (gameDetails?.contact_link) {
+      const method = gameDetails.contact_method || "group";
+      const confirmJoin = confirm(`✅ Booking successful!\n\nWould you like to join the ${method} group for updates?`);
+
+      if (confirmJoin) {
+        window.open(gameDetails.contact_link, "_blank");
+      }
+    }
+
     loadPlayers(gameId);
     form.reset();
     submitButton.disabled = false;
     submitButton.textContent = "✅ Book Now";
+  }
+}
+
+function formatPayment(type) {
+  switch (type) {
+    case 'pay_on_court': return 'Pay on Court';
+    case 'pay_full': return 'Full Payment';
+    case 'pay_booking': return 'Booking Fee';
+    case 'other': return 'Other';
+    default: return type || 'Manual';
   }
 }
 

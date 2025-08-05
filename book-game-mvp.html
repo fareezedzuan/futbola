@@ -1,0 +1,400 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Book Game - Futbola</title>
+  <link rel="icon" href="./images/futbola-favicon.ico" type="image/x-icon">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-image: url('./images/backgroundOrangeGradient.jpg');
+      padding: 20px;
+      margin: 0;
+    }
+
+    h2 {
+      text-align: center;
+      color: #702963;
+    }
+
+    .game-card {
+      background: white;
+      border-top: 5px solid #ff5a5f;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      margin-bottom: 30px;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .game-info p {
+      margin: 6px 0;
+      font-size: 15px;
+    }
+
+    .availability {
+      margin: 10px 0;
+      font-weight: bold;
+      color: #ff5a5f;
+    }
+
+    .form-section input, .form-section select {
+      width: 100%;
+      padding: 8px;
+      margin: 5px 0;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    .form-section button {
+      width: 100%;
+      padding: 10px;
+      background-color: #ff0000;
+      color: white;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    .form-section button:hover {
+      background-color: #cc0000;
+    }
+
+    .player-list {
+      margin-top: 10px;
+    }
+
+    .player-avatar {
+      display: inline-block;
+      margin: 4px;
+      text-align: center;
+    }
+
+    .player-avatar img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 2px solid #ff5a5f;
+      object-fit: cover;
+    }
+
+    .player-avatar span {
+      display: block;
+      font-size: 12px;
+      max-width: 60px;
+      overflow-wrap: break-word;
+    }
+  </style>
+</head>
+<body>
+<h2>Book Game</h2>
+<div id="logoutContainer" style="text-align: center; margin-bottom: 20px;"></div>
+
+<div id="gameContainer"></div>
+
+<a class="button" href="/"
+  style="display: block; width: fit-content; margin: 40px auto 0; background-color: #ff0000; color: white; padding: 12px 20px; text-decoration: none; border-radius: 5px; font-weight: bold; text-align: center;">
+  ← Back to Homepage
+</a>
+
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+const SUPABASE_URL = 'https://kdbqroxhypnadolcxxxc.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkYnFyb3hoeXBuYWRvbGN4eHhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3MjkwNzYsImV4cCI6MjA1NzMwNTA3Nn0.c7_RVxoFdJNqQ62R3t1emH2Wf4dSsQaunHsHmbQxOBA'; // trimmed for safety
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const container = document.getElementById("gameContainer");
+const { data: userData } = await supabase.auth.getUser();
+const user = userData.user;
+
+const logoutContainer = document.getElementById("logoutContainer");
+
+if (user) {
+  logoutContainer.innerHTML = `
+    <button id="logoutBtn" style="
+      background-color: #702963;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+    ">🚪 Logout</button>
+  `;
+
+  document.getElementById("logoutBtn").addEventListener("click", async () => {
+    await supabase.auth.signOut();
+    location.reload(); // or window.location.href = "/"
+  });
+} else {
+  logoutContainer.innerHTML = `
+    <a href="/login.html" style="
+      color: #702963;
+      font-weight: bold;
+      text-decoration: none;
+      padding: 10px 20px;
+      border: 2px solid #702963;
+      border-radius: 5px;
+      display: inline-block;
+    ">🔐 Log In</a>
+  `;
+}
+
+
+
+const today = new Date().toISOString().split("T")[0];
+
+const { data: games, error } = await supabase
+  .from("games")
+  .select("*")
+  .gte("game_date", today)
+  .order("game_date", { ascending: true });
+
+if (error) {
+  container.innerHTML = "<p>Error loading games</p>";
+  console.error(error);
+} else {
+  games.forEach(game => {
+    const div = document.createElement("div");
+    div.className = "game-card";
+    div.innerHTML = `
+  <div class="game-info">
+    <p><strong>📍 Venue:</strong> ${game.venue}</p>
+    <p><strong>📅 Date:</strong> ${game.game_date}</p>
+    <p><strong>🕒 Time:</strong> ${game.start_time} - ${game.end_time}</p>
+    <p><strong>🏷️ Level:</strong> ${game.level}</p>
+    <p><strong>🎮 Play Style:</strong> ${game.play_style}</p>
+    <p><strong>💰 Price:</strong> RM ${parseFloat(game.price).toFixed(2)}</p>
+    <p class="availability">Slots: loading...</p>
+  </div>
+  <form class="form-section" id="form-${game.id}">
+    ${user ? `
+<div style="display: flex; align-items: center; margin-bottom: 10px;">
+  <div style="width: 10%; min-width: 30px;">
+    <input type="checkbox" name="selfBooking" checked style="margin: 0;" />
+  </div>
+  <label style="margin: 0; font-size: 14px;">I am playing</label>
+</div>
+
+
+
+      <div class="guest-fields" style="display: none;">
+        <input name="jersey_name" placeholder="Enter player's jersey name" />
+        <input name="phone" placeholder="Enter player's phone number" type="tel" />
+      </div>
+    ` : `
+      <input name="jersey_name" placeholder="Enter jersey name" required />
+      <input name="phone" placeholder="Enter phone number" type="tel" required />
+    `}
+    <button type="submit">✅ Book Now</button>
+  </form>
+  <div class="player-list" id="players-${game.id}"></div>
+`;
+
+    container.appendChild(div);
+
+if (user) {
+  const form = document.getElementById(`form-${game.id}`);
+  const checkbox = form.querySelector('input[name="selfBooking"]');
+  const guestFields = form.querySelector('.guest-fields');
+
+  checkbox.addEventListener("change", () => {
+    const showGuest = !checkbox.checked;
+    guestFields.style.display = showGuest ? "block" : "none";
+    guestFields.querySelectorAll("input").forEach(input => {
+      input.required = showGuest;
+    });
+  });
+}
+
+    loadPlayers(game.id);
+
+    // ✅ Bind submit listener
+    document.getElementById(`form-${game.id}`)?.addEventListener("submit", (e) => {
+      e.preventDefault();
+      bookGame(game.id, e.target);
+    });
+  });
+}
+
+async function loadPlayers(gameId) {
+  const target = document.getElementById("players-" + gameId);
+
+  const [{ data: bookings, error: bookingError }, { data: game, error: gameError }] = await Promise.all([
+    //supabase.from("game_bookings").select("*").eq("game_id", gameId),
+    supabase.from("game_bookings").select(`*,profiles (jersey_name, avatar_url)`).eq("game_id", gameId), //new
+    supabase.from("games").select("max_players").eq("id", gameId).single()
+  ]);
+
+  if (bookingError || gameError || !bookings || !game) {
+    target.innerHTML = "<p>Failed to load players</p>";
+    return;
+  }
+
+  const html = bookings.map(b => {
+    const initial = (b.jersey_name || 'P')[0].toUpperCase();
+    //const label = b.jersey_name || 'Player';
+    // if (b.user_id && b.avatar_url) {
+    //   return `<a href="/player-public.html?id=${b.user_id}" class="player-avatar">
+    //     <img src="${b.avatar_url}" />
+    //     <span>${label}</span>
+    //   </a>`;}
+    const label = b.profiles?.jersey_name || b.jersey_name || 'Player'; //new start
+    const avatarUrl = b.profiles?.avatar_url || b.avatar_url || 'images/default-avatar.png'; 
+
+    if (b.user_id) {
+      return `<a href="/player-public.html?id=${b.user_id}" class="player-avatar">
+        <img src="${avatarUrl}" onerror="this.onerror=null;this.src='images/default-avatar.png';" />
+        <span>${label}</span>
+      </a>`; }//new end
+    else {
+      return `<div class="player-avatar">
+        <div style="
+          width: 40px; height: 40px;
+          border-radius: 50%;
+          background-color: #702963;
+          color: white;
+          font-weight: bold;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin: auto;
+        ">${initial}</div>
+        <span>${label}</span>
+      </div>`;
+    }
+  }).join("");
+
+  target.innerHTML = html;
+
+  const count = bookings.length;
+  const countEl = target.closest(".game-card").querySelector(".availability");
+  if (count >= game.max_players) {
+    countEl.textContent = `❌ FULL (${count}/${game.max_players})`;
+    countEl.style.color = "gray";
+    const form = target.closest(".game-card").querySelector("form");
+    if (form) form.innerHTML = "<p style='color: gray; font-weight: bold;'>⚠️ Booking Full</p>";
+  } else {
+    countEl.textContent = `👥 ${count}/${game.max_players} slots filled`;
+  }
+}
+
+console.log(user?.user_metadata?.avatar_url);
+
+async function bookGame(gameId, form) {
+  const submitButton = form.querySelector('button[type="submit"]');
+  submitButton.disabled = true;
+  submitButton.textContent = "⏳ Booking...";
+
+  const selfBooking = form.selfBooking?.checked;
+  const jersey_name = form.jersey_name?.value?.trim();
+  const phone = form.phone?.value?.trim();
+
+  // 🚫 For guests, jersey_name and phone required
+  if (!user && (!jersey_name || !phone)) {
+    alert("Please enter both jersey name and phone number.");
+    return;
+  }
+
+  // 🚫 For user booking someone else, fields required
+  if (user && !selfBooking && (!jersey_name || !phone)) {
+    alert("Please enter guest name and phone.");
+    return;
+  }
+
+  // ✅ Check if game full
+  const [{ data: bookings }, { data: game }] = await Promise.all([
+    supabase.from("game_bookings").select("id").eq("game_id", gameId),
+    supabase.from("games").select("max_players").eq("id", gameId).single()
+  ]);
+  if (bookings.length >= game.max_players) {
+    alert("This game is already full.");
+    loadPlayers(gameId);
+    return;
+  }
+
+  // ✅ Check duplicate
+  if (user && selfBooking) {
+    const { data: existing } = await supabase
+      .from("game_bookings")
+      .select("id")
+      .eq("game_id", gameId)
+      .eq("user_id", user.id)
+      .single();
+    if (existing) {
+      alert("You've already booked this game.");
+      return;
+    }
+  } else {
+    const { data: existingGuest } = await supabase
+      .from("game_bookings")
+      .select("id")
+      .eq("game_id", gameId)
+      .eq("phone", phone)
+      .single();
+    if (existingGuest) {
+      alert("This phone number has already booked this game.");
+      return;
+    }
+  }
+
+  // ✅ Fetch profile if needed
+  let profile = null;
+  if (user && selfBooking) {
+    const { data } = await supabase
+      .from("profiles")
+      .select("jersey_name, avatar_url, phone")
+      .eq("id", user.id)
+      .single();
+    profile = data;
+
+        if (!profile?.jersey_name || profile.jersey_name.trim().toLowerCase() === "player" || !profile?.phone) {
+      alert("Please complete your profile with a jersey name and phone number before booking.");
+      return;
+    }
+  }
+
+
+  // ✅ Build payload
+  const payload = user && selfBooking ? {
+    game_id: gameId,
+    user_id: user.id,
+    booked_by_user_id: user.id,
+    jersey_name: profile?.jersey_name || null,
+    avatar_url: profile?.avatar_url || null,
+    phone: profile?.phone || null
+  } : {
+    game_id: gameId,
+    user_id: null,
+    booked_by_user_id: user?.id || null,
+    jersey_name,
+    phone
+  };
+
+  const { error } = await supabase.from("game_bookings").insert([payload]);
+
+  if (error) {
+    alert("Booking failed: " + error.message);
+    console.error(error);
+    submitButton.disabled = false;
+    submitButton.textContent = "✅ Book Now";
+  } else {
+    alert("Booking successful!");
+    loadPlayers(gameId);
+    form.reset();
+    submitButton.disabled = false;
+    submitButton.textContent = "✅ Book Now";
+  }
+}
+
+
+</script>
+</body>
+</html>
