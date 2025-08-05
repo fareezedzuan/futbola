@@ -251,7 +251,12 @@ for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
 
 const { data: games, error } = await supabase
   .from("games")
-  .select(`*,profiles (jersey_name)`)
+  .select(`
+    *,
+    profiles (
+      jersey_name
+    )
+  `)
   .gte("game_date", start.toISOString().split("T")[0])
   .order("game_date", { ascending: true });
 
