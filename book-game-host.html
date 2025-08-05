@@ -251,12 +251,7 @@ for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
 
 const { data: games, error } = await supabase
   .from("games")
-  .select(`
-    *,
-    profiles (
-      jersey_name
-    )
-  `)
+  .select("*")
   .gte("game_date", start.toISOString().split("T")[0])
   .order("game_date", { ascending: true });
 
@@ -343,14 +338,14 @@ function renderCalendarGrid() {
     });
 
     if (gameList.length > 0) {
-      if (isPast) {
-        box.style.border = "2px solid #cc0000"; // Red border = past w/ game
-      } else {
-        box.style.border = "2px solid black";   // Normal border
-      }
+    if (isPast) {
+      box.style.border = "2px solid #cc0000"; // Red border = past w/ game
     } else {
-      box.style.border = "1px solid #ddd";       // No games
+      box.style.border = "2px solid black";   // Normal border
     }
+  } else {
+    box.style.border = "1px solid #ddd";       // No games
+  }
 
     // class logic
     if (isPast && gameList.length > 0) {
@@ -423,7 +418,7 @@ function renderGames(selectedDate = null) {
     div.innerHTML = `
       <div class="game-info">
         <p><strong>📛 Title:</strong> ${game.session_title || 'Untitled'}</p>
-        <p><strong>🧑 Host:</strong> ${game.profiles?.jersey_name || 'Host'}</p>
+        <p><strong>🧑 Host:</strong> ${game.host_name || 'Host'}</p>
         <p><strong>📍 Venue:</strong> ${game.venue}</p>
         <p><strong>📅 Date:</strong> ${game.game_date}</p>
         <p><strong>🕒 Time:</strong> ${game.start_time} – ${game.end_time}</p>
