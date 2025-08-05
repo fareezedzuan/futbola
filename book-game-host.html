@@ -661,6 +661,22 @@ async function bookGame(gameId, form) {
     submitButton.textContent = "✅ Book Now";
   } else {
     alert("Booking successful!");
+
+    const { data: gameDetails } = await supabase
+      .from("games")
+      .select("contact_method, contact_link")
+      .eq("id", gameId)
+      .single();
+
+    if (gameDetails?.contact_link) {
+      const method = gameDetails.contact_method || "group";
+      const confirmJoin = confirm(`✅ Booking successful!\n\nWould you like to join the ${method} group for updates?`);
+
+      if (confirmJoin) {
+        window.open(gameDetails.contact_link, "_blank");
+      }
+    }
+
     loadPlayers(gameId);
     form.reset();
     submitButton.disabled = false;
