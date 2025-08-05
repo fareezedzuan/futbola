@@ -412,7 +412,8 @@ function renderGames(selectedDate = null) {
     : datedGames.slice(0, 3);
 
   [...filtered, ...premiumGames].forEach(game => {
-    const isPast = new Date(game.game_date) < todayDate;
+    const startDateTime = new Date(`${game.game_date}T${game.start_time}`);
+    const isPast = startDateTime < new Date();
     const div = document.createElement("div");
     div.className = "game-card";
     div.innerHTML = `
