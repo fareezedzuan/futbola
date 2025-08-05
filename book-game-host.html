@@ -423,7 +423,7 @@ function renderGames(selectedDate = null) {
         <p><strong>📅 Date:</strong> ${game.game_date}</p>
         <p><strong>🕒 Time:</strong> ${game.start_time} – ${game.end_time}</p>
         <p><strong>💰 Price:</strong> RM ${parseFloat(game.price || 0).toFixed(2)}</p>
-        <p><strong>💳 Payment:</strong> ${game.payment_mode || 'Manual'}</p>
+        <p><strong>💳 Payment:</strong> ${game.payment_type || 'Manual'}</p>
         ${game.premium ? `<p style="color:goldenrod;">⭐ Premium</p>` : ""}
         <p class="availability">Slots: loading...</p>
       </div>
