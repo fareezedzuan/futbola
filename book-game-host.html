@@ -306,7 +306,46 @@ function renderCalendarGrid() {
     box.innerHTML = `
       <div style="font-size: 11px; color: #702963;">${weekday}</div>
       <div style="font-size: 14px; font-weight: bold;">${dayNum}/${monthNum}</div>
+      <div class="dot-container"></div>
     `;
+
+    const dotContainer = box.querySelector('.dot-container');
+    dotContainer.style.marginTop = "4px";
+    dotContainer.style.display = "flex";
+    dotContainer.style.justifyContent = "center";
+    dotContainer.style.gap = "3px";
+
+    gameList.forEach(g => {
+      const filled = bookingCountMap[g.id] || 0;
+      const max = g.max_players || 0;
+      let dotColor = 'gray';
+
+      if (max > 0) {
+        const ratio = filled / max;
+        if (ratio >= 1) dotColor = 'red';
+        else if (ratio >= 0.7) dotColor = 'orange';
+        else dotColor = 'green';
+      }
+
+      const dot = document.createElement("span");
+      dot.style.width = "6px";
+      dot.style.height = "6px";
+      dot.style.borderRadius = "50%";
+      dot.style.backgroundColor = dotColor;
+      dot.style.display = "inline-block";
+
+      dotContainer.appendChild(dot);
+    });
+
+    if (gameList.length > 0) {
+      if (isPast) {
+        box.style.border = "2px solid #cc0000"; // Red border = past w/ game
+      } else {
+        box.style.border = "2px solid black";   // Normal border
+      }
+    } else {
+      box.style.border = "1px solid #ddd";       // No games
+    }
 
     // class logic
     if (isPast && gameList.length > 0) {
