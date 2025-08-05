@@ -415,17 +415,21 @@ function renderGames(selectedDate = null) {
     container.appendChild(div);
 
     // guest toggle
-    if (user) {
+    if (user && !isPast) {
       const form = document.getElementById(`form-${game.id}`);
-      const checkbox = form.querySelector('input[name="selfBooking"]');
-      const guestFields = form.querySelector('.guest-fields');
-      checkbox.addEventListener("change", () => {
-        const showGuest = !checkbox.checked;
-        guestFields.style.display = showGuest ? "block" : "none";
-        guestFields.querySelectorAll("input").forEach(input => {
-          input.required = showGuest;
-        });
-      });
+      if (form) {
+        const checkbox = form.querySelector('input[name="selfBooking"]');
+        const guestFields = form.querySelector('.guest-fields');
+        if (checkbox && guestFields) {
+          checkbox.addEventListener("change", () => {
+            const showGuest = !checkbox.checked;
+            guestFields.style.display = showGuest ? "block" : "none";
+            guestFields.querySelectorAll("input").forEach(input => {
+              input.required = showGuest;
+            });
+          });
+        }
+      }
     }
 
     // bind form submit
