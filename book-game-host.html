@@ -251,7 +251,7 @@ for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
 
 const { data: games, error } = await supabase
   .from("games")
-  .select("*")
+  .select(`*,profiles (jersey_name)`)
   .gte("game_date", start.toISOString().split("T")[0])
   .order("game_date", { ascending: true });
 
@@ -418,7 +418,7 @@ function renderGames(selectedDate = null) {
     div.innerHTML = `
       <div class="game-info">
         <p><strong>📛 Title:</strong> ${game.session_title || 'Untitled'}</p>
-        <p><strong>🧑 Host:</strong> Host</p>
+        <p><strong>🧑 Host:</strong> ${game.profiles?.jersey_name || 'Host'}</p>
         <p><strong>📍 Venue:</strong> ${game.venue}</p>
         <p><strong>📅 Date:</strong> ${game.game_date}</p>
         <p><strong>🕒 Time:</strong> ${game.start_time} – ${game.end_time}</p>
