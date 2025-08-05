@@ -424,7 +424,7 @@ function renderGames(selectedDate = null) {
         <p><strong>📅 Date:</strong> ${game.game_date}</p>
         <p><strong>🕒 Time:</strong> ${game.start_time} – ${game.end_time}</p>
         <p><strong>💰 Price:</strong> RM ${parseFloat(game.price || 0).toFixed(2)}</p>
-        <p><strong>💳 Payment:</strong> ${game.payment_type || 'Manual'}</p>
+        <p><strong>💳 Payment:</strong> ${formatPayment(game.payment_type) || 'Manual'}</p>
         ${game.premium ? `<p style="color:goldenrod;">⭐ Premium</p>` : ""}
         <p class="availability">Slots: loading...</p>
       </div>
@@ -665,6 +665,16 @@ async function bookGame(gameId, form) {
     form.reset();
     submitButton.disabled = false;
     submitButton.textContent = "✅ Book Now";
+  }
+}
+
+function formatPayment(type) {
+  switch (type) {
+    case 'pay_on_court': return 'Pay on Court';
+    case 'pay_full': return 'Full Payment';
+    case 'pay_booking': return 'Booking Fee';
+    case 'other': return 'Other';
+    default: return type || 'Manual';
   }
 }
 
