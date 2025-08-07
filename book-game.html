@@ -421,9 +421,17 @@ function renderGames(selectedDate = null) {
       <div class="game-info">
         <p><strong>📛 Title:</strong> ${game.session_title || 'Untitled'}</p>
         <p><strong>🧑 Host:</strong> ${game.host_name || 'Host'}</p>
+
         <p><strong>📍 Venue:</strong> ${game.venue}</p>
         <p><strong>📅 Date:</strong> ${game.game_date}</p>
         <p><strong>🕒 Time:</strong> ${game.start_time} – ${game.end_time}</p>
+
+        <p><strong>📶 Level:</strong> ${game.level || 'N/A'}</p>
+        <p><strong>🧮 Format:</strong> ${game.player_format || 'N/A'}</p>
+        <p><strong>🏟️ Teams:</strong> ${game.teams || 'N/A'}</p>
+        <p><strong>🕹️ Courts:</strong> ${game.courts || 'N/A'}</p>
+        <p><strong>⏱️ Minutes:</strong> ${game.minutes || 'N/A'} min</p>
+
         <p><strong>💰 Price:</strong> RM ${parseFloat(game.price || 0).toFixed(2)}</p>
         <p><strong>💳 Payment:</strong> ${formatPayment(game.payment_type) || 'Manual'}</p>
         ${game.premium ? `<p style="color:goldenrod;">⭐ Premium</p>` : ""}
