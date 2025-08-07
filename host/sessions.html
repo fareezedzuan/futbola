@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Host Dashboard - Futbola</title>
-  <link rel="icon" href="/images/futbola-favicon.ico" type="image/x-icon">
+  <link rel="icon" href="../images/futbola-favicon.ico" type="image/x-icon">
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -28,6 +28,19 @@
       max-width: 620px;
       margin-left: auto;
       margin-right: auto;
+    }
+
+    .session-header {
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 16px;
+      color: #702963;
+      margin-bottom: 10px;
+    }
+
+    .session-details {
+      display: none;
+      margin-top: 10px;
     }
 
     .session-info p {
@@ -61,14 +74,14 @@
     }
 
     .button-bar {
-      margin-top: 10px;
+      margin-top: 6px;
     }
 
     .button-bar button {
-      margin-right: 8px;
+      margin-right: 6px;
       margin-top: 4px;
       padding: 6px 10px;
-      font-size: 13px;
+      font-size: 12px;
       border: none;
       border-radius: 4px;
       cursor: pointer;
@@ -80,40 +93,48 @@
     .add-btn { background: #702963; color: white; }
     .edit-btn { background: #ff9800; color: white; }
     .public-btn { background: #2196f3; color: white; }
+    .track-btn { background: #9c27b0; color: white; }
   </style>
 </head>
 <body>
 <h2>Host Dashboard</h2>
 
 <div id="sessionContainer">
-  <!-- Example session card -->
   <div class="session-card">
-    <div class="session-info">
-      <p><strong>📛 Title:</strong> Afterworks Kickabout</p>
-      <p><strong>📍 Venue:</strong> Kompleks Presint 18</p>
-      <p><strong>📅 Date:</strong> 2025-08-10</p>
-      <p><strong>🕒 Time:</strong> 20:00 – 22:00</p>
-      <p><strong>👥 Max Players:</strong> 16</p>
-      <p><strong>🔁 Recurring:</strong> ✅</p>
-      <p><strong>🌍 Public:</strong> ✅</p>
-      <p><strong>💳 Payment:</strong> Pay on Court</p>
-      <p><strong>🔗 Share Link:</strong> <a href="#">public-match-results</a></p>
+    <div class="session-header" onclick="toggleDetails(this)">
+      ▶️ Afterworks Kickabout – 2025-08-10
     </div>
-    <div class="player-list">
-      <div class="player-avatar">
-        <img src="/images/default-avatar.png" alt="">
-        <span>Player A</span>
-        <div class="button-bar">
-          <button class="wa-btn">WA</button>
-          <button class="paid-btn">Paid</button>
-          <button class="remove-btn">Remove</button>
-        </div>
+    <div class="session-details">
+      <div class="session-info">
+        <p><strong>📛 Title:</strong> Afterworks Kickabout</p>
+        <p><strong>📍 Venue:</strong> Kompleks Presint 18</p>
+        <p><strong>📅 Date:</strong> 2025-08-10</p>
+        <p><strong>🕒 Time:</strong> 20:00 – 22:00</p>
+        <p><strong>👥 Max Players:</strong> 16</p>
+        <p><strong>🔁 Recurring:</strong> ✅</p>
+        <p><strong>🌍 Public:</strong> ✅</p>
+        <p><strong>💳 Payment:</strong> Pay on Court</p>
+        <p><strong>🔗 Share Link:</strong> <a href="#">public-match-results</a></p>
       </div>
-      <!-- Repeat for other players -->
-    </div>
-    <div class="button-bar">
-      <button class="add-btn">+ Add Player</button>
-      <button class="edit-btn">Edit Session</button>
+      <div class="player-list">
+        <div class="player-avatar">
+          <a href="/player-public.html?id=example-user">
+            <img src="/images/default-avatar.png" alt="">
+          </a>
+          <span>Player A</span>
+          <div class="button-bar">
+            <button class="wa-btn">WA</button>
+            <button class="paid-btn">Paid</button>
+            <button class="remove-btn">Remove</button>
+          </div>
+        </div>
+        <!-- More players -->
+      </div>
+      <div class="button-bar">
+        <button class="add-btn">+ Add Player</button>
+        <button class="edit-btn">Edit Session</button>
+        <button class="track-btn" onclick="window.location.href='/track-match-flexi.html?session_id=example-session'">🏁 Track Match</button>
+      </div>
     </div>
   </div>
 </div>
@@ -121,6 +142,15 @@
 <a href="/" style="display: block; width: fit-content; margin: 40px auto 0; background-color: #ff0000; color: white; padding: 12px 20px; text-decoration: none; border-radius: 5px; font-weight: bold; text-align: center;">
   ← Back to Homepage
 </a>
+
+<script>
+  function toggleDetails(headerEl) {
+    const details = headerEl.nextElementSibling;
+    const isVisible = details.style.display === 'block';
+    details.style.display = isVisible ? 'none' : 'block';
+    headerEl.innerText = (isVisible ? '▶️' : '🔽') + ' ' + headerEl.innerText.slice(2);
+  }
+</script>
 
 </body>
 </html>
