@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Host Dashboard - Futbola</title>
+  <title>Host Sessions Calendar</title>
   <link rel="icon" href="/images/futbola-favicon.ico" type="image/x-icon">
   <style>
     body {
@@ -12,12 +12,65 @@
       padding: 20px;
       margin: 0;
     }
-
     h2 {
       text-align: center;
       color: #702963;
     }
-
+    #calendarGridWrapper {
+      border: 2px solid #702963;
+      border-radius: 10px;
+      padding: 20px 10px;
+      background: white;
+      max-width: 640px;
+      margin: 0 auto 30px auto;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.05);
+    }
+    .calendar-header {
+      text-align: center;
+      font-weight: bold;
+      font-size: 18px;
+      margin-bottom: 8px;
+      color: #702963;
+    }
+    #calendarGrid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+      padding: 10px;
+    }
+    .calendar-box {
+      background-color: white;
+      border: 2px solid #ff0000;
+      border-radius: 6px;
+      padding: 8px 4px;
+      font-size: 12px;
+      font-weight: bold;
+      text-align: center;
+      height: 50px;
+      cursor: pointer;
+      position: relative;
+    }
+    .dot-container {
+      display: flex;
+      justify-content: center;
+      gap: 2px;
+      margin-top: 4px;
+    }
+    .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .calendar-nav {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    #sessionContainer {
+      max-width: 700px;
+      margin: auto;
+    }
     .session-card {
       background: white;
       border-top: 5px solid #ff5a5f;
@@ -25,160 +78,104 @@
       border-radius: 10px;
       box-shadow: 0 4px 8px rgba(0,0,0,0.1);
       margin-bottom: 30px;
-      max-width: 620px;
-      margin-left: auto;
-      margin-right: auto;
     }
-
     .session-header {
-      cursor: pointer;
       font-weight: bold;
       font-size: 16px;
       color: #702963;
-      margin-bottom: 10px;
     }
-
-    .session-details {
-      display: none;
-      margin-top: 10px;
-    }
-
     .session-info p {
       margin: 6px 0;
       font-size: 15px;
     }
-
-    .player-list {
-      margin-top: 10px;
-    }
-
-    .player-avatar {
-      display: inline-block;
-      margin: 4px;
-      text-align: center;
-      position: relative;
-      cursor: pointer;
-    }
-
-    .player-avatar img {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      border: 2px solid #ff5a5f;
-      object-fit: cover;
-    }
-
-    .player-avatar.paid img {
-      border: 2px solid #4caf50;
-    }
-
-    .player-avatar span {
-      display: block;
-      font-size: 12px;
-      max-width: 60px;
-      overflow-wrap: break-word;
-    }
-
-    .emoji-action {
-      display: none;
-      position: absolute;
-      background: white;
-      border: 1px solid #ccc;
-      border-radius: 50%;
-      font-size: 14px;
-      width: 20px;
-      height: 20px;
-      text-align: center;
-      line-height: 18px;
-      cursor: pointer;
-    }
-
-    .emoji-wa { top: -5px; left: -5px; }
-    .emoji-remove { top: -5px; right: -5px; }
-    .emoji-paid { bottom: -5px; left: -5px; }
-    .emoji-profile { bottom: -5px; right: -5px; }
-
-    .button-bar {
-      margin-top: 6px;
-    }
-
-    .button-bar button {
-      margin-right: 6px;
-      margin-top: 4px;
-      padding: 6px 10px;
-      font-size: 12px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-
-    .add-btn { background: #702963; color: white; }
-    .edit-btn { background: #ff9800; color: white; }
-    .track-btn { background: #9c27b0; color: white; }
   </style>
 </head>
 <body>
-<h2>Host Dashboard</h2>
-
-<div id="sessionContainer">
-  <div class="session-card">
-    <div class="session-header" onclick="toggleDetails(this)">
-      ▶️ Afterworks Kickabout – 2025-08-10
-    </div>
-    <div class="session-details">
-      <div class="session-info">
-        <p><strong>📛 Title:</strong> Afterworks Kickabout</p>
-        <p><strong>📍 Venue:</strong> Kompleks Presint 18</p>
-        <p><strong>📅 Date:</strong> 2025-08-10</p>
-        <p><strong>🕒 Time:</strong> 20:00 – 22:00</p>
-        <p><strong>👥 Max Players:</strong> 16</p>
-        <p><strong>🔁 Recurring:</strong> ✅</p>
-        <p><strong>🌍 Public:</strong> ✅</p>
-        <p><strong>💳 Payment:</strong> Pay on Court</p>
-        <p><strong>🔗 Share Link:</strong> <a href="#">public-match-results</a></p>
-      </div>
-      <div class="player-list">
-        <div class="player-avatar" onclick="toggleEmojiActions(this)">
-          <img src="/images/default-avatar.png" alt="">
-          <span>Player A</span>
-          <div class="emoji-action emoji-wa" title="WhatsApp" onclick="event.stopPropagation(); alert('WhatsApp Clicked');">📞</div>
-          <div class="emoji-action emoji-remove" title="Remove Player" onclick="event.stopPropagation(); confirm('Remove this player?') && alert('Removed');">❌</div>
-          <div class="emoji-action emoji-paid" title="Toggle Paid" onclick="event.stopPropagation(); togglePaid(this);">💰</div>
-          <div class="emoji-action emoji-profile" title="View Profile" onclick="event.stopPropagation(); window.open('/player-public.html?id=example-user')">👤</div>
-        </div>
-      </div>
-      <div class="button-bar">
-        <button class="add-btn">+ Add Player</button>
-        <button class="edit-btn">Edit Session</button>
-        <button class="track-btn" onclick="window.location.href='/track-match-flexi.html?session_id=example-session'">🏁 Track Match</button>
-      </div>
-    </div>
+<h2>Manage Sessions</h2>
+<div id="calendarGridWrapper">
+  <div class="calendar-nav">
+    <button onclick="prevMonth()">⬅️</button>
+    <div class="calendar-header" id="monthLabel">August 2025</div>
+    <button onclick="nextMonth()">➡️</button>
   </div>
+  <div id="calendarGrid"></div>
 </div>
+
+<div id="sessionContainer"></div>
 
 <a href="/" style="display: block; width: fit-content; margin: 40px auto 0; background-color: #ff0000; color: white; padding: 12px 20px; text-decoration: none; border-radius: 5px; font-weight: bold; text-align: center;">
   ← Back to Homepage
 </a>
 
 <script>
-  function toggleDetails(headerEl) {
-    const details = headerEl.nextElementSibling;
-    const isVisible = details.style.display === 'block';
-    details.style.display = isVisible ? 'none' : 'block';
-    headerEl.innerText = (isVisible ? '▶️' : '🔽') + ' ' + headerEl.innerText.slice(2);
+  const monthLabel = document.getElementById("monthLabel");
+  const calendarGrid = document.getElementById("calendarGrid");
+  const sessionContainer = document.getElementById("sessionContainer");
+
+  let currentMonth = new Date().getMonth();
+  let currentYear = new Date().getFullYear();
+
+  function renderCalendar(month, year) {
+    calendarGrid.innerHTML = "";
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const monthName = firstDay.toLocaleDateString("en-MY", { month: 'long' });
+    monthLabel.textContent = `${monthName} ${year}`;
+
+    const dayOffset = firstDay.getDay();
+    for (let i = 0; i < dayOffset; i++) {
+      const empty = document.createElement("div");
+      calendarGrid.appendChild(empty);
+    }
+
+    for (let d = 1; d <= lastDay.getDate(); d++) {
+      const box = document.createElement("div");
+      box.className = "calendar-box";
+      box.innerHTML = `${d}<div class='dot-container'>
+        <span class='dot' style='background-color: green;'></span>
+        <span class='dot' style='background-color: orange;'></span>
+      </div>`;
+      box.onclick = () => loadSessionsForDate(year, month + 1, d);
+      calendarGrid.appendChild(box);
+    }
   }
 
-  function toggleEmojiActions(playerEl) {
-    const actions = playerEl.querySelectorAll('.emoji-action');
-    const show = actions[0].style.display !== 'block';
-    actions.forEach(a => a.style.display = show ? 'block' : 'none');
+  function loadSessionsForDate(year, month, day) {
+    sessionContainer.innerHTML = '';
+    const fake = document.createElement("div");
+    fake.className = "session-card";
+    fake.innerHTML = `
+      <div class="session-header">Afterworks Kickabout</div>
+      <div class="session-info">
+        <p><strong>📍 Venue:</strong> Presint 18</p>
+        <p><strong>🕒 Time:</strong> 8:00PM – 10:00PM</p>
+        <p><strong>👥 Max:</strong> 16</p>
+      </div>
+    `;
+    sessionContainer.appendChild(fake);
   }
 
-  function togglePaid(el) {
-    const avatarEl = el.closest('.player-avatar');
-    avatarEl.classList.toggle('paid');
+  function prevMonth() {
+    if (currentMonth === 0) {
+      currentMonth = 11;
+      currentYear--;
+    } else {
+      currentMonth--;
+    }
+    renderCalendar(currentMonth, currentYear);
   }
+
+  function nextMonth() {
+    if (currentMonth === 11) {
+      currentMonth = 0;
+      currentYear++;
+    } else {
+      currentMonth++;
+    }
+    renderCalendar(currentMonth, currentYear);
+  }
+
+  renderCalendar(currentMonth, currentYear);
 </script>
-
 </body>
 </html>
