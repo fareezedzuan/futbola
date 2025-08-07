@@ -80,18 +80,83 @@
       margin-bottom: 30px;
     }
     .session-header {
+      cursor: pointer;
       font-weight: bold;
       font-size: 16px;
       color: #702963;
+      margin-bottom: 10px;
+    }
+    .session-details {
+      display: none;
+      margin-top: 10px;
     }
     .session-info p {
       margin: 6px 0;
       font-size: 15px;
     }
+    .player-list {
+      margin-top: 10px;
+    }
+    .player-avatar {
+      display: inline-block;
+      margin: 4px;
+      text-align: center;
+      position: relative;
+      cursor: pointer;
+    }
+    .player-avatar img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 2px solid #ff5a5f;
+      object-fit: cover;
+    }
+    .player-avatar.paid img {
+      border: 2px solid #4caf50;
+    }
+    .player-avatar span {
+      display: block;
+      font-size: 12px;
+      max-width: 60px;
+      overflow-wrap: break-word;
+    }
+    .emoji-action {
+      display: none;
+      position: absolute;
+      background: white;
+      border: 1px solid #ccc;
+      border-radius: 50%;
+      font-size: 14px;
+      width: 20px;
+      height: 20px;
+      text-align: center;
+      line-height: 18px;
+      cursor: pointer;
+    }
+    .emoji-wa { top: -5px; left: -5px; }
+    .emoji-remove { top: -5px; right: -5px; }
+    .emoji-paid { bottom: -5px; left: -5px; }
+    .emoji-profile { bottom: -5px; right: -5px; }
+    .button-bar {
+      margin-top: 6px;
+    }
+    .button-bar button {
+      margin-right: 6px;
+      margin-top: 4px;
+      padding: 6px 10px;
+      font-size: 12px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .add-btn { background: #702963; color: white; }
+    .edit-btn { background: #ff9800; color: white; }
+    .track-btn { background: #9c27b0; color: white; }
   </style>
 </head>
 <body>
-<h2>Manage Sessions</h2>
+<h2>Host Dashboard</h2>
+
 <div id="calendarGridWrapper">
   <div class="calendar-nav">
     <button onclick="prevMonth()">⬅️</button>
@@ -142,17 +207,37 @@
 
   function loadSessionsForDate(year, month, day) {
     sessionContainer.innerHTML = '';
-    const fake = document.createElement("div");
-    fake.className = "session-card";
-    fake.innerHTML = `
-      <div class="session-header">Afterworks Kickabout</div>
-      <div class="session-info">
-        <p><strong>📍 Venue:</strong> Presint 18</p>
-        <p><strong>🕒 Time:</strong> 8:00PM – 10:00PM</p>
-        <p><strong>👥 Max:</strong> 16</p>
+    const card = document.createElement("div");
+    card.className = "session-card";
+    card.innerHTML = `
+      <div class="session-header" onclick="toggleDetails(this)">
+        ▶️ Afterworks Kickabout – ${year}-${month}-${day}
+      </div>
+      <div class="session-details">
+        <div class="session-info">
+          <p><strong>📍 Venue:</strong> Kompleks Presint 18</p>
+          <p><strong>🕒 Time:</strong> 20:00 – 22:00</p>
+          <p><strong>👥 Max Players:</strong> 16</p>
+          <p><strong>💳 Payment:</strong> Pay on Court</p>
+        </div>
+        <div class="player-list">
+          <div class="player-avatar" onclick="toggleEmojiActions(this)">
+            <img src="/images/default-avatar.png" alt="">
+            <span>Player A</span>
+            <div class="emoji-action emoji-wa" title="WhatsApp" onclick="event.stopPropagation(); alert('WhatsApp Clicked');">📞</div>
+            <div class="emoji-action emoji-remove" title="Remove Player" onclick="event.stopPropagation(); confirm('Remove this player?') && alert('Removed');">❌</div>
+            <div class="emoji-action emoji-paid" title="Toggle Paid" onclick="event.stopPropagation(); togglePaid(this);">💰</div>
+            <div class="emoji-action emoji-profile" title="View Profile" onclick="event.stopPropagation(); window.open('/player-public.html?id=example-user')">👤</div>
+          </div>
+        </div>
+        <div class="button-bar">
+          <button class="add-btn">+ Add Player</button>
+          <button class="edit-btn">Edit Session</button>
+          <button class="track-btn" onclick="window.location.href='/track-match-flexi.html?session_id=example-session'">🏁 Track Match</button>
+        </div>
       </div>
     `;
-    sessionContainer.appendChild(fake);
+    sessionContainer.appendChild(card);
   }
 
   function prevMonth() {
@@ -175,7 +260,26 @@
     renderCalendar(currentMonth, currentYear);
   }
 
+  function toggleDetails(headerEl) {
+    const details = headerEl.nextElementSibling;
+    const isVisible = details.style.display === 'block';
+    details.style.display = isVisible ? 'none' : 'block';
+    headerEl.innerText = (isVisible ? '▶️' : '🔽') + ' ' + headerEl.innerText.slice(2);
+  }
+
+  function toggleEmojiActions(playerEl) {
+    const actions = playerEl.querySelectorAll('.emoji-action');
+    const show = actions[0].style.display !== 'block';
+    actions.forEach(a => a.style.display = show ? 'block' : 'none');
+  }
+
+  function togglePaid(el) {
+    const avatarEl = el.closest('.player-avatar');
+    avatarEl.classList.toggle('paid');
+  }
+
   renderCalendar(currentMonth, currentYear);
 </script>
+
 </body>
 </html>
