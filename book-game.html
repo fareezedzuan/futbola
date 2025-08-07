@@ -237,6 +237,7 @@ if (user) {
 
 const calendarGrid = document.getElementById("calendarGrid");
 const todayDate = new Date();
+todayDate.setHours(0, 0, 0, 0); 
 const todayStr = `${todayDate.getFullYear()}-${String(todayDate.getMonth() + 1).padStart(2, '0')}-${String(todayDate.getDate()).padStart(2, '0')}`;
 
 const start = new Date(todayDate);
