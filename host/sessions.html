@@ -344,7 +344,8 @@
         return;
         }
 
-    sessions.forEach(game => {
+    (async () => {
+  for (const game of sessions) {
     const card = document.createElement("div");
     card.className = "session-card";
 
@@ -461,8 +462,7 @@ const resultBtn = card.querySelector(".public-result-btn");
       .from("games_sessions")
       .select("id")
       .eq("game_id", game.id)
-      .limit(1)
-      .single();
+      .maybeSingle();
 
     const sessionId = sessionsData?.id;
 
@@ -488,7 +488,10 @@ const resultBtn = card.querySelector(".public-result-btn");
 
     addBtn.addEventListener("click", () => toggleAddForm(card));
     confirmBtn.addEventListener("click", () => addPlayer(game.id, card));
-    });
+    sessionContainer.appendChild(card);
+    await loadPlayers(game.id, card); // ✅ Now works without error
+  }
+})();
   }
 
   function prevMonth() {
