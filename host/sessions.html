@@ -352,6 +352,13 @@
     avatarEl.classList.toggle('paid');
   }
 
+  function toggleDetails(headerEl) {
+    const details = headerEl.nextElementSibling;
+    const isVisible = details.style.display === 'block';
+    details.style.display = isVisible ? 'none' : 'block';
+    headerEl.innerText = (isVisible ? '▶️' : '🔽') + ' ' + headerEl.innerText.slice(2);
+    }
+
   await fetchGamesAndBookings();
 </script>
 
