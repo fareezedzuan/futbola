@@ -495,7 +495,7 @@ async function saveSession(gameId, card) {
     let val = input.value;
 
     if (input.type === "number") {
-      val = input.value === "" ? null : parseInt(val);
+      val = input.value === "" ? null : parseFloat(val); 
     } else if (input.type === "date" || input.type === "time") {
       val = input.value || null;
     } else {
