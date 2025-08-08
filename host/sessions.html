@@ -470,9 +470,11 @@ const resultBtn = card.querySelector(".public-result-btn");
         window.open(`/current-games/public-match-results.html?session=${sessionId}`, "_blank");
       };
     } else {
-      resultBtn.disabled = true;
-      resultBtn.textContent = "❌ No Session Found";
-    }
+  resultBtn.textContent = "⚙️ Setup Game";
+  resultBtn.onclick = () => {
+    window.open(`/current-games/start-game.html`, "_blank");
+  };
+  }
 
     if (error) {
       console.error("❌ Error fetching session ID:", error);
