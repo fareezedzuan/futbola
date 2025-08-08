@@ -276,25 +276,6 @@
     console.log("Rendering with games:", allGames);
   }
 
-  function prevMonth() {
-  if (currentMonth === 0) {
-    currentMonth = 11;
-    currentYear--;
-  } else {
-    currentMonth--;
-  }
-  renderCalendar(currentMonth, currentYear);
-}
-
-function nextMonth() {
-  if (currentMonth === 11) {
-    currentMonth = 0;
-    currentYear++;
-  } else {
-    currentMonth++;
-  }
-  renderCalendar(currentMonth, currentYear);
-}
 
   function loadSessionsForDate(year, month, day) {
         sessionContainer.innerHTML = '';
