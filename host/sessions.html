@@ -244,12 +244,13 @@
       calendarGrid.appendChild(empty);
     }
 
+    const today = new Date();  
+    today.setHours(0, 0, 0, 0);
+
     for (let d = 1; d <= lastDay.getDate(); d++) {
       const box = document.createElement("div");
       box.className = "calendar-box";
-      const today = new Date();
-      
-        today.setHours(0, 0, 0, 0);
+
         const thisDate = new Date(year, month, d);
         thisDate.setHours(0, 0, 0, 0);
 
