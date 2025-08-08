@@ -489,7 +489,15 @@
     formInputs.forEach(input => {
         const key = input.name;
         let val = input.value;
-        if (input.type === "number") val = parseInt(val);
+
+        if (input.type === "number") {
+            val = input.value === "" ? null : parseInt(val);
+        } else if (input.type === "date" || input.type === "time") {
+            val = input.value || null;
+        } else {
+            val = input.value.trim() === "" ? null : input.value;
+        }
+
         updates[key] = val;
     });
 
