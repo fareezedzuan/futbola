@@ -347,25 +347,29 @@
         </div>
         <div class="session-details" style="display: none;">
         <div class="session-info">
-            <p><strong>📍 Venue:</strong> ${game.venue}</p>
-            <p><strong>📅 Date:</strong> ${game.game_date}</p>
-            <p><strong>🕒 Time:</strong> ${game.start_time} – ${game.end_time}</p>
-            <p><strong>📶 Level:</strong> ${game.level || '-'}</p>
-            <p><strong>🧮 Format:</strong> ${game.play_style || '-'}</p>
-            <p><strong>🏟️ Teams:</strong> ${game.teams || '-'}</p>
-            <p><strong>🕹️ Courts:</strong> ${game.courts || '-'}</p>
-            <p><strong>⏱️ Minutes:</strong> ${game.minutes || '-'}</p>
-            <p><strong>👥 Max Players:</strong> ${game.max_players}</p>
-            <p><strong>💳 Payment:</strong> ${game.payment_type || '-'}</p>
-            <p><strong>📲 Contact:</strong> ${game.contact_method || '-'}</p>
-            <p><strong>🔗 Contact Link:</strong> <a href="${game.contact_link || '#'}" target="_blank">Join Group</a></p>
+            <label>📛 Title: <input type="text" name="session_title" value="${game.session_title || ''}" /></label><br/>
+            <label>📍 Venue: <input type="text" name="venue" value="${game.venue}" /></label><br/>
+            <label>🕒 Start: <input type="time" name="start_time" value="${game.start_time}" /></label><br/>
+            <label>🕒 End: <input type="time" name="end_time" value="${game.end_time}" /></label><br/>
+            <label>💰 Price: <input type="number" name="price" value="${game.price}" /></label><br/>
+            <label>👥 Max Players: <input type="number" name="max_players" value="${game.max_players}" /></label><br/>
+            <label>📶 Level: <input type="text" name="level" value="${game.level}" /></label><br/>
+            <label>🧮 Format: <input type="text" name="play_style" value="${game.play_style}" /></label><br/>
+            <label>🏟️ Teams: <input type="number" name="teams" value="${game.teams}" /></label><br/>
+            <label>🕹️ Courts: <input type="number" name="courts" value="${game.courts}" /></label><br/>
+            <label>⏱️ Minutes: <input type="number" name="minutes" value="${game.minutes}" /></label><br/>
+            <label>💳 Payment: <input type="text" name="payment_type" value="${game.payment_type}" /></label><br/>
+            <label>📲 Contact: <input type="text" name="contact_method" value="${game.contact_method}" /></label><br/>
+            <label>🔗 Link: <input type="text" name="contact_link" value="${game.contact_link}" /></label><br/>
         </div>
         <div class="player-list">
             <p style="text-align:center; color:#999;">Players will appear here</p>
         </div>
         <div class="button-bar">
             <button class="add-btn">+ Add Player</button>
-            <button class="edit-btn">Edit Session</button>
+            <button class="edit-btn">Edit Session</button> <!-- Optional: Hide/show inputs -->
+            <button class="save-btn" onclick="saveSession('${game.id}', this)">💾 Save</button>
+            <button class="cancel-btn" onclick="location.reload()">❌ Cancel</button>
             <button class="track-btn" onclick="window.location.href='/track-match-flexi.html?session_id=${game.id}'">🏁 Track Match</button>
         </div>
         </div>
@@ -421,6 +425,40 @@
     const avatarEl = el.closest('.player-avatar');
     avatarEl.classList.toggle('paid');
   }
+
+  async function saveSession(sessionId, btn) {
+    const card = btn.closest('.session-card');
+    const info = card.querySelector('.session-info');
+    const payload = {
+        session_title: info.querySelector('[name="session_title"]')?.value,
+        venue: info.querySelector('[name="venue"]')?.value,
+        start_time: info.querySelector('[name="start_time"]')?.value,
+        end_time: info.querySelector('[name="end_time"]')?.value,
+        price: parseFloat(info.querySelector('[name="price"]')?.value || 0),
+        max_players: parseInt(info.querySelector('[name="max_players"]')?.value || 0),
+        level: info.querySelector('[name="level"]')?.value,
+        play_style: info.querySelector('[name="play_style"]')?.value,
+        teams: parseInt(info.querySelector('[name="teams"]')?.value || 0),
+        courts: parseInt(info.querySelector('[name="courts"]')?.value || 0),
+        minutes: parseInt(info.querySelector('[name="minutes"]')?.value || 0),
+        payment_type: info.querySelector('[name="payment_type"]')?.value,
+        contact_method: info.querySelector('[name="contact_method"]')?.value,
+        contact_link: info.querySelector('[name="contact_link"]')?.value,
+    };
+
+    const { error } = await supabase
+        .from("games")
+        .update(payload)
+        .eq("id", sessionId);
+
+    if (error) {
+        alert("❌ Failed to update session.");
+        console.error(error);
+    } else {
+        alert("✅ Session updated successfully.");
+        location.reload();
+    }
+    }
 
   await fetchGamesAndBookings();
   window.prevMonth = prevMonth;
