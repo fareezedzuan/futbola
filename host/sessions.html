@@ -526,7 +526,7 @@ async function fetchAndRender() {
   const { data: userData } = await supabase.auth.getUser();
   user = userData.user;
 
-  await loadAllGames();           // fetch from DB again
+  await fetchGamesAndBookings();           // ← FIXED this line
   renderCalendar(currentMonth, currentYear);  // refresh calendar UI
 }
 
