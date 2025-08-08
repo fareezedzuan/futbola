@@ -360,6 +360,26 @@
             <p><strong>📲 Contact:</strong> ${game.contact_method || '-'}</p>
             <p><strong>🔗 Contact Link:</strong> <a href="${game.contact_link || '#'}" target="_blank">Join Group</a></p>
         </div>
+        <!-- EDIT MODE (Initially Hidden) -->
+        <div class="session-info edit-only" style="display: none;">
+            <input name="venue" placeholder="Venue" value="${game.venue || ''}" />
+            <input name="game_date" type="date" value="${game.game_date || ''}" />
+            <input name="start_time" type="time" value="${game.start_time || ''}" />
+            <input name="end_time" type="time" value="${game.end_time || ''}" />
+            <input name="level" placeholder="Level" value="${game.level || ''}" />
+            <input name="play_style" placeholder="Format" value="${game.play_style || ''}" />
+            <input name="teams" type="number" placeholder="Teams" value="${game.teams || ''}" />
+            <input name="courts" type="number" placeholder="Courts" value="${game.courts || ''}" />
+            <input name="minutes" type="number" placeholder="Minutes per period" value="${game.minutes || ''}" />
+            <input name="max_players" type="number" placeholder="Max Players" value="${game.max_players || ''}" />
+            <select name="payment_type">
+                <option value="">Select Payment</option>
+                <option value="pay_on_court" ${game.payment_type === 'pay_on_court' ? 'selected' : ''}>Pay on Court</option>
+                <option value="online_transfer" ${game.payment_type === 'online_transfer' ? 'selected' : ''}>Online Transfer</option>
+            </select>
+            <input name="contact_method" placeholder="Contact Method" value="${game.contact_method || ''}" />
+            <input name="contact_link" placeholder="Contact Link" value="${game.contact_link || ''}" />
+        </div>
         <div class="player-list">
             <p style="text-align:center; color:#999;">Players will appear here</p>
         </div>
@@ -377,6 +397,33 @@
         const isVisible = details.style.display === 'block';
         details.style.display = isVisible ? 'none' : 'block';
         header.innerText = (isVisible ? '▶️' : '🔽') + ' ' + header.innerText.slice(2);
+    });
+
+    const editBtn = card.querySelector(".edit-btn");
+        editBtn.addEventListener("click", () => {
+        const viewBlock = card.querySelector(".session-info:not(.edit-only)");
+        const editBlock = card.querySelector(".session-info.edit-only");
+        const saveBtn = document.createElement("button");
+        const cancelBtn = document.createElement("button");
+
+        // Hide view, show edit
+        viewBlock.style.display = "none";
+        editBlock.style.display = "block";
+
+        // Remove "Edit" button
+        editBtn.style.display = "none";
+
+        // Add Save/Cancel
+        saveBtn.textContent = "💾 Save";
+        saveBtn.className = "save-btn";
+        cancelBtn.textContent = "❌ Cancel";
+        cancelBtn.className = "cancel-btn";
+        card.querySelector(".button-bar").appendChild(saveBtn);
+        card.querySelector(".button-bar").appendChild(cancelBtn);
+
+        // Hook Save/Cancel actions
+        saveBtn.onclick = () => saveSession(game.id, card);
+        cancelBtn.onclick = () => location.reload();
     });
 
     sessionContainer.appendChild(card);
@@ -421,6 +468,30 @@
     const avatarEl = el.closest('.player-avatar');
     avatarEl.classList.toggle('paid');
   }
+
+  async function saveSession(gameId, card) {
+    const formInputs = card.querySelectorAll(".edit-only [name]");
+    const updates = {};
+
+    formInputs.forEach(input => {
+        const key = input.name;
+        let val = input.value;
+        if (input.type === "number") val = parseInt(val);
+        updates[key] = val;
+    });
+
+    const { error } = await supabase
+        .from("games")
+        .update(updates)
+        .eq("id", gameId);
+
+    if (error) {
+        alert("❌ Error saving: " + error.message);
+    } else {
+        alert("✅ Saved successfully!");
+        location.reload();
+    }
+    }
 
   await fetchGamesAndBookings();
   window.prevMonth = prevMonth;
