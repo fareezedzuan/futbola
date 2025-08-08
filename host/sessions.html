@@ -278,40 +278,50 @@
         return;
         }
 
-        sessions.forEach(game => {
-        const card = document.createElement("div");
-        card.className = "session-card";
-        card.innerHTML = `
-            <div class="session-header" onclick="toggleDetails(this)">
-            ▶️ ${game.session_title || 'Untitled'} – ${game.game_date}
-            </div>
-            <div class="session-details">
-            <div class="session-info">
-                <p><strong>📍 Venue:</strong> ${game.venue}</p>
-                <p><strong>📅 Date:</strong> ${game.game_date}</p>
-                <p><strong>🕒 Time:</strong> ${game.start_time} – ${game.end_time}</p>
-                <p><strong>📶 Level:</strong> ${game.level || '-'}</p>
-                <p><strong>🧮 Format:</strong> ${game.play_style || '-'}</p>
-                <p><strong>🏟️ Teams:</strong> ${game.teams || '-'}</p>
-                <p><strong>🕹️ Courts:</strong> ${game.courts || '-'}</p>
-                <p><strong>⏱️ Minutes:</strong> ${game.minutes || '-'}</p>
-                <p><strong>👥 Max Players:</strong> ${game.max_players}</p>
-                <p><strong>💳 Payment:</strong> ${game.payment_type || '-'}</p>
-                <p><strong>📲 Contact:</strong> ${game.contact_method || '-'}</p>
-                <p><strong>🔗 Contact Link:</strong> <a href="${game.contact_link || '#'}" target="_blank">Join Group</a></p>
-            </div>
-            <div class="player-list">
-                <p style="text-align:center; color:#999;">Players will appear here</p>
-            </div>
-            <div class="button-bar">
-                <button class="add-btn">+ Add Player</button>
-                <button class="edit-btn">Edit Session</button>
-                <button class="track-btn" onclick="window.location.href='/track-match-flexi.html?session_id=${game.id}'">🏁 Track Match</button>
-            </div>
-            </div>
-        `;
-        sessionContainer.appendChild(card);
-        });
+    sessions.forEach(game => {
+    const card = document.createElement("div");
+    card.className = "session-card";
+
+    card.innerHTML = `
+        <div class="session-header">
+        ▶️ ${game.session_title || 'Untitled'} – ${game.game_date}
+        </div>
+        <div class="session-details" style="display: none;">
+        <div class="session-info">
+            <p><strong>📍 Venue:</strong> ${game.venue}</p>
+            <p><strong>📅 Date:</strong> ${game.game_date}</p>
+            <p><strong>🕒 Time:</strong> ${game.start_time} – ${game.end_time}</p>
+            <p><strong>📶 Level:</strong> ${game.level || '-'}</p>
+            <p><strong>🧮 Format:</strong> ${game.play_style || '-'}</p>
+            <p><strong>🏟️ Teams:</strong> ${game.teams || '-'}</p>
+            <p><strong>🕹️ Courts:</strong> ${game.courts || '-'}</p>
+            <p><strong>⏱️ Minutes:</strong> ${game.minutes || '-'}</p>
+            <p><strong>👥 Max Players:</strong> ${game.max_players}</p>
+            <p><strong>💳 Payment:</strong> ${game.payment_type || '-'}</p>
+            <p><strong>📲 Contact:</strong> ${game.contact_method || '-'}</p>
+            <p><strong>🔗 Contact Link:</strong> <a href="${game.contact_link || '#'}" target="_blank">Join Group</a></p>
+        </div>
+        <div class="player-list">
+            <p style="text-align:center; color:#999;">Players will appear here</p>
+        </div>
+        <div class="button-bar">
+            <button class="add-btn">+ Add Player</button>
+            <button class="edit-btn">Edit Session</button>
+            <button class="track-btn" onclick="window.location.href='/track-match-flexi.html?session_id=${game.id}'">🏁 Track Match</button>
+        </div>
+        </div>
+    `;
+
+    const header = card.querySelector(".session-header");
+    header.addEventListener("click", () => {
+        const details = header.nextElementSibling;
+        const isVisible = details.style.display === 'block';
+        details.style.display = isVisible ? 'none' : 'block';
+        header.innerText = (isVisible ? '▶️' : '🔽') + ' ' + header.innerText.slice(2);
+    });
+
+    sessionContainer.appendChild(card);
+    });
   }
 
   function prevMonth() {
