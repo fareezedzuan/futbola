@@ -520,6 +520,15 @@ async function saveSession(gameId, card) {
     alert("✅ Saved successfully!");
     fetchAndRender(); // ← re-renders fresh data
   }
+
+  // After saving, revert to view-only mode
+card.querySelector(".edit-only").style.display = "none";
+card.querySelector(".session-info").style.display = "block";
+
+// Optionally, change button visibility
+card.querySelector(".save-btn").style.display = "none";
+card.querySelector(".cancel-btn").style.display = "none";
+card.querySelector(".edit-btn").style.display = "inline-block";
 }
 
 async function fetchAndRender() {
@@ -529,6 +538,7 @@ async function fetchAndRender() {
   await fetchGamesAndBookings();           // ← FIXED this line
   renderCalendar(currentMonth, currentYear);  // refresh calendar UI
 }
+
 
   await fetchGamesAndBookings();
   window.prevMonth = prevMonth;
