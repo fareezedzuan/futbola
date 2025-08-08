@@ -346,40 +346,52 @@
         ▶️ ${game.session_title || 'Untitled'} – ${game.game_date}
         </div>
         <div class="session-details" style="display: none;">
-        <div class="session-info">
-            <p><strong>📍 Venue:</strong> ${game.venue}</p>
-            <p><strong>📅 Date:</strong> ${game.game_date}</p>
-            <p><strong>🕒 Time:</strong> ${game.start_time} – ${game.end_time}</p>
-            <p><strong>📶 Level:</strong> ${game.level || '-'}</p>
-            <p><strong>🧮 Format:</strong> ${game.play_style || '-'}</p>
-            <p><strong>🏟️ Teams:</strong> ${game.teams || '-'}</p>
-            <p><strong>🕹️ Courts:</strong> ${game.courts || '-'}</p>
-            <p><strong>⏱️ Minutes:</strong> ${game.minutes || '-'}</p>
-            <p><strong>👥 Max Players:</strong> ${game.max_players}</p>
-            <p><strong>💳 Payment:</strong> ${game.payment_type || '-'}</p>
-            <p><strong>📲 Contact:</strong> ${game.contact_method || '-'}</p>
-            <p><strong>🔗 Contact Link:</strong> <a href="${game.contact_link || '#'}" target="_blank">Join Group</a></p>
-        </div>
-        <!-- EDIT MODE (Initially Hidden) -->
-        <div class="session-info edit-only" style="display: none;">
-            <input name="venue" placeholder="Venue" value="${game.venue || ''}" />
-            <input name="game_date" type="date" value="${game.game_date || ''}" />
-            <input name="start_time" type="time" value="${game.start_time || ''}" />
-            <input name="end_time" type="time" value="${game.end_time || ''}" />
-            <input name="level" placeholder="Level" value="${game.level || ''}" />
-            <input name="play_style" placeholder="Format" value="${game.play_style || ''}" />
-            <input name="teams" type="number" placeholder="Teams" value="${game.teams || ''}" />
-            <input name="courts" type="number" placeholder="Courts" value="${game.courts || ''}" />
-            <input name="minutes" type="number" placeholder="Minutes per period" value="${game.minutes || ''}" />
-            <input name="max_players" type="number" placeholder="Max Players" value="${game.max_players || ''}" />
-            <select name="payment_type">
-                <option value="">Select Payment</option>
-                <option value="pay_on_court" ${game.payment_type === 'pay_on_court' ? 'selected' : ''}>Pay on Court</option>
-                <option value="online_transfer" ${game.payment_type === 'online_transfer' ? 'selected' : ''}>Online Transfer</option>
-            </select>
-            <input name="contact_method" placeholder="Contact Method" value="${game.contact_method || ''}" />
-            <input name="contact_link" placeholder="Contact Link" value="${game.contact_link || ''}" />
-        </div>
+
+  <!-- VIEW MODE -->
+  <div class="session-info view-only">
+    <p><strong>📛 Title:</strong> ${game.session_title || 'Untitled'}</p>
+    <p><strong>📍 Venue:</strong> ${game.venue}</p>
+    <p><strong>📅 Date:</strong> ${game.game_date}</p>
+    <p><strong>🕒 Time:</strong> ${game.start_time} – ${game.end_time}</p>
+    <p><strong>💰 Price:</strong> RM ${parseFloat(game.price || 0).toFixed(2)}</p>
+    <p><strong>📶 Level:</strong> ${game.level || '-'}</p>
+    <p><strong>🧮 Format:</strong> ${game.play_style || '-'}</p>
+    <p><strong>🏟️ Teams:</strong> ${game.teams || '-'}</p>
+    <p><strong>🕹️ Courts:</strong> ${game.courts || '-'}</p>
+    <p><strong>⏱️ Minutes:</strong> ${game.minutes || '-'}</p>
+    <p><strong>👥 Max Players:</strong> ${game.max_players}</p>
+    <p><strong>💳 Payment:</strong> ${game.payment_type || '-'}</p>
+    <p><strong>📲 Contact:</strong> ${game.contact_method || '-'}</p>
+    <p><strong>🔗 Contact Link:</strong> <a href="${game.contact_link || '#'}" target="_blank">Join Group</a></p>
+  </div>
+
+  <!-- EDIT MODE -->
+  <div class="session-info edit-only" style="display: none;">
+    <p><strong>📛 Title:</strong> <input name="session_title" value="${game.session_title || ''}" /></p>
+    <p><strong>📍 Venue:</strong> <input name="venue" value="${game.venue || ''}" /></p>
+    <p><strong>📅 Date:</strong> <input name="game_date" type="date" value="${game.game_date || ''}" /></p>
+    <p><strong>🕒 Start Time:</strong> <input name="start_time" type="time" value="${game.start_time || ''}" /></p>
+    <p><strong>🕒 End Time:</strong> <input name="end_time" type="time" value="${game.end_time || ''}" /></p>
+    <p><strong>💰 Price:</strong> <input name="price" type="number" step="0.01" value="${game.price || ''}" /></p>
+    <p><strong>📶 Level:</strong> <input name="level" value="${game.level || ''}" /></p>
+    <p><strong>🧮 Format:</strong> <input name="play_style" value="${game.play_style || ''}" /></p>
+    <p><strong>🏟️ Teams:</strong> <input name="teams" type="number" value="${game.teams || ''}" /></p>
+    <p><strong>🕹️ Courts:</strong> <input name="courts" type="number" value="${game.courts || ''}" /></p>
+    <p><strong>⏱️ Minutes:</strong> <input name="minutes" type="number" value="${game.minutes || ''}" /></p>
+    <p><strong>👥 Max Players:</strong> <input name="max_players" type="number" value="${game.max_players || ''}" /></p>
+    <p><strong>💳 Payment:</strong> 
+      <select name="payment_type">
+        <option value="">Select Payment</option>
+        <option value="pay_on_court" ${game.payment_type === 'pay_on_court' ? 'selected' : ''}>Pay on Court</option>
+        <option value="online_transfer" ${game.payment_type === 'online_transfer' ? 'selected' : ''}>Online Transfer</option>
+      </select>
+    </p>
+    <p><strong>📲 Contact:</strong> <input name="contact_method" value="${game.contact_method || ''}" /></p>
+    <p><strong>🔗 Contact Link:</strong> <input name="contact_link" value="${game.contact_link || ''}" /></p>
+  </div>
+
+  <!-- Player List + Buttons will go here after this -->
+</div>
         <div class="player-list">
             <p style="text-align:center; color:#999;">Players will appear here</p>
         </div>
