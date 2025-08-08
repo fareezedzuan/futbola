@@ -257,7 +257,7 @@
             const isPaid = b.paid;
 
             return `
-            <div class="player-avatar ${isPaid ? 'paid' : ''}" data-booking-id="${booking.id}" onclick="toggleEmojiActions(this)">
+            <div class="player-avatar ${isPaid ? 'paid' : ''}" data-booking-id="${b.id}" onclick="toggleEmojiActions(this)">
                 <img src="${avatar}" onerror="this.src='/images/default-avatar.png'" />
                 <span>${label}</span>
                 <div class="emoji-action emoji-wa" title="WhatsApp" onclick="event.stopPropagation(); alert('WA to ${label}')">📞</div>
