@@ -231,6 +231,55 @@
     renderCalendar(currentMonth, currentYear);
     }
 
+    async function loadPlayers(gameId, containerEl) {
+        const target = containerEl.querySelector(".player-list");
+
+        const [{ data: bookings }, { data: game }] = await Promise.all([
+            supabase
+            .from("game_bookings")
+            .select("*, profiles (jersey_name, avatar_url)")
+            .eq("game_id", gameId),
+            supabase
+            .from("games")
+            .select("max_players")
+            .eq("id", gameId)
+            .single()
+        ]);
+
+        if (!bookings || !game) {
+            target.innerHTML = "<p style='text-align:center; color:#999;'>Failed to load players</p>";
+            return;
+        }
+
+        const html = bookings.map(b => {
+            const label = b.profiles?.jersey_name || b.jersey_name || 'Player';
+            const avatar = b.profiles?.avatar_url || b.avatar_url || '/images/default-avatar.png';
+            const isPaid = b.paid;
+
+            return `
+            <div class="player-avatar ${isPaid ? 'paid' : ''}" onclick="toggleEmojiActions(this)">
+                <img src="${avatar}" onerror="this.src='/images/default-avatar.png'" />
+                <span>${label}</span>
+                <div class="emoji-action emoji-wa" title="WhatsApp" onclick="event.stopPropagation(); alert('WA to ${label}')">📞</div>
+                <div class="emoji-action emoji-remove" title="Remove" onclick="event.stopPropagation(); confirm('Remove this player?') && alert('Removed');">❌</div>
+                <div class="emoji-action emoji-paid" title="Toggle Paid" onclick="event.stopPropagation(); this.closest('.player-avatar').classList.toggle('paid')">💰</div>
+                <div class="emoji-action emoji-profile" title="Profile" onclick="event.stopPropagation(); window.open('/player-public.html?id=${b.user_id || ''}', '_blank')">👤</div>
+            </div>
+            `;
+        }).join("");
+
+        target.innerHTML = html;
+
+        const count = bookings.length;
+        const max = game.max_players;
+        const statusEl = containerEl.querySelector(".session-header");
+        if (count >= max) {
+            statusEl.innerHTML += ` <span style="color:gray;">❌ FULL (${count}/${max})</span>`;
+        } else {
+            statusEl.innerHTML += ` <span style="color:#4caf50;">✅ ${count}/${max} joined</span>`;
+        }
+        }
+
   function renderCalendar(month, year) {
     calendarGrid.innerHTML = "";
     const firstDay = new Date(year, month, 1);
@@ -331,6 +380,7 @@
     });
 
     sessionContainer.appendChild(card);
+    loadPlayers(game.id, card);
     });
   }
 
