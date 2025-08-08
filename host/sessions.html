@@ -261,13 +261,25 @@
             <div class="player-avatar ${isPaid ? 'paid' : ''}" data-booking-id="${b.id}" onclick="toggleEmojiActions(this)">
                 <img src="${avatar}" onerror="this.src='/images/default-avatar.png'" />
                 <span>${label}</span>
-                <div class="emoji-action emoji-wa" title="WhatsApp"
-  onclick="event.stopPropagation(); ${b.phone ? `window.open('https://wa.me/${b.phone}', '_blank')` : `alert('No phone number available')`}">📞</div>
-                <div class="emoji-action emoji-remove" title="Remove Player" onclick="event.stopPropagation(); removePlayer('${b.id}', this)">❌</div>
-                <div class="emoji-action emoji-paid" title="Toggle Paid" onclick="event.stopPropagation(); togglePaid(this)">💰</div>
-                <div class="emoji-action emoji-profile" title="Profile"
-  onclick="event.stopPropagation(); ${b.user_id ? `window.open('/player-public.html?id=${b.user_id}', '_blank')` : `alert('No profile available')`}">👤</div>
-            </div>
+<div class="emoji-action emoji-wa" title="WhatsApp"
+     onclick="event.stopPropagation(); 
+              ${b.phone ? `window.open('https://wa.me/${b.phone}', '_blank')` : `alert('No phone number available')`}; 
+              hideEmojiActions(this.closest('.player-avatar'));">📞</div>
+
+<div class="emoji-action emoji-remove" title="Remove Player"
+     onclick="event.stopPropagation(); 
+              removePlayer('${b.id}', this); 
+              hideEmojiActions(this.closest('.player-avatar'));">❌</div>
+
+<div class="emoji-action emoji-paid" title="Toggle Paid"
+     onclick="event.stopPropagation(); 
+              togglePaid(this); 
+              hideEmojiActions(this.closest('.player-avatar'));">💰</div>
+
+<div class="emoji-action emoji-profile" title="Profile"
+     onclick="event.stopPropagation(); 
+              ${b.user_id ? `window.open('/player-public.html?id=${b.user_id}', '_blank')` : `alert('No profile available')`}; 
+              hideEmojiActions(this.closest('.player-avatar'));">👤</div>
             `;
         }).join("");
 
@@ -479,6 +491,11 @@
     const show = actions[0].style.display !== 'block';
     actions.forEach(a => a.style.display = show ? 'block' : 'none');
   }
+
+  function hideEmojiActions(playerEl) {
+  const actions = playerEl.querySelectorAll('.emoji-action');
+  actions.forEach(a => a.style.display = 'none');
+}
 
 async function togglePaid(el) {
   const avatarEl = el.closest('.player-avatar');
