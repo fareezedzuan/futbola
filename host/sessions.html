@@ -396,9 +396,14 @@
   </div>
 
   <!-- Player List + Buttons will go here after this -->
-  <div class="player-list">
-            <p style="text-align:center; color:#999;">Players will appear here</p>
-        </div>
+<div class="player-list">
+  <div class="avatar-container" style="margin-bottom: 10px;"></div>
+  <div class="add-player-form" style="display: none;">
+    <input type="text" placeholder="Jersey Name" class="jersey-input" />
+    <input type="text" placeholder="Phone (60123456789)" class="phone-input" />
+    <button class="confirm-add-btn">Add</button>
+  </div>
+</div>
         <div class="button-bar">
             <button class="add-btn">+ Add Player</button>
             <button class="edit-btn">Edit Session</button>
@@ -446,6 +451,11 @@
 
     sessionContainer.appendChild(card);
     loadPlayers(game.id, card);
+    const addBtn = card.querySelector(".add-btn");
+    const confirmBtn = card.querySelector(".confirm-add-btn");
+
+    addBtn.addEventListener("click", () => toggleAddForm(card));
+    confirmBtn.addEventListener("click", () => addPlayer(game.id, card));
     });
   }
 
@@ -596,6 +606,36 @@ async function removePlayer(bookingId, el) {
   }
 }
 
+async function addPlayer(gameId, card) {
+  const jerseyInput = card.querySelector(".jersey-input");
+  const phoneInput = card.querySelector(".phone-input");
+  const name = jerseyInput.value.trim();
+  const phone = phoneInput.value.trim();
+
+  if (!name) {
+    alert("Please enter a jersey name");
+    return;
+  }
+
+  const { error } = await supabase.from("game_bookings").insert({
+    game_id: gameId,
+    jersey_name: name,
+    phone
+  });
+
+  if (error) {
+    console.error("❌ Failed to add player:", error);
+    alert("Error adding player.");
+  } else {
+    console.log("✅ Player added.");
+    fetchAndRender();
+  }
+}
+
+function toggleAddForm(card) {
+  const form = card.querySelector(".add-player-form");
+  form.style.display = form.style.display === "block" ? "none" : "block";
+}
 
   await fetchGamesAndBookings();
   window.prevMonth = prevMonth;
@@ -605,6 +645,8 @@ async function removePlayer(bookingId, el) {
   window.togglePaid = togglePaid;
   window.removePlayer = removePlayer;
   window.hideEmojiActions = hideEmojiActions;
+  window.addPlayer = addPlayer;
+  window.toggleAddForm = toggleAddForm;
 </script>
 
 </body>
