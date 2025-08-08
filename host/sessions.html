@@ -453,7 +453,16 @@
     // 👇 Fetch session_id for this game
 const resultBtn = card.querySelector(".public-result-btn");
 
-(async () => {
+if (sessionId) {
+  resultBtn.onclick = () => {
+    window.open(`/current-games/public-match-results.html?session=${sessionId}`, "_blank");
+  };
+} else {
+  resultBtn.disabled = true;
+  resultBtn.textContent = "❌ No Session Found";
+}
+    loadPlayers(game.id, card);
+    (async () => {
   try {
     const { data: sessionsData, error } = await supabase
       .from("games_sessions")
@@ -479,16 +488,6 @@ const resultBtn = card.querySelector(".public-result-btn");
     console.error("❌ Unexpected error:", err);
   }
 })();
-
-if (sessionId) {
-  resultBtn.onclick = () => {
-    window.open(`/current-games/public-match-results.html?session=${sessionRow.id}`, "_blank");
-  };
-} else {
-  resultBtn.disabled = true;
-  resultBtn.textContent = "❌ No Session Found";
-}
-    loadPlayers(game.id, card);
     const addBtn = card.querySelector(".add-btn");
     const confirmBtn = card.querySelector(".confirm-add-btn");
 
