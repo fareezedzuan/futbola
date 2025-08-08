@@ -481,8 +481,13 @@
 async function togglePaid(el) {
   const avatarEl = el.closest('.player-avatar');
   const bookingId = avatarEl.getAttribute('data-booking-id');
-  const isNowPaid = !avatarEl.classList.contains('paid');
+  console.log("🆔 Booking ID received:", bookingId);
+  if (!bookingId) {
+    console.error("❌ No booking ID found for payment toggle.");
+    return;
+  }
 
+  const isNowPaid = !avatarEl.classList.contains('paid');
   console.log(`💰 Toggling payment for booking ID: ${bookingId}, new paid status: ${isNowPaid}`);
 
   // Optimistic UI update
