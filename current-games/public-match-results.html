@@ -954,9 +954,9 @@ let registeredUsers = [];
 let selectedMVP = null;
 let courtNames = []; // 🔄 Make this global
 
-function getSessionIdFromURL() {
+function getGameIdFromURL() {
   const params = new URLSearchParams(window.location.search);
-  return params.get("session");
+  return params.get("game");
 }
 
 function generateRoundRobin(teams) {
@@ -2475,7 +2475,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     sessionDropdown.appendChild(option);
   });
 
-  const urlSessionId = getSessionIdFromURL();
+  const gameIdFromUrl = getGameIdFromURL();
   if (urlSessionId) {
     console.log("📌 sessionId from URL:", urlSessionId);
     sessionStorage.setItem("sessionId", urlSessionId);
@@ -2488,9 +2488,10 @@ window.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
-  const sessionInfo = sessions.find(s => s.id === urlSessionId);
-if (sessionInfo?.game_id) {
-  sessionStorage.setItem("gameId", sessionInfo.game_id);
+if (gameIdFromUrl) {
+  sessionStorage.setItem("gameId", gameIdFromUrl);
+  console.log("📌 gameId from URL:", gameIdFromUrl);
+}
   console.log("✅ Saved gameId:", sessionInfo.game_id);
   const gameId = sessionInfo.game_id;
 if (gameId) {
