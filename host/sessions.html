@@ -569,6 +569,26 @@ async function fetchAndRender() {
   renderCalendar(currentMonth, currentYear);  // refresh calendar UI
 }
 
+async function removePlayer(bookingId, el) {
+  const confirmDelete = confirm("Are you sure you want to remove this player?");
+  if (!confirmDelete) return;
+
+  console.log("🗑️ Removing booking ID:", bookingId);
+
+  const { error } = await supabase
+    .from("game_bookings")
+    .delete()
+    .eq("id", bookingId);
+
+  if (error) {
+    console.error("❌ Failed to remove player:", error);
+    alert("Error removing player.");
+  } else {
+    console.log("✅ Player removed from Supabase.");
+    el.closest(".player-avatar").remove(); // Remove from UI
+  }
+}
+
 
   await fetchGamesAndBookings();
   window.prevMonth = prevMonth;
@@ -576,6 +596,7 @@ async function fetchAndRender() {
   window.toggleEmojiActions = toggleEmojiActions;
   window.saveSession = saveSession;
   window.togglePaid = togglePaid;
+  window.removePlayer = removePlayer;
 </script>
 
 </body>
