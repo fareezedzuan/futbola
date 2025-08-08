@@ -248,8 +248,9 @@
         console.log(`🧍 Loaded ${bookings.length} players for ${gameId}`, bookings);
 
         if (!bookings || !game) {
-            target.innerHTML = "<p style='text-align:center; color:#999;'>Failed to load players</p>";
-            return;
+        console.warn("⚠️ Missing data:", { bookings, game });
+        target.innerHTML = "<p style='text-align:center; color:#999;'>Failed to load players</p>";
+        return;
         }
 
         const html = bookings.map(b => {
@@ -272,6 +273,7 @@
             </div>
             `;
         }).join("");
+        console.log("🧩 Booking rendering HTML:", html);
 
         target.innerHTML = html;
 
