@@ -518,7 +518,7 @@ async function saveSession(gameId, card) {
   } else {
     console.log("✅ Successfully saved");
     alert("✅ Saved successfully!");
-    location.reload();
+    fetchAndRender(); // ← re-renders fresh data
   }
 }
 
