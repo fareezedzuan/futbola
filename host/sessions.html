@@ -172,7 +172,21 @@
   ← Back to Homepage
 </a>
 
-<script>
+<script type="module">
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+  const supabase = createClient(
+    'https://kdbqroxhypnadolcxxxc.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkYnFyb3hoeXBuYWRvbGN4eHhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3MjkwNzYsImV4cCI6MjA1NzMwNTA3Nn0.c7_RVxoFdJNqQ62R3t1emH2Wf4dSsQaunHsHmbQxOBA'
+  );
+
+  let allGames = [];
+  let bookingMap = {};
+  let user = null;
+
+  const { data: userData } = await supabase.auth.getUser();
+  user = userData.user;
+
   const monthLabel = document.getElementById("monthLabel");
   const calendarGrid = document.getElementById("calendarGrid");
   const sessionContainer = document.getElementById("sessionContainer");
@@ -196,59 +210,69 @@
     for (let d = 1; d <= lastDay.getDate(); d++) {
       const box = document.createElement("div");
       box.className = "calendar-box";
-      box.innerHTML = `${d}<div class='dot-container'>
-        <span class='dot' style='background-color: green;'></span>
-        <span class='dot' style='background-color: orange;'></span>
-      </div>`;
+      const dateStr = `${year}-${(month+1).toString().padStart(2, '0')}-${d.toString().padStart(2, '0')}`;
+        const sessions = allGames.filter(g => g.game_date === dateStr);
+
+        let dots = "";
+        sessions.forEach(g => {
+        let status = "green"; // default
+        const booked = bookingMap[g.id] || 0;
+        if (booked >= g.max_players) status = "red";
+        else if (booked >= 0.7 * g.max_players) status = "orange";
+        dots += `<span class='dot' style='background-color: ${status};'></span>`;
+        });
+
+        box.innerHTML = `${d}<div class='dot-container'>${dots}</div>`;
       box.onclick = () => loadSessionsForDate(year, month + 1, d);
       calendarGrid.appendChild(box);
     }
   }
 
   function loadSessionsForDate(year, month, day) {
-    sessionContainer.innerHTML = '';
-    const card = document.createElement("div");
-    card.className = "session-card";
-    card.innerHTML = `
-      <div class="session-header" onclick="toggleDetails(this)">
-        ▶️ Afterworks Kickabout – ${year}-${month}-${day}
-      </div>
-      <div class="session-details">
-        <div class="session-info">
-            <p><strong>📍 Venue:</strong> Kompleks Presint 18</p>
-            <p><strong>📅 Date:</strong> 2025-08-10</p>
-            <p><strong>🕒 Time:</strong> 20:00 – 22:00</p>
+        sessionContainer.innerHTML = '';
 
-            <p><strong>📶 Level:</strong> Casual-Competitive</p>
-            <p><strong>🧮 Format:</strong> 6-a-side</p>
-            <p><strong>🏟️ Teams:</strong> 4</p>
-            <p><strong>🕹️ Courts:</strong> 2</p>
-            <p><strong>⏱️ Minutes:</strong> 15 min/period</p>
+        const dateStr = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+        const sessions = allGames.filter(g => g.game_date === dateStr);
 
-            <p><strong>👥 Max Players:</strong> 16</p>
-            <p><strong>💳 Payment:</strong> Pay on Court</p>
+        if (sessions.length === 0) {
+        sessionContainer.innerHTML = "<p style='text-align:center;'>No sessions on this date.</p>";
+        return;
+        }
 
-            <p><strong>📲 Contact:</strong> WhatsApp Group</p>
-            <p><strong>🔗 Contact Link:</strong> <a href=\"#\">Join Group</a></p>
-        </div>
-        <div class="player-list">
-          <div class="player-avatar" onclick="toggleEmojiActions(this)">
-            <img src="/images/default-avatar.png" alt="">
-            <span>Player A</span>
-            <div class="emoji-action emoji-wa" title="WhatsApp" onclick="event.stopPropagation(); alert('WhatsApp Clicked');">📞</div>
-            <div class="emoji-action emoji-remove" title="Remove Player" onclick="event.stopPropagation(); confirm('Remove this player?') && alert('Removed');">❌</div>
-            <div class="emoji-action emoji-paid" title="Toggle Paid" onclick="event.stopPropagation(); togglePaid(this);">💰</div>
-            <div class="emoji-action emoji-profile" title="View Profile" onclick="event.stopPropagation(); window.open('/player-public.html?id=example-user')">👤</div>
-          </div>
-        </div>
-        <div class="button-bar">
-          <button class="add-btn">+ Add Player</button>
-          <button class="edit-btn">Edit Session</button>
-          <button class="track-btn" onclick="window.location.href='/track-match-flexi.html?session_id=example-session'">🏁 Track Match</button>
-        </div>
-      </div>
-    `;
-    sessionContainer.appendChild(card);
+        sessions.forEach(game => {
+        const card = document.createElement("div");
+        card.className = "session-card";
+        card.innerHTML = `
+            <div class="session-header" onclick="toggleDetails(this)">
+            ▶️ ${game.session_title || 'Untitled'} – ${game.game_date}
+            </div>
+            <div class="session-details">
+            <div class="session-info">
+                <p><strong>📍 Venue:</strong> ${game.venue}</p>
+                <p><strong>📅 Date:</strong> ${game.game_date}</p>
+                <p><strong>🕒 Time:</strong> ${game.start_time} – ${game.end_time}</p>
+                <p><strong>📶 Level:</strong> ${game.level || '-'}</p>
+                <p><strong>🧮 Format:</strong> ${game.play_style || '-'}</p>
+                <p><strong>🏟️ Teams:</strong> ${game.teams || '-'}</p>
+                <p><strong>🕹️ Courts:</strong> ${game.courts || '-'}</p>
+                <p><strong>⏱️ Minutes:</strong> ${game.minutes || '-'}</p>
+                <p><strong>👥 Max Players:</strong> ${game.max_players}</p>
+                <p><strong>💳 Payment:</strong> ${game.payment_type || '-'}</p>
+                <p><strong>📲 Contact:</strong> ${game.contact_method || '-'}</p>
+                <p><strong>🔗 Contact Link:</strong> <a href="${game.contact_link || '#'}" target="_blank">Join Group</a></p>
+            </div>
+            <div class="player-list">
+                <p style="text-align:center; color:#999;">Players will appear here</p>
+            </div>
+            <div class="button-bar">
+                <button class="add-btn">+ Add Player</button>
+                <button class="edit-btn">Edit Session</button>
+                <button class="track-btn" onclick="window.location.href='/track-match-flexi.html?session_id=${game.id}'">🏁 Track Match</button>
+            </div>
+            </div>
+        `;
+        sessionContainer.appendChild(card);
+        });
   }
 
   function prevMonth() {
