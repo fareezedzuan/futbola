@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Futbola Host Dashboard</title>
+  <link rel="icon" href="../images/futbola-favicon.ico" type="image/x-icon" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background: #f9f9f9;
+      color: #333;
+    }
+
+    header {
+      background-color: #111;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+      font-size: 1.4rem;
+      font-weight: bold;
+    }
+
+    main {
+      padding: 2rem;
+      display: grid;
+      gap: 1.5rem;
+      max-width: 800px;
+      margin: auto;
+    }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      cursor: pointer;
+      border-left: 5px solid #1e88e5;
+    }
+
+    .card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+
+    .card h2 {
+      margin-top: 0;
+      margin-bottom: 0.5rem;
+      font-size: 1.2rem;
+      color: #1e88e5;
+    }
+
+    .card p {
+      margin: 0;
+      font-size: 0.95rem;
+      color: #555;
+    }
+
+    footer {
+      text-align: center;
+      padding: 1rem;
+      font-size: 0.9rem;
+      color: #aaa;
+    }
+
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+  </style>
+</head>
+<body>
+
+  <header>🏟️ Futbola Host Dashboard</header>
+
+  <main>
+    <a href="/host/create-game.html">
+      <div class="card">
+        <h2>📅 Create Session</h2>
+        <p>Start a new game session with your venue, time, and preferred rules.</p>
+      </div>
+    </a>
+
+    <a href="/host/sessions.html">
+      <div class="card">
+        <h2>📂 Manage Sessions</h2>
+        <p>Edit, track, or manage player bookings for your created sessions.</p>
+      </div>
+    </a>
+
+    <a href="/current-games/start-game.html">
+      <div class="card">
+        <h2>⚙️ Setup Game</h2>
+        <p>Setup team format, allocate players, and get ready for kick-off.</p>
+      </div>
+    </a>
+
+    <a href="/current-games/track-match-flexi.html">
+      <div class="card">
+        <h2>🎮 Officiate Match</h2>
+        <p>Track match scores and events live with our match day tool.</p>
+      </div>
+    </a>
+  </main>
+
+  <footer>
+    © Futbola Host Panel
+  </footer>
+
+</body>
+</html>
