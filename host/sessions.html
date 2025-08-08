@@ -609,6 +609,7 @@ async function removePlayer(bookingId, el) {
 async function addPlayer(gameId, card) {
   const jerseyInput = card.querySelector(".jersey-input");
   const phoneInput = card.querySelector(".phone-input");
+  const form = card.querySelector(".add-player-form");
   const name = jerseyInput.value.trim();
   const phone = phoneInput.value.trim();
 
@@ -628,8 +629,17 @@ async function addPlayer(gameId, card) {
     alert("Error adding player.");
   } else {
     console.log("✅ Player added.");
+
+    // ✅ Clear inputs
+    jerseyInput.value = "";
+    phoneInput.value = "";
+
+    // ✅ Hide the form
+    if (form) form.style.display = "none";
+
+    // ✅ Reload players
     await loadPlayers(gameId, card);
-    fetchAndRender();
+    fetchAndRender(); // Optional: if you want to re-render whole page
   }
 }
 
