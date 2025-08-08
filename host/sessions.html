@@ -487,25 +487,27 @@ async function togglePaid(el) {
     return;
   }
 
-  const isNowPaid = !avatarEl.classList.contains('paid');
-  console.log(`💰 Toggling payment for booking ID: ${bookingId}, new paid status: ${isNowPaid}`);
+const isNowPaid = !avatarEl.classList.contains('paid');
+console.log(`💰 Toggling payment for booking ID: ${bookingId}, new paid status: ${isNowPaid}`);
 
-  // Optimistic UI update
+// Optimistic UI update
+avatarEl.classList.toggle('paid');
+
+// Send update to Supabase and return the updated row
+const { data, error } = await supabase
+  .from('game_bookings')
+  .update({ paid: isNowPaid })
+  .eq('id', bookingId)
+  .select();  // ✅ This retrieves the updated record
+
+if (error) {
+  console.error("❌ Error saving paid status:", error);
+  alert("❌ Failed to save paid status.");
+  // Rollback UI on failure
   avatarEl.classList.toggle('paid');
-
-  const { error } = await supabase
-    .from('game_bookings')
-    .update({ paid: isNowPaid })
-    .eq('id', bookingId);
-
-  if (error) {
-    console.error("❌ Error saving paid status:", error);
-    alert("❌ Failed to save paid status.");
-    // Rollback UI on failure
-    avatarEl.classList.toggle('paid');
-  } else {
-    console.log("✅ Paid status saved successfully.");
-  }
+} else {
+  console.log("✅ Paid status saved successfully:", data);  // ✅ Inspect what's saved
+}
 }
 
 async function saveSession(gameId, card) {
