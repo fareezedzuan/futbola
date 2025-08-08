@@ -257,7 +257,7 @@
             const isPaid = b.paid;
 
             return `
-            <div class="player-avatar ${isPaid ? 'paid' : ''}" onclick="toggleEmojiActions(this)">
+            <div class="player-avatar ${paid ? 'paid' : ''}" data-booking-id="${booking.id}" onclick="toggleEmojiActions(this)">
                 <img src="${avatar}" onerror="this.src='/images/default-avatar.png'" />
                 <span>${label}</span>
                 <div class="emoji-action emoji-wa" title="WhatsApp" onclick="event.stopPropagation(); alert('WA to ${label}')">📞</div>
@@ -477,10 +477,34 @@
     actions.forEach(a => a.style.display = show ? 'block' : 'none');
   }
 
-  function togglePaid(el) {
-    const avatarEl = el.closest('.player-avatar');
-    avatarEl.classList.toggle('paid');
+async function togglePaid(iconEl) {
+  const avatarEl = iconEl.closest('.player-avatar');
+  const bookingId = avatarEl.dataset.bookingId;
+
+  if (!bookingId) {
+    console.error("No booking ID found for this avatar");
+    return;
   }
+
+  const isCurrentlyPaid = avatarEl.classList.contains('paid');
+  const newPaidStatus = !isCurrentlyPaid;
+
+  // Update UI immediately
+  avatarEl.classList.toggle('paid', newPaidStatus);
+
+  // Send to Supabase
+  const { error } = await supabase
+    .from('game_bookings')
+    .update({ paid: newPaidStatus })
+    .eq('id', bookingId);
+
+  if (error) {
+    alert("❌ Error saving payment status");
+    console.error("Supabase error:", error);
+  } else {
+    console.log(`✅ Booking ${bookingId} marked as ${newPaidStatus ? 'PAID' : 'UNPAID'}`);
+  }
+}
 
 async function saveSession(gameId, card) {
   console.log("💾 saveSession triggered for:", gameId);
