@@ -264,7 +264,8 @@
                 <div class="emoji-action emoji-wa" title="WhatsApp" onclick="event.stopPropagation(); alert('WA to ${label}')">📞</div>
                 <div class="emoji-action emoji-remove" title="Remove" onclick="event.stopPropagation(); confirm('Remove this player?') && alert('Removed');">❌</div>
                 <div class="emoji-action emoji-paid" title="Toggle Paid" onclick="event.stopPropagation(); togglePaid(this)">💰</div>
-                <div class="emoji-action emoji-profile" title="Profile" onclick="event.stopPropagation(); window.open('/player-public.html?id=${b.user_id || ''}', '_blank')">👤</div>
+                <div class="emoji-action emoji-profile" title="Profile"
+  onclick="event.stopPropagation(); ${b.user_id ? `window.open('/player-public.html?id=${b.user_id}', '_blank')` : `alert('No profile available')`}">👤</div>
             </div>
             `;
         }).join("");
