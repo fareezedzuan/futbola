@@ -628,6 +628,7 @@ async function addPlayer(gameId, card) {
     alert("Error adding player.");
   } else {
     console.log("✅ Player added.");
+    await loadPlayers(gameId, card);
     fetchAndRender();
   }
 }
