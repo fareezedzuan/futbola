@@ -194,6 +194,44 @@
   let currentMonth = new Date().getMonth();
   let currentYear = new Date().getFullYear();
 
+  async function fetchGamesAndBookings() {
+    const today = new Date().toISOString().split("T")[0];
+
+    const { data: games, error: gameError } = await supabase
+        .from("games")
+        .select("*")
+        .gte("game_date", today)
+        .order("game_date", { ascending: true });
+
+    if (gameError) {
+        console.error("Error fetching games:", gameError);
+        return;
+    }
+
+    allGames = games || [];
+
+    // Fetch bookings
+    const { data: bookings, error: bookingError } = await supabase
+        .from("game_bookings")
+        .select("game_id");
+
+    if (bookingError) {
+        console.error("Error fetching bookings:", bookingError);
+        return;
+    }
+
+    // Count players per game_id
+    bookingMap = {};
+    bookings.forEach(b => {
+        bookingMap[b.game_id] = (bookingMap[b.game_id] || 0) + 1;
+    });
+
+    console.log("Games loaded:", allGames);
+    console.log("Booking counts:", bookingMap);
+
+    renderCalendar(currentMonth, currentYear);
+    }
+
   function renderCalendar(month, year) {
     calendarGrid.innerHTML = "";
     const firstDay = new Date(year, month, 1);
@@ -226,6 +264,7 @@
       box.onclick = () => loadSessionsForDate(year, month + 1, d);
       calendarGrid.appendChild(box);
     }
+    console.log("Rendering with games:", allGames);
   }
 
   function loadSessionsForDate(year, month, day) {
@@ -313,7 +352,7 @@
     avatarEl.classList.toggle('paid');
   }
 
-  renderCalendar(currentMonth, currentYear);
+  await fetchGamesAndBookings();
 </script>
 
 </body>
