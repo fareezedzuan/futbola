@@ -482,37 +482,45 @@
     avatarEl.classList.toggle('paid');
   }
 
-  async function saveSession(gameId, card) {
-    const formInputs = card.querySelectorAll(".edit-only [name]");
-    const updates = {};
+async function saveSession(gameId, card) {
+  console.log("💾 saveSession triggered for:", gameId);
 
-    formInputs.forEach(input => {
-        const key = input.name;
-        let val = input.value;
+  const formInputs = card.querySelectorAll(".edit-only [name]");
+  console.log("🔍 Collecting input values...");
 
-        if (input.type === "number") {
-            val = input.value === "" ? null : parseInt(val);
-        } else if (input.type === "date" || input.type === "time") {
-            val = input.value || null;
-        } else {
-            val = input.value.trim() === "" ? null : input.value;
-        }
+  const updates = {};
 
-        updates[key] = val;
-    });
+  formInputs.forEach(input => {
+    const key = input.name;
+    let val = input.value;
 
-    const { error } = await supabase
-        .from("games")
-        .update(updates)
-        .eq("id", gameId);
-
-    if (error) {
-        alert("❌ Error saving: " + error.message);
+    if (input.type === "number") {
+      val = input.value === "" ? null : parseInt(val);
+    } else if (input.type === "date" || input.type === "time") {
+      val = input.value || null;
     } else {
-        alert("✅ Saved successfully!");
-        location.reload();
+      val = input.value.trim() === "" ? null : input.value;
     }
-    }
+
+    updates[key] = val;
+  });
+
+  console.log("📦 Payload to save:", updates); // Moved after loop
+
+  const { error } = await supabase
+    .from("games")
+    .update(updates)
+    .eq("id", gameId);
+
+  if (error) {
+    console.error("❌ Supabase error:", error);
+    alert("❌ Error saving: " + error.message);
+  } else {
+    console.log("✅ Successfully saved");
+    alert("✅ Saved successfully!");
+    location.reload();
+  }
+}
 
   await fetchGamesAndBookings();
   window.prevMonth = prevMonth;
