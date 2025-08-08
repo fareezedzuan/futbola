@@ -407,7 +407,7 @@
         <div class="button-bar">
             <button class="add-btn">+ Add Player</button>
             <button class="edit-btn">Edit Session</button>
-            <button class="track-btn" onclick="window.location.href='/track-match-flexi.html?session_id=${game.id}'">🏁 Track Match</button>
+            <button class="track-btn public-result-btn">📊 Public Results</button>
         </div>
 </div>
         
@@ -450,6 +450,22 @@
     });
 
     sessionContainer.appendChild(card);
+    // 👇 Fetch session_id for this game
+const resultBtn = card.querySelector(".public-result-btn");
+const { data: sessionRow } = await supabase
+  .from("games_sessions")
+  .select("id")
+  .eq("game_id", game.id)
+  .single();
+
+if (sessionRow?.id) {
+  resultBtn.onclick = () => {
+    window.open(`/current-games/public-match-results.html?session=${sessionRow.id}`, "_blank");
+  };
+} else {
+  resultBtn.disabled = true;
+  resultBtn.textContent = "❌ No Session Found";
+}
     loadPlayers(game.id, card);
     const addBtn = card.querySelector(".add-btn");
     const confirmBtn = card.querySelector(".confirm-add-btn");
