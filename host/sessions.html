@@ -245,6 +245,7 @@
             .eq("id", gameId)
             .single()
         ]);
+        console.log(`🧍 Loaded ${bookings.length} players for ${gameId}`, bookings);
 
         if (!bookings || !game) {
             target.innerHTML = "<p style='text-align:center; color:#999;'>Failed to load players</p>";
@@ -477,32 +478,28 @@
     actions.forEach(a => a.style.display = show ? 'block' : 'none');
   }
 
-async function togglePaid(iconEl) {
-  const avatarEl = iconEl.closest('.player-avatar');
-  const bookingId = avatarEl.dataset.bookingId;
+async function togglePaid(el) {
+  const avatarEl = el.closest('.player-avatar');
+  const bookingId = avatarEl.getAttribute('data-booking-id');
+  const isNowPaid = !avatarEl.classList.contains('paid');
 
-  if (!bookingId) {
-    console.error("No booking ID found for this avatar");
-    return;
-  }
+  console.log(`💰 Toggling payment for booking ID: ${bookingId}, new paid status: ${isNowPaid}`);
 
-  const isCurrentlyPaid = avatarEl.classList.contains('paid');
-  const newPaidStatus = !isCurrentlyPaid;
+  // Optimistic UI update
+  avatarEl.classList.toggle('paid');
 
-  // Update UI immediately
-  avatarEl.classList.toggle('paid', newPaidStatus);
-
-  // Send to Supabase
   const { error } = await supabase
     .from('game_bookings')
-    .update({ paid: newPaidStatus })
+    .update({ paid: isNowPaid })
     .eq('id', bookingId);
 
   if (error) {
-    alert("❌ Error saving payment status");
-    console.error("Supabase error:", error);
+    console.error("❌ Error saving paid status:", error);
+    alert("❌ Failed to save paid status.");
+    // Rollback UI on failure
+    avatarEl.classList.toggle('paid');
   } else {
-    console.log(`✅ Booking ${bookingId} marked as ${newPaidStatus ? 'PAID' : 'UNPAID'}`);
+    console.log("✅ Paid status saved successfully.");
   }
 }
 
