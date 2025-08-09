@@ -152,6 +152,34 @@
     .add-btn { background: #702963; color: white; }
     .edit-btn { background: #ff9800; color: white; }
     .track-btn { background: #9c27b0; color: white; }
+
+    /* Phone popover above avatar */
+.phone-popover {
+  display: none;
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #ffffff;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 3px 6px;
+  font-size: 11px;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  z-index: 3;
+  cursor: pointer;
+}
+.phone-popover::after {
+  content: "";
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 6px;
+  border-style: solid;
+  border-color: #ccc transparent transparent transparent;
+}
   </style>
 </head>
 <body>
@@ -259,8 +287,9 @@
             const isPaid = b.paid;
 
             return `
-            <div class="player-avatar ${isPaid ? 'paid' : ''}" data-booking-id="${b.id}" onclick="toggleEmojiActions(this)">
-                <img src="${avatar}" onerror="this.src='/images/default-avatar.png'" />
+<div class="player-avatar ${isPaid ? 'paid' : ''}" data-booking-id="${b.id}" onclick="toggleEmojiActions(this)">
+    <div class="phone-popover" data-orig="${b.phone ? b.phone : 'No phone'}" onclick="copyPhone(this)">${b.phone ? b.phone : 'No phone'}</div>
+    <img src="${avatar}" onerror="this.src='/images/default-avatar.png'" />
                 <span>${label}</span>
                 <div class="emoji-action emoji-wa" title="WhatsApp"
   onclick="event.stopPropagation(); ${b.phone ? `window.open('https://wa.me/${b.phone}', '_blank')` : `alert('No phone number available')`}">📞</div>
@@ -522,11 +551,44 @@ const resultBtn = card.querySelector(".public-result-btn");
     headerEl.innerText = (isVisible ? '▶️' : '🔽') + ' ' + headerEl.innerText.slice(2);
   }
 
-  function toggleEmojiActions(playerEl) {
-    const actions = playerEl.querySelectorAll('.emoji-action');
-    const show = actions[0].style.display !== 'block';
-    actions.forEach(a => a.style.display = show ? 'block' : 'none');
+function hideAllPhonePopovers() {
+  document.querySelectorAll('.phone-popover').forEach(p => {
+    p.style.display = 'none';
+    if (p._timer) clearTimeout(p._timer);
+  });
+}
+
+function toggleEmojiActions(playerEl) {
+  const actions = playerEl.querySelectorAll('.emoji-action');
+  const show = actions[0].style.display !== 'block';
+  actions.forEach(a => a.style.display = show ? 'block' : 'none');
+
+  // Show phone popover for 15s when opening actions
+  const pop = playerEl.querySelector('.phone-popover');
+  if (pop) {
+    if (show) {
+      hideAllPhonePopovers();
+      pop.style.display = 'block';
+      if (pop._timer) clearTimeout(pop._timer);
+      pop._timer = setTimeout(() => {
+        pop.style.display = 'none';
+      }, 15000); // 15 seconds
+    } else {
+      pop.style.display = 'none';
+      if (pop._timer) clearTimeout(pop._timer);
+    }
   }
+}
+
+function copyPhone(el) {
+  const val = (el.textContent || '').trim();
+  if (!val || val === 'No phone') return;
+  const orig = el.getAttribute('data-orig') || val;
+  navigator.clipboard?.writeText(val).then(() => {
+    el.textContent = 'Copied!';
+    setTimeout(() => { el.textContent = orig; }, 800);
+  });
+}
 
   function hideEmojiActions(playerEl) {
   const actions = playerEl.querySelectorAll('.emoji-action');
@@ -694,6 +756,8 @@ function toggleAddForm(card) {
   window.hideEmojiActions = hideEmojiActions;
   window.addPlayer = addPlayer;
   window.toggleAddForm = toggleAddForm;
+  window.hideAllPhonePopovers = hideAllPhonePopovers;
+  window.copyPhone = copyPhone;
 </script>
 
 </body>
