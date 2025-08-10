@@ -104,15 +104,14 @@
         <!-- Dynamic Login Newly Added -->
         <div id="heroButtons" class="flex flex-col sm:flex-row flex-wrap justify-center items-center gap-4 mt-6">
           <a href="/book-game.html"
-            class="hero-btn bg-gradient-to-r from-purple-500 via-orange-500 to-pink-500 border-2 border-purple-600 text-white transform transition hover:scale-105 duration-200 shadow-lg">
+            class="hero-btn bg-gradient-to-r from-orange-400 via-pink-400 to-pink-500 border-2 border-orange-500 text-white transform transition hover:scale-105 duration-200 shadow-lg">
             🎮 Book Game
           </a>
 
           <a id="hostDashboardBtn" href="/host/dashboard.html" style="display:none;"
-            class="hero-btn bg-green-600 border-2 border-green-800 text-white transform transition hover:scale-105 duration-200 shadow-lg">
+            class="hero-btn bg-red-500 border-2 border-red-700 text-white transform transition hover:scale-105 duration-200 shadow-lg">
             🧰 Host Dashboard
           </a>
-
           <div id="teamButtons" class="flex flex-col sm:flex-row gap-4 items-center"></div>
 
           <div id="authButtonWrapper" class="flex flex-col sm:flex-row gap-4 items-center "></div>
@@ -338,7 +337,7 @@
     const firstName = profile?.full_name?.split(" ")[0] ?? "Player";
     authWrapper.innerHTML = `
       <a href="/player-profile.html"
-        class="hero-btn bg-purple-600 border-2 border-purple-800 text-white rounded-lg font-semibold transform transition hover:scale-105 duration-200 shadow-lg">
+        class="hero-btn bg-gradient-to-r from-pink-500 to-purple-500 border-2 border-pink-600 text-white transform transition hover:scale-105 duration-200 shadow-lg">
         🧑‍💼 View Profile
       </a>
     `;
@@ -361,7 +360,7 @@
     const inTeam = memberships && memberships.length > 0;
     teamWrapper.innerHTML = `
       <a href="${inTeam ? '/team-dashboard.html' : '/view-teams.html'}"
-        class="hero-btn bg-blue-500 border-2 border-blue-700 text-white rounded-lg font-semibold transform transition hover:scale-105 duration-200 shadow-lg">
+        class="hero-btn bg-gradient-to-r from-purple-500 to-pink-500 border-2 border-purple-600 text-white transform transition hover:scale-105 duration-200 shadow-lg">
         👥 ${inTeam ? 'My Team' : 'Create / Join Team'}
       </a>
     `;
