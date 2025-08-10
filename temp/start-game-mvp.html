@@ -213,6 +213,50 @@
 
     <div id="teamInputs"></div>
 
+<label for="playStyle">Game Style:</label>
+<select id="playStyle" onchange="handlePlayStyleChange()">
+  <option value="round_robin" selected>Round Robin</option>
+  <option value="multi_stage">Two-Stage Round Robin</option>
+  <option value="knockout">Knockout</option>
+</select>
+
+<!-- Court count stays always visible -->
+<label for="courtCount">Number of Courts:</label>
+<select id="courtCount" onchange="generateCourtInputs()">
+  <option value="1" selected>1</option>
+  <option value="2">2</option>
+  <option value="3">3</option>
+  <option value="4">4</option>
+  <option value="5">5</option>
+  <option value="6">6</option>
+</select>
+
+<div id="courtInputs"></div>
+
+<label for="groupCount">Number of Groups:</label>
+<select id="groupCount">
+  <option value="1" selected>1</option>
+  <option value="2">2</option>
+  <option value="3">3</option>
+  <option value="4">4</option>
+</select>
+
+<div id="groupInputs"></div>
+
+<div id="groupAssignmentContainer"></div>
+
+<!-- 🔁 Only show for round robin -->
+<div id="roundsInputWrapper">
+  <label for="roundsInput" style="font-weight:bold;">Number of Rounds:</label>
+  <select id="roundsInput" style="margin-left:10px;">
+    <option value="1" selected>1</option>
+    <option value="2">2</option>
+    <option value="3">3</option>
+    <option value="4">4</option>
+  </select>
+</div>
+
+
     <label for="duration">Match Duration (minutes):</label>
     <input type="number" id="duration" value="7" min="1" />
 
@@ -229,18 +273,11 @@
       <div class="half">
         <button onclick="randomizeTeams()">Randomize Teams</button>
       </div>
-    </div>
-
-    <label for="roundsInput" style="font-weight:bold;">Number of Rounds:</label>
-    <select id="roundsInput" style="margin-left:10px;">
-      <option value="1" selected>1</option>
-      <option value="2">2</option>
-      <option value="3">3</option>
-      <option value="4">4</option>
-    </select>    
+    </div>  
 
     <div id="playerAssignment"></div>
-    <button onclick="confirmStartGame()">Start Game</button>
+    <button onclick="confirmStartGame()">Setup Game</button>
+    <button id="goToTrackMatchBtn" style="display:none;">➡️ Start Match</button>
   </div>
 
   <!-- Confirmation Popup -->
@@ -272,48 +309,205 @@
   </div>
 </div>
 
-  <script>
+ <script type="module">
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+  const supabase = createClient(
+    'https://kdbqroxhypnadolcxxxc.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkYnFyb3hoeXBuYWRvbGN4eHhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3MjkwNzYsImV4cCI6MjA1NzMwNTA3Nn0.c7_RVxoFdJNqQ62R3t1emH2Wf4dSsQaunHsHmbQxOBA'
+  );
+
+
     let allPlayers = [];
     let activePlayers = [];
     let selectedPlayerName = "";
     let currentPlayerIndex = null;
     let currentTeamIndex = null;
-    const teamColors = ["Red", "White", "Green", "Yellow", "Black", "Orange"];
+    let groupAssignment = {};
+    const teamColors = ["Red", "White", "Green", "Orange", "Black", "Yellow", "Blue", "Turquoise"];
 
     async function fetchGames() {
-      const res = await fetch("/api/get-upcoming-games");
-      const data = await res.json();
-      const select = document.getElementById("gameSelect");
-      select.innerHTML = '<option value="">-- Select Game --</option>';
-      const today = new Date();
-      const sevenDaysLater = new Date();
-      today.setHours(0, 0, 0, 0);
-      sevenDaysLater.setDate(today.getDate() + 7);
-      sevenDaysLater.setHours(23, 59, 59, 999);
-      data.games.forEach(game => {
-        const gameDate = new Date(game.game_date + "T00:00:00");
-        if (gameDate >= today && gameDate <= sevenDaysLater) {
-          const option = document.createElement("option");
-          option.value = game.id;
-          option.textContent = `${game.venue} - ${game.game_date} ${game.start_time}`;
-          select.appendChild(option);
-        }
-      });
+  const res = await fetch("/api/get-upcoming-games");
+  const data = await res.json();
+  const select = document.getElementById("gameSelect");
+  select.innerHTML = '<option value="">-- Select Game --</option>';
+
+  const startDate = new Date(); // 3 days before today
+  startDate.setDate(startDate.getDate() - 3);
+  startDate.setHours(0, 0, 0, 0);
+
+  const endDate = new Date(); // 7 days after today
+  endDate.setDate(endDate.getDate() + 7);
+  endDate.setHours(23, 59, 59, 999);
+
+  data.games.forEach(game => {
+    const gameDate = new Date(game.game_date + "T00:00:00");
+    if (gameDate >= startDate && gameDate <= endDate) {
+      const option = document.createElement("option");
+      option.value = game.id;
+      option.textContent = `${game.venue} - ${game.game_date} ${game.start_time}`;
+      select.appendChild(option);
     }
+  });
+}
 
     async function fetchPlayers(gameId) {
-      const res = await fetch(`/api/get-bookings?game_id=${gameId}`);
+      const res = await fetch(`/api/get-bookings-v2?game_id=${gameId}`);
       const data = await res.json();
-      allPlayers = data.bookings
-  .filter(b => b.status === 'confirmed')
-  .map(b => ({
-    name: b.name,
-    jersey: b.jersey_number || ""
-  }));
+
+      allPlayers = data.bookings.map(b => ({
+        name: b.jersey_name,
+        jersey: "",
+        user_id: b.user_id || null
+      }));
+
       activePlayers = [...allPlayers];
-      updateRemoveDropdown();
-      generatePlayerAssignment();
+
+      // Clear team assignment UI state
+      document.getElementById("teamCount").value = ""; // reset team count
+      document.getElementById("teamInputs").innerHTML = ""; // clear team names
+      document.getElementById("playerAssignment").innerHTML = ""; // clear grids
+
+
+// 🧠 Load saved session config
+const { data: session, error: sessionError } = await supabase
+  .from("games_sessions")
+  .select("match_duration, rounds, team_count, play_style, num_courts, court_names, group_assignment, group_names")
+  .eq("game_id", gameId)
+  .single();
+
+if (session) {
+  document.getElementById("duration").value = session.match_duration || 7;
+  document.getElementById("roundsInput").value = session.rounds || 1;
+  document.getElementById("playStyle").value = session.play_style || "round_robin";
+  document.getElementById("courtCount").value = session.num_courts || 1;
+  handlePlayStyleChange();
+  generateCourtInputs();
+
+  // 🏟️ Set court names
+  if (session.court_names?.length) {
+    session.court_names.forEach((name, i) => {
+      const el = document.getElementById(`courtName${i}`);
+      if (el) el.value = name;
+    });
+  }
+  
+}
+
+if (session.group_assignment && typeof session.group_assignment === "object") {
+  //console.log("🧠 Loaded saved group assignment:", session.group_assignment);
+
+  // Set group count based on saved group keys
+  const groupNames = Object.keys(session.group_assignment);
+  document.getElementById("groupCount").value = groupNames.length;
+  generateGroupInputs(); // rebuild group name inputs
+
+  // Set group name inputs
+  groupNames.forEach((groupName, i) => {
+    const el = document.getElementById(`groupName${i}`);
+    if (el) el.value = groupName;
+  });
+
+// Set up team names
+const allTeams = Object.values(session.group_assignment).flat();
+document.getElementById("teamCount").value = allTeams.length;
+window.__suppressGroupAssignment = true; // ⛔️ block auto-grouping
+generateTeamInputs();
+window.__suppressGroupAssignment = false;
+
+  setTimeout(() => {
+    // Assign team names
+    allTeams.forEach((team, i) => {
+      const el = document.getElementById(`team${i}`);
+      if (el) el.value = team;
+    });
+
+  // Set group name inputs
+  groupNames.forEach((groupName, i) => {
+    const el = document.getElementById(`groupName${i}`);
+    if (el) el.value = groupName;
+  });
+
+  // ⛏️ Patch: ensure correct values used in dropdown
+  groupNames.forEach((name, i) => {
+    const el = document.getElementById(`groupName${i}`);
+    if (el) el.value = name;
+  });
+
+    // Re-render group assignment dropdowns
+    renderGroupAssignmentUI(groupNames.length, allTeams);
+
+// 🧠 Apply saved group dropdown selections
+allTeams.forEach(team => {
+  const assignedGroup = groupNames.find(group => session.group_assignment[group]?.includes(team));
+  const selectEl = document.querySelector(`select[name="group-assignment-${team}"]`);
+  
+  if (selectEl && assignedGroup) {
+    // Use exact group name match — do NOT slice characters
+    selectEl.value = assignedGroup;
+    console.log(`✅ Set dropdown for ${team} → ${assignedGroup}`);
+  } else {
+    console.warn(`⚠️ Could not set group for ${team}`);
+  }
+});
+
+    //console.log("✅ Group assignment UI loaded.");
+  }, 200);
+}
+
+      const { data: teamData, error } = await supabase
+      .from('session_teams')
+      .select('*')
+      .eq('game_id', gameId);
+
+      if (error) {
+        console.error("❌ Error loading session_teams:", error);
+        updateRemoveDropdown();
+        generatePlayerAssignment();
+        return;
+      }
+
+      if (teamData.length > 0) {
+        //console.log("📥 Found existing session_teams:", teamData);
+
+        // 🔄 Auto-apply teams
+        const teams = [...new Set(teamData.map(t => t.team_color))];
+        document.getElementById("teamCount").value = teams.length;
+        generateTeamInputs();
+
+        setTimeout(() => {
+          teams.forEach((team, i) => {
+            document.getElementById(`team${i}`).value = team;
+          });
+
+          // Assign players to teams
+          teamData.forEach(t => {
+            const player = activePlayers.find(p => p.name === t.jersey_name);
+            if (player) {
+              player.jersey = t.jersey_number || ""; // Optional
+            }
+          });
+
+          // Auto-select boxes
+          const playerGrids = document.querySelectorAll(".player-grid");
+          teamData.forEach(t => {
+            const teamIdx = teams.indexOf(t.team_color);
+            const grid = playerGrids[teamIdx];
+            if (grid) {
+              const box = Array.from(grid.children).find(b => b.dataset.name === t.jersey_name);
+              if (box) box.classList.add("selected");
+            }
+          });
+
+          generatePlayerAssignment(); // re-render
+        }, 100);
+      } else {
+        console.log("ℹ️ No existing session_teams found.");
+        updateRemoveDropdown();
+        generatePlayerAssignment();
+      }
     }
+
 
     function generateTeamInputs() {
       const teamInputs = document.getElementById("teamInputs");
@@ -324,9 +518,43 @@
         input.type = "text";
         input.id = `team${i}`;
         input.value = teamColors[i] || `Team ${String.fromCharCode(65 + i)}`;
-        teamInputs.appendChild(input);
+        const wrapper = document.createElement("div");
+wrapper.style.marginTop = "10px";
+
+const ordinal = ["1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th"][i] || `${i + 1}th`;
+const label = document.createElement("label");
+label.textContent = `${ordinal} Team:`;
+label.style.display = "block";
+label.style.fontWeight = "bold";
+label.style.color = "#702963";
+
+input.style.width = "100%";
+input.addEventListener("input", generatePlayerAssignment);
+
+wrapper.appendChild(label);
+wrapper.appendChild(input);
+teamInputs.appendChild(wrapper);
+
       }
       generatePlayerAssignment();
+if (!window.__suppressGroupAssignment) {
+  const groupCount = parseInt(document.getElementById("groupCount")?.value || "1");
+
+  const teamNames = [];
+  for (let i = 0; i < count; i++) {
+    const val = document.getElementById(`team${i}`)?.value?.trim();
+    if (val) teamNames.push(val);
+  }
+
+const groupNames = Array.from({ length: groupCount }, (_, i) => {
+  const el = document.getElementById(`groupName${i}`);
+  return el ? el.value.trim() : `Group ${String.fromCharCode(65 + i)}`;
+});
+
+  // ❌ Don't rebuild groupAssignment here — only UI
+  renderGroupAssignmentUI(groupCount, teamNames);
+}
+
     }
 
     function getTeamLogo(colorName) {
@@ -334,7 +562,11 @@
         Red: "../images/red.png",
         Green: "../images/green.png",
         Yellow: "../images/yellow.png",
-        White: "../images/white.png"
+        White: "../images/white.png",
+        Orange: "../images/orange.png",
+        Black: "../images/black.png",
+        Blue: "../images/blue.png",
+        Turquoise: "../images/turquoise.png"
       };
       return logos[colorName] || "../images/default.png"; // fallback default logo if color not found
     }
@@ -354,8 +586,11 @@
 
       for (let i = 0; i < teamCount; i++) {
         const label = document.createElement("label");
-        const teamName = teamColors[i] || `Team ${String.fromCharCode(65 + i)}`;
-        label.textContent = `Assign players to ${teamName}:`;
+        const teamInput = document.getElementById(`team${i}`);
+        const teamName = teamInput ? teamInput.value.trim() : `Team ${i + 1}`;
+const ordinal = ["1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th"][i] || `${i + 1}th`;
+label.textContent = `Assign players to ${ordinal} team`;
+
 
         const grid = document.createElement("div");
         grid.className = "player-grid";
@@ -366,11 +601,23 @@
           box.dataset.name = player.name;
           box.dataset.jersey = player.jersey || "";
 
-          box.innerHTML = `
-            <div>${player.name.slice(0, 15)}</div>
-            <div class="text-xs mt-1">🎽 ${player.jersey || '--'}</div>
-            <button class="text-blue-500 underline text-xs mt-1" onclick="event.stopPropagation(); openJerseyPopup(${i}, ${activePlayers.indexOf(player)})">Set</button>
-          `;
+let html = `
+  <div>${player.name.slice(0, 15)}</div>
+  <div class="text-xs mt-1">🎽 ${player.jersey || '--'}</div>
+  <button class="text-blue-500 underline text-xs mt-1" onclick="event.stopPropagation(); openJerseyPopup(${i}, ${activePlayers.indexOf(player)})">Set</button>
+`;
+
+if (player.user_id) {
+  html += `
+    <select class="team-select mt-1 text-xs" data-user-id="${player.user_id}">
+      <option value="">Team?</option>
+      ${teamColors.map(c => `<option value="${c}">${c}</option>`).join("")}
+    </select>
+  `;
+}
+
+box.innerHTML = html;
+
           
 
           // ✅ Re-apply selection
@@ -431,20 +678,218 @@
           `;
 
       }
+      // ⬇️ Add this right before: document.getElementById("popup").style.display = "block";
+
+const duration = document.getElementById("duration").value;
+const rounds = document.getElementById("roundsInput").value;
+
+popup.innerHTML += `
+  <div style="margin-top: 20px; text-align: center;">
+    <h4>Game Settings</h4>
+    <p><strong>Duration per Match:</strong> ${duration} minutes</p>
+    <p><strong>Number of Rounds:</strong> ${rounds}</p>
+  </div>
+`;
+
       document.getElementById("popup").style.display = "block";
     }
 
-    async function startGame() {
-    const count = parseInt(document.getElementById("teamCount").value);
-    const gameId = document.getElementById("gameSelect").value;
-    const duration = parseInt(document.getElementById("duration").value);
-    const teamNames = [], teamPlayers = [];
+async function loadTeamSetup() {
+  const gameId = document.getElementById("gameSelect").value;
+  if (!gameId) {
+    alert("Please select a game first.");
+    return;
+  }
 
-    for (let i = 0; i < count; i++) {
-      const name = document.getElementById(`team${i}`).value.trim();
-      teamNames.push(name); // ✅ This ensures teamNames gets filled properly
-      const grid = document.querySelectorAll(".player-grid")[i];
-      const selected = Array.from(grid.children)
+  console.log("📥 Loading saved session_teams for game:", gameId);
+
+  const { data, error } = await supabase
+    .from('session_teams')
+    .select('*')
+    .eq('game_id', gameId);
+
+  if (error) {
+    console.error("❌ Failed to load session_teams:", error);
+    return;
+  }
+
+  if (!data || data.length === 0) {
+    alert("No saved teams found for this game.");
+    return;
+  }
+
+  // 🔄 Reset selection
+  document.getElementById("teamCount").value = 0;
+  const teams = [...new Set(data.map(d => d.team_color))];
+  document.getElementById("teamCount").value = teams.length;
+  generateTeamInputs();
+
+  // ⏳ Wait for UI to finish rendering
+  setTimeout(() => {
+    teams.forEach((team, i) => {
+      document.getElementById(`team${i}`).value = team;
+    });
+
+    const playerGrids = document.querySelectorAll(".player-grid");
+
+    data.forEach(entry => {
+      const teamIdx = teams.indexOf(entry.team_color);
+      const grid = playerGrids[teamIdx];
+      const box = Array.from(grid.children).find(b => b.dataset.name === entry.jersey_name);
+      if (box) box.classList.add("selected");
+
+      const player = activePlayers.find(p => p.name === entry.jersey_name);
+      if (player) player.jersey = entry.jersey_number || ""; // Optional if you want to restore jersey
+    });
+
+    generatePlayerAssignment(); // Re-render with jerseys
+    alert("✅ Team setup loaded.");
+  }, 100);
+}
+
+function generateGroupInputs() {
+  const groupInputs = document.getElementById("groupInputs");
+  groupInputs.innerHTML = "";
+  const count = parseInt(document.getElementById("groupCount").value);
+
+  for (let i = 0; i < count; i++) {
+    const wrapper = document.createElement("div");
+    wrapper.style.marginTop = "10px";
+
+    const label = document.createElement("label");
+    label.textContent = `Group ${String.fromCharCode(65 + i)} Name:`;
+    label.style.display = "block";
+    label.style.fontWeight = "bold";
+    label.style.color = "#702963";
+
+    const input = document.createElement("input");
+    input.type = "text";
+    input.id = `groupName${i}`;
+    input.value = `Group ${String.fromCharCode(65 + i)}`;
+    input.style.width = "100%";
+
+    wrapper.appendChild(label);
+    wrapper.appendChild(input);
+    groupInputs.appendChild(wrapper);
+    // ✅ Also update group assignment UI when group count changes
+// ✅ Patch: Refresh group assignment dropdowns after typing custom names
+setTimeout(() => {
+  const teamCount = parseInt(document.getElementById("teamCount")?.value || "0");
+  const teamNames = [];
+  for (let i = 0; i < teamCount; i++) {
+    const val = document.getElementById(`team${i}`)?.value?.trim();
+    if (val) teamNames.push(val);
+  }
+  renderGroupAssignmentUI(count, teamNames);
+}, 50);
+  }
+}
+
+document.getElementById("groupCount").addEventListener("change", generateGroupInputs);
+
+async function startGame() {
+  document.getElementById("popup").style.display = "none";
+  console.log("Starting game...");
+  const count = parseInt(document.getElementById("teamCount").value);
+  const gameId = document.getElementById("gameSelect").value;
+  const duration = parseInt(document.getElementById("duration").value);
+  const teamPlayers = [];
+  const teamNames = [];
+  for (let i = 0; i < count; i++) {
+    const val = document.getElementById(`team${i}`)?.value?.trim();
+    if (val) teamNames.push(val);
+  }
+  const playStyle = document.getElementById("playStyle").value;
+  
+  const courtCount = parseInt(document.getElementById("courtCount").value);
+  const rounds = parseInt(document.getElementById("roundsInput").value);
+  const courtNames = [];
+    for (let i = 0; i < courtCount; i++) {
+      const name = document.getElementById(`courtName${i}`)?.value.trim() || `Court ${i + 1}`;
+      courtNames.push(name);
+    }
+
+  const groupCount = parseInt(document.getElementById("groupCount").value);
+    const groupNames = [];
+    for (let i = 0; i < groupCount; i++) {
+      const name = document.getElementById(`groupName${i}`)?.value.trim() || `Group ${String.fromCharCode(65 + i)}`;
+      groupNames.push(name);
+    }
+  
+// ✅ Rebuild groupAssignment based on live selections
+//console.log("📋 groupNames used to initialize groupAssignment:", groupNames);
+const groupAssignment = {};
+groupNames.forEach(group => groupAssignment[group] = []);
+console.log("✅ Available groupAssignment keys (init):", Object.keys(groupAssignment));
+
+teamNames.forEach(team => {
+  const groupSelect = document.querySelector(`select[name="group-assignment-${team}"]`);
+  const selectedValue = groupSelect?.value;
+
+  // console.log(`🔍 [Group Assignment] ${team} selected "${selectedValue}"`);
+  // console.log("✅ Available groupAssignment keys:", Object.keys(groupAssignment));
+
+  const assignedGroup = selectedValue;
+
+  if (assignedGroup && groupAssignment[assignedGroup]) {
+    groupAssignment[assignedGroup].push(team);
+    console.log(`✅ Assigned ${team} → ${assignedGroup}`);
+  } else {
+    console.warn(`⚠️ Could not assign ${team}. Invalid group:`, assignedGroup);
+  }
+});
+
+console.log("🧠 Final groupAssignment", groupAssignment);
+
+// Clean old game session
+await supabase.from('games_sessions').delete().eq('game_id', gameId);
+
+console.log("📦 Saving game session with data:", 
+{
+  game_id: gameId,
+  play_style: playStyle,
+  rounds: rounds,
+  num_courts: courtCount,
+  court_names: courtNames,
+  group_names: groupNames,
+  group_assignment: groupAssignment,
+  match_duration: duration,
+  team_count: count
+});
+
+  const { data: gameSession, error: sessionError } = await supabase
+    .from('games_sessions')
+    .insert([{
+      game_id: gameId,
+      play_style: playStyle,
+      rounds: rounds,
+      num_courts: courtCount,
+      court_names: courtNames, // ✅ already saved here
+      group_names: groupNames, 
+      group_assignment: groupAssignment,
+      match_duration: duration, // 👈 optional: save match duration too
+      team_count: count         // 👈 optional: save number of teams
+    }])
+    .select()
+    .single();
+    
+
+
+  if (sessionError) {
+    console.error("❌ Error saving games_sessions:", sessionError);
+    return;
+  }
+
+  const gameSessionId = gameSession.id;
+  sessionStorage.setItem("gameSessionId", gameSessionId);
+
+
+
+  for (let i = 0; i < count; i++) {
+    const name = document.getElementById(`team${i}`).value.trim();
+    teamNames.push(name);
+    const grid = document.querySelectorAll(".player-grid")[i];
+    const selected = Array.from(grid.children)
       .filter(b => b.classList.contains("selected"))
       .map(b => {
         const name = b.dataset.name;
@@ -452,45 +897,248 @@
         return { name, jersey };
       });
     teamPlayers.push(selected);
+  }
+
+console.log("🧠 Final groupAssignment", groupAssignment);
+
+  await Promise.all(
+    activePlayers.map(p => {
+      if (p.jersey !== undefined && p.jersey !== "") {
+        return fetch('/api/update-booking', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ game_id: gameId, name: p.name, jersey_number: p.jersey })
+        });
+      }
+    })
+  );
+
+  const teamAssignments = [];
+
+  teamPlayers.forEach((players, i) => {
+    players.forEach(p => {
+      const full = activePlayers.find(ap => ap.name === p.name);
+      if (full) {
+        teamAssignments.push({
+          game_id: gameId,
+          user_id: full.user_id || null,
+          team_color: teamNames[i],
+          jersey_name: full.name
+        });
+      }
+    });
+  });
+
+  await supabase.from('session_teams').delete().eq('game_id', gameId);
+  await supabase.from('session_teams').insert(teamAssignments);
+
+  const { data: sessionTeams } = await supabase
+    .from('session_teams')
+    .select('team_color')
+    .eq('game_id', gameId);
+
+  const uniqueTeams = [...new Set(sessionTeams.map(t => t.team_color))];
+
+  await supabase.from('session_matches').delete().eq('game_session_id', gameSessionId);
+  // 🧠 Generate round-robin matches per group
+let matchInsertData = [];
+let matchCounter = 1;
+
+for (const [groupLabel, teams] of Object.entries(groupAssignment)) {
+  const groupMatches = [];
+
+  for (let i = 0; i < teams.length - 1; i++) {
+    for (let j = i + 1; j < teams.length; j++) {
+      groupMatches.push({
+        game_session_id: gameSessionId,
+        team1_id: teams[i],
+        team2_id: teams[j],
+        round: 1,
+        match_number: matchCounter++,
+        court_number: ((matchCounter - 2) % courtCount) + 1,
+        stage: "group",
+        group_label: groupLabel
+      });
+    }
+  }
+
+  matchInsertData = matchInsertData.concat(groupMatches);
+}
+
+const { error: insertMatchErr } = await supabase.from('session_matches').insert(matchInsertData);
+
+if (insertMatchErr) {
+  console.error("❌ Failed to insert group matches:", insertMatchErr);
+} else {
+  console.log(`✅ Inserted ${matchInsertData.length} group matches.`);
+}
+
+if (playStyle === "multi_stage" && uniqueTeams.length === 8 && courtCount === 2) {
+  const shuffled = [...uniqueTeams].sort(() => Math.random() - 0.5);
+  const groupA = shuffled.slice(0, 4);
+  const groupB = shuffled.slice(4, 8);
+
+  // Helper to generate all matches in a round robin group
+  function generateGroupMatches(group, court_number, stage) {
+    const matches = [];
+    let matchNum = 1;
+    for (let i = 0; i < group.length - 1; i++) {
+      for (let j = i + 1; j < group.length; j++) {
+        matches.push({
+          game_session_id: gameSessionId,
+          team1_id: group[i],
+          team2_id: group[j],
+          court_number,
+          round: 1,
+          match_number: matchNum++,
+          stage,
+        });
+      }
+    }
+    return matches;
+  }
+
+  // First Stage: Group Round Robins
+  const groupAMatches = generateGroupMatches(groupA, 1, "group_A");
+  const groupBMatches = generateGroupMatches(groupB, 2, "group_B");
+
+  // Second Stage: Champions & Plate (Round Robin again, using placeholders)
+  const champions = [
+    ["A1", "B2"],
+    ["B1", "A2"],
+    ["A1", "B1"],
+    ["A2", "B2"],
+    ["A1", "A2"],
+    ["B1", "B2"],
+  ];
+
+  const plate = [
+    ["A3", "B4"],
+    ["B3", "A4"],
+    ["A3", "B3"],
+    ["A4", "B4"],
+    ["A3", "A4"],
+    ["B3", "B4"],
+  ];
+
+  const championsMatches = champions.map(([t1, t2], i) => ({
+    game_session_id: gameSessionId,
+    team1_id: t1,
+    team2_id: t2,
+    court_number: 1,
+    round: 2,
+    match_number: i + 13,
+    stage: "champions",
+    is_placeholder: true,
+    team1_placeholder: t1,
+    team2_placeholder: t2,
+  }));
+
+  const plateMatches = plate.map(([t1, t2], i) => ({
+    game_session_id: gameSessionId,
+    team1_id: t1,
+    team2_id: t2,
+    court_number: 2,
+    round: 2,
+    match_number: i + 19,
+    stage: "plate",
+    is_placeholder: true,
+    team1_placeholder: t1,
+    team2_placeholder: t2,
+  }));
+
+  const allMatches = [...groupAMatches, ...groupBMatches, ...championsMatches, ...plateMatches];
+
+  const { error: insertMatchErr } = await supabase.from('session_matches').insert(allMatches);
+
+  if (insertMatchErr) {
+    console.error("❌ Failed to insert multi-stage matches:", insertMatchErr);
+  } else {
+    console.log("✅ Inserted 24 multi-stage matches.");
+  }
+} else if ("round_robin" && groupCount === 1) {
+    function generateRoundRobinMatches(teams, rounds) {
+      const matches = [];
+      const padded = [...teams];
+      if (padded.length % 2 !== 0) padded.push(null);
+      const n = padded.length;
+      const numRounds = n - 1;
+
+      for (let r = 0; r < rounds; r++) {
+        for (let i = 0; i < numRounds; i++) {
+          for (let j = 0; j < n / 2; j++) {
+            const team1 = padded[j];
+            const team2 = padded[n - 1 - j];
+            if (team1 && team2) {
+              matches.push({
+                round: r + 1,
+                team1_id: team1,
+                team2_id: team2
+              });
+            }
+          }
+          const fixed = padded[0];
+          const rest = padded.slice(1);
+          rest.unshift(rest.pop());
+          padded.splice(1, n - 1, ...rest);
+        }
+      }
+      return matches;
     }
 
-    // ✅ Save all jersey numbers before starting game
-    await Promise.all(
-      activePlayers.map(p => {
-        if (p.jersey !== undefined && p.jersey !== "") {
-          return fetch('/api/update-booking', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              game_id: gameId,
-              name: p.name,
-              jersey_number: p.jersey
-            })
-          });
-        }
-      })
-    );
+  const matchData = generateRoundRobinMatches(uniqueTeams, rounds).map((m, i) => {
+    const matchNumber = i + 1;
+    const court_number = ((matchNumber - 1) % courtCount) + 1;
 
-    // Then continue to game
-    sessionStorage.setItem("gameId", gameId);
-    sessionStorage.setItem("teamNames", JSON.stringify(teamNames));
-          // Attach team name to each player before storing
-      const enrichedPlayers = teamPlayers.map((players, i) =>
-        players.map(p => ({ ...p, team: teamNames[i] }))
-      );
-    sessionStorage.setItem("teamPlayers", JSON.stringify(enrichedPlayers));
+    return {
+      game_session_id: gameSessionId,
+      team1_id: m.team1_id,
+      team2_id: m.team2_id,
+      round: m.round,
+      match_number: matchNumber,
+      court_number: court_number  // ✅ assign alternately
+    };
+  });
 
+    const { error: matchInsertErr } = await supabase.from('session_matches').insert(matchData);
 
-    sessionStorage.setItem("duration", duration);
-    const rounds = parseInt(document.getElementById("roundsInput").value);
-    sessionStorage.setItem("rounds", rounds);
-    const selectedGame = document.getElementById("gameSelect");
-    const selectedText = selectedGame.options[selectedGame.selectedIndex].textContent;
-    const [venueText, datetimeText] = selectedText.split(" - ");
-    sessionStorage.setItem("venue", venueText.trim());
-    sessionStorage.setItem("date", datetimeText.trim());
-    window.location.href = "track-match.html";
+    if (matchInsertErr) {
+      console.error("❌ Error inserting round robin matches:", matchInsertErr);
+      return;
+    }
+
+    console.log("✅ Inserted round robin matches:", matchData.length);
+  }
+
+  // Finish
+  sessionStorage.setItem("gameId", gameId);
+  sessionStorage.setItem("teamNames", JSON.stringify(teamNames));
+  sessionStorage.setItem("teamPlayers", JSON.stringify(teamPlayers.map((p, i) =>
+    p.map(pl => ({ ...pl, team: teamNames[i] }))
+  )));
+  sessionStorage.setItem("duration", duration);
+  sessionStorage.setItem("rounds", rounds);
+
+  const selectedGame = document.getElementById("gameSelect");
+  const selectedText = selectedGame.options[selectedGame.selectedIndex].textContent;
+  const [venueText, datetimeText] = selectedText.split(" - ");
+  sessionStorage.setItem("venue", venueText.trim());
+  sessionStorage.setItem("date", datetimeText.trim());
+
+  //window.location.href = "track-match.html";
+  alert("✅ Match setup complete!\nYou can now proceed to Track Match to officiate games.");
+
+  // Show "Go to Track Match" button
+  const trackBtn = document.getElementById("goToTrackMatchBtn");
+  if (trackBtn) {
+    trackBtn.style.display = "block";
+    trackBtn.addEventListener("click", () => {
+      window.location.href = "track-match.html";
+    }, { once: true }); // ✅ prevent multiple event bindings
+  }
+
 }
+
 
 
     function toggleEditControls() {
@@ -548,11 +1196,118 @@
     closeJerseyPopup();
   }
 
+  function generateCourtInputs() {
+    const courtInputs = document.getElementById("courtInputs");
+    courtInputs.innerHTML = "";
+    const count = parseInt(document.getElementById("courtCount").value);
+    for (let i = 0; i < count; i++) {
+      const wrapper = document.createElement("div");
+      wrapper.style.marginTop = "10px";
+
+      const label = document.createElement("label");
+      label.textContent = `Court ${i + 1} Name:`;
+      label.style.display = "block";
+      label.style.fontWeight = "bold";
+      label.style.color = "#702963";
+
+      const input = document.createElement("input");
+      input.type = "text";
+      input.id = `courtName${i}`;
+      input.value = `Court ${i + 1}`;
+      input.style.width = "100%";
+
+      wrapper.appendChild(label);
+      wrapper.appendChild(input);
+      courtInputs.appendChild(wrapper);
+    }
+  }
+  
+function renderGroupAssignmentUI(groupCount, teamNames) {
+  const container = document.getElementById("groupAssignmentContainer");
+  container.innerHTML = "";
+
+const groupNames = [];
+for (let i = 0; i < groupCount; i++) {
+  const input = document.getElementById(`groupName${i}`);
+  if (input && input.value.trim()) {
+    groupNames.push(input.value.trim());
+  }
+}
+
+  if (groupCount === 1) {
+    // Auto assign all to Group A (no manual input needed)
+    return;
+  }
+
+  const groupSelectRow = document.createElement("div");
+  groupSelectRow.style.display = "grid";
+  groupSelectRow.style.gridTemplateColumns = "repeat(auto-fit, minmax(180px, 1fr))";
+  groupSelectRow.style.gap = "12px";
+
+  teamNames.forEach(team => {
+    const wrapper = document.createElement("div");
+
+    const label = document.createElement("label");
+    label.textContent = `Group for ${team}`;
+    label.style.fontWeight = "bold";
+    label.style.color = "#702963";
+    label.style.display = "block";
+
+const select = document.createElement("select");
+select.name = `group-assignment-${team}`;
+groupNames.forEach(name => {
+  const opt = document.createElement("option");
+  opt.value = name;          // ✅ actual group name, e.g., "Cup"
+  opt.textContent = name;    // ✅ shown label matches
+  select.appendChild(opt);
+});
+
+    wrapper.appendChild(label);
+    wrapper.appendChild(select);
+    groupSelectRow.appendChild(wrapper);
+  });
+
+  container.appendChild(groupSelectRow);
+}
+
+  function handlePlayStyleChange() {
+    const selectedStyle = document.getElementById("playStyle").value;
+    const roundsWrapper = document.getElementById("roundsInputWrapper");
+
+    if (selectedStyle === "round_robin") {
+      roundsWrapper.style.display = "block";
+    } else {
+      roundsWrapper.style.display = "none";
+    }
+  }
+
+
     document.getElementById("gameSelect").addEventListener("change", e => {
       if (e.target.value) fetchPlayers(e.target.value);
     });
 
     fetchGames();
+
+    window.generateTeamInputs = generateTeamInputs;
+window.randomizeTeams = randomizeTeams;
+window.toggleEditControls = toggleEditControls;
+window.confirmStartGame = confirmStartGame;
+window.startGame = startGame;
+window.removePlayer = removePlayer;
+window.addPlayer = addPlayer;
+window.selectJersey = selectJersey;
+window.openJerseyPopup = openJerseyPopup;
+window.closeJerseyPopup = closeJerseyPopup;
+window.handlePlayStyleChange = handlePlayStyleChange;
+window.generateCourtInputs = generateCourtInputs;
+
+
+handlePlayStyleChange(); // 📌 add at the end of script
+generateCourtInputs(); // 👈 renders court name inputs on first load
+generateGroupInputs();
+
+
+
   </script>
 </body>
 </html>
