@@ -16,6 +16,17 @@
       text-align: center;
       border-top: 5px solid #ff5a5f;
     }
+
+  .hero-btn {
+    display: inline-block;
+    width: 260px;            /* fixed width for uniform size */
+    padding: 12px 0;          /* same height for all */
+    font-size: 1.125rem;      /* text-lg equivalent */
+    font-weight: 600;
+    border-radius: 0.5rem;    /* rounded-lg */
+    text-align: center;
+    white-space: nowrap;
+  }
         </style>
 </head>
 <body class="font-sans bg-white text-black">
@@ -89,37 +100,21 @@
             Friendly, Competitive, Social — we’ve got you.<br>
             futbola is your all-in-one futsal community platform.
         </p>
-        <!--<div class="flex flex-col sm:flex-row justify-center gap-4 mt-6">
-            <button onclick="location.href='https://www.futbola.my/render-upcoming'"
-            class="bg-gradient-to-r from-purple-500 via-orange-500 to-pink-500 border-2 border-purple-600 text-white px-6 py-3 rounded-lg font-semibold transform transition hover:scale-105 duration-200 shadow-lg">
-                🎮 Quick Game
-            </button>
-
-            <button onclick="location.href='https://www.futbola.my/tournament.html'"
-            class="bg-gradient-to-r from-pink-500 via-orange-500 to-purple-500 border-2 border-purple-600 text-white px-6 py-3 rounded-lg font-semibold transform transition hover:scale-105 duration-200 shadow-lg">
-                🏆 Tournament
-            </button>
-
-             <button onclick="location.href='https://www.futbola.my/login.html'"
-                class="bg-red-500 border-2 border-red-700 text-white px-6 py-3 rounded-lg font-semibold transform transition hover:scale-105 duration-200 shadow-lg">
-                🔑 Login
-            </button> 
-
-        </div> -->
 
         <!-- Dynamic Login Newly Added -->
         <div id="heroButtons" class="flex flex-col sm:flex-row flex-wrap justify-center gap-4 mt-6">
-          <a href="/book-game.html" class="bg-gradient-to-r from-purple-500 via-orange-500 to-pink-500 border-2 border-purple-600 text-white px-6 py-3 rounded-lg font-semibold transform transition hover:scale-105 duration-200 shadow-lg">
+          <a href="/book-game.html"
+            class="hero-btn bg-gradient-to-r from-purple-500 via-orange-500 to-pink-500 border-2 border-purple-600 text-white transform transition hover:scale-105 duration-200 shadow-lg">
             🎮 Book Game
           </a>
 
-          <!-- Host/Admin Dashboard (hidden by default, shown if category_role matches) -->
           <a id="hostDashboardBtn" href="/host/dashboard.html" style="display:none;"
-            class="bg-green-600 border-2 border-green-800 text-white px-6 py-3 rounded-lg font-semibold transform transition hover:scale-105 duration-200 shadow-lg">
+            class="hero-btn bg-green-600 border-2 border-green-800 text-white transform transition hover:scale-105 duration-200 shadow-lg">
             🧰 Host Dashboard
           </a>
 
           <div id="teamButtons" class="flex flex-col sm:flex-row gap-4 items-center"></div>
+
           <div id="authButtonWrapper" class="flex flex-col sm:flex-row gap-4 items-center "></div>
         </div>
 
@@ -366,7 +361,7 @@
     const inTeam = memberships && memberships.length > 0;
     teamWrapper.innerHTML = `
       <a href="${inTeam ? '/team-dashboard.html' : '/view-teams.html'}"
-        class="bg-blue-500 border-2 border-blue-700 text-white px-6 py-3 rounded-lg font-semibold transform transition hover:scale-105 duration-200 shadow-lg">
+        class="hero-btn bg-blue-500 border-2 border-blue-700 text-white px-6 py-3 rounded-lg font-semibold transform transition hover:scale-105 duration-200 shadow-lg">
         👥 ${inTeam ? 'My Team' : 'Create / Join Team'}
       </a>
     `;
@@ -374,13 +369,13 @@
   } else {
     authWrapper.innerHTML = `
       <a href="/login.html"
-        class="bg-red-500 border-2 border-red-700 text-white px-6 py-3 rounded-lg font-semibold transform transition hover:scale-105 duration-200 shadow-lg">
+        class="hero-btn bg-red-500 border-2 border-red-700 text-white px-6 py-3 rounded-lg font-semibold transform transition hover:scale-105 duration-200 shadow-lg">
         🔑 Login
       </a>
     `;
     teamWrapper.innerHTML = `
       <a href="/login.html"
-        class="bg-yellow-500 border-2 border-yellow-700 text-white px-6 py-3 rounded-lg font-semibold transform transition hover:scale-105 duration-200 shadow-lg">
+        class="hero-btn bg-yellow-500 border-2 border-yellow-700 text-white px-6 py-3 rounded-lg font-semibold transform transition hover:scale-105 duration-200 shadow-lg">
         👉 Login for Team
       </a>
     `;
