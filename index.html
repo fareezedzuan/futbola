@@ -112,6 +112,13 @@
           <a href="/book-game.html" class="bg-gradient-to-r from-purple-500 via-orange-500 to-pink-500 border-2 border-purple-600 text-white px-6 py-3 rounded-lg font-semibold transform transition hover:scale-105 duration-200 shadow-lg">
             🎮 Book Game
           </a>
+
+          <!-- Host/Admin Dashboard (hidden by default, shown if category_role matches) -->
+          <a id="hostDashboardBtn" href="/host/sessions.html" style="display:none;"
+            class="bg-green-600 border-2 border-green-800 text-white px-6 py-3 rounded-lg font-semibold transform transition hover:scale-105 duration-200 shadow-lg">
+            🧰 Host Dashboard
+          </a>
+
           <div id="teamButtons" class="flex flex-col sm:flex-row gap-4 items-center"></div>
           <div id="authButtonWrapper" class="flex flex-col sm:flex-row gap-4 items-center "></div>
         </div>
@@ -328,7 +335,7 @@
     if (user) {
       const { data: profile } = await supabase
         .from('profiles')
-        .select('full_name')
+        .select('full_name, category_role')
         .eq('id', user.id)
         .single();
 
@@ -346,6 +353,14 @@
           🔑 Login
         </a>
       `;
+      // Show Host Dashboard if category_role includes "Organizer" or "Admin"
+      const hostBtn = document.getElementById('hostDashboardBtn');
+      if (Array.isArray(profile?.category_role)) {
+        const rolesLower = profile.category_role.map(r => r.toLowerCase());
+        if (rolesLower.includes('organizer') || rolesLower.includes('admin')) {
+          hostBtn.style.display = 'inline-block';
+        }
+      }
     }
 
     const teamWrapper = document.getElementById("teamButtons");
