@@ -1355,15 +1355,22 @@ document.getElementById('editScheduleBtn').addEventListener('click', () => {
     return;
   }
 
-// Build an array of team names from existing generatedMatches
+// Build unique list of team IDs from generated matches
 const teamOptions = [...new Set(
   window.generatedMatches.flatMap(m => [m.team1_id, m.team2_id])
 )].filter(Boolean);
 
+// Map to display names if available from team inputs
+const teamNameMap = {};
+document.querySelectorAll('#teamInputs input').forEach(inp => {
+  teamNameMap[inp.value] = inp.value; // here ID == name, but future-proof
+});
+
 window.generatedMatches.forEach((m, idx) => {
-  const optionsHTML = teamOptions.map(t => 
-    `<option value="${t}">${t}</option>`
-  ).join('');
+  const optionsHTML = teamOptions.map(t => {
+    const label = teamNameMap[t] || t;
+    return `<option value="${t}">${label}</option>`;
+  }).join('');
 
   list.innerHTML += `
     <div style="margin-bottom:8px; display:flex; align-items:center; gap:6px;">
