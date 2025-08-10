@@ -363,10 +363,20 @@
     }
 
     // ✅ Team button
-    const { data: memberships } = await supabase
-      .from('team_members')
-      .select('team_id')
-      .eq('player_id', user.id);
+    let memberships = [];
+    try {
+      const { data, error } = await supabase
+        .from('team_members')
+        .select('team_id')
+        .eq('player_id', user.id);
+
+      if (!error) {
+        memberships = data;
+      }
+    } catch (e) {
+      // Silently ignore or console.warn if debugging:
+      // console.warn('Team lookup failed:', e);
+    }
 
     const inTeam = memberships && memberships.length > 0;
     teamWrapper.innerHTML = `
