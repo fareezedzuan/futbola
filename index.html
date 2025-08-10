@@ -236,11 +236,11 @@
         <!-- Card 3 -->
         <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-sm border border-gray-200 flex flex-col justify-between h-full">
           <div>
-            <h3 class="text-xl font-semibold text-black mb-2">TSI Sports Arena Cyberjaya</h3>
-            <p class="text-lg text-gray-600 mt-2 mb-10">Coming Soon</p>
+            <h3 class="text-xl font-semibold text-black mb-2">IOI City Mall Putrajaya</h3>
+            <p class="text-lg text-gray-600 mt-2 mb-10">Weekend Recharge on Saturday 4-6PM</p>
             <img src="./images/TSI.jfif" class="mb-4 mx-auto object-cover w-[225px] h-[150px] rounded-md" alt="TSI Cyberjaya" />
           </div>
-          <p class="text-sm text-gray-600 mt-auto">📍 Cyber 6, Cyberjaya</p>
+          <p class="text-sm text-gray-600 mt-auto">📍 IOI Putrajaya</p>
         </div>
       </div>
       
@@ -338,7 +338,7 @@
     const firstName = profile?.full_name?.split(" ")[0] ?? "Player";
     authWrapper.innerHTML = `
       <a href="/player-profile.html"
-        class="hero-btn bg-purple-600 border-2 border-purple-800 text-white px-6 py-3 rounded-lg font-semibold transform transition hover:scale-105 duration-200 shadow-lg">
+        class="hero-btn bg-purple-600 border-2 border-purple-800 text-white rounded-lg font-semibold transform transition hover:scale-105 duration-200 shadow-lg">
         🧑‍💼 View Profile
       </a>
     `;
@@ -361,7 +361,7 @@
     const inTeam = memberships && memberships.length > 0;
     teamWrapper.innerHTML = `
       <a href="${inTeam ? '/team-dashboard.html' : '/view-teams.html'}"
-        class="hero-btn bg-blue-500 border-2 border-blue-700 text-white px-6 py-3 rounded-lg font-semibold transform transition hover:scale-105 duration-200 shadow-lg">
+        class="hero-btn bg-blue-500 border-2 border-blue-700 text-white rounded-lg font-semibold transform transition hover:scale-105 duration-200 shadow-lg">
         👥 ${inTeam ? 'My Team' : 'Create / Join Team'}
       </a>
     `;
@@ -369,13 +369,13 @@
   } else {
     authWrapper.innerHTML = `
       <a href="/login.html"
-        class="hero-btn bg-red-500 border-2 border-red-700 text-white px-6 py-3 rounded-lg font-semibold transform transition hover:scale-105 duration-200 shadow-lg">
+        class="hero-btn bg-red-500 border-2 border-red-700 text-white rounded-lg font-semibold transform transition hover:scale-105 duration-200 shadow-lg">
         🔑 Login
       </a>
     `;
     teamWrapper.innerHTML = `
       <a href="/login.html"
-        class="hero-btn bg-yellow-500 border-2 border-yellow-700 text-white px-6 py-3 rounded-lg font-semibold transform transition hover:scale-105 duration-200 shadow-lg">
+        class="hero-btn bg-yellow-500 border-2 border-yellow-700 text-white rounded-lg font-semibold transform transition hover:scale-105 duration-200 shadow-lg">
         👉 Login for Team
       </a>
     `;
