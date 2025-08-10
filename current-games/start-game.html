@@ -1356,9 +1356,12 @@ document.getElementById('editScheduleBtn').addEventListener('click', () => {
   }
 
 // Build unique list of team IDs from generated matches
-const teamOptions = [...new Set(
-  window.generatedMatches.flatMap(m => [m.team1_id, m.team2_id])
-)].filter(Boolean);
+// Pull from current team name inputs in the UI
+const teamOptions = Array.from(
+  document.querySelectorAll('#teamInputs input')
+)
+.map(inp => inp.value.trim())
+.filter(Boolean);
 
 // Map to display names if available from team inputs
 const teamNameMap = {};
