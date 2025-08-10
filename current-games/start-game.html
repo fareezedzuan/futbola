@@ -187,6 +187,29 @@
   overflow-y: auto;
 }
 
+.schedule-select {
+  appearance: none;
+  background: linear-gradient(to right, #fb923c, #ec4899); /* orange to pink */
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 6px 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  width: 45%;
+}
+
+.schedule-select:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.4);
+}
+
+.schedule-select option {
+  background-color: white;
+  color: black;
+}
+
 
   </style>
 </head>
@@ -1332,32 +1355,49 @@ document.getElementById('editScheduleBtn').addEventListener('click', () => {
     return;
   }
 
-  window.generatedMatches.forEach((m, idx) => {
-    list.innerHTML += `
-      <div style="margin-bottom:8px;">
-        Match ${idx + 1}: 
-        <input type="text" value="${m.team1_id}" data-match="${idx}" data-team="1" style="width:40%">
-        vs
-        <input type="text" value="${m.team2_id}" data-match="${idx}" data-team="2" style="width:40%">
-      </div>
-    `;
-  });
+// Build an array of team names from existing generatedMatches
+const teamOptions = [...new Set(
+  window.generatedMatches.flatMap(m => [m.team1_id, m.team2_id])
+)].filter(Boolean);
+
+window.generatedMatches.forEach((m, idx) => {
+  const optionsHTML = teamOptions.map(t => 
+    `<option value="${t}">${t}</option>`
+  ).join('');
+
+  list.innerHTML += `
+    <div style="margin-bottom:8px; display:flex; align-items:center; gap:6px;">
+      <span style="flex:0 0 70px;">Match ${idx + 1}:</span>
+      <select class="schedule-select" data-match="${idx}" data-team="1">
+        ${optionsHTML}
+      </select>
+      <span style="flex:0 0 20px; text-align:center;">vs</span>
+      <select class="schedule-select" data-match="${idx}" data-team="2">
+        ${optionsHTML}
+      </select>
+    </div>
+  `;
+
+  // Preselect current match values
+  const team1Select = list.querySelector(`select[data-match="${idx}"][data-team="1"]`);
+  const team2Select = list.querySelector(`select[data-match="${idx}"][data-team="2"]`);
+  if (team1Select) team1Select.value = m.team1_id;
+  if (team2Select) team2Select.value = m.team2_id;
+});
 
   document.getElementById('scheduleModal').style.display = 'block';
 });
 
 document.getElementById('saveScheduleBtn').addEventListener('click', () => {
-  document.querySelectorAll('#scheduleList input').forEach(input => {
-    const idx = +input.dataset.match;
-    const team = +input.dataset.team;
-    if (team === 1) window.generatedMatches[idx].team1_id = input.value;
-    else window.generatedMatches[idx].team2_id = input.value;
+  document.querySelectorAll('#scheduleList select').forEach(select => {
+    const idx = +select.dataset.match;
+    const team = +select.dataset.team;
+    if (team === 1) window.generatedMatches[idx].team1_id = select.value;
+    else window.generatedMatches[idx].team2_id = select.value;
   });
   console.log('Updated matches:', window.generatedMatches);
   document.getElementById('scheduleModal').style.display = 'none';
 });
-
-
 
   </script>
 </body>
