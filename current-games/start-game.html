@@ -1391,6 +1391,16 @@ document.getElementById('editScheduleBtn').addEventListener('click', async () =>
     .eq('game_id', gameId)
     .maybeSingle();
 
+    if (sessionErr) {
+  console.error("Error fetching game_session_id:", sessionErr);
+  return;
+}
+if (!sessionRow) {
+  console.warn("No game session found for game_id:", gameId);
+  alert("⚠ No existing game session found for this game. Please set up the game first.");
+  return;
+}
+
   if (sessionErr) {
     console.error("Error fetching game_session_id:", sessionErr);
     return;
