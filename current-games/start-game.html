@@ -396,6 +396,23 @@
       }));
 
       activePlayers = [...allPlayers];
+      // 🔍 Check if matches already exist for this game
+const { data: existingMatches, error: matchError } = await supabase
+  .from('session_matches')
+  .select('match_number')
+  .eq('game_id', gameId);
+
+if (matchError) {
+  console.error("Error checking matches:", matchError);
+} else if (existingMatches.length > 0) {
+  // Matches exist → show all relevant buttons
+  document.getElementById("editScheduleBtn").style.display = "inline-block";
+  document.getElementById("goToTrackMatchBtn").style.display = "inline-block";
+} else {
+  // No matches yet → hide until game is set
+  document.getElementById("editScheduleBtn").style.display = "none";
+  document.getElementById("goToTrackMatchBtn").style.display = "none";
+}
 
       // Clear team assignment UI state
       document.getElementById("teamCount").value = ""; // reset team count
