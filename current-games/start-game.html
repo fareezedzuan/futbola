@@ -1372,19 +1372,29 @@ document.getElementById('editScheduleBtn').addEventListener('click', async () =>
     return;
   }
 
-// Build unique list of team IDs from generated matches
-// Pull from current team name inputs in the UI
-const teamOptions = Array.from(
-  document.querySelectorAll('#teamInputs input')
-)
-.map(inp => inp.value.trim())
-.filter(Boolean);
+// 🔄 Always fetch team names from DB to avoid mismatch
+const { data: teamRows, error: teamErr } = await supabase
+  .from('session_teams')
+  .select('team_color')
+  .eq('game_id', sessionStorage.getItem("gameId"));
 
-// Map to display names if available from team inputs
+if (teamErr) {
+  console.error("❌ Error loading session_teams:", teamErr);
+}
+
+// Build unique options from DB
+const teamOptions = [...new Set((teamRows || []).map(t => t.team_color))];
+
+// Map for display labels
 const teamNameMap = {};
-document.querySelectorAll('#teamInputs input').forEach(inp => {
-  teamNameMap[inp.value] = inp.value; // here ID == name, but future-proof
+teamOptions.forEach(color => {
+  teamNameMap[color] = color; // in your case team_color is the display name
 });
+
+// ⚠️ Also overwrite window.generatedMatches with the fresh DB matches
+if (freshMatches && freshMatches.length) {
+  window.generatedMatches = freshMatches;
+}
 
 window.generatedMatches.forEach((m, idx) => {
   const optionsHTML = teamOptions.map(t => {
