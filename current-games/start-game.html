@@ -1365,6 +1365,20 @@ document.getElementById('editScheduleBtn').addEventListener('click', async () =>
     console.error("Error fetching matches from DB:", error);
   } else {
     console.log("Fresh matches from DB:", freshMatches);
+    // Fetch all teams for dropdowns
+const { data: allTeams, error: teamError } = await supabase
+  .from("session_teams")
+  .select("team_id, team_name")
+  .eq("game_id", gameId);
+
+if (teamError) {
+  console.error("Error fetching teams:", teamError);
+  return;
+}
+
+const teamOptions = allTeams
+  .map(t => `<option value="${t.team_id}">${t.team_name}</option>`)
+  .join("");
     console.log("=== TEAM OPTIONS (from DB session_teams) ===", teamOptions);
 console.log("=== TEAM NAME MAP ===", teamNameMap);
 console.log("=== GENERATED MATCHES BEFORE BUILD ===", window.generatedMatches);
