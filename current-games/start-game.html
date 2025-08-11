@@ -1377,11 +1377,80 @@ generateGroupInputs();
 document.getElementById('editScheduleBtn').addEventListener('click', async () => {
   const list = document.getElementById('scheduleList');
   list.innerHTML = '';
-  console.log("=== DEBUG: window.generatedMatches at open ===");
-  console.log(window.generatedMatches);
-  window.generatedMatches.forEach((m, idx) => {
-  console.log(`Match ${idx+1}:`, m.team1_id, "vs", m.team2_id);
+
+  const gameId = sessionStorage.getItem("gameId");
+  if (!gameId) {
+    alert("No game ID found in session storage.");
+    return;
+  }
+
+  // Get game_session_id for this game
+  const { data: sessionRow, error: sessionErr } = await supabase
+    .from('games_sessions')
+    .select('id')
+    .eq('game_id', gameId)
+    .single();
+
+  if (sessionErr) {
+    console.error("Error fetching game_session_id:", sessionErr);
+    return;
+  }
+  const gameSessionId = sessionRow.id;
+
+  // Fetch matches with team names in one query
+  const { data: matches, error: matchErr } = await supabase
+    .from('session_matches')
+    .select(`
+      id,
+      match_number,
+      team1_id,
+      team2_id,
+      team1:team1_id ( team_name ),
+      team2:team2_id ( team_name )
+    `)
+    .eq('game_session_id', gameSessionId)
+    .order('match_number', { ascending: true });
+
+  if (matchErr) {
+    console.error("Error fetching matches:", matchErr);
+    return;
+  }
+
+  // Fetch all teams for dropdown options
+  const { data: teams, error: teamErr } = await supabase
+    .from('session_teams')
+    .select('team_id, team_name')
+    .eq('game_id', gameId);
+
+  if (teamErr) {
+    console.error("Error fetching teams:", teamErr);
+    return;
+  }
+
+  const teamOptionsHTML = teams.map(t =>
+    `<option value="${t.team_id}">${t.team_name}</option>`
+  ).join('');
+
+  // Build editable rows
+  matches.forEach((m, idx) => {
+    list.innerHTML += `
+      <div style="margin-bottom:8px;">
+        Match ${idx + 1}:
+        <select data-match="${idx}" data-team="1">${teamOptionsHTML}</select>
+        vs
+        <select data-match="${idx}" data-team="2">${teamOptionsHTML}</select>
+      </div>
+    `;
+
+    const t1 = list.querySelector(`select[data-match="${idx}"][data-team="1"]`);
+    const t2 = list.querySelector(`select[data-match="${idx}"][data-team="2"]`);
+
+    t1.value = m.team1_id;
+    t2.value = m.team2_id;
   });
+
+  document.getElementById('scheduleModal').style.display = 'block';
+});
 
   // Optional: fetch the latest from Supabase for comparison
   const { data: freshMatches, error } = await supabase
