@@ -1346,9 +1346,26 @@ handlePlayStyleChange(); // 📌 add at the end of script
 generateCourtInputs(); // 👈 renders court name inputs on first load
 generateGroupInputs();
 
-document.getElementById('editScheduleBtn').addEventListener('click', () => {
+document.getElementById('editScheduleBtn').addEventListener('click', async () => {
   const list = document.getElementById('scheduleList');
   list.innerHTML = '';
+  console.log("=== DEBUG: window.generatedMatches at open ===");
+  console.log(window.generatedMatches);
+  window.generatedMatches.forEach((m, idx) => {
+  console.log(`Match ${idx+1}:`, m.team1_id, "vs", m.team2_id);
+  });
+
+  // Optional: fetch the latest from Supabase for comparison
+  const { data: freshMatches, error } = await supabase
+    .from('session_matches')
+    .select('*')
+    .eq('game_session_id', state.gameSessionId); // or your session id variable
+
+  if (error) {
+    console.error("Error fetching matches from DB:", error);
+  } else {
+    console.log("Fresh matches from DB:", freshMatches);
+  }
 
   if (!window.generatedMatches || !window.generatedMatches.length) {
     list.innerHTML = '<p>No matches generated yet.</p>';
