@@ -1365,6 +1365,9 @@ document.getElementById('editScheduleBtn').addEventListener('click', async () =>
     console.error("Error fetching matches from DB:", error);
   } else {
     console.log("Fresh matches from DB:", freshMatches);
+    console.log("=== TEAM OPTIONS (from DB session_teams) ===", teamOptions);
+console.log("=== TEAM NAME MAP ===", teamNameMap);
+console.log("=== GENERATED MATCHES BEFORE BUILD ===", window.generatedMatches);
   }
 
   if (!window.generatedMatches || !window.generatedMatches.length) {
@@ -1397,6 +1400,9 @@ if (freshMatches && freshMatches.length) {
 }
 
 window.generatedMatches.forEach((m, idx) => {
+  console.log(`--- Building Match ${idx+1} ---`);
+console.log("Team1 from DB:", m.team1_id);
+console.log("Team2 from DB:", m.team2_id);
   const optionsHTML = teamOptions.map(t => {
     const label = teamNameMap[t] || t;
     return `<option value="${t}">${label}</option>`;
@@ -1420,6 +1426,10 @@ window.generatedMatches.forEach((m, idx) => {
   const team2Select = list.querySelector(`select[data-match="${idx}"][data-team="2"]`);
   if (team1Select) team1Select.value = m.team1_id;
   if (team2Select) team2Select.value = m.team2_id;
+  console.log("Dropdown1 options:", Array.from(team1Select.options).map(o => o.value));
+console.log("Dropdown1 selected:", team1Select.value);
+console.log("Dropdown2 options:", Array.from(team2Select.options).map(o => o.value));
+console.log("Dropdown2 selected:", team2Select.value);
 });
 
   document.getElementById('scheduleModal').style.display = 'block';
