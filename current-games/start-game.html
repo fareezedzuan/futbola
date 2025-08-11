@@ -400,7 +400,7 @@
 const { data: existingMatches, error: matchError } = await supabase
   .from('session_matches')
   .select('match_number')
-  .eq('game_id', gameId);
+  .eq('game_session_id', gameId);
 
 if (matchError) {
   console.error("Error checking matches:", matchError);
