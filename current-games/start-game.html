@@ -407,7 +407,7 @@
 const { data: session, error: sessionError } = await supabase
   .from("games_sessions")
   .select("match_duration, rounds, team_count, play_style, num_courts, court_names, group_assignment, group_names")
-  .sessionStorage.getItem("gameId")
+  .eq("game_id", gameId)
   .single();
 
 if (session) {
@@ -1369,7 +1369,7 @@ document.getElementById('editScheduleBtn').addEventListener('click', async () =>
 const { data: allTeams, error: teamError } = await supabase
   .from("session_teams")
   .select("team_id, team_name")
-  sessionStorage.getItem("gameId")
+  .eq("game_id", gameId);
 
 if (teamError) {
   console.error("Error fetching teams:", teamError);
