@@ -396,22 +396,33 @@
       }));
 
       activePlayers = [...allPlayers];
-      // 🔍 Check if matches already exist for this game
-const { data: existingMatches, error: matchError } = await supabase
-  .from('session_matches')
-  .select('match_number')
-  .eq('game_session_id', gameId);
+// 🔍 First get game_session_id from games_sessions
+const { data: sessionRow, error: sessionErr } = await supabase
+  .from('games_sessions')
+  .select('id')
+  .eq('game_id', gameId)
+  .single();
 
-if (matchError) {
-  console.error("Error checking matches:", matchError);
-} else if (existingMatches.length > 0) {
-  // Matches exist → show all relevant buttons
-  document.getElementById("editScheduleBtn").style.display = "inline-block";
-  document.getElementById("goToTrackMatchBtn").style.display = "inline-block";
+if (sessionErr) {
+  console.error("Error fetching game_session_id:", sessionErr);
 } else {
-  // No matches yet → hide until game is set
-  document.getElementById("editScheduleBtn").style.display = "none";
-  document.getElementById("goToTrackMatchBtn").style.display = "none";
+  const gameSessionId = sessionRow.id;
+
+  // Now check if matches exist for that game_session_id
+  const { data: existingMatches, error: matchError } = await supabase
+    .from('session_matches')
+    .select('match_number')
+    .eq('game_session_id', gameSessionId);
+
+  if (matchError) {
+    console.error("Error checking matches:", matchError);
+  } else if (existingMatches.length > 0) {
+    document.getElementById("editScheduleBtn").style.display = "inline-block";
+    document.getElementById("goToTrackMatchBtn").style.display = "inline-block";
+  } else {
+    document.getElementById("editScheduleBtn").style.display = "none";
+    document.getElementById("goToTrackMatchBtn").style.display = "none";
+  }
 }
 
       // Clear team assignment UI state
