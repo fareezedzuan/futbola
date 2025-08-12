@@ -1350,9 +1350,12 @@ groupNames.forEach(name => {
   }
 
 
-    document.getElementById("gameSelect").addEventListener("change", e => {
-      if (e.target.value) fetchPlayers(e.target.value);
-    });
+document.getElementById("gameSelect").addEventListener("change", e => {
+  if (e.target.value) {
+    sessionStorage.setItem("gameId", e.target.value); // ✅ store for later use
+    fetchPlayers(e.target.value);
+  }
+});
 
     fetchGames();
 
