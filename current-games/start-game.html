@@ -1411,17 +1411,46 @@ if (!sessionRow) {
   }
   const gameSessionId = sessionRow.id;
 
-  // Fetch matches with team names in one query
-  const { data: matches, error: matchErr } = await supabase
-    .from('session_matches')
-    .select(`
-      id,
-      match_number,
-      team1_id,
-      team2_id,
-      team1:team1_id ( team_name ),
-      team2:team2_id ( team_name )
-    `)
+// Fetch matches WITHOUT join (no FK relationship exists)
+const { data: matches, error: matchErr } = await supabase
+  .from('session_matches')
+  .select('id, match_number, team1_id, team2_id')
+  .eq('game_session_id', gameSessionId)
+  .order('match_number', { ascending: true });
+
+if (matchErr) {
+  console.error("Error fetching matches:", matchErr);
+  return;
+}
+
+// Fetch all teams for dropdown options
+const { data: teams, error: teamErr } = await supabase
+  .from('session_teams')
+  .select('team_color')
+  .eq('game_id', gameId);
+
+if (teamErr) {
+  console.error("Error fetching teams:", teamErr);
+  return;
+}
+
+// Build editable rows
+matches.forEach((m, idx) => {
+  list.innerHTML += `
+    <div style="margin-bottom:8px;">
+      Match ${idx + 1}:
+      <select data-match="${idx}" data-team="1">${teamOptionsHTML}</select>
+      vs
+      <select data-match="${idx}" data-team="2">${teamOptionsHTML}</select>
+    </div>
+  `;
+
+  const t1 = list.querySelector(`select[data-match="${idx}"][data-team="1"]`);
+  const t2 = list.querySelector(`select[data-match="${idx}"][data-team="2"]`);
+
+  t1.value = m.team1_id;
+  t2.value = m.team2_id;
+});
     .eq('game_session_id', gameSessionId)
     .order('match_number', { ascending: true });
 
