@@ -1375,6 +1375,7 @@ generateCourtInputs(); // 👈 renders court name inputs on first load
 generateGroupInputs();
 
 document.getElementById('editScheduleBtn').addEventListener('click', async () => {
+  console.log("💡 Edit Schedule clicked. gameId in sessionStorage:", sessionStorage.getItem("gameId"));
   const list = document.getElementById('scheduleList');
   list.innerHTML = '';
 
