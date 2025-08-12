@@ -1434,14 +1434,19 @@ if (teamErr) {
   return;
 }
 
+// Build dropdown HTML
+const dropdownOptionsHTML = teams
+  .map(t => `<option value="${t.team_color}">${t.team_color}</option>`)
+  .join('');
+
 // Build editable rows
 matches.forEach((m, idx) => {
   list.innerHTML += `
     <div style="margin-bottom:8px;">
       Match ${idx + 1}:
-      <select data-match="${idx}" data-team="1">${teamOptionsHTML}</select>
+      <select data-match="${idx}" data-team="1">${dropdownOptionsHTML}</select>
       vs
-      <select data-match="${idx}" data-team="2">${teamOptionsHTML}</select>
+      <select data-match="${idx}" data-team="2">${dropdownOptionsHTML}</select>
     </div>
   `;
 
