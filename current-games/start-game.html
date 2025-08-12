@@ -1010,6 +1010,89 @@ console.log("🧠 Final groupAssignment", groupAssignment);
   const uniqueTeams = [...new Set(sessionTeams.map(t => t.team_color))];
 
   await supabase.from('session_matches').delete().eq('game_session_id', gameSessionId);
+  // ✅ Special-case fixed schedules for 5–8 teams / 2 courts
+if (courtCount === 2 && ["5","6","7","8"].includes(count.toString())) {
+    let fixedSchedule = [];
+
+    if (count === 5) {
+        fixedSchedule = [
+            [1, 1, "Orange", "Blue"], [1, 2, "Green", "White"],
+            [2, 1, "Orange", "Green"], [2, 2, "Blue", "Black"],
+            [4, 1, "Orange", "White"], [4, 2, "Green", "Black"],
+            [5, 1, "Orange", "Black"], [5, 2, "Blue", "White"],
+            [6, 1, "Blue", "Green"], [6, 2, "White", "Black"],
+            [7, 1, "Blue", "Orange"], [7, 2, "White", "Green"],
+            [9, 1, "Green", "Orange"], [9, 2, "Black", "Blue"],
+            [10, 1, "White", "Orange"], [10, 2, "Black", "Green"],
+            [11, 1, "Black", "Orange"], [11, 2, "White", "Blue"],
+            [12, 1, "Green", "Blue"], [12, 2, "Black", "White"],
+        ];
+    }
+    else if (count === 6) {
+        fixedSchedule = [
+            [1, 1, "Orange", "Yellow"], [1, 2, "Blue", "White"],
+            [2, 1, "Green", "Black"], [2, 2, "Orange", "Blue"],
+            [3, 1, "Yellow", "White"], // Court 2 idle
+            [4, 1, "Orange", "Green"], [4, 2, "Yellow", "Black"],
+            [5, 1, "White", "Green"], [5, 2, "Blue", "Black"],
+            [6, 1, "Orange", "White"], [6, 2, "Yellow", "Blue"],
+            [7, 1, "Orange", "Black"], [7, 2, "Yellow", "Green"],
+            [8, 1, "White", "Black"], [8, 2, "Blue", "Green"],
+        ];
+    }
+    else if (count === 7) {
+        fixedSchedule = [
+            [1, 1, "Orange", "Yellow"], [1, 2, "Blue", "White"],
+            [2, 1, "Green", "Black"], [2, 2, "Turquoise", "Orange"],
+            [3, 1, "Yellow", "Blue"], [3, 2, "White", "Green"],
+            [4, 1, "Black", "Turquoise"], [4, 2, "Orange", "Blue"],
+            [5, 1, "Yellow", "Green"], [5, 2, "White", "Black"],
+            [6, 1, "Turquoise", "Blue"], [6, 2, "Orange", "Green"],
+            [7, 1, "Yellow", "Black"], [7, 2, "White", "Turquoise"],
+            [8, 1, "Orange", "Black"], [8, 2, "Green", "Turquoise"],
+            [9, 1, "Yellow", "White"], [9, 2, "Blue", "Green"],
+            [10, 1, "Black", "Blue"], [10, 2, "Orange", "White"],
+            [11, 1, "Turquoise", "Yellow"], // Court 2 idle
+        ];
+    }
+    else if (count === 8) {
+        fixedSchedule = [
+            [1, 1, "Orange", "Green"], [1, 2, "Red", "Blue"],
+            [2, 1, "Black", "Green"], [2, 2, "Orange", "White"],
+            [3, 1, "Blue", "Yellow"], [3, 2, "White", "Turquoise"],
+            [4, 1, "Turquoise", "Green"], [4, 2, "Red", "Orange"],
+            [5, 1, "Orange", "Blue"], [5, 2, "Green", "Yellow"],
+            [6, 1, "White", "Red"], [6, 2, "Black", "Turquoise"],
+            [7, 1, "Red", "Yellow"], [7, 2, "White", "Blue"],
+            [8, 1, "Black", "Yellow"], [8, 2, "Turquoise", "Blue"],
+            [9, 1, "Red", "Green"], [9, 2, "Orange", "Turquoise"],
+            [10, 1, "Black", "Blue"], [10, 2, "Orange", "Yellow"],
+            [11, 1, "Black", "White"], [11, 2, "Green", "Blue"],
+            [12, 1, "White", "Yellow"], [12, 2, "Red", "Turquoise"],
+            [13, 1, "Black", "Orange"], [13, 2, "Turquoise", "Yellow"],
+            [14, 1, "Red", "Black"], [14, 2, "White", "Green"],
+        ];
+    }
+
+    const matchInsertData = fixedSchedule.map((row, i) => ({
+        game_session_id: gameSessionId,
+        match_number: i + 1,
+        court_number: row[1],
+        team1_id: row[2],
+        team2_id: row[3],
+        round: 1,
+        stage: "group",
+        group_label: "Group A"
+    }));
+
+    const { error: insertErr } = await supabase.from('session_matches').insert(matchInsertData);
+    if (insertErr) console.error("❌ Error inserting fixed schedule:", insertErr);
+    else console.log(`✅ Inserted ${matchInsertData.length} fixed matches for ${count} teams / 2 courts`);
+
+    window.generatedMatches = matchInsertData;
+    document.getElementById('editScheduleBtn').style.display = 'inline-block';
+    return; // skip generic generator
+}
   // 🧠 Generate round-robin matches per group
 let matchInsertData = [];
 let matchCounter = 1;
