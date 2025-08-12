@@ -1193,7 +1193,6 @@ if (playStyle === "multi_stage" && uniqueTeams.length === 8 && courtCount === 2)
   sessionStorage.setItem("venue", venueText.trim());
   sessionStorage.setItem("date", datetimeText.trim());
 
-  //window.location.href = "track-match.html";
   alert("✅ Match setup complete!\nYou can now proceed to Track Match to officiate games.");
 
   // Show "Go to Track Match" button
@@ -1201,7 +1200,7 @@ if (playStyle === "multi_stage" && uniqueTeams.length === 8 && courtCount === 2)
   if (trackBtn) {
     trackBtn.style.display = "block";
     trackBtn.addEventListener("click", () => {
-      window.location.href = "track-match.html";
+      window.location.href = "track-match-flexi.html";
     }, { once: true }); // ✅ prevent multiple event bindings
   }
 
