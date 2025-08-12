@@ -1455,38 +1455,32 @@ document.getElementById('editScheduleBtn').addEventListener('click', async () =>
 
   // 6) Save button: update our in-memory copy and persist to DB
   const saveBtn = document.getElementById('saveScheduleBtn');
-  saveBtn.onclick = async () => {
-    // Update local generatedMatches (if you use it later)
-    document.querySelectorAll('#scheduleList select').forEach(select => {
-      const idx = +select.dataset.match;
-      const side = +select.dataset.team;
-      if (side === 1) window.generatedMatches[idx].team1_id = select.value;
-      else window.generatedMatches[idx].team2_id = select.value;
-    });
-
-    // Persist to DB
-    const updates = matches.map((m, idx) => ({
+saveBtn.onclick = async () => {
+  // Build updates directly from DOM values
+  const updates = matches.map((m, idx) => {
+    const t1 = document.querySelector(`select[data-match="${idx}"][data-team="1"]`).value;
+    const t2 = document.querySelector(`select[data-match="${idx}"][data-team="2"]`).value;
+    return {
       id: m.id,
-      team1_id: window.generatedMatches[idx].team1_id,
-      team2_id: window.generatedMatches[idx].team2_id,
-    }));
+      team1_id: t1,
+      team2_id: t2
+    };
+  });
 
-    // Supabase upserts/updates in a loop (or batch if you prefer RPC)
-    for (const u of updates) {
-      const { error } = await supabase
-        .from('session_matches')
-        .update({ team1_id: u.team1_id, team2_id: u.team2_id })
-        .eq('id', u.id);
-      if (error) {
-        console.error(error);
-        alert('Failed to save some match changes.');
-        return;
-      }
-    }
+  // Batch update in one request
+  const { error } = await supabase
+    .from('session_matches')
+    .upsert(updates, { onConflict: 'id' });
 
-    document.getElementById('scheduleModal').style.display = 'none';
-    alert('Schedule saved ✅');
-  };
+  if (error) {
+    console.error('❌ Failed to save changes:', error);
+    alert('❌ Failed to save changes.');
+    return;
+  }
+
+  alert('✅ Schedule saved.');
+  document.getElementById('scheduleModal').style.display = 'none';
+};
 });
 
 document.getElementById('saveScheduleBtn').addEventListener('click', () => {
