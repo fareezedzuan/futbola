@@ -414,15 +414,23 @@ if (sessionErr) {
     .select('match_number')
     .eq('game_session_id', gameSessionId);
 
-  if (matchError) {
-    console.error("Error checking matches:", matchError);
-  } else if (existingMatches.length > 0) {
-    document.getElementById("editScheduleBtn").style.display = "inline-block";
-    document.getElementById("goToTrackMatchBtn").style.display = "inline-block";
-  } else {
-    document.getElementById("editScheduleBtn").style.display = "none";
-    document.getElementById("goToTrackMatchBtn").style.display = "none";
-  }
+if (matchError) {
+  console.error("Error checking matches:", matchError);
+} else if (existingMatches.length > 0) {
+  document.getElementById("editScheduleBtn").style.display = "inline-block";
+  
+  const trackBtn = document.getElementById("goToTrackMatchBtn");
+  trackBtn.style.display = "inline-block";
+  trackBtn.onclick = () => {
+    sessionStorage.setItem("gameId", gameId);
+    sessionStorage.setItem("gameSessionId", gameSessionId); // if you have it from earlier in fetchPlayers
+    window.location.href = "track-match-flexi.html";
+  };
+
+} else {
+  document.getElementById("editScheduleBtn").style.display = "none";
+  document.getElementById("goToTrackMatchBtn").style.display = "none";
+}
 }
 
       // Clear team assignment UI state
