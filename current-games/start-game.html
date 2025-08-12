@@ -1378,85 +1378,116 @@ generateCourtInputs(); // 👈 renders court name inputs on first load
 generateGroupInputs();
 
 document.getElementById('editScheduleBtn').addEventListener('click', async () => {
-  console.log("💡 Edit Schedule clicked. gameId in sessionStorage:", sessionStorage.getItem("gameId"));
   const list = document.getElementById('scheduleList');
   list.innerHTML = '';
 
   const gameId = sessionStorage.getItem("gameId");
   if (!gameId) {
-    alert("No game ID found in session storage.");
+    alert("No game selected. Set up a game first.");
     return;
   }
 
-  // Get game_session_id for this game
+  // 1) Find the session
   const { data: sessionRow, error: sessionErr } = await supabase
     .from('games_sessions')
     .select('id')
     .eq('game_id', gameId)
     .maybeSingle();
 
-    if (sessionErr) {
-  console.error("Error fetching game_session_id:", sessionErr);
-  return;
-}
-if (!sessionRow) {
-  console.warn("No game session found for game_id:", gameId);
-  alert("⚠ No existing game session found for this game. Please set up the game first.");
-  return;
-}
-
   if (sessionErr) {
-    console.error("Error fetching game_session_id:", sessionErr);
+    console.error(sessionErr);
+    alert("Couldn't load game session.");
+    return;
+  }
+  if (!sessionRow) {
+    alert("No session found. Please run Setup Game first.");
     return;
   }
   const gameSessionId = sessionRow.id;
 
-// Fetch matches WITHOUT join (no FK relationship exists)
-const { data: matches, error: matchErr } = await supabase
-  .from('session_matches')
-  .select('id, match_number, team1_id, team2_id')
-  .eq('game_session_id', gameSessionId)
-  .order('match_number', { ascending: true });
+  // 2) Load matches (no joins; team1_id/team2_id are strings = colors)
+  const { data: matches, error: matchErr } = await supabase
+    .from('session_matches')
+    .select('id, match_number, team1_id, team2_id')
+    .eq('game_session_id', gameSessionId)
+    .order('match_number', { ascending: true });
 
-if (matchErr) {
-  console.error("Error fetching matches:", matchErr);
-  return;
-}
-
-  // Fetch all teams for dropdown options
-  const { data: teams, error: teamErr } = await supabase
-    .from('session_teams')
-    .select('team_id, team_name')
-    .eq('game_id', gameId);
-
-  if (teamErr) {
-    console.error("Error fetching teams:", teamErr);
+  if (matchErr) {
+    console.error(matchErr);
+    alert("Couldn't load matches.");
     return;
   }
 
-  const teamOptionsHTML = teams.map(t =>
-    `<option value="${t.team_id}">${t.team_name}</option>`
-  ).join('');
+  // 3) Load available teams for this game (use team_color as the value)
+  const { data: teams, error: teamErr } = await supabase
+    .from('session_teams')
+    .select('team_color')
+    .eq('game_id', gameId);
 
-  // Build editable rows
+  if (teamErr) {
+    console.error(teamErr);
+    alert("Couldn't load teams.");
+    return;
+  }
+
+  const optionsHTML = teams
+    .map(t => `<option value="${t.team_color}">${t.team_color}</option>`)
+    .join('');
+
+  // 4) Build rows
   matches.forEach((m, idx) => {
-    list.innerHTML += `
+    list.insertAdjacentHTML('beforeend', `
       <div style="margin-bottom:8px;">
-        Match ${idx + 1}:
-        <select data-match="${idx}" data-team="1">${teamOptionsHTML}</select>
+        Match ${m.match_number}:
+        <select data-match="${idx}" data-team="1">${optionsHTML}</select>
         vs
-        <select data-match="${idx}" data-team="2">${teamOptionsHTML}</select>
+        <select data-match="${idx}" data-team="2">${optionsHTML}</select>
       </div>
-    `;
+    `);
 
     const t1 = list.querySelector(`select[data-match="${idx}"][data-team="1"]`);
     const t2 = list.querySelector(`select[data-match="${idx}"][data-team="2"]`);
-
-    t1.value = m.team1_id;
-    t2.value = m.team2_id;
+    t1.value = m.team1_id || '';
+    t2.value = m.team2_id || '';
   });
 
+  // 5) Show modal
   document.getElementById('scheduleModal').style.display = 'block';
+
+  // 6) Save button: update our in-memory copy and persist to DB
+  const saveBtn = document.getElementById('saveScheduleBtn');
+  saveBtn.onclick = async () => {
+    // Update local generatedMatches (if you use it later)
+    document.querySelectorAll('#scheduleList select').forEach(select => {
+      const idx = +select.dataset.match;
+      const side = +select.dataset.team;
+      if (side === 1) window.generatedMatches[idx].team1_id = select.value;
+      else window.generatedMatches[idx].team2_id = select.value;
+    });
+
+    // Persist to DB
+    const updates = matches.map((m, idx) => ({
+      id: m.id,
+      team1_id: window.generatedMatches[idx].team1_id,
+      team2_id: window.generatedMatches[idx].team2_id,
+    }));
+
+    // Supabase upserts/updates in a loop (or batch if you prefer RPC)
+    for (const u of updates) {
+      const { error } = await supabase
+        .from('session_matches')
+        .update({ team1_id: u.team1_id, team2_id: u.team2_id })
+        .eq('id', u.id);
+      if (error) {
+        console.error(error);
+        alert('Failed to save some match changes.');
+        return;
+      }
+    }
+
+    document.getElementById('scheduleModal').style.display = 'none';
+    alert('Schedule saved ✅');
+  };
 });
 
 document.getElementById('saveScheduleBtn').addEventListener('click', () => {
