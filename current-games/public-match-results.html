@@ -976,16 +976,16 @@ function generateRoundRobin(teams) {
 
 function getTeamLogo(colorName) {
   const logos = {
-    Red: "../images/red.png",
-    White: "../images/white.png",
-    Green: "../images/green.png",
-    Orange: "../images/orange.png",
-    Black: "../images/black.png",
-    Yellow: "../images/yellow.png",
-    Blue: "../images/blue.png",
-    Turquoise: "../images/turquoise.png"
+    Red: "./images/red.png",
+    White: "./images/white.png",
+    Green: "./images/green.png",
+    Orange: "./images/orange.png",
+    Black: "./images/black.png",
+    Yellow: "./images/yellow.png",
+    Blue: "./images/blue.png",
+    Turquoise: "./images/turquoise.png"
   };
-  return logos[colorName] || "../images/futbolaLogo.png"; // fallback
+  return logos[colorName] || "./images/futbolaLogo.png"; // fallback
 }
 
 async function handleTimerClick() {
@@ -2664,6 +2664,12 @@ setInterval(async () => {
     if (sessionId) loadMatches(sessionId);
   });
 
+  function formatScorers(goals) {
+  return (goals || [])
+    .map(g => `${g.name || g.player || "Unknown"}${g.time ? ` (${g.time}')` : ""}`)
+    .join("<br>");
+}
+
 
   // Load matches based on session + court
 async function loadMatches(sessionId) {
@@ -2702,23 +2708,10 @@ async function loadMatches(sessionId) {
     // After: const { data: matches, error } = await query; ...
 // Fetch extra match metadata (names, logos, live scores)
 for (let m of matches) {
-  const { data: teamAData } = await supabaseClient
-    .from("teams")
-    .select("name, logo_url")
-    .eq("id", m.team1_id)
-    .single();
-
-  const { data: teamBData } = await supabaseClient
-    .from("teams")
-    .select("name, logo_url")
-    .eq("id", m.team2_id)
-    .single();
-
-  // Attach real data for later display
-  m.tA = teamAData?.name || m.team1_id;
-  m.tB = teamBData?.name || m.team2_id;
-  m.tALogo = teamAData?.logo_url || getTeamLogo(m.team1_id);
-  m.tBLogo = teamBData?.logo_url || getTeamLogo(m.team2_id);
+  m.tA = m.team1_id;
+m.tB = m.team2_id;
+m.tALogo = getTeamLogo(m.team1_id);
+m.tBLogo = getTeamLogo(m.team2_id);
 
   // Optionally, fetch live score and scorers from match_results
   const { data: resultData } = await supabaseClient
