@@ -2634,11 +2634,54 @@ setInterval(async () => {
   const prevMatchNumber = matchNumber;
   const prevGoals = currentGoals.slice(); // backup current goals
 
-// Load matches based on session + court
+  await loadMatches(currentSessionId); // reload matchResults
+
+  // 🛠 Restore current match if still valid
+  if (prevMatchNumber > 0 && prevMatchNumber <= matchResults.length) {
+    matchNumber = prevMatchNumber;
+    currentGoals = prevGoals;
+
+    const match = matchResults[matchNumber - 1];
+    if (match) {
+      document.getElementById("teamAName").textContent = match.tA;
+      document.getElementById("teamBName").textContent = match.tB;
+      document.getElementById("teamAIcon").src = getTeamLogo(match.tA);
+      document.getElementById("teamBIcon").src = getTeamLogo(match.tB);
+      document.getElementById("matchTitle").textContent = `Match ${match.number}`;
+
+      updateLiveScoreboard();
+      renderGoalLog();
+    }
+  }
+}, 15000);
+
+
+  });
+
+  // Filter matches by court
+  courtFilter.addEventListener("change", () => {
+    const sessionId = sessionDropdown.value;
+    if (sessionId) loadMatches(sessionId);
+  });
+
+  // 🆕 Filter matches by group
+  groupFilter.addEventListener("change", () => {
+    const sessionId = sessionDropdown.value;
+    if (sessionId) loadMatches(sessionId);
+  });
+
+  function formatScorers(goals) {
+  return (goals || [])
+    .map(g => `${g.name || g.player || "Unknown"}${g.time ? ` (${g.time}')` : ""}`)
+    .join("<br>");
+}
+
+
+  // Load matches based on session + court
 async function loadMatches(sessionId) {
   console.log("🔍 Attempting to load match results for sessionId:", sessionId);
 
-  if (!sessionId) {
+    if (!sessionId) {
     console.warn("⚠️ No sessionId provided. Skipping match load.");
     return;
   }
@@ -2659,23 +2702,37 @@ async function loadMatches(sessionId) {
   }
 
   const selectedGroup = document.getElementById("groupFilter")?.value;
-  if (selectedGroup && selectedGroup !== "all") {
-    query = query.eq("group_label", selectedGroup);
-  }
+    if (selectedGroup && selectedGroup !== "all") {
+      query = query.eq("group_label", selectedGroup);
+    }
 
   try {
     // 1. Fetch matches
     const { data: matches, error } = await query;
     if (error) throw error;
 
-    // Add local names/logos
-    for (let m of matches) {
-      m.tA = m.team1_id;
-      m.tB = m.team2_id;
-      m.tALogo = getTeamLogo(m.team1_id);
-      m.tBLogo = getTeamLogo(m.team2_id);
-      // Don't fetch match_results per match here — we handle it in bulk below
-    }
+    // After: const { data: matches, error } = await query; ...
+// Fetch extra match metadata (names, logos, live scores)
+for (let m of matches) {
+  m.tA = m.team1_id;
+m.tB = m.team2_id;
+m.tALogo = getTeamLogo(m.team1_id);
+m.tBLogo = getTeamLogo(m.team2_id);
+
+  // Optionally, fetch live score and scorers from match_results
+  const { data: resultData } = await supabaseClient
+    .from("match_results")
+    .select("score_a, score_b, goals")
+    .eq("session_id", sessionId)
+    .eq("match_number", m.match_number)
+    .single();
+
+  if (resultData) {
+    m.gA = resultData.score_a;
+    m.gB = resultData.score_b;
+    m.goals = resultData.goals || [];
+  }
+}
 
     // 2. Fetch court names from games_sessions
     const { data: sessionMeta, error: metaError } = await supabaseClient
@@ -2687,54 +2744,53 @@ async function loadMatches(sessionId) {
     courtNames = sessionMeta?.court_names || [];
 
     // 3. Reset global state
-    matchResults = matches.map(m => {
-      console.log("📋 Loaded match with court:", m.match_number, m.court_number);
-      return {
-        id: m.id,
-        number: m.match_number,
-        tA: m.team1_id,
-        tB: m.team2_id,
-        tALogo: m.tALogo,
-        tBLogo: m.tBLogo,
-        gA: null,
-        gB: null,
-        goals: [],
-        court: m.court_number || 1,
-        status: "incoming"
-      };
-    });
+matchResults = matches.map(m => {
+  console.log("📋 Loaded match with court:", m.match_number, m.court_number);
+  return {
+    id: m.id,
+    number: m.match_number,
+    tA: m.team1_id,
+    tB: m.team2_id,
+    gA: null,
+    gB: null,
+    court: m.court_number || 1,
+    status: "incoming"
+  };
+});
 
-    // Rebuild matchups
-    matchups = matchResults.map(m => [m.tA, m.tB]);
+// 🔧 ADD THIS to rebuild matchups properly
+matchups = matchResults.map(m => [m.tA, m.tB]);
+
     allGoals = [];
 
-    // 4. Bulk fetch match_results
-    const { data: results, error: resultError } = await supabaseClient
-      .from("match_results")
-      .select("*")
-      .eq("session_id", sessionId);
+    // 🧠 Merge results from match_results into matchResults
+const { data: results, error: resultError } = await supabaseClient
+  .from("match_results")
+  .select("*")
+  .eq("session_id", sessionId);
 
-    console.log("📥 match_results", results);
+  console.log("📥 match_results", results);
 
-    if (!resultError && results) {
-      results.forEach(r => {
-        const match = matchResults.find(m => m.number === r.match_number);
-        if (match) {
-          match.gA = r.score_a ?? null;
-          match.gB = r.score_b ?? null;
-          match.goals = r.goals ?? [];
-          match.status = r.status ?? "incoming";
+if (resultError) {
+  console.error("❌ Failed to fetch match results:", resultError);
+} else {
+  results.forEach(r => {
+    const match = matchResults.find(m => m.number === r.match_number);
+    if (match) {
+      match.gA = r.score_a ?? null;
+      match.gB = r.score_b ?? null;
+      match.goals = r.goals ?? [];
+      match.status = r.status ?? "incoming";
 
-          (match.goals || []).forEach(goal => {
-            allGoals.push({ ...goal, match_number: r.match_number });
-          });
-        }
+      (match.goals || []).forEach(goal => {
+        allGoals.push({ ...goal, match_number: r.match_number });
       });
-    } else {
-      console.error("❌ Failed to fetch match results:", resultError);
     }
+  });
+}
 
-    // 5. Build grouped dropdown by court name
+
+    // 4. Build grouped dropdown by court name
     matchDropdown.innerHTML = `<option disabled selected>-- Select Match --</option>`;
     const grouped = {};
 
@@ -2761,52 +2817,51 @@ async function loadMatches(sessionId) {
         });
       });
 
-    // Update match history & leaderboard
     updateMatchHistory();
     updateLeaderboard();
     recalculateStandingsFromAllMatches();
-
-    // === Show first pending match in main display ===
-    const pendingMatches = matchResults.filter(m => m.status === "pending");
-
-    if (pendingMatches.length > 0) {
-      const pending = pendingMatches[0]; // Show first pending
-
-      const courtLabel = courtNames[pending.court - 1] || `Court ${pending.court}`;
-      document.getElementById("matchTitle").textContent = courtLabel;
-
-      document.getElementById("teamAName").textContent = pending.tA;
-      document.getElementById("teamBName").textContent = pending.tB;
-
-      document.getElementById("teamAIcon").src = pending.tALogo;
-      document.getElementById("teamBIcon").src = pending.tBLogo;
-
-      document.getElementById("scoreA").textContent = pending.gA ?? 0;
-      document.getElementById("scoreB").textContent = pending.gB ?? 0;
-
-      console.log("🔍 Pending goals object:", pending.goals);
-
-      document.getElementById("goalLogA").innerHTML =
-        (pending.goals || [])
-          .filter(g => g.team === "A")
-          .map(g => `${g.name || g.player} (${g.time || ""}')`)
-          .join("<br>");
-
-      document.getElementById("goalLogB").innerHTML =
-        (pending.goals || [])
-          .filter(g => g.team === "B")
-          .map(g => `${g.name || g.player} (${g.time || ""}')`)
-          .join("<br>");
-
-      document.querySelector(".main-display").style.display = "flex";
-    } else {
-      document.querySelector(".main-display").style.display = "none";
-    }
+    // updateStandingsUI();
 
   } catch (err) {
     console.error("❌ Failed to load matches:", err);
     matchDropdown.innerHTML = `<option disabled selected>⚠️ Failed to load matches</option>`;
   }
+// === Show first pending match in main display ===
+const pendingMatches = matchResults.filter(m => m.status === "pending");
+
+if (pendingMatches.length > 0) {
+  const pending = pendingMatches[0]; // Show first pending
+
+  const courtLabel = courtNames[pending.court - 1] || `Court ${pending.court}`;
+  document.getElementById("matchTitle").textContent = courtLabel;
+
+  document.getElementById("teamAName").textContent = pending.tA;
+  document.getElementById("teamBName").textContent = pending.tB;
+
+document.getElementById("teamAIcon").src = getTeamLogo(pending.tA);
+document.getElementById("teamBIcon").src = getTeamLogo(pending.tB);
+
+  document.getElementById("scoreA").textContent = pending.gA ?? 0;
+  document.getElementById("scoreB").textContent = pending.gB ?? 0;
+
+  console.log("🔍 Pending goals object:", pending.goals);
+
+document.getElementById("goalLogA").innerHTML =
+  (pending.goals || [])
+    .filter(g => g.team === "A")
+    .map(g => `${g.name || g.player} (${g.time || ""}')`)
+    .join("<br>");
+
+document.getElementById("goalLogB").innerHTML =
+  (pending.goals || [])
+    .filter(g => g.team === "B")
+    .map(g => `${g.name || g.player} (${g.time || ""}')`)
+    .join("<br>");
+
+  document.querySelector(".main-display").style.display = "flex";
+} else {
+  document.querySelector(".main-display").style.display = "none";
+}
 }
 
 
