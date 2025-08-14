@@ -2835,7 +2835,8 @@ matchDropdown.addEventListener("change", async (e) => {
     document.getElementById("goalLogB").innerHTML = "";
 
     matchNumber = matchObj.number; // e.g. match 3 = index 2 + 1
-    document.getElementById("matchTitle").textContent = `Court ${courtNumber}`;
+    const courtLabel = courtNames[matchObj.court - 1] || `Court ${matchObj.court}`;
+document.getElementById("matchTitle").textContent = courtLabel;
 
     currentGoals = allGoals.filter(g => g.match_number === matchNumber);
 
