@@ -776,7 +776,7 @@ select.dropdown:focus {
 
     <div class="row-display">
       <div class="team-block" onclick="triggerScorer('A')">
-        <img id="teamAIcon" src="./images/futbolaLogo.png" />
+        <img id="teamAIcon" src="../images/futbolaLogo.png" />
         <span id="teamAName">Team A</span>
         <div class="score-number" id="scoreA">0</div>
         <div class="goal-log" id="goalLogA"></div>
@@ -787,7 +787,7 @@ select.dropdown:focus {
       </div>
 
       <div class="team-block" onclick="triggerScorer('B')">
-        <img id="teamBIcon" src="./images/futbolaLogo.png" />
+        <img id="teamBIcon" src="../images/futbolaLogo.png" />
         <span id="teamBName">Team B</span>
         <div class="score-number" id="scoreB">0</div>
         <div class="goal-log" id="goalLogB"></div>
@@ -2832,8 +2832,8 @@ if (pendingMatches.length > 0) {
   document.getElementById("teamAName").textContent = pending.tA;
   document.getElementById("teamBName").textContent = pending.tB;
 
-  document.getElementById("teamAIcon").src = pending.tALogo;
-  document.getElementById("teamBIcon").src = pending.tBLogo;
+document.getElementById("teamAIcon").src = getTeamLogo(pending.tA);
+document.getElementById("teamBIcon").src = getTeamLogo(pending.tB);
 
   document.getElementById("scoreA").textContent = pending.gA ?? 0;
   document.getElementById("scoreB").textContent = pending.gB ?? 0;
