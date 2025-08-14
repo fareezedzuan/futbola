@@ -2848,13 +2848,13 @@ document.getElementById("teamBIcon").src = getTeamLogo(pending.tB);
 
 document.getElementById("goalLogA").innerHTML =
   (pending.goals || [])
-    .filter(g => g.team === "A")
+    .filter(g => g.team === pending.tA)
     .map(g => `${g.name || g.player} (${g.time || ""}')`)
     .join("<br>");
 
 document.getElementById("goalLogB").innerHTML =
   (pending.goals || [])
-    .filter(g => g.team === "B")
+    .filter(g => g.team === pending.tB)
     .map(g => `${g.name || g.player} (${g.time || ""}')`)
     .join("<br>");
 
