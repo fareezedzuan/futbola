@@ -2844,6 +2844,8 @@ document.getElementById("teamBIcon").src = getTeamLogo(pending.tB);
   document.getElementById("scoreA").textContent = pending.gA ?? 0;
   document.getElementById("scoreB").textContent = pending.gB ?? 0;
 
+  console.log("🔍 Pending goals object:", pending.goals);
+
 document.getElementById("goalLogA").innerHTML =
   (pending.goals || [])
     .filter(g => g.team === "A")
@@ -2855,7 +2857,7 @@ document.getElementById("goalLogB").innerHTML =
     .filter(g => g.team === "B")
     .map(g => `${g.name || g.player} (${g.time || ""}')`)
     .join("<br>");
-    
+
   document.querySelector(".main-display").style.display = "flex";
 } else {
   document.querySelector(".main-display").style.display = "none";
