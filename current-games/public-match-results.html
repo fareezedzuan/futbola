@@ -770,7 +770,8 @@ select.dropdown:focus {
     📍 <span id="venueText">Venue</span> | 📅 <span id="dateText">Date</span>
   </div>
 
-  <!-- <div class="main-display">
+  <div class="main-display">
+    <!-- Match Title should be outside of row for top alignment -->
     <div class="match-header" id="matchTitle">Court 1</div>
 
     <div class="row-display">
@@ -792,7 +793,7 @@ select.dropdown:focus {
         <div class="goal-log" id="goalLogB"></div>
       </div>
     </div>
-  </div> -->
+  </div>
 </div>
 
 
@@ -807,16 +808,11 @@ select.dropdown:focus {
     <button id="nominateMVPBtn" class="btn-primary">Nominate MVP</button>
   </div>
 
-    <div class="section" id="liveMatchesSection" style="margin-top: 20px;">
-  <h3>Live Matches</h3>
-  <div id="liveMatchesContainer" style="display: flex; flex-wrap: wrap; gap: 12px;"></div>
-</div>
-
   <div class="section">
     <h3>Match Results</h3>
     <div id="matchHistory"></div>
   </div>  
-
+  
 
   <div class="section">
     <h3>Live Standings</h3>
@@ -1483,8 +1479,6 @@ function updateMatchHistory() {
       });
     });
 }
-
-
 
 // function updateStandingsUI() {
 //   const container = document.getElementById("standingsTable");
@@ -2789,7 +2783,6 @@ if (resultError) {
       });
 
     updateMatchHistory();
-    updateLiveMatches();
     updateLeaderboard();
     recalculateStandingsFromAllMatches();
     // updateStandingsUI();
