@@ -1142,7 +1142,8 @@ async function startNextMatch(options = {}) {
   document.getElementById("goalLogB").innerHTML = "";
 
   const [teamA, teamB] = matchups[matchNumber];
-  document.getElementById("matchTitle").textContent = `Match ${matchNumber + 1}`;
+  const courtLabel = courtNames?.[matchNumber % courtNames.length] || `Court ${matchNumber + 1}`;
+document.getElementById("matchTitle").textContent = courtLabel;
   document.getElementById("teamAName").textContent = teamA;
   document.getElementById("teamBName").textContent = teamB;
   document.getElementById("teamAIcon").src = getTeamLogo(teamA);
