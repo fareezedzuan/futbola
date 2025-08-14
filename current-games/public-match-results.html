@@ -2827,9 +2827,31 @@ if (resultError) {
     console.error("❌ Failed to load matches:", err);
     matchDropdown.innerHTML = `<option disabled selected>⚠️ Failed to load matches</option>`;
   }
-  // Hide main display if no pending matches
-const hasPending = matchResults.some(m => m.status === "pending");
-document.querySelector(".main-display").style.display = hasPending ? "flex" : "none";
+// === Show first pending match in main display ===
+const pendingMatches = matchResults.filter(m => m.status === "pending");
+
+if (pendingMatches.length > 0) {
+  const pending = pendingMatches[0]; // Show first pending
+
+  const courtLabel = courtNames[pending.court - 1] || `Court ${pending.court}`;
+  document.getElementById("matchTitle").textContent = courtLabel;
+
+  document.getElementById("teamAName").textContent = pending.tA;
+  document.getElementById("teamBName").textContent = pending.tB;
+
+  document.getElementById("teamAIcon").src = pending.tALogo;
+  document.getElementById("teamBIcon").src = pending.tBLogo;
+
+  document.getElementById("scoreA").textContent = pending.gA ?? 0;
+  document.getElementById("scoreB").textContent = pending.gB ?? 0;
+
+  document.getElementById("goalLogA").innerHTML = formatScorers(pending.goals?.filter(g => g.team === "A") || []);
+  document.getElementById("goalLogB").innerHTML = formatScorers(pending.goals?.filter(g => g.team === "B") || []);
+
+  document.querySelector(".main-display").style.display = "flex";
+} else {
+  document.querySelector(".main-display").style.display = "none";
+}
 }
 
 
