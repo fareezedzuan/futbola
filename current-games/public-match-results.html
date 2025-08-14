@@ -2907,6 +2907,11 @@ matchDropdown.addEventListener("change", async (e) => {
     const courtLabel = courtNames[matchObj.court - 1] || `Court ${matchObj.court}`;
 document.getElementById("matchTitle").textContent = courtLabel;
 
+console.log("🔍 Pending goals raw data:", pending.goals);
+pending.goals.forEach((g, i) => {
+  console.log(`Goal ${i}:`, g, "team value:", g.team);
+});
+
     currentGoals = allGoals.filter(g => g.match_number === matchNumber);
 
     updateLiveScoreboard();
