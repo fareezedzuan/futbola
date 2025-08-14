@@ -772,7 +772,7 @@ select.dropdown:focus {
 
   <div class="main-display">
     <!-- Match Title should be outside of row for top alignment -->
-    <div class="match-header" id="matchTitle">Match 1</div>
+    <div class="match-header" id="matchTitle">Court 1</div>
 
     <div class="row-display">
       <div class="team-block" onclick="triggerScorer('A')">
@@ -2831,7 +2831,7 @@ matchDropdown.addEventListener("change", async (e) => {
     document.getElementById("goalLogB").innerHTML = "";
 
     matchNumber = matchObj.number; // e.g. match 3 = index 2 + 1
-    document.getElementById("matchTitle").textContent = `Match ${matchNumber}`;
+    document.getElementById("matchTitle").textContent = `Court ${courtNumber}`;
 
     currentGoals = allGoals.filter(g => g.match_number === matchNumber);
 
