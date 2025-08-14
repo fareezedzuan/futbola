@@ -2699,6 +2699,42 @@ async function loadMatches(sessionId) {
     const { data: matches, error } = await query;
     if (error) throw error;
 
+    // After: const { data: matches, error } = await query; ...
+// Fetch extra match metadata (names, logos, live scores)
+for (let m of matches) {
+  const { data: teamAData } = await supabaseClient
+    .from("teams")
+    .select("name, logo_url")
+    .eq("id", m.team1_id)
+    .single();
+
+  const { data: teamBData } = await supabaseClient
+    .from("teams")
+    .select("name, logo_url")
+    .eq("id", m.team2_id)
+    .single();
+
+  // Attach real data for later display
+  m.tA = teamAData?.name || m.team1_id;
+  m.tB = teamBData?.name || m.team2_id;
+  m.tALogo = teamAData?.logo_url || getTeamLogo(m.team1_id);
+  m.tBLogo = teamBData?.logo_url || getTeamLogo(m.team2_id);
+
+  // Optionally, fetch live score and scorers from match_results
+  const { data: resultData } = await supabaseClient
+    .from("match_results")
+    .select("score_a, score_b, goals")
+    .eq("session_id", sessionId)
+    .eq("match_number", m.match_number)
+    .single();
+
+  if (resultData) {
+    m.gA = resultData.score_a;
+    m.gB = resultData.score_b;
+    m.goals = resultData.goals || [];
+  }
+}
+
     // 2. Fetch court names from games_sessions
     const { data: sessionMeta, error: metaError } = await supabaseClient
       .from("games_sessions")
