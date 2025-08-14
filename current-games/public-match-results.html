@@ -2790,6 +2790,9 @@ if (resultError) {
     console.error("❌ Failed to load matches:", err);
     matchDropdown.innerHTML = `<option disabled selected>⚠️ Failed to load matches</option>`;
   }
+  // Hide main display if no pending matches
+const hasPending = matchResults.some(m => m.status === "pending");
+document.querySelector(".main-display").style.display = hasPending ? "flex" : "none";
 }
 
 
