@@ -1484,61 +1484,7 @@ function updateMatchHistory() {
     });
 }
 
-function updateLiveMatches(matches, courtNames) {
-  const liveMatchesSection = document.getElementById("liveMatchesSection");
-  const liveMatchesContainer = document.getElementById("liveMatchesContainer");
 
-  // Filter pending matches
-  const pendingMatches = matches.filter(m => m.status === "pending");
-
-  if (pendingMatches.length === 0) {
-    liveMatchesSection.style.display = "none";
-    return;
-  }
-
-  liveMatchesSection.style.display = "block";
-  liveMatchesContainer.innerHTML = "";
-
-  pendingMatches.forEach(m => {
-    const courtLabel = courtNames[m.court_number - 1] || `Court ${m.court_number}`;
-
-    // Get team logos (same logic as your main display)
-    const logoA = getTeamLogo(m.team1_name);
-    const logoB = getTeamLogo(m.team2_name);
-
-    // Get scorer names (same as match history formatting)
-    const scorersA = formatScorers(m.team1_scorers || []);
-    const scorersB = formatScorers(m.team2_scorers || []);
-
-    const matchDiv = document.createElement("div");
-    matchDiv.className = "main-display";
-    matchDiv.style.flex = "1 1 350px";
-    matchDiv.style.maxWidth = "400px";
-
-    matchDiv.innerHTML = `
-      <div class="match-header">${courtLabel}</div>
-      <div class="row-display">
-        <div class="team-block">
-          <img src="${logoA}" />
-          <span>${m.team1_name}</span>
-          <div class="score-number">${m.team1_score ?? 0}</div>
-          <div class="goal-log">${scorersA}</div>
-        </div>
-        <div class="timer-block">
-          <div class="center-timer">--:--</div>
-        </div>
-        <div class="team-block">
-          <img src="${logoB}" />
-          <span>${m.team2_name}</span>
-          <div class="score-number">${m.team2_score ?? 0}</div>
-          <div class="goal-log">${scorersB}</div>
-        </div>
-      </div>
-    `;
-
-    liveMatchesContainer.appendChild(matchDiv);
-  });
-}
 
 // function updateStandingsUI() {
 //   const container = document.getElementById("standingsTable");
