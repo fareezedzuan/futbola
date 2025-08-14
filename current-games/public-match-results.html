@@ -976,16 +976,16 @@ function generateRoundRobin(teams) {
 
 function getTeamLogo(colorName) {
   const logos = {
-    Red: "./images/red.png",
-    White: "./images/white.png",
-    Green: "./images/green.png",
-    Orange: "./images/orange.png",
-    Black: "./images/black.png",
-    Yellow: "./images/yellow.png",
-    Blue: "./images/blue.png",
-    Turquoise: "./images/turquoise.png"
+    Red: "../images/red.png",
+    White: "../images/white.png",
+    Green: "../images/green.png",
+    Orange: "../images/orange.png",
+    Black: "../images/black.png",
+    Yellow: "../images/yellow.png",
+    Blue: "../images/blue.png",
+    Turquoise: "../images/turquoise.png"
   };
-  return logos[colorName] || "./images/futbolaLogo.png"; // fallback
+  return logos[colorName] || "../images/futbolaLogo.png"; // fallback
 }
 
 async function handleTimerClick() {
