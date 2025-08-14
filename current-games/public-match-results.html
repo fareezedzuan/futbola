@@ -988,6 +988,12 @@ function getTeamLogo(colorName) {
   return logos[colorName] || "../images/futbolaLogo.png"; // fallback
 }
 
+function formatScorers(goals) {
+  return goals
+    .map(g => `${g.name || g.player} ${g.time ? `(${g.time}')` : ""}`)
+    .join("<br>");
+}
+
 async function handleTimerClick() {
   if (!timerRunning) {
     timerRunning = true;
