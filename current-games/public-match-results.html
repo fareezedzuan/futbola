@@ -808,10 +808,16 @@ select.dropdown:focus {
     <button id="nominateMVPBtn" class="btn-primary">Nominate MVP</button>
   </div>
 
+    <div class="section" id="liveMatchesSection" style="margin-top: 20px;">
+  <h3>Live Matches</h3>
+  <div id="liveMatchesContainer" style="display: flex; flex-wrap: wrap; gap: 12px;"></div>
+</div>
+
   <div class="section">
     <h3>Match Results</h3>
     <div id="matchHistory"></div>
   </div>  
+
 
   <div class="section">
     <h3>Live Standings</h3>
@@ -1477,6 +1483,50 @@ function updateMatchHistory() {
         container.appendChild(row);
       });
     });
+}
+
+// === Live Matches Display ===
+function updateLiveMatches() {
+  const liveMatchesContainer = document.getElementById("liveMatchesContainer");
+  const liveMatchesSection = document.getElementById("liveMatchesSection");
+
+  const pendingMatches = matchResults.filter(m => m.status === "pending");
+
+  if (pendingMatches.length > 0) {
+    liveMatchesSection.style.display = "block";
+    liveMatchesContainer.innerHTML = "";
+
+    pendingMatches.forEach(m => {
+      const courtLabel = courtNames[m.court - 1] || `Court ${m.court}`;
+      const matchDiv = document.createElement("div");
+      matchDiv.className = "main-display";
+      matchDiv.style.flex = "1 1 300px";
+      matchDiv.style.maxWidth = "350px";
+
+      matchDiv.innerHTML = `
+        <div class="match-header">${courtLabel}</div>
+        <div class="row-display">
+          <div class="team-block">
+            <img src="./images/futbolaLogo.png" />
+            <span>${m.tA}</span>
+            <div class="score-number">${m.gA ?? 0}</div>
+          </div>
+          <div class="timer-block">
+            <div class="center-timer">--:--</div>
+          </div>
+          <div class="team-block">
+            <img src="./images/futbolaLogo.png" />
+            <span>${m.tB}</span>
+            <div class="score-number">${m.gB ?? 0}</div>
+          </div>
+        </div>
+      `;
+
+      liveMatchesContainer.appendChild(matchDiv);
+    });
+  } else {
+    liveMatchesSection.style.display = "none";
+  }
 }
 
 // function updateStandingsUI() {
@@ -2782,6 +2832,7 @@ if (resultError) {
       });
 
     updateMatchHistory();
+    updateLiveMatches();
     updateLeaderboard();
     recalculateStandingsFromAllMatches();
     // updateStandingsUI();
