@@ -2877,11 +2877,11 @@ if (pendingMatches.length > 0) {
     pendingMatches.slice(1).forEach(pm => {
       const label = courtNames[pm.court - 1] || `Court ${pm.court}`;
 
-      // a) per-row court title (smaller)
-      const header = document.createElement("div");
-      header.className = "match-header extra-header";
-      header.textContent = label;
-      main.appendChild(header);
+    // a) per-row court title (same style as main)
+    const header = document.createElement("div");
+    header.className = "match-header";
+    header.textContent = courtLabel;
+    main.appendChild(header);
 
       // b) row UI (clone style, no IDs)
       const row = document.createElement("div");
@@ -2900,7 +2900,7 @@ if (pendingMatches.length > 0) {
         </div>
 
         <div class="timer-block">
-          <div class="center-timer">--:--</div>
+          <div class="center-timer">00:00</div>
         </div>
 
         <div class="team-block">
