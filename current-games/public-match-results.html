@@ -713,6 +713,44 @@ select.dropdown:focus {
   animation: blink-border 1s linear infinite;
 }
 
+.nextup-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: white;
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin: 8px 0;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+.nextup-court {
+  font-weight: 700;
+  color: #702963;
+  margin-right: 10px;
+  min-width: 140px;
+}
+
+.nextup-team {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: #702963;
+}
+
+.nextup-team img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.nextup-vs {
+  font-weight: 700;
+  color: #702963;
+  padding: 2px 10px;
+}
+
 @keyframes blink-border {
   50% {
     border-color: transparent;
@@ -812,6 +850,12 @@ select.dropdown:focus {
     <button class="btn-primary" onclick="exportToInstagramImage()">Instagram Image</button>
     <button class="btn-primary" onclick="updateStats()">Update Stats</button>
     <button id="nominateMVPBtn" class="btn-primary">Nominate MVP</button>
+  </div>
+
+  <!-- Next Up (incoming games) -->
+  <div id="nextUpSection" class="section" style="margin-top: 16px;">
+    <h3 style="margin:0 0 8px;">Next Up</h3>
+    <div id="nextUpList"></div>
   </div>
 
   <div class="section">
@@ -2682,6 +2726,62 @@ setInterval(async () => {
     .join("<br>");
 }
 
+function renderNextUp(matches) {
+  const host = document.getElementById("nextUpList");
+  if (!host) return;
+
+  // Clear old content to avoid duplicates on refresh
+  host.innerHTML = "";
+
+  // Guard: no matches yet
+  if (!Array.isArray(matches) || matches.length === 0) {
+    host.innerHTML = `<div style="color:#666;">No upcoming games.</div>`;
+    return;
+  }
+
+  // Find, per court, the first INCOMING match (smallest match_number)
+  // We consider statuses you've set: "incoming" (future), "pending" (live), "completed"
+  const byCourt = {};
+  matches.forEach(m => {
+    if (m.status === "incoming") {
+      const key = m.court || 1;
+      if (!byCourt[key] || m.number < byCourt[key].number) {
+        byCourt[key] = m; // keep earliest incoming for that court
+      }
+    }
+  });
+
+  const courts = Object.keys(byCourt).sort((a,b) => a - b);
+  if (courts.length === 0) {
+    host.innerHTML = `<div style="color:#666;">No upcoming games.</div>`;
+    return;
+  }
+
+  courts.forEach(courtKey => {
+    const m = byCourt[courtKey];
+    const courtLabel = (window.courtNames?.[m.court - 1]) || `Court ${m.court}`;
+
+    const row = document.createElement("div");
+    row.className = "nextup-row";
+    row.innerHTML = `
+      <div class="nextup-court">${courtLabel}</div>
+
+      <div class="nextup-team">
+        <img src="${getTeamLogo(m.tA)}" alt="${m.tA}">
+        <span>${m.tA}</span>
+      </div>
+
+      <div class="nextup-vs">vs</div>
+
+      <div class="nextup-team" style="justify-content:flex-end;">
+        <span>${m.tB}</span>
+        <img src="${getTeamLogo(m.tB)}" alt="${m.tB}">
+      </div>
+    `;
+    host.appendChild(row);
+  });
+}
+
 
   // Load matches based on session + court
 async function loadMatches(sessionId) {
@@ -2826,6 +2926,7 @@ if (resultError) {
     updateMatchHistory();
     updateLeaderboard();
     recalculateStandingsFromAllMatches();
+    renderNextUp(matchResults);
     // updateStandingsUI();
 
   } catch (err) {
