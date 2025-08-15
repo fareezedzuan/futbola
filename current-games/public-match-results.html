@@ -2934,30 +2934,6 @@ if (pendingMatches.length > 1) {
 
   document.querySelector(".main-display").style.display = "flex";
 
-  // ⬇️ Append extra pending matches below the first one
-if (pendingMatches.length > 1) {
-  const container = document.querySelector(".main-display");
-
-  pendingMatches.slice(1).forEach(pm => {
-    const extraRow = document.createElement("div");
-    extraRow.classList.add("pending-extra");
-    extraRow.innerHTML = `
-      <div class="extra-court">${courtNames[pm.court - 1] || `Court ${pm.court}`}</div>
-      <div class="extra-match">
-        <img src="${getTeamLogo(pm.tA)}" alt="${pm.tA}" class="extra-icon">
-        ${pm.tA} (${pm.gA ?? 0})
-        vs
-        ${pm.tB} (${pm.gB ?? 0})
-        <img src="${getTeamLogo(pm.tB)}" alt="${pm.tB}" class="extra-icon">
-      </div>
-    `;
-    container.appendChild(extraRow);
-  });
-}
-
-} else {
-  document.querySelector(".main-display").style.display = "none";
-}
 // === Render additional pending matches under the main display ===
 const morePendingEl = document.getElementById("morePending");
 if (morePendingEl) {
@@ -3052,10 +3028,6 @@ matchDropdown.addEventListener("change", async (e) => {
     const courtLabel = courtNames[matchObj.court - 1] || `Court ${matchObj.court}`;
 document.getElementById("matchTitle").textContent = courtLabel;
 
-console.log("🔍 Pending goals raw data:", pending.goals);
-pending.goals.forEach((g, i) => {
-  console.log(`Goal ${i}:`, g, "team value:", g.team);
-});
 
     currentGoals = allGoals.filter(g => g.match_number === matchNumber);
 
