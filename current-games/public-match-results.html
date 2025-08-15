@@ -2985,8 +2985,8 @@ if (pendingMatches.length > 0) {
 
     // a) per-row court title (same style as main)
     const header = document.createElement("div");
-    header.className = "match-header";
-    header.textContent = courtLabel;
+    header.className = "match-header extra-header";  // <- add extra-header so we can remove it
+    header.textContent = label;                      // <- use the label for this row (not courtLabel)
     main.appendChild(header);
 
       // b) row UI (clone style, no IDs)
