@@ -1018,12 +1018,6 @@ let registeredUsers = [];
 let selectedMVP = null;
 let courtNames = []; // 🔄 Make this global
 
-// ---- Real stopwatch timer state ----
-let startEpochMs = null;        // when the match actually started (ms unix)
-let pausedMs = 0;               // total paused duration accumulated (ms)
-let pauseStartedMs = null;      // when current pause started (ms) or null
-let tickIntervalId = null;      // setInterval id for UI updates
-let alarmPlayed = false;        // fire alarm once at duration
 
 function getSessionIdFromURL() {
   const params = new URLSearchParams(window.location.search);
@@ -1185,93 +1179,6 @@ function resetTimer() {
   updateTimerDisplay();
   document.getElementById('timerBtn').textContent = "Start Timer";
   clearTimeout(alarmTimeout);
-}
-
-function persistTimerState() {
-  const payload = {
-    startEpochMs,
-    pausedMs,
-    pauseStartedMs,
-    alarmPlayed
-  };
-  sessionStorage.setItem("timerState", JSON.stringify(payload));
-}
-
-function restoreTimerFromStorage() {
-  try {
-    const raw = sessionStorage.getItem("timerState");
-    if (!raw) return;
-    const s = JSON.parse(raw);
-    startEpochMs    = s.startEpochMs ?? null;
-    pausedMs        = s.pausedMs ?? 0;
-    pauseStartedMs  = s.pauseStartedMs ?? null;
-    alarmPlayed     = !!s.alarmPlayed;
-
-    if (startEpochMs) {
-      // if we are not currently paused, start ticking
-      if (!pauseStartedMs) startTicking();
-      updateTimerDisplay();
-      updateTimerButtonLabel();
-    }
-  } catch {}
-}
-
-function getElapsedMs() {
-  if (!startEpochMs) return 0;
-  const now = Date.now();
-  const pausedNow = pauseStartedMs ? (now - pauseStartedMs) : 0;
-  // elapsed = now - start - totalPaused(excluding current pause)
-  return (now - startEpochMs) - (pausedMs + pausedNow);
-}
-
-function formatMMSS(ms) {
-  const totalSec = Math.max(0, Math.floor(ms / 1000));
-  const mm = String(Math.floor(totalSec / 60)).padStart(2, "0");
-  const ss = String(totalSec % 60).padStart(2, "0");
-  return `${mm}:${ss}`;
-}
-
-function updateTimerDisplay() {
-  const el = document.getElementById("timer");
-  if (!el) return;
-  el.textContent = formatMMSS(getElapsedMs());
-}
-
-function updateTimerButtonLabel() {
-  const btn = document.getElementById("timerBtn");
-  if (!btn) return;
-
-  if (!startEpochMs) {
-    btn.textContent = "Start Timer";
-    return;
-  }
-  if (pauseStartedMs) {
-    btn.textContent = "Resume Timer";
-  } else {
-    btn.textContent = "Pause";
-  }
-}
-
-function checkAlarm() {
-  const targetMs = (duration || 7) * 60 * 1000;
-  if (!alarmPlayed && getElapsedMs() >= targetMs) {
-    alarmPlayed = true;
-    persistTimerState();
-    playAlarm();
-  }
-}
-
-function startTicking() {
-  if (tickIntervalId) return;
-  tickIntervalId = setInterval(() => {
-    updateTimerDisplay();
-    checkAlarm();
-  }, 250); // UI smooth, still cheap
-}
-
-function stopTicking() {
-  clearInterval(tickIntervalId);
-  tickIntervalId = null;
 }
 
 async function startNextMatch(options = {}) {
