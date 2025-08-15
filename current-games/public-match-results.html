@@ -2576,7 +2576,7 @@ if (gameId) {
     // Fetch session details
     const sessionInfo = sessions.find(s => s.id === sessionId);
     const gameId = sessionInfo?.game_id;
-    const courtNames = sessionInfo?.court_names || [];
+    courtNames = sessionInfo?.court_names || [];
     sessionStorage.setItem("gameId", gameId);
 
     document.getElementById("venueText").textContent = sessionInfo?.game?.venue || "Venue";
