@@ -918,6 +918,12 @@ let savedMatchIndexes = new Set();
 let registeredUsers = [];
 let selectedMVP = null;
 let courtNames = []; // 🔄 Make this global
+// ---- Real stopwatch timer state ----
+let startEpochMs = null;        // when the match actually started (ms unix)
+let pausedMs = 0;               // total paused duration accumulated (ms)
+let pauseStartedMs = null;      // when current pause started (ms) or null
+let tickIntervalId = null;      // setInterval id for UI updates
+let alarmPlayed = false;        // fire alarm once at duration
 
 function generateRoundRobin(teams) {
   const rounds = [], t = [...teams];
@@ -948,91 +954,152 @@ function getTeamLogo(colorName) {
 }
 
 async function handleTimerClick() {
-  if (!timerRunning) {
-    timerRunning = true;
-    timerPaused = false;
-    document.getElementById('timerBtn').textContent = "Pause";
+  // 3 states: not started -> start; running -> pause; paused -> resume
+  if (!startEpochMs) {
+    // START
+    startEpochMs = Date.now();
+    pausedMs = 0;
+    pauseStartedMs = null;
+    alarmPlayed = false;
+    persistTimerState();
+    startTicking();
+    updateTimerButtonLabel();
 
-    // 🟢 Update match status to "pending"
-    const sessionId = sessionStorage.getItem("sessionId");
-    const gameId = sessionStorage.getItem("gameId");
-    const match = matchResults[matchNumber - 1];
-
-    if (match && match.status !== "completed") {
-      try {
+    // (optional) upsert started_at + set status=pending
+    try {
+      const match = matchResults[matchNumber - 1];
+      if (match && match.status !== "completed") {
         const payload = {
-          session_id: sessionId,
-          game_id: gameId,
+          session_id: sessionStorage.getItem("sessionId"),
+          game_id: sessionStorage.getItem("gameId"),
           match_number: match.number,
           team_a: match.tA,
           team_b: match.tB,
-          score_a: 0,
-          score_b: 0,
-          goals: [],
+          score_a: match.gA ?? 0,
+          score_b: match.gB ?? 0,
+          goals: match.goals ?? [],
           status: "pending",
-          updated_at: new Date().toISOString()
+          started_at: new Date(startEpochMs).toISOString()
         };
-
-        console.log("📤 Sending pending match to server:", payload);
-
-        const res = await fetch("/api/save-match-result", {
+        await fetch("/api/save-match-result", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload)
         });
-
-        if (!res.ok) throw new Error(`Server responded ${res.status}`);
-        console.log("✅ Match row created with pending status");
-      } catch (err) {
-        console.warn("⚠️ Couldn't upsert pending match to DB:", err);
       }
-    }
+    } catch (e) { console.warn("startTimer save failed:", e); }
 
-    // 🔔 Start timer + alarm
-    alarmStartTimestamp = Date.now();
-    alarmScheduledTime = duration * 60 * 1000;
-
-    alarmTimeout = setTimeout(() => {
-      playAlarm();
-    }, alarmScheduledTime);
-
-    timer = setInterval(() => {
-      if (!timerPaused) {
-        timeElapsed++;
-        updateTimerDisplay();
-        if (timeElapsed >= duration * 60) {
-          clearInterval(timer);
-          timerRunning = false;
-          document.getElementById('timerBtn').textContent = "Start Timer";
-        }
-      }
-    }, 1000);
-
-  } else {
-    timerPaused = !timerPaused;
-    document.getElementById('timerBtn').textContent = timerPaused ? "Resume Timer" : "Pause Timer";
-
-    if (timerPaused) {
-      clearTimeout(alarmTimeout);
-    } else {
-      const now = Date.now();
-      const timePassed = now - alarmStartTimestamp;
-      const remaining = Math.max(alarmScheduledTime - timePassed, 0);
-
-      alarmStartTimestamp = Date.now();
-      alarmScheduledTime = remaining;
-
-      alarmTimeout = setTimeout(() => {
-        playAlarm();
-      }, remaining);
-    }
+    return;
   }
+
+  if (!pauseStartedMs) {
+    // PAUSE
+    pauseStartedMs = Date.now();
+    persistTimerState();
+    stopTicking();
+    updateTimerButtonLabel();
+    return;
+  }
+
+  // RESUME
+  const pausedDuration = Date.now() - pauseStartedMs;
+  pausedMs += pausedDuration;
+  pauseStartedMs = null;
+  persistTimerState();
+  startTicking();
+  updateTimerButtonLabel();
 }
 
 function updateTimerDisplay() {
   const min = Math.floor(timeElapsed / 60);
   const sec = timeElapsed % 60;
   document.getElementById("timer").textContent = `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+}
+function persistTimerState() {
+  const payload = {
+    startEpochMs,
+    pausedMs,
+    pauseStartedMs,
+    alarmPlayed
+  };
+  sessionStorage.setItem("timerState", JSON.stringify(payload));
+}
+
+function restoreTimerFromStorage() {
+  try {
+    const raw = sessionStorage.getItem("timerState");
+    if (!raw) return;
+    const s = JSON.parse(raw);
+    startEpochMs    = s.startEpochMs ?? null;
+    pausedMs        = s.pausedMs ?? 0;
+    pauseStartedMs  = s.pauseStartedMs ?? null;
+    alarmPlayed     = !!s.alarmPlayed;
+
+    if (startEpochMs) {
+      // if we are not currently paused, start ticking
+      if (!pauseStartedMs) startTicking();
+      updateTimerDisplay();
+      updateTimerButtonLabel();
+    }
+  } catch {}
+}
+
+function getElapsedMs() {
+  if (!startEpochMs) return 0;
+  const now = Date.now();
+  const pausedNow = pauseStartedMs ? (now - pauseStartedMs) : 0;
+  // elapsed = now - start - totalPaused(excluding current pause)
+  return (now - startEpochMs) - (pausedMs + pausedNow);
+}
+
+function formatMMSS(ms) {
+  const totalSec = Math.max(0, Math.floor(ms / 1000));
+  const mm = String(Math.floor(totalSec / 60)).padStart(2, "0");
+  const ss = String(totalSec % 60).padStart(2, "0");
+  return `${mm}:${ss}`;
+}
+
+function updateTimerDisplay() {
+  const el = document.getElementById("timer");
+  if (!el) return;
+  el.textContent = formatMMSS(getElapsedMs());
+}
+
+function updateTimerButtonLabel() {
+  const btn = document.getElementById("timerBtn");
+  if (!btn) return;
+
+  if (!startEpochMs) {
+    btn.textContent = "Start Timer";
+    return;
+  }
+  if (pauseStartedMs) {
+    btn.textContent = "Resume Timer";
+  } else {
+    btn.textContent = "Pause";
+  }
+}
+
+function checkAlarm() {
+  const targetMs = (duration || 7) * 60 * 1000;
+  if (!alarmPlayed && getElapsedMs() >= targetMs) {
+    alarmPlayed = true;
+    persistTimerState();
+    playAlarm();
+  }
+}
+
+function startTicking() {
+  if (tickIntervalId) return;
+  tickIntervalId = setInterval(() => {
+    updateTimerDisplay();
+    checkAlarm();
+  }, 250); // UI smooth, still cheap
+}
+
+function stopTicking() {
+  clearInterval(tickIntervalId);
+  tickIntervalId = null;
 }
 
 function stopAlarmOnce() {
@@ -1061,13 +1128,14 @@ function stopAlarmOnce() {
 }
 
 function resetTimer() {
-  clearInterval(timer);
-  timeElapsed = 0;
-  timerRunning = false;
-  timerPaused = false;
+  stopTicking();
+  startEpochMs = null;
+  pausedMs = 0;
+  pauseStartedMs = null;
+  alarmPlayed = false;
+  persistTimerState();
   updateTimerDisplay();
-  document.getElementById('timerBtn').textContent = "Start Timer";
-  clearTimeout(alarmTimeout);
+  updateTimerButtonLabel();
 }
 
 async function startNextMatch(options = {}) {
@@ -2388,6 +2456,11 @@ window.addEventListener("DOMContentLoaded", async () => {
     console.log("✅ MVP button click listener wired up");
   }
 
+    // ⏱ Restore stopwatch state & set initial UI
+  restoreTimerFromStorage();
+  updateTimerDisplay();
+  updateTimerButtonLabel();
+
   // Fetch all sessions (for dropdown)
   let sessions = [];
   try {
@@ -2689,6 +2762,7 @@ if (resultError) {
     updateMatchHistory();
     updateLeaderboard();
     recalculateStandingsFromAllMatches();
+
     // updateStandingsUI();
 
   } catch (err) {
