@@ -1332,39 +1332,36 @@ async function saveCurrentMatchOnly() {
   }
 }
 
-
 async function saveCurrentMatch(matchIndex) {
   const tA = document.getElementById("teamAName").textContent;
   const tB = document.getElementById("teamBName").textContent;
-  const gA = parseInt(document.getElementById("scoreA").textContent);
-  const gB = parseInt(document.getElementById("scoreB").textContent);
+  const gA = parseInt(document.getElementById("scoreA").textContent, 10);
+  const gB = parseInt(document.getElementById("scoreB").textContent, 10);
 
+  // warn on 0–0
   if ((gA == null || gA === '' || gA === 0) &&
       (gB == null || gB === '' || gB === 0)) {
     const proceed = confirm("⚠️ Both scores are 0 or empty. Are you sure you want to continue?");
-    if (!proceed) return false; // ❗ return false on cancel
+    if (!proceed) return false;
   }
 
+  // keep match object up to date in memory
   matchResults[matchIndex] = {
-    ...matchResults[matchIndex], // ✅ Preserve existing id, number, court, etc.
-    tA,
-    tB,
-    gA,
-    gB
+    ...matchResults[matchIndex],
+    tA, tB, gA, gB
   };
 
-
+  // If you keep this guard, don’t add until success (we move add below)
   if (savedMatchIndexes.has(matchIndex)) {
     console.warn(`🚫 Match ${matchIndex + 1} already saved — skipping`);
     return false;
   }
 
-  savedMatchIndexes.add(matchIndex);
-
   console.log("Saving match to Supabase...");
   console.warn("🟡 saveCurrentMatch() called for matchIndex:", matchIndex);
   console.warn("→ matchNumber is:", matchNumber);
 
+  // flatten currentGoals into allGoals with match_number
   allGoals = allGoals.concat(
     currentGoals.map(g => ({ ...g, match_number: matchIndex + 1 }))
   );
@@ -1374,16 +1371,26 @@ async function saveCurrentMatch(matchIndex) {
   updateStandings(tA, tB, gA, gB);
 
   try {
+    // ⏱️ read timer state and compute total elapsed
+    const sessionId = sessionStorage.getItem("sessionId");
+    let { accumulatedMs, startRefMs /*, isPaused*/ } = loadTimerState(sessionId, matchIndex + 1) || {};
+    accumulatedMs = accumulatedMs || 0;
+    const liveMs  = startRefMs ? (Date.now() - startRefMs) : 0;
+    const totalMs = accumulatedMs + liveMs;
+
     const payload = {
-      game_id: sessionStorage.getItem("gameId"),
-      session_id: sessionStorage.getItem("sessionId"),
+      game_id:     sessionStorage.getItem("gameId"),
+      session_id:  sessionStorage.getItem("sessionId"),
       match_number: matchIndex + 1,
-      team_a: tA,
-      team_b: tB,
-      score_a: gA,
-      score_b: gB,
-      goals: currentGoals,
-      status: "completed"
+      team_a:      tA,
+      team_b:      tB,
+      score_a:     gA,
+      score_b:     gB,
+      goals:       currentGoals,
+      status:      "completed",
+      ended_at:    new Date().toISOString(),
+      // If you created this column, uncomment:
+      // duration_seconds: Math.round(totalMs / 1000)
     };
 
     console.log("📤 Sending match result to Supabase:", payload);
@@ -1401,6 +1408,28 @@ async function saveCurrentMatch(matchIndex) {
 
     const json = await res.json();
     console.log("✅ Saved to Supabase:", json);
+
+    // ✅ mark as saved only after success
+    savedMatchIndexes.add(matchIndex);
+
+    // ✅ stop and clear local timer UI/state
+    if (typeof stopTick === "function") stopTick();
+    if (typeof paintTimer === "function") paintTimer(0);
+    const btn = document.getElementById("timerBtn");
+    if (btn) btn.textContent = "Start Timer";
+    clearTimerState(sessionId, matchIndex + 1);
+
+    // reflect locally
+    matchResults[matchIndex] = {
+      ...matchResults[matchIndex],
+      status: 'completed',
+      ended_at: payload.ended_at
+    };
+
+    // optional: refresh lists
+    await loadMatches(sessionId);
+
+    alert("✅ Match saved.");
     return true;
 
   } catch (err) {
@@ -1416,6 +1445,9 @@ async function saveCurrentMatch(matchIndex) {
       score_b: gB,
       goals: currentGoals,
       status: "completed",
+      // keep when it happened
+      ended_at: new Date().toISOString(),
+      // If you added duration_seconds and want to persist on fail too, you can recompute or skip.
       timestamp: Date.now()
     };
 
@@ -2635,9 +2667,9 @@ setInterval(async () => {
   });
 
 
-  // Load matches based on session + court
+ // Load matches based on session + court
 async function loadMatches(sessionId) {
-    if (!sessionId) {
+  if (!sessionId) {
     console.warn("⚠️ No sessionId provided. Skipping match load.");
     return;
   }
@@ -2658,17 +2690,17 @@ async function loadMatches(sessionId) {
   }
 
   const selectedGroup = document.getElementById("groupFilter")?.value;
-    if (selectedGroup && selectedGroup !== "all") {
-      query = query.eq("group_label", selectedGroup);
-    }
+  if (selectedGroup && selectedGroup !== "all") {
+    query = query.eq("group_label", selectedGroup);
+  }
 
   try {
-    // 1. Fetch matches
+    // 1) Fetch matches
     const { data: matches, error } = await query;
     if (error) throw error;
 
-    // 2. Fetch court names from games_sessions
-    const { data: sessionMeta, error: metaError } = await supabaseClient
+    // 2) Fetch court names
+    const { data: sessionMeta } = await supabaseClient
       .from("games_sessions")
       .select("court_names")
       .eq("id", sessionId)
@@ -2676,52 +2708,56 @@ async function loadMatches(sessionId) {
 
     courtNames = sessionMeta?.court_names || [];
 
-    // 3. Reset global state
-matchResults = matches.map(m => {
-  console.log("📋 Loaded match with court:", m.match_number, m.court_number);
-  return {
-    id: m.id,
-    number: m.match_number,
-    tA: m.team1_id,
-    tB: m.team2_id,
-    gA: null,
-    gB: null,
-    court: m.court_number || 1,
-    status: "incoming"
-  };
-});
+    // 3) Reset global state
+    matchResults = matches.map(m => {
+      console.log("📋 Loaded match with court:", m.match_number, m.court_number);
+      return {
+        id: m.id,
+        number: m.match_number,
+        tA: m.team1_id,
+        tB: m.team2_id,
+        gA: null,
+        gB: null,
+        goals: [],
+        court: m.court_number || 1,
+        status: "incoming",
+        started_at: null,
+        ended_at: null
+      };
+    });
 
-// 🔧 ADD THIS to rebuild matchups properly
-matchups = matchResults.map(m => [m.tA, m.tB]);
+    // keep matchups in sync
+    matchups = matchResults.map(m => [m.tA, m.tB]);
 
     allGoals = [];
 
-    // 🧠 Merge results from match_results into matchResults
-const { data: results, error: resultError } = await supabaseClient
-  .from("match_results")
-  .select("*")
-  .eq("session_id", sessionId);
+    // 4) Merge results from match_results
+    const { data: results, error: resultError } = await supabaseClient
+      .from("match_results")
+      .select("*")
+      .eq("session_id", sessionId);
 
-if (resultError) {
-  console.error("❌ Failed to fetch match results:", resultError);
-} else {
-  results.forEach(r => {
-    const match = matchResults.find(m => m.number === r.match_number);
-    if (match) {
-      match.gA = r.score_a ?? null;
-      match.gB = r.score_b ?? null;
-      match.goals = r.goals ?? [];
-      match.status = r.status ?? "incoming";
+    if (resultError) {
+      console.error("❌ Failed to fetch match results:", resultError);
+    } else {
+      results.forEach(r => {
+        const match = matchResults.find(m => m.number === r.match_number);
+        if (match) {
+          match.gA = r.score_a ?? null;
+          match.gB = r.score_b ?? null;
+          match.goals = r.goals ?? [];
+          match.status = r.status ?? "incoming";
+          match.started_at = r.started_at ?? null;
+          match.ended_at = r.ended_at ?? null;
 
-      (match.goals || []).forEach(goal => {
-        allGoals.push({ ...goal, match_number: r.match_number });
+          (match.goals || []).forEach(goal => {
+            allGoals.push({ ...goal, match_number: r.match_number });
+          });
+        }
       });
     }
-  });
-}
 
-
-    // 4. Build grouped dropdown by court name
+    // 5) Build grouped dropdown by court name
     matchDropdown.innerHTML = `<option disabled selected>-- Select Match --</option>`;
     const grouped = {};
 
@@ -2751,16 +2787,135 @@ if (resultError) {
     updateMatchHistory();
     updateLeaderboard();
     recalculateStandingsFromAllMatches();
-
-    // updateStandingsUI();
+    // renderNextUp(matchResults); // (keep/call if you still use Next Up)
 
   } catch (err) {
     console.error("❌ Failed to load matches:", err);
     matchDropdown.innerHTML = `<option disabled selected>⚠️ Failed to load matches</option>`;
+    return;
+  }
+
+  // === Show first pending match in main display ===
+  const pendingMatches = matchResults.filter(m => m.status === "pending");
+
+  if (pendingMatches.length > 0) {
+    const pending = pendingMatches[0]; // top pending
+
+    const courtLabel = courtNames[pending.court - 1] || `Court ${pending.court}`;
+    document.getElementById("matchTitle").textContent = courtLabel;
+
+    document.getElementById("teamAName").textContent = pending.tA;
+    document.getElementById("teamBName").textContent = pending.tB;
+
+    document.getElementById("teamAIcon").src = getTeamLogo(pending.tA);
+    document.getElementById("teamBIcon").src = getTeamLogo(pending.tB);
+
+    document.getElementById("scoreA").textContent = pending.gA ?? 0;
+    document.getElementById("scoreB").textContent = pending.gB ?? 0;
+
+    document.getElementById("goalLogA").innerHTML =
+      (pending.goals || [])
+        .filter(g => g.team === pending.tA)
+        .map(g => `${g.name || g.player}${g.time ? ` (${g.time}')` : ""}`)
+        .join("<br>");
+
+    document.getElementById("goalLogB").innerHTML =
+      (pending.goals || [])
+        .filter(g => g.team === pending.tB)
+        .map(g => `${g.name || g.player}${g.time ? ` (${g.time}')` : ""}`)
+        .join("<br>");
+
+    // ⏱️ Restore timer for the shown pending match (RIGHT HERE)
+    {
+      const sessionIdLS = sessionStorage.getItem("sessionId");
+      const state = loadTimerState(sessionIdLS, pending.number);
+      accumulatedMs = state.accumulatedMs || 0;
+      startRefMs = state.startRefMs || null;
+      isPaused = !!state.isPaused;
+
+      // If DB has started_at and we have no local state, rebuild from it
+      if (!accumulatedMs && !startRefMs && pending.started_at) {
+        startRefMs = new Date(pending.started_at).getTime();
+        isPaused = false;
+      }
+
+      if (startRefMs && !isPaused) {
+        startTick(sessionIdLS, pending.number);
+        const btn = document.getElementById("timerBtn");
+        if (btn) btn.textContent = "Pause";
+      } else {
+        stopTick();
+        const now = Date.now();
+        const live = startRefMs ? (now - startRefMs) : 0;
+        paintTimer(accumulatedMs + live);
+        const btn = document.getElementById("timerBtn");
+        if (btn) btn.textContent = isPaused ? "Resume" : "Start Timer";
+      }
+    }
+
+    // 🔁 Clear any previously appended extra rows/headers to avoid duplicates
+    document
+      .querySelectorAll(".main-display .extra-row-display, .main-display .extra-header")
+      .forEach(el => el.remove());
+
+    // ➕ Append additional pending matches as extra rows (same container)
+    if (pendingMatches.length > 1) {
+      const main = document.querySelector(".main-display");
+
+      pendingMatches.slice(1).forEach(pm => {
+        const label = courtNames[pm.court - 1] || `Court ${pm.court}`;
+
+        // per-row court title (same style as main)
+        const header = document.createElement("div");
+        header.className = "match-header extra-header";
+        header.textContent = label;                 // ✅ use label for the correct court name
+        main.appendChild(header);
+
+        // row UI (clone style, no IDs)
+        const row = document.createElement("div");
+        row.className = "row-display extra-row-display";
+        row.innerHTML = `
+          <div class="team-block">
+            <img src="${getTeamLogo(pm.tA)}" />
+            <span>${pm.tA}</span>
+            <div class="score-number">${pm.gA ?? 0}</div>
+            <div class="goal-log">${
+              (pm.goals || [])
+                .filter(g => g.team === pm.tA)
+                .map(g => `${g.name || g.player}${g.time ? ` (${g.time}')` : ""}`)
+                .join("<br>")
+            }</div>
+          </div>
+
+          <div class="timer-block">
+            <div class="center-timer">00:00</div>
+          </div>
+
+          <div class="team-block">
+            <img src="${getTeamLogo(pm.tB)}" />
+            <span>${pm.tB}</span>
+            <div class="score-number">${pm.gB ?? 0}</div>
+            <div class="goal-log">${
+              (pm.goals || [])
+                .filter(g => g.team === pm.tB)
+                .map(g => `${g.name || g.player}${g.time ? ` (${g.time}')` : ""}`)
+                .join("<br>")
+            }</div>
+          </div>
+        `;
+        main.appendChild(row);
+      });
+    }
+
+    // ensure the main display is visible
+    document.querySelector(".main-display").style.display = "flex";
+  } else {
+    // no pending matches: hide the main display
+    document.querySelector(".main-display").style.display = "none";
+    // also stop ticking if nothing pending
+    stopTick?.();
   }
 }
-
-
 
   // Handle match selection
 matchDropdown.addEventListener("change", async (e) => {
