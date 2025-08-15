@@ -2859,6 +2859,28 @@ document.getElementById("goalLogB").innerHTML =
     .join("<br>");
 
   document.querySelector(".main-display").style.display = "flex";
+
+  // ⬇️ Append extra pending matches below the first one
+if (pendingMatches.length > 1) {
+  const container = document.querySelector(".main-display");
+
+  pendingMatches.slice(1).forEach(pm => {
+    const extraRow = document.createElement("div");
+    extraRow.classList.add("pending-extra");
+    extraRow.innerHTML = `
+      <div class="extra-court">${courtNames[pm.court - 1] || `Court ${pm.court}`}</div>
+      <div class="extra-match">
+        <img src="${getTeamLogo(pm.tA)}" alt="${pm.tA}" class="extra-icon">
+        ${pm.tA} (${pm.gA ?? 0})
+        vs
+        ${pm.tB} (${pm.gB ?? 0})
+        <img src="${getTeamLogo(pm.tB)}" alt="${pm.tB}" class="extra-icon">
+      </div>
+    `;
+    container.appendChild(extraRow);
+  });
+}
+
 } else {
   document.querySelector(".main-display").style.display = "none";
 }
