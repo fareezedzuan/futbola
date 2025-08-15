@@ -1010,11 +1010,6 @@ async function handleTimerClick() {
   updateTimerButtonLabel();
 }
 
-function updateTimerDisplay() {
-  const min = Math.floor(timeElapsed / 60);
-  const sec = timeElapsed % 60;
-  document.getElementById("timer").textContent = `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
-}
 function persistTimerState() {
   const payload = {
     startEpochMs,
@@ -1100,10 +1095,6 @@ function startTicking() {
 function stopTicking() {
   clearInterval(tickIntervalId);
   tickIntervalId = null;
-}
-
-function stopAlarmOnce() {
-  playAlarm();
 }
 
 function playAlarm() {
@@ -1232,25 +1223,36 @@ function closePopup() {
   document.getElementById("overlay").style.display = "none";
   document.getElementById("scorerPopup").style.display = "none";
 }
-
 function addGoal(team, player, isOG = false) {
-  const timeMin = Math.floor(timeElapsed / 60);
-  const extra = timeMin >= duration ? `+${timeMin - duration}` : "";
-  const formatted = `${Math.min(timeMin + 1, duration)}${extra}'`;
+  // ⏱️ Use real elapsed time from stopwatch; fall back to old counter if needed
+  const msElapsed = (typeof getElapsedMs === "function")
+    ? getElapsedMs()
+    : (timeElapsed || 0) * 1000;
 
+  const secs = Math.max(0, Math.floor(msElapsed / 1000));
+  const mins = Math.floor(secs / 60);
+
+  // Keep your display format: 1'..duration' then +extra
+  const base = Math.min(mins + 1, duration);     // show 1' at 0:00–0:59, etc.
+  const extra = mins >= duration ? `+${mins - duration}` : "";
+  const formatted = `${base}${extra}'`;
+
+  // 📝 Record goal
   currentGoals.push({ team, player, time: formatted, isOG });
 
-  const scoreId = team === document.getElementById("teamAName").textContent ? "scoreA" : "scoreB";
+  // 🔢 Bump score for that team in the UI
+  const tA = document.getElementById("teamAName").textContent;
+  const scoreId = (team === tA) ? "scoreA" : "scoreB";
   const scoreEl = document.getElementById(scoreId);
-  scoreEl.textContent = parseInt(scoreEl.textContent) + 1;
+  scoreEl.textContent = (parseInt(scoreEl.textContent, 10) || 0) + 1;
 
   // 🔄 Update current match object in memory
   const matchIndex = matchNumber - 1;
   const match = matchResults[matchIndex];
   if (match) {
-    match.gA = parseInt(document.getElementById("scoreA").textContent);
-    match.gB = parseInt(document.getElementById("scoreB").textContent);
-    match.goals = [...currentGoals]; // clone goals array
+    match.gA = parseInt(document.getElementById("scoreA").textContent, 10) || 0;
+    match.gB = parseInt(document.getElementById("scoreB").textContent, 10) || 0;
+    match.goals = [...currentGoals];  // clone goals array
     match.status = "pending";
   }
 
@@ -2354,19 +2356,6 @@ function showMVPSelector() {
 
   populateMVPDropdown();
   document.getElementById("mvpModal").style.display = "block";
-}
-
-function selectMVP() {
-  const select = document.getElementById("mvpSelect");
-  selectedMVP = select.value;
-
-  if (!selectedMVP) {
-    alert("❗ Please select a valid player.");
-    return;
-  }
-
-  alert(`✅ MVP selected: ${select.options[select.selectedIndex].text}`);
-  closeMVPModal();
 }
 
 function closeMVPModal() {
