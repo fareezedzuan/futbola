@@ -21,29 +21,18 @@
       padding: 20px;
     }
 
-    .main-display {
-    display: flex;
-    flex-direction: column;
-    background: white;
-    padding: 20px;
-    height: 480px;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    border-top: 5px solid #ff5a5f;
-  }
-
-  .main-display.mini {
-  transform: scale(0.85);
-  transform-origin: top center;
-  height: 360px;        /* smaller height so it looks like a “row” */
-  margin-top: 12px;     /* spacing between rows */
-  padding: 16px;
+.main-display {
+  display: flex;
+  flex-direction: column;
+  background: white;
+  padding: 20px;
+  /* height: 480px; */      /* removed */
+  min-height: 320px;        /* optional baseline */
+  height: auto;             /* let it grow with rows */
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  border-top: 5px solid #ff5a5f;
 }
-
-.main-display.mini .team-block img { height: 72px; }
-.main-display.mini .team-block span { font-size: 28px; }
-.main-display.mini .score-number { font-size: 32px; }
-.main-display.mini .match-header { font-size: 26px; }
 
   .match-header {
     font-size: 35px;
@@ -810,9 +799,6 @@ select.dropdown:focus {
     </div>
   </div>
 </div>
-
-<!-- === EXTRA PENDING GAMES (auto-rendered by JS; no duplicate IDs) === -->
-<div id="morePending"></div>
 
 </div>
 
@@ -2940,55 +2926,7 @@ if (pendingMatches.length > 0) {
   document.querySelector(".main-display").style.display = "none";
 }
 
-// === Render additional pending matches under the main display ===
-const morePendingEl = document.getElementById("morePending");
-if (morePendingEl) {
-  // clear previous to avoid duplicates on every refresh
-  morePendingEl.innerHTML = "";
 
-  // take all pending except the first (already shown on top)
-  pendingMatches.slice(1).forEach(m => {
-    // pull latest goals from the global allGoals using match_number
-    const goals = (allGoals || []).filter(g => g.match_number === m.number);
-
-    const scorersA = goals
-      .filter(g => g.team === m.tA)
-      .map(g => `${g.name || g.player}${g.time ? ` (${g.time}')` : ""}`)
-      .join("<br>");
-
-    const scorersB = goals
-      .filter(g => g.team === m.tB)
-      .map(g => `${g.name || g.player}${g.time ? ` (${g.time}')` : ""}`)
-      .join("<br>");
-
-    const courtLabel = courtNames[m.court - 1] || `Court ${m.court}`;
-    const div = document.createElement("div");
-    div.className = "main-display mini";       // 👈 smaller stacked row
-    div.innerHTML = `
-      <div class="match-header">${courtLabel}</div>
-      <div class="row-display">
-        <div class="team-block">
-          <img src="${getTeamLogo(m.tA)}" />
-          <span>${m.tA}</span>
-          <div class="score-number">${m.gA ?? 0}</div>
-          <div class="goal-log">${scorersA}</div>
-        </div>
-
-        <div class="timer-block">
-          <div class="center-timer">--:--</div>
-        </div>
-
-        <div class="team-block">
-          <img src="${getTeamLogo(m.tB)}" />
-          <span>${m.tB}</span>
-          <div class="score-number">${m.gB ?? 0}</div>
-          <div class="goal-log">${scorersB}</div>
-        </div>
-      </div>
-    `;
-    morePendingEl.appendChild(div);
-  });
-}
 }
 
 
