@@ -2848,6 +2848,7 @@ m.tBLogo = getTeamLogo(m.team2_id);
       .single();
 
     courtNames = sessionMeta?.court_names || [];
+    window.courtNames = courtNames;
 
     // 3. Reset global state
 matchResults = matches.map(m => {
