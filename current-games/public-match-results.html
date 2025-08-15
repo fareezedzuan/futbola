@@ -32,6 +32,19 @@
     border-top: 5px solid #ff5a5f;
   }
 
+  .main-display.mini {
+  transform: scale(0.85);
+  transform-origin: top center;
+  height: 360px;        /* smaller height so it looks like a “row” */
+  margin-top: 12px;     /* spacing between rows */
+  padding: 16px;
+}
+
+.main-display.mini .team-block img { height: 72px; }
+.main-display.mini .team-block span { font-size: 28px; }
+.main-display.mini .score-number { font-size: 32px; }
+.main-display.mini .match-header { font-size: 26px; }
+
   .match-header {
     font-size: 35px;
     font-weight: bold;
@@ -41,7 +54,7 @@
     width: 100%;
   }
 
-  /* .match-header.extra-header { font-size: 22px; margin-top: 10px; } */
+  .match-header.extra-header { font-size: 22px; margin-top: 10px; }
 
   .row-display {
     display: flex;
@@ -772,30 +785,35 @@ select.dropdown:focus {
     📍 <span id="venueText">Venue</span> | 📅 <span id="dateText">Date</span>
   </div>
 
-  <div class="main-display">
-    <!-- Match Title should be outside of row for top alignment -->
-    <div class="match-header" id="matchTitle">Court 1</div>
+<!-- === MAIN PENDING GAME (controls + timer + IDs) === -->
+<div class="main-display" id="mainPending">
+  <!-- Match Title should be outside of row for top alignment -->
+  <div class="match-header" id="matchTitle">Court 1</div>
 
-    <div class="row-display">
-      <div class="team-block" onclick="triggerScorer('A')">
-        <img id="teamAIcon" src="../images/futbolaLogo.png" />
-        <span id="teamAName">Team A</span>
-        <div class="score-number" id="scoreA">0</div>
-        <div class="goal-log" id="goalLogA"></div>
-      </div>
+  <div class="row-display">
+    <div class="team-block" onclick="triggerScorer('A')">
+      <img id="teamAIcon" src="../images/futbolaLogo.png" />
+      <span id="teamAName">Team A</span>
+      <div class="score-number" id="scoreA">0</div>
+      <div class="goal-log" id="goalLogA"></div>
+    </div>
 
-      <div class="timer-block">
-        <div class="center-timer" id="timer">00:00</div>
-      </div>
+    <div class="timer-block">
+      <div class="center-timer" id="timer">00:00</div>
+    </div>
 
-      <div class="team-block" onclick="triggerScorer('B')">
-        <img id="teamBIcon" src="../images/futbolaLogo.png" />
-        <span id="teamBName">Team B</span>
-        <div class="score-number" id="scoreB">0</div>
-        <div class="goal-log" id="goalLogB"></div>
-      </div>
+    <div class="team-block" onclick="triggerScorer('B')">
+      <img id="teamBIcon" src="../images/futbolaLogo.png" />
+      <span id="teamBName">Team B</span>
+      <div class="score-number" id="scoreB">0</div>
+      <div class="goal-log" id="goalLogB"></div>
     </div>
   </div>
+</div>
+
+<!-- === EXTRA PENDING GAMES (auto-rendered by JS; no duplicate IDs) === -->
+<div id="morePending"></div>
+
 </div>
 
 
@@ -2939,6 +2957,55 @@ if (pendingMatches.length > 1) {
 
 } else {
   document.querySelector(".main-display").style.display = "none";
+}
+// === Render additional pending matches under the main display ===
+const morePendingEl = document.getElementById("morePending");
+if (morePendingEl) {
+  // clear previous to avoid duplicates on every refresh
+  morePendingEl.innerHTML = "";
+
+  // take all pending except the first (already shown on top)
+  pendingMatches.slice(1).forEach(m => {
+    // pull latest goals from the global allGoals using match_number
+    const goals = (allGoals || []).filter(g => g.match_number === m.number);
+
+    const scorersA = goals
+      .filter(g => g.team === m.tA)
+      .map(g => `${g.name || g.player}${g.time ? ` (${g.time}')` : ""}`)
+      .join("<br>");
+
+    const scorersB = goals
+      .filter(g => g.team === m.tB)
+      .map(g => `${g.name || g.player}${g.time ? ` (${g.time}')` : ""}`)
+      .join("<br>");
+
+    const courtLabel = courtNames[m.court - 1] || `Court ${m.court}`;
+    const div = document.createElement("div");
+    div.className = "main-display mini";       // 👈 smaller stacked row
+    div.innerHTML = `
+      <div class="match-header">${courtLabel}</div>
+      <div class="row-display">
+        <div class="team-block">
+          <img src="${getTeamLogo(m.tA)}" />
+          <span>${m.tA}</span>
+          <div class="score-number">${m.gA ?? 0}</div>
+          <div class="goal-log">${scorersA}</div>
+        </div>
+
+        <div class="timer-block">
+          <div class="center-timer">--:--</div>
+        </div>
+
+        <div class="team-block">
+          <img src="${getTeamLogo(m.tB)}" />
+          <span>${m.tB}</span>
+          <div class="score-number">${m.gB ?? 0}</div>
+          <div class="goal-log">${scorersB}</div>
+        </div>
+      </div>
+    `;
+    morePendingEl.appendChild(div);
+  });
 }
 }
 
