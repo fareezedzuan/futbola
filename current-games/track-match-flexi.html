@@ -767,7 +767,7 @@ select.dropdown:focus {
     <button class="btn-primary" id="timerBtn" onclick="handleTimerClick()">Start Timer</button>
     <button class="btn-primary" onclick="resetTimer()">Reset Timer</button>
     <button class="btn-primary" onclick="openEditGoals()">Edit Goals</button>
-    <button class="btn-primary" onclick="saveCurrentMatch(matchNumber - 1)">Save Result</button>
+    <button class="btn-primary" onclick="saveResultAndReset()">Save Result</button>    
     <button class="btn-primary" onclick="exportSummary()">Export WhatsApp</button>
     <button class="btn-primary" onclick="exportToInstagramImage()">Instagram Image</button>
     <button class="btn-primary" onclick="updateStats()">Update Stats</button>
@@ -1355,6 +1355,26 @@ async function saveCurrentMatch(matchIndex) {
 
     alert(`⚠️ Match ${matchIndex + 1} not saved due to network. Will retry when online.`);
     return false;
+  }
+}
+
+async function saveResultAndReset() {
+  const idx = matchNumber - 1;
+  if (idx < 0) {
+    alert("⚠️ No match selected.");
+    return;
+  }
+
+  // One clear prompt that also mentions the reset
+  const ok = confirm("💾 Save this result and reset the timer?");
+  if (!ok) return;
+
+  const saved = await saveCurrentMatch(idx);   // uses your existing saver
+  if (saved) {
+    resetTimer();                              // uses your existing reset
+    timeElapsed = 0;
+    updateTimerDisplay();
+    alert("✅ Result saved. ⏱️ Timer reset.");
   }
 }
 
