@@ -21,16 +21,18 @@
       padding: 20px;
     }
 
-    .main-display {
-    display: flex;
-    flex-direction: column;
-    background: white;
-    padding: 20px;
-    height: 480px;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    border-top: 5px solid #ff5a5f;
-  }
+.main-display {
+  display: flex;
+  flex-direction: column;
+  background: white;
+  padding: 20px;
+  /* height: 480px; */      /* removed */
+  min-height: 320px;        /* optional baseline */
+  height: auto;             /* let it grow with rows */
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  border-top: 5px solid #ff5a5f;
+}
 
   .match-header {
     font-size: 35px;
@@ -40,6 +42,8 @@
     margin-bottom: 10px;
     width: 100%;
   }
+
+  /*.match-header.extra-header { font-size: 22px; margin-top: 10px; }*/
 
   .row-display {
     display: flex;
@@ -709,6 +713,52 @@ select.dropdown:focus {
   animation: blink-border 1s linear infinite;
 }
 
+.nextup-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: white;
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin: 8px 0;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+.nextup-court {
+  font-weight: 700;
+  color: #702963;
+  margin-right: 10px;
+  min-width: 140px;
+}
+
+.nextup-team {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: #702963;
+}
+
+.nextup-team img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.nextup-vs {
+  font-weight: 700;
+  color: #702963;
+  padding: 2px 10px;
+}
+
+/* Public page: make the main scoreboard non-interactive */
+.public-readonly .main-display .team-block,
+.public-readonly .main-display .score-number,
+.public-readonly .main-display img {
+  pointer-events: none;
+  cursor: default;
+}
+
 @keyframes blink-border {
   50% {
     border-color: transparent;
@@ -770,30 +820,32 @@ select.dropdown:focus {
     📍 <span id="venueText">Venue</span> | 📅 <span id="dateText">Date</span>
   </div>
 
-  <div class="main-display">
-    <!-- Match Title should be outside of row for top alignment -->
-    <div class="match-header" id="matchTitle">Court 1</div>
+<!-- === MAIN PENDING GAME (controls + timer + IDs) === -->
+<div class="main-display" id="mainPending">
+  <!-- Match Title should be outside of row for top alignment -->
+  <div class="match-header" id="matchTitle">Court 1</div>
 
-    <div class="row-display">
-      <div class="team-block" onclick="triggerScorer('A')">
-        <img id="teamAIcon" src="./images/futbolaLogo.png" />
-        <span id="teamAName">Team A</span>
-        <div class="score-number" id="scoreA">0</div>
-        <div class="goal-log" id="goalLogA"></div>
-      </div>
+  <div class="row-display">
+    <div class="team-block" onclick="triggerScorer('A')">
+      <img id="teamAIcon" src="../images/futbolaLogo.png" />
+      <span id="teamAName">Team A</span>
+      <div class="score-number" id="scoreA">0</div>
+      <div class="goal-log" id="goalLogA"></div>
+    </div>
 
-      <div class="timer-block">
-        <div class="center-timer" id="timer">00:00</div>
-      </div>
+    <div class="timer-block">
+      <div class="center-timer" id="timer">00:00</div>
+    </div>
 
-      <div class="team-block" onclick="triggerScorer('B')">
-        <img id="teamBIcon" src="./images/futbolaLogo.png" />
-        <span id="teamBName">Team B</span>
-        <div class="score-number" id="scoreB">0</div>
-        <div class="goal-log" id="goalLogB"></div>
-      </div>
+    <div class="team-block" onclick="triggerScorer('B')">
+      <img id="teamBIcon" src="../images/futbolaLogo.png" />
+      <span id="teamBName">Team B</span>
+      <div class="score-number" id="scoreB">0</div>
+      <div class="goal-log" id="goalLogB"></div>
     </div>
   </div>
+</div>
+
 </div>
 
 
@@ -806,6 +858,12 @@ select.dropdown:focus {
     <button class="btn-primary" onclick="exportToInstagramImage()">Instagram Image</button>
     <button class="btn-primary" onclick="updateStats()">Update Stats</button>
     <button id="nominateMVPBtn" class="btn-primary">Nominate MVP</button>
+  </div>
+
+  <!-- Next Up (incoming games) -->
+  <div id="nextUpSection" class="section" style="margin-top: 16px;">
+    <h3 style="margin:0 0 8px;">Next Up</h3>
+    <div id="nextUpList"></div>
   </div>
 
   <div class="section">
@@ -911,6 +969,11 @@ select.dropdown:focus {
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 <script>
 console.log("🚀 JS loaded");
+// Detect this public page and lock UI
+window.isPublicView = /public-match-results\.html$/i.test(location.pathname);
+if (window.isPublicView) {
+  document.body.classList.add("public-readonly");
+}
 const { createClient } = supabase;
 const supabaseClient = createClient(
     'https://kdbqroxhypnadolcxxxc.supabase.co',
@@ -986,6 +1049,12 @@ function getTeamLogo(colorName) {
     Turquoise: "../images/turquoise.png"
   };
   return logos[colorName] || "../images/futbolaLogo.png"; // fallback
+}
+
+function formatScorers(goals) {
+  return goals
+    .map(g => `${g.name || g.player} ${g.time ? `(${g.time}')` : ""}`)
+    .join("<br>");
 }
 
 async function handleTimerClick() {
@@ -1164,6 +1233,7 @@ document.getElementById("matchTitle").textContent = courtLabel;
 }
 
 function triggerScorer(side) {
+  if (window.isPublicView) return; 
   const teamA = document.getElementById("teamAName").textContent;
   const teamB = document.getElementById("teamBName").textContent;
   const idxA = teamNames.indexOf(teamA);
@@ -2520,7 +2590,7 @@ if (gameId) {
     // Fetch session details
     const sessionInfo = sessions.find(s => s.id === sessionId);
     const gameId = sessionInfo?.game_id;
-    const courtNames = sessionInfo?.court_names || [];
+    courtNames = sessionInfo?.court_names || [];
     sessionStorage.setItem("gameId", gameId);
 
     document.getElementById("venueText").textContent = sessionInfo?.game?.venue || "Venue";
@@ -2647,7 +2717,7 @@ setInterval(async () => {
       renderGoalLog();
     }
   }
-}, 15000);
+}, 5000);
 
 
   });
@@ -2663,6 +2733,68 @@ setInterval(async () => {
     const sessionId = sessionDropdown.value;
     if (sessionId) loadMatches(sessionId);
   });
+
+  function formatScorers(goals) {
+  return (goals || [])
+    .map(g => `${g.name || g.player || "Unknown"}${g.time ? ` (${g.time}')` : ""}`)
+    .join("<br>");
+}
+
+function renderNextUp(matches) {
+  const host = document.getElementById("nextUpList");
+  if (!host) return;
+
+  // Clear old content to avoid duplicates on refresh
+  host.innerHTML = "";
+
+  // Guard: no matches yet
+  if (!Array.isArray(matches) || matches.length === 0) {
+    host.innerHTML = `<div style="color:#666;">No upcoming games.</div>`;
+    return;
+  }
+
+  // Find, per court, the first INCOMING match (smallest match_number)
+  // We consider statuses you've set: "incoming" (future), "pending" (live), "completed"
+  const byCourt = {};
+  matches.forEach(m => {
+    if (m.status === "incoming") {
+      const key = m.court || 1;
+      if (!byCourt[key] || m.number < byCourt[key].number) {
+        byCourt[key] = m; // keep earliest incoming for that court
+      }
+    }
+  });
+
+  const courts = Object.keys(byCourt).sort((a,b) => a - b);
+  if (courts.length === 0) {
+    host.innerHTML = `<div style="color:#666;">No upcoming games.</div>`;
+    return;
+  }
+
+  courts.forEach(courtKey => {
+    const m = byCourt[courtKey];
+    const courtLabel = (window.courtNames?.[m.court - 1]) || `Court ${m.court}`;
+
+    const row = document.createElement("div");
+    row.className = "nextup-row";
+    row.innerHTML = `
+      <div class="nextup-court">${courtLabel}</div>
+
+      <div class="nextup-team">
+        <img src="${getTeamLogo(m.tA)}" alt="${m.tA}">
+        <span>${m.tA}</span>
+      </div>
+
+      <div class="nextup-vs">vs</div>
+
+      <div class="nextup-team" style="justify-content:flex-end;">
+        <span>${m.tB}</span>
+        <img src="${getTeamLogo(m.tB)}" alt="${m.tB}">
+      </div>
+    `;
+    host.appendChild(row);
+  });
+}
 
 
   // Load matches based on session + court
@@ -2702,23 +2834,10 @@ async function loadMatches(sessionId) {
     // After: const { data: matches, error } = await query; ...
 // Fetch extra match metadata (names, logos, live scores)
 for (let m of matches) {
-  const { data: teamAData } = await supabaseClient
-    .from("teams")
-    .select("name, logo_url")
-    .eq("id", m.team1_id)
-    .single();
-
-  const { data: teamBData } = await supabaseClient
-    .from("teams")
-    .select("name, logo_url")
-    .eq("id", m.team2_id)
-    .single();
-
-  // Attach real data for later display
-  m.tA = teamAData?.name || m.team1_id;
-  m.tB = teamBData?.name || m.team2_id;
-  m.tALogo = teamAData?.logo_url || getTeamLogo(m.team1_id);
-  m.tBLogo = teamBData?.logo_url || getTeamLogo(m.team2_id);
+  m.tA = m.team1_id;
+m.tB = m.team2_id;
+m.tALogo = getTeamLogo(m.team1_id);
+m.tBLogo = getTeamLogo(m.team2_id);
 
   // Optionally, fetch live score and scorers from match_results
   const { data: resultData } = await supabaseClient
@@ -2743,6 +2862,7 @@ for (let m of matches) {
       .single();
 
     courtNames = sessionMeta?.court_names || [];
+    window.courtNames = courtNames;
 
     // 3. Reset global state
 matchResults = matches.map(m => {
@@ -2821,15 +2941,113 @@ if (resultError) {
     updateMatchHistory();
     updateLeaderboard();
     recalculateStandingsFromAllMatches();
+    renderNextUp(matchResults);
     // updateStandingsUI();
 
   } catch (err) {
     console.error("❌ Failed to load matches:", err);
     matchDropdown.innerHTML = `<option disabled selected>⚠️ Failed to load matches</option>`;
   }
-  // Hide main display if no pending matches
-const hasPending = matchResults.some(m => m.status === "pending");
-document.querySelector(".main-display").style.display = hasPending ? "flex" : "none";
+
+// === Show first pending match in main display ===
+const pendingMatches = matchResults.filter(m => m.status === "pending");
+
+if (pendingMatches.length > 0) {
+  const pending = pendingMatches[0]; // Show first pending
+
+  const courtLabel = courtNames[pending.court - 1] || `Court ${pending.court}`;
+  document.getElementById("matchTitle").textContent = courtLabel;
+
+  document.getElementById("teamAName").textContent = pending.tA;
+  document.getElementById("teamBName").textContent = pending.tB;
+
+  document.getElementById("teamAIcon").src = getTeamLogo(pending.tA);
+  document.getElementById("teamBIcon").src = getTeamLogo(pending.tB);
+
+  document.getElementById("scoreA").textContent = pending.gA ?? 0;
+  document.getElementById("scoreB").textContent = pending.gB ?? 0;
+
+  console.log("🔍 Pending goals object:", pending.goals);
+
+  document.getElementById("goalLogA").innerHTML =
+    (pending.goals || [])
+      .filter(g => g.team === pending.tA)
+      .map(g => `${g.name || g.player}${g.time ? ` (${g.time}')` : ""}`)
+      .join("<br>");
+
+  document.getElementById("goalLogB").innerHTML =
+    (pending.goals || [])
+      .filter(g => g.team === pending.tB)
+      .map(g => `${g.name || g.player}${g.time ? ` (${g.time}')` : ""}`)
+      .join("<br>");
+
+  // 🔁 Clear any previously appended extra rows/headers to avoid duplicates
+  document
+    .querySelectorAll(".main-display .extra-row-display, .main-display .extra-header")
+    .forEach(el => el.remove());
+
+  // ➕ Append additional pending matches as extra rows (same container)
+  if (pendingMatches.length > 1) {
+    const main = document.querySelector(".main-display");
+
+    // 🔁 Clear any previous extra rows and headers before adding new ones
+    document
+      .querySelectorAll(".main-display .extra-row-display, .main-display .extra-header")
+      .forEach(el => el.remove());
+
+    pendingMatches.slice(1).forEach(pm => {
+      const label = courtNames[pm.court - 1] || `Court ${pm.court}`;
+
+    // a) per-row court title (same style as main)
+    const header = document.createElement("div");
+    header.className = "match-header extra-header";  // <- add extra-header so we can remove it
+    header.textContent = label;                      // <- use the label for this row (not courtLabel)
+    main.appendChild(header);
+
+      // b) row UI (clone style, no IDs)
+      const row = document.createElement("div");
+      row.className = "row-display extra-row-display";
+      row.innerHTML = `
+        <div class="team-block">
+          <img src="${getTeamLogo(pm.tA)}" />
+          <span>${pm.tA}</span>
+          <div class="score-number">${pm.gA ?? 0}</div>
+          <div class="goal-log">${
+            (pm.goals || [])
+              .filter(g => g.team === pm.tA)
+              .map(g => `${g.name || g.player}${g.time ? ` (${g.time}')` : ""}`)
+              .join("<br>")
+          }</div>
+        </div>
+
+        <div class="timer-block">
+          <div class="center-timer">00:00</div>
+        </div>
+
+        <div class="team-block">
+          <img src="${getTeamLogo(pm.tB)}" />
+          <span>${pm.tB}</span>
+          <div class="score-number">${pm.gB ?? 0}</div>
+          <div class="goal-log">${
+            (pm.goals || [])
+              .filter(g => g.team === pm.tB)
+              .map(g => `${g.name || g.player}${g.time ? ` (${g.time}')` : ""}`)
+              .join("<br>")
+          }</div>
+        </div>
+      `;
+      main.appendChild(row);
+    });
+  }
+
+  // ensure the main display is visible
+  document.querySelector(".main-display").style.display = "flex";
+} else {
+  // no pending matches: hide the main display
+  document.querySelector(".main-display").style.display = "none";
+}
+
+
 }
 
 
@@ -2875,6 +3093,7 @@ matchDropdown.addEventListener("change", async (e) => {
     const courtLabel = courtNames[matchObj.court - 1] || `Court ${matchObj.court}`;
 document.getElementById("matchTitle").textContent = courtLabel;
 
+
     currentGoals = allGoals.filter(g => g.match_number === matchNumber);
 
     updateLiveScoreboard();
@@ -2891,7 +3110,7 @@ document.getElementById("matchTitle").textContent = courtLabel;
 
     console.log("🔁 Auto-refreshing match results...");
     await loadMatches(sessionId);
-  }, 15000);
+  }, 5000);
 
 });
 
