@@ -2846,6 +2846,7 @@ if (resultError) {
     console.error("❌ Failed to load matches:", err);
     matchDropdown.innerHTML = `<option disabled selected>⚠️ Failed to load matches</option>`;
   }
+
 // === Show first pending match in main display ===
 const pendingMatches = matchResults.filter(m => m.status === "pending");
 
@@ -2858,81 +2859,86 @@ if (pendingMatches.length > 0) {
   document.getElementById("teamAName").textContent = pending.tA;
   document.getElementById("teamBName").textContent = pending.tB;
 
-document.getElementById("teamAIcon").src = getTeamLogo(pending.tA);
-document.getElementById("teamBIcon").src = getTeamLogo(pending.tB);
+  document.getElementById("teamAIcon").src = getTeamLogo(pending.tA);
+  document.getElementById("teamBIcon").src = getTeamLogo(pending.tB);
 
   document.getElementById("scoreA").textContent = pending.gA ?? 0;
   document.getElementById("scoreB").textContent = pending.gB ?? 0;
 
   console.log("🔍 Pending goals object:", pending.goals);
 
-document.getElementById("goalLogA").innerHTML =
-  (pending.goals || [])
-    .filter(g => g.team === pending.tA)
-    .map(g => `${g.name || g.player} (${g.time || ""}')`)
-    .join("<br>");
+  document.getElementById("goalLogA").innerHTML =
+    (pending.goals || [])
+      .filter(g => g.team === pending.tA)
+      .map(g => `${g.name || g.player}${g.time ? ` (${g.time}')` : ""}`)
+      .join("<br>");
 
-document.getElementById("goalLogB").innerHTML =
-  (pending.goals || [])
-    .filter(g => g.team === pending.tB)
-    .map(g => `${g.name || g.player} (${g.time || ""}')`)
-    .join("<br>");
+  document.getElementById("goalLogB").innerHTML =
+    (pending.goals || [])
+      .filter(g => g.team === pending.tB)
+      .map(g => `${g.name || g.player}${g.time ? ` (${g.time}')` : ""}`)
+      .join("<br>");
 
-  // 🔁 Clear any previous extra rows/headers
-document
-  .querySelectorAll(".main-display .extra-row-display, .main-display .extra-header")
-  .forEach(el => el.remove());
+  // 🔁 Clear any previously appended extra rows/headers to avoid duplicates
+  document
+    .querySelectorAll(".main-display .extra-row-display, .main-display .extra-header")
+    .forEach(el => el.remove());
 
-// ➕ Append additional pending matches as extra rows (same container)
-if (pendingMatches.length > 1) {
-  const main = document.querySelector(".main-display");
+  // ➕ Append additional pending matches as extra rows (same container)
+  if (pendingMatches.length > 1) {
+    const main = document.querySelector(".main-display");
 
-  pendingMatches.slice(1).forEach(pm => {
-    const courtLabel = courtNames[pm.court - 1] || `Court ${pm.court}`;
+    pendingMatches.slice(1).forEach(pm => {
+      const label = courtNames[pm.court - 1] || `Court ${pm.court}`;
 
-    // a) per-row court title (smaller)
-    const header = document.createElement("div");
-    header.className = "match-header extra-header";
-    header.textContent = courtLabel;
-    main.appendChild(header);
+      // a) per-row court title (smaller)
+      const header = document.createElement("div");
+      header.className = "match-header extra-header";
+      header.textContent = label;
+      main.appendChild(header);
 
-    // b) row UI (clone style, no IDs)
-    const row = document.createElement("div");
-    row.className = "row-display extra-row-display";
-    row.innerHTML = `
-      <div class="team-block">
-        <img src="${getTeamLogo(pm.tA)}" />
-        <span>${pm.tA}</span>
-        <div class="score-number">${pm.gA ?? 0}</div>
-        <div class="goal-log">${
-          (pm.goals || [])
-            .filter(g => g.team === pm.tA)
-            .map(g => `${g.name || g.player} (${g.time || ""}')`)
-            .join("<br>")
-        }</div>
-      </div>
+      // b) row UI (clone style, no IDs)
+      const row = document.createElement("div");
+      row.className = "row-display extra-row-display";
+      row.innerHTML = `
+        <div class="team-block">
+          <img src="${getTeamLogo(pm.tA)}" />
+          <span>${pm.tA}</span>
+          <div class="score-number">${pm.gA ?? 0}</div>
+          <div class="goal-log">${
+            (pm.goals || [])
+              .filter(g => g.team === pm.tA)
+              .map(g => `${g.name || g.player}${g.time ? ` (${g.time}')` : ""}`)
+              .join("<br>")
+          }</div>
+        </div>
 
-      <div class="timer-block">
-        <div class="center-timer">--:--</div>
-      </div>
+        <div class="timer-block">
+          <div class="center-timer">--:--</div>
+        </div>
 
-      <div class="team-block">
-        <img src="${getTeamLogo(pm.tB)}" />
-        <span>${pm.tB}</span>
-        <div class="score-number">${pm.gB ?? 0}</div>
-        <div class="goal-log">${
-          (pm.goals || [])
-            .filter(g => g.team === pm.tB)
-            .map(g => `${g.name || g.player} (${g.time || ""}')`)
-            .join("<br>")
-        }</div>
-      </div>
-    `;
-    main.appendChild(row);
-  });
+        <div class="team-block">
+          <img src="${getTeamLogo(pm.tB)}" />
+          <span>${pm.tB}</span>
+          <div class="score-number">${pm.gB ?? 0}</div>
+          <div class="goal-log">${
+            (pm.goals || [])
+              .filter(g => g.team === pm.tB)
+              .map(g => `${g.name || g.player}${g.time ? ` (${g.time}')` : ""}`)
+              .join("<br>")
+          }</div>
+        </div>
+      `;
+      main.appendChild(row);
+    });
+  }
+
+  // ensure the main display is visible
+  document.querySelector(".main-display").style.display = "flex";
+} else {
+  // no pending matches: hide the main display
+  document.querySelector(".main-display").style.display = "none";
 }
-
-document.querySelector(".main-display").style.display = "flex";
 
 // === Render additional pending matches under the main display ===
 const morePendingEl = document.getElementById("morePending");
