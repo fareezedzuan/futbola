@@ -751,6 +751,14 @@ select.dropdown:focus {
   padding: 2px 10px;
 }
 
+/* Public page: make the main scoreboard non-interactive */
+.public-readonly .main-display .team-block,
+.public-readonly .main-display .score-number,
+.public-readonly .main-display img {
+  pointer-events: none;
+  cursor: default;
+}
+
 @keyframes blink-border {
   50% {
     border-color: transparent;
@@ -961,6 +969,11 @@ select.dropdown:focus {
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 <script>
 console.log("🚀 JS loaded");
+// Detect this public page and lock UI
+window.isPublicView = /public-match-results\.html$/i.test(location.pathname);
+if (window.isPublicView) {
+  document.body.classList.add("public-readonly");
+}
 const { createClient } = supabase;
 const supabaseClient = createClient(
     'https://kdbqroxhypnadolcxxxc.supabase.co',
@@ -1220,6 +1233,7 @@ document.getElementById("matchTitle").textContent = courtLabel;
 }
 
 function triggerScorer(side) {
+  if (window.isPublicView) return; 
   const teamA = document.getElementById("teamAName").textContent;
   const teamB = document.getElementById("teamBName").textContent;
   const idxA = teamNames.indexOf(teamA);
