@@ -2975,13 +2975,18 @@ if (pendingMatches.length > 0) {
   if (pendingMatches.length > 1) {
     const main = document.querySelector(".main-display");
 
+    // 🔁 Clear any previous extra rows and headers before adding new ones
+    document
+      .querySelectorAll(".main-display .extra-row-display, .main-display .extra-header")
+      .forEach(el => el.remove());
+
     pendingMatches.slice(1).forEach(pm => {
       const label = courtNames[pm.court - 1] || `Court ${pm.court}`;
 
     // a) per-row court title (same style as main)
     const header = document.createElement("div");
     header.className = "match-header";
-    header.textContent = courtLabelPm; 
+    header.textContent = courtLabel;
     main.appendChild(header);
 
       // b) row UI (clone style, no IDs)
