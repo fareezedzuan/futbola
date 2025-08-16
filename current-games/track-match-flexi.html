@@ -925,6 +925,8 @@ let pauseStartedMs = null;      // when current pause started (ms) or null
 let tickIntervalId = null;      // setInterval id for UI updates
 let alarmPlayed = false;        // fire alarm once at duration
 
+window.useRealTimer = true; // set to false to fall back to the old timer immediately
+
 function generateRoundRobin(teams) {
   const rounds = [], t = [...teams];
   if (t.length % 2) t.push("BYE");
@@ -954,6 +956,11 @@ function getTeamLogo(colorName) {
 }
 
 async function handleTimerClick() {
+    // KILL-SWITCH: use old timer behavior
+  if (!window.useRealTimer) {
+    legacyStartPauseResume();
+    return;
+  }
   // 3 states: not started -> start; running -> pause; paused -> resume
   if (!startEpochMs) {
     // START
@@ -1021,6 +1028,7 @@ function persistTimerState() {
 }
 
 function restoreTimerFromStorage() {
+  if (!window.useRealTimer) return; // legacy mode: nothing to restore
   try {
     const raw = sessionStorage.getItem("timerState");
     if (!raw) return;
@@ -1031,7 +1039,6 @@ function restoreTimerFromStorage() {
     alarmPlayed     = !!s.alarmPlayed;
 
     if (startEpochMs) {
-      // if we are not currently paused, start ticking
       if (!pauseStartedMs) startTicking();
       updateTimerDisplay();
       updateTimerButtonLabel();
@@ -1040,10 +1047,12 @@ function restoreTimerFromStorage() {
 }
 
 function getElapsedMs() {
+  if (!window.useRealTimer) {
+    return (timeElapsed || 0) * 1000;  // old counter in seconds → ms
+  }
   if (!startEpochMs) return 0;
   const now = Date.now();
   const pausedNow = pauseStartedMs ? (now - pauseStartedMs) : 0;
-  // elapsed = now - start - totalPaused(excluding current pause)
   return (now - startEpochMs) - (pausedMs + pausedNow);
 }
 
@@ -1057,6 +1066,11 @@ function formatMMSS(ms) {
 function updateTimerDisplay() {
   const el = document.getElementById("timer");
   if (!el) return;
+
+  if (!window.useRealTimer) {
+    el.textContent = formatMMSS((timeElapsed || 0) * 1000);
+    return;
+  }
   el.textContent = formatMMSS(getElapsedMs());
 }
 
@@ -1127,6 +1141,42 @@ function resetTimer() {
   persistTimerState();
   updateTimerDisplay();
   updateTimerButtonLabel();
+}
+
+function legacyStartPauseResume() {
+  const btn = document.getElementById("timerBtn");
+
+  // START
+  if (!timerRunning && !timerPaused) {
+    timerRunning = true;
+    timerPaused = false;
+    timer = setInterval(() => {
+      timeElapsed++;
+      updateTimerDisplay();   // this will also be kill-switch aware (see #3)
+      if (typeof checkAlarm === "function") checkAlarm();
+    }, 1000);
+    if (btn) btn.textContent = "Pause";
+    return;
+  }
+
+  // PAUSE
+  if (timerRunning && !timerPaused) {
+    timerPaused = true;
+    clearInterval(timer);
+    if (btn) btn.textContent = "Resume Timer";
+    return;
+  }
+
+  // RESUME
+  if (timerRunning && timerPaused) {
+    timerPaused = false;
+    timer = setInterval(() => {
+      timeElapsed++;
+      updateTimerDisplay();
+      if (typeof checkAlarm === "function") checkAlarm();
+    }, 1000);
+    if (btn) btn.textContent = "Pause";
+  }
 }
 
 async function startNextMatch(options = {}) {
