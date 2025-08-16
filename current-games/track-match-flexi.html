@@ -1063,6 +1063,46 @@ function formatMMSS(ms) {
   return `${mm}:${ss}`;
 }
 
+// ---- Timer compatibility shims (bridge old names to new real-timer API) ----
+function loadTimerState(/*sessionId, matchNumber*/) {
+  // We store a single timer state in sessionStorage for the active match.
+  try {
+    const raw = sessionStorage.getItem("timerState");
+    if (!raw) return {};
+    const s = JSON.parse(raw);
+    // Map to the old shape:
+    return {
+      // "accumulatedMs" in the old API ~= total paused duration we've stored so far
+      accumulatedMs: s.pausedMs || 0,
+      startRefMs: s.startEpochMs || null,
+      isPaused: !!s.pauseStartedMs
+    };
+  } catch {
+    return {};
+  }
+}
+
+function clearTimerState(/*sessionId, matchNumber*/) {
+  sessionStorage.removeItem("timerState");
+}
+
+function startTick(/*sessionId, matchNumber*/) {
+  // old -> new
+  if (typeof startTicking === "function") startTicking();
+}
+
+function stopTick() {
+  // old -> new
+  if (typeof stopTicking === "function") stopTicking();
+}
+
+function paintTimer(ms) {
+  // old -> new display
+  const el = document.getElementById("timer");
+  if (!el) return;
+  el.textContent = formatMMSS(ms);
+}
+
 function updateTimerDisplay() {
   const el = document.getElementById("timer");
   if (!el) return;
