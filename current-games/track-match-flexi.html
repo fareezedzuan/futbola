@@ -2943,60 +2943,6 @@ async function loadMatches(sessionId) {
       }
     }
 
-    // 🔁 Clear any previously appended extra rows/headers to avoid duplicates
-    document
-      .querySelectorAll(".main-display .extra-row-display, .main-display .extra-header")
-      .forEach(el => el.remove());
-
-    // ➕ Append additional pending matches as extra rows (same container)
-    if (pendingMatches.length > 1) {
-      const main = document.querySelector(".main-display");
-
-      pendingMatches.slice(1).forEach(pm => {
-        const label = courtNames[pm.court - 1] || `Court ${pm.court}`;
-
-        // per-row court title (same style as main)
-        const header = document.createElement("div");
-        header.className = "match-header extra-header";
-        header.textContent = label;                 // ✅ use label for the correct court name
-        main.appendChild(header);
-
-        // row UI (clone style, no IDs)
-        const row = document.createElement("div");
-        row.className = "row-display extra-row-display";
-        row.innerHTML = `
-          <div class="team-block">
-            <img src="${getTeamLogo(pm.tA)}" />
-            <span>${pm.tA}</span>
-            <div class="score-number">${pm.gA ?? 0}</div>
-            <div class="goal-log">${
-              (pm.goals || [])
-                .filter(g => g.team === pm.tA)
-                .map(g => `${g.name || g.player}${g.time ? ` (${g.time}')` : ""}`)
-                .join("<br>")
-            }</div>
-          </div>
-
-          <div class="timer-block">
-            <div class="center-timer">00:00</div>
-          </div>
-
-          <div class="team-block">
-            <img src="${getTeamLogo(pm.tB)}" />
-            <span>${pm.tB}</span>
-            <div class="score-number">${pm.gB ?? 0}</div>
-            <div class="goal-log">${
-              (pm.goals || [])
-                .filter(g => g.team === pm.tB)
-                .map(g => `${g.name || g.player}${g.time ? ` (${g.time}')` : ""}`)
-                .join("<br>")
-            }</div>
-          </div>
-        `;
-        main.appendChild(row);
-      });
-    }
-
     // ensure the main display is visible
     document.querySelector(".main-display").style.display = "flex";
   } else {
