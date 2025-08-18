@@ -925,6 +925,10 @@ let pauseStartedMs = null;      // when current pause started (ms) or null
 let tickIntervalId = null;      // setInterval id for UI updates
 let alarmPlayed = false;        // fire alarm once at duration
 
+let isSaving   = false;   // a write (save/autosave) is in-flight
+let isPolling  = false;   // a poll/loadMatches is in-flight
+let lastWriteAt = 0;      // when the last save started
+
 window.useRealTimer = true; // set to false to fall back to the old timer immediately
 
 function generateRoundRobin(teams) {
@@ -2489,37 +2493,41 @@ async function autoSaveMatchProgress(matchIndex) {
   if (!match) return;
 
   const payload = {
-    game_id: sessionStorage.getItem("gameId"),
-    session_id: sessionStorage.getItem("sessionId"),
+    game_id:     sessionStorage.getItem("gameId"),
+    session_id:  sessionStorage.getItem("sessionId"),
     match_number: matchIndex + 1,
-    team_a: match.tA,
-    team_b: match.tB,
-    score_a: match.gA ?? 0,
-    score_b: match.gB ?? 0,
-    goals: match.goals ?? [],
-    status: match.status ?? "pending",
-    updated_at: new Date().toISOString()
+    team_a:      match.tA,
+    team_b:      match.tB,
+    score_a:     match.gA ?? 0,
+    score_b:     match.gB ?? 0,
+    goals:       match.goals ?? [],
+    status:      match.status ?? "pending",
+    updated_at:  new Date().toISOString()
   };
 
   console.log("📤 Auto-saving match:", payload);
 
   try {
+    isSaving = true;              // 🔒 block pollers
+    lastWriteAt = Date.now();     // 🕒 remember when write started
+
     const res = await fetch("/api/save-match-result", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     });
 
-    const result = await res.json();
+    const result = await res.json().catch(() => ({})); // safe once
 
     if (res.ok) {
       console.log("✅ Auto-save to Supabase successful:", result);
     } else {
       console.warn("❌ Auto-save rejected by Supabase:", result);
     }
-
   } catch (err) {
-    console.warn("⚠️ Auto-save failed:", err.message);
+    console.warn("⚠️ Auto-save failed:", err?.message || err);
+  } finally {
+    isSaving = false;             // 🔓 let polling resume
   }
 }
 
@@ -2710,37 +2718,56 @@ try {
     // Load matches
     loadMatches(sessionId);
 
-// 🔁 Periodic refresh every 15s
+// 🔁 Periodic refresh (every 5s)
 setInterval(async () => {
   const currentSessionId = sessionStorage.getItem("sessionId");
   if (!currentSessionId) return;
 
+  // a) skip if a save is running
+  if (isSaving) {
+    console.log("⏭️ Skip poll: save in progress");
+    return;
+  }
+
+  // b) small settle window after any write
+  const SETTLE_MS = 2500;
+  if (Date.now() - lastWriteAt < SETTLE_MS) {
+    console.log("⏭️ Skip poll: within settle window");
+    return;
+  }
+
+  // c) don’t overlap polls
+  if (isPolling) return;
+  isPolling = true;
+
   console.log("🔄 Periodic update: fetching matches & goals...");
 
   const prevMatchNumber = matchNumber;
-  const prevGoals = currentGoals.slice(); // backup current goals
+  const prevGoals = currentGoals.slice();
 
-  await loadMatches(currentSessionId); // reload matchResults
+  try {
+    await loadMatches(currentSessionId);
 
-  // 🛠 Restore current match if still valid
-  if (prevMatchNumber > 0 && prevMatchNumber <= matchResults.length) {
-    matchNumber = prevMatchNumber;
-    currentGoals = prevGoals;
+    if (prevMatchNumber > 0 && prevMatchNumber <= matchResults.length) {
+      matchNumber = prevMatchNumber;
+      currentGoals = prevGoals;
 
-    const match = matchResults[matchNumber - 1];
-    if (match) {
-      document.getElementById("teamAName").textContent = match.tA;
-      document.getElementById("teamBName").textContent = match.tB;
-      document.getElementById("teamAIcon").src = getTeamLogo(match.tA);
-      document.getElementById("teamBIcon").src = getTeamLogo(match.tB);
-      document.getElementById("matchTitle").textContent = `Match ${match.number}`;
+      const match = matchResults[matchNumber - 1];
+      if (match) {
+        document.getElementById("teamAName").textContent = match.tA;
+        document.getElementById("teamBName").textContent = match.tB;
+        document.getElementById("teamAIcon").src = getTeamLogo(match.tA);
+        document.getElementById("teamBIcon").src = getTeamLogo(match.tB);
+        document.getElementById("matchTitle").textContent = `Match ${match.number}`;
 
-      updateLiveScoreboard();
-      renderGoalLog();
+        updateLiveScoreboard();
+        renderGoalLog();
+      }
     }
+  } finally {
+    isPolling = false;
   }
 }, 5000);
-
 
   });
 
