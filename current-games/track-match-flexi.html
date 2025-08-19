@@ -960,12 +960,13 @@ function getTeamLogo(colorName) {
 }
 
 async function handleTimerClick() {
-    // KILL-SWITCH: use old timer behavior
-  if (!window.useRealTimer) {
-    legacyStartPauseResume();
-    return;
-  }
   // 3 states: not started -> start; running -> pause; paused -> resume
+  const sessionId = sessionStorage.getItem("sessionId");
+  const gameId = sessionStorage.getItem("gameId");
+  const match = matchResults[matchNumber - 1]; // current match object (1-based)
+  const safeTeamA = document.getElementById("teamAName")?.textContent || match?.tA;
+  const safeTeamB = document.getElementById("teamBName")?.textContent || match?.tB;
+
   if (!startEpochMs) {
     // START
     startEpochMs = Date.now();
@@ -976,29 +977,27 @@ async function handleTimerClick() {
     startTicking();
     updateTimerButtonLabel();
 
-    // (optional) upsert started_at + set status=pending
+    // 🔄 reflect in DB
     try {
-      const match = matchResults[matchNumber - 1];
-      if (match && match.status !== "completed") {
-        const payload = {
-          session_id: sessionStorage.getItem("sessionId"),
-          game_id: sessionStorage.getItem("gameId"),
-          match_number: match.number,
-          team_a: match.tA,
-          team_b: match.tB,
-          score_a: match.gA ?? 0,
-          score_b: match.gB ?? 0,
-          goals: match.goals ?? [],
-          status: "pending",
-          started_at: new Date(startEpochMs).toISOString()
-        };
-        await fetch("/api/save-match-result", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
-      }
-    } catch (e) { console.warn("startTimer save failed:", e); }
+      const payload = {
+        game_id: gameId,
+        session_id: sessionId,
+        match_number: match?.number ?? matchNumber,
+        team_a: safeTeamA,
+        team_b: safeTeamB,
+        score_a: match?.gA ?? 0,
+        score_b: match?.gB ?? 0,
+        goals: match?.goals ?? [],
+        status: "pending",
+        started_at: new Date(startEpochMs).toISOString(),
+        ...getDbTimerStateForUpsert()
+      };
+      await fetch("/api/save-match-result", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+    } catch (e) { console.warn("startTimer upsert failed:", e); }
 
     return;
   }
@@ -1009,6 +1008,29 @@ async function handleTimerClick() {
     persistTimerState();
     stopTicking();
     updateTimerButtonLabel();
+
+    // 🔄 reflect in DB: mark paused and record pause_started_at
+    try {
+      const payload = {
+        game_id: gameId,
+        session_id: sessionId,
+        match_number: match?.number ?? matchNumber,
+        team_a: safeTeamA,
+        team_b: safeTeamB,
+        score_a: match?.gA ?? 0,
+        score_b: match?.gB ?? 0,
+        goals: match?.goals ?? [],
+        status: "pending",
+        // started_at already set previously; we only update pause state
+        ...getDbTimerStateForUpsert()
+      };
+      await fetch("/api/save-match-result", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+    } catch (e) { console.warn("pause upsert failed:", e); }
+
     return;
   }
 
@@ -1019,6 +1041,27 @@ async function handleTimerClick() {
   persistTimerState();
   startTicking();
   updateTimerButtonLabel();
+
+  // 🔄 reflect in DB: clear pause_started_at, keep paused_ms_total
+  try {
+    const payload = {
+      game_id: gameId,
+      session_id: sessionId,
+      match_number: match?.number ?? matchNumber,
+      team_a: safeTeamA,
+      team_b: safeTeamB,
+      score_a: match?.gA ?? 0,
+      score_b: match?.gB ?? 0,
+      goals: match?.goals ?? [],
+      status: "pending",
+      ...getDbTimerStateForUpsert() // now is_paused=false, pause_started_at=null, paused_ms_total updated
+    };
+    await fetch("/api/save-match-result", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+  } catch (e) { console.warn("resume upsert failed:", e); }
 }
 
 function persistTimerState() {
@@ -1185,6 +1228,16 @@ function resetTimer() {
   persistTimerState();
   updateTimerDisplay();
   updateTimerButtonLabel();
+}
+
+function getDbTimerStateForUpsert() {
+  // pausedMs = total paused time so far (not including current pause window)
+  // if currently paused, we also send pause_started_at so viewers can add (now - pause_started_at)
+  return {
+    is_paused: !!pauseStartedMs,
+    paused_ms_total: pausedMs || 0,
+    pause_started_at: pauseStartedMs ? new Date(pauseStartedMs).toISOString() : null
+  };
 }
 
 function legacyStartPauseResume() {
@@ -1386,43 +1439,116 @@ function updateLiveScoreboard() {
   document.getElementById("scoreB").textContent = scoreB;
 }
 
-async function saveCurrentMatchOnly() {
-  if (matchNumber === 0 || !matchResults.length) {
-    alert("⚠️ No match selected.");
-    return;
+async function saveCurrentMatch(matchIndex) {
+  const tA = document.getElementById("teamAName").textContent;
+  const tB = document.getElementById("teamBName").textContent;
+  const gA = parseInt(document.getElementById("scoreA").textContent, 10);
+  const gB = parseInt(document.getElementById("scoreB").textContent, 10);
+
+  if ((gA == null || gA === '' || gA === 0) &&
+      (gB == null || gB === '' || gB === 0)) {
+    const proceed = confirm("⚠️ Both scores are 0 or empty. Are you sure you want to continue?");
+    if (!proceed) return false;
   }
 
-  const match = matchResults[matchNumber - 1]; // matchNumber is 1-based
-  if (!match) {
-    alert("⚠️ Match data missing.");
-    return;
-  }
+  matchResults[matchIndex] = { ...matchResults[matchIndex], tA, tB, gA, gB };
 
-  console.log("📝 Preparing to save result for Match", match.number);
+  console.log("Saving match to Supabase...");
+  console.warn("🟡 saveCurrentMatch() called for matchIndex:", matchIndex);
 
-  const payload = {
-    game_id: sessionStorage.getItem("gameId"),
-    session_id: sessionStorage.getItem("sessionId"),
-    match_number: match.number,
-    team_a: match.tA,
-    team_b: match.tB,
-    goals_team_a: match.gA || 0,
-    goals_team_b: match.gB || 0,
-    updated_at: new Date().toISOString()
-  };
+  // flatten currentGoals into allGoals with match_number
+  allGoals = allGoals.concat(
+    currentGoals.map(g => ({ ...g, match_number: matchIndex + 1 }))
+  );
+
+  updateMatchHistory();
+  updateLeaderboard();
+  updateStandings(tA, tB, gA, gB);
 
   try {
-    const { data, error } = await supabaseClient
-      .from("match_results")
-      .upsert([payload], { onConflict: ['session_id', 'match_number'] });
+    // ⏱ total elapsed = (now - start) - pausedMs (if currently paused, pausedMs already includes it)
+    // Our local model: pausedMs accumulates on resume; if currently paused, we must add this last window.
+    const now = Date.now();
+    const extraPaused = pauseStartedMs ? (now - pauseStartedMs) : 0;
+    const totalPaused = (pausedMs || 0) + extraPaused;
+    const totalMs = startEpochMs ? (now - startEpochMs - totalPaused) : 0;
 
-    if (error) throw error;
+    const payload = {
+      game_id:     sessionStorage.getItem("gameId"),
+      session_id:  sessionStorage.getItem("sessionId"),
+      match_number: matchIndex + 1,
+      team_a:      tA,
+      team_b:      tB,
+      score_a:     gA,
+      score_b:     gB,
+      goals:       currentGoals,
+      status:      "completed",
+      ended_at:    new Date().toISOString(),
+      // optional, uncomment if you added it:
+      // duration_seconds: Math.max(0, Math.round(totalMs / 1000)),
+      // keep final pause snapshot too (not strictly required after completion, but harmless)
+      is_paused: false,
+      paused_ms_total: totalPaused,
+      pause_started_at: null
+    };
 
-    console.log("✅ Match result saved:", data);
-    alert(`✅ Match ${match.number} saved successfully.`);
+    console.log("📤 Sending match result to Supabase:", payload);
+
+    const res = await fetch('/api/save-match-result', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error(`Server returned ${res.status}: ${errorText}`);
+    }
+
+    const json = await res.json();
+    console.log("✅ Saved to Supabase:", json);
+
+    // ✅ clear local timer
+    resetTimer();
+
+    // reflect locally
+    matchResults[matchIndex] = {
+      ...matchResults[matchIndex],
+      status: 'completed',
+      ended_at: payload.ended_at
+    };
+
+    alert("✅ Match saved.");
+    return true;
+
   } catch (err) {
-    console.error("❌ Failed to save match result:", err);
-    alert("❌ Error saving match. Check console.");
+    console.error("❌ Network or server error while saving match:", err);
+
+    const now = Date.now();
+    const extraPaused = pauseStartedMs ? (now - pauseStartedMs) : 0;
+    const failedData = {
+      game_id: sessionStorage.getItem("gameId"),
+      session_id: sessionStorage.getItem("sessionId"),
+      match_number: matchIndex + 1,
+      team_a: tA,
+      team_b: tB,
+      score_a: gA,
+      score_b: gB,
+      goals: currentGoals,
+      status: "completed",
+      ended_at: new Date().toISOString(),
+      is_paused: false,
+      paused_ms_total: (pausedMs || 0) + extraPaused,
+      pause_started_at: null,
+      timestamp: Date.now()
+    };
+
+    const existing = JSON.parse(localStorage.getItem("unsyncedMatches") || "[]");
+    existing.push(failedData);
+    localStorage.setItem("unsyncedMatches", JSON.stringify(existing));
+
+    alert(`⚠️ Match ${matchIndex + 1} not saved due to network. Will retry when online.`);
+    return false;
   }
 }
 
@@ -2493,41 +2619,38 @@ async function autoSaveMatchProgress(matchIndex) {
   if (!match) return;
 
   const payload = {
-    game_id:     sessionStorage.getItem("gameId"),
-    session_id:  sessionStorage.getItem("sessionId"),
+    game_id: sessionStorage.getItem("gameId"),
+    session_id: sessionStorage.getItem("sessionId"),
     match_number: matchIndex + 1,
-    team_a:      match.tA,
-    team_b:      match.tB,
-    score_a:     match.gA ?? 0,
-    score_b:     match.gB ?? 0,
-    goals:       match.goals ?? [],
-    status:      match.status ?? "pending",
-    updated_at:  new Date().toISOString()
+    team_a: match.tA,
+    team_b: match.tB,
+    score_a: match.gA ?? 0,
+    score_b: match.gB ?? 0,
+    goals: match.goals ?? [],
+    status: match.status ?? "pending",
+    updated_at: new Date().toISOString(),
+    ...getDbTimerStateForUpsert()
   };
 
   console.log("📤 Auto-saving match:", payload);
 
   try {
-    isSaving = true;              // 🔒 block pollers
-    lastWriteAt = Date.now();     // 🕒 remember when write started
-
     const res = await fetch("/api/save-match-result", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     });
 
-    const result = await res.json().catch(() => ({})); // safe once
+    const result = await res.json();
 
     if (res.ok) {
       console.log("✅ Auto-save to Supabase successful:", result);
     } else {
       console.warn("❌ Auto-save rejected by Supabase:", result);
     }
+
   } catch (err) {
-    console.warn("⚠️ Auto-save failed:", err?.message || err);
-  } finally {
-    isSaving = false;             // 🔓 let polling resume
+    console.warn("⚠️ Auto-save failed:", err.message);
   }
 }
 
