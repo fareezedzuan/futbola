@@ -928,6 +928,7 @@ let alarmPlayed = false;        // fire alarm once at duration
 let isSaving   = false;   // a write (save/autosave) is in-flight
 let isPolling  = false;   // a poll/loadMatches is in-flight
 let lastWriteAt = 0;      // when the last save started
+let selectedMatchId = sessionStorage.getItem("selectedMatchId") || null;
 
 const WRITE_COOLDOWN_MS = 1500; // 1.5s grace after any write
 
@@ -1428,6 +1429,38 @@ function renderGoalLog() {
     .map(([p, times]) => `<div class='goal-line'>${p} ${times.join(", ")}</div>`).join("");
   document.getElementById("goalLogB").innerHTML = Object.entries(logB)
     .map(([p, times]) => `<div class='goal-line'>${p} ${times.join(", ")}</div>`).join("");
+}
+
+function renderSelectedMatch(id) {
+  const m = matchResults.find(x => x.id === id);
+  if (!m) return;
+
+  const courtLabel = courtNames[m.court - 1] || `Court ${m.court}`;
+  document.getElementById("matchTitle").textContent = courtLabel;
+
+  document.getElementById("teamAName").textContent = m.tA;
+  document.getElementById("teamBName").textContent = m.tB;
+  document.getElementById("teamAIcon").src = getTeamLogo(m.tA);
+  document.getElementById("teamBIcon").src = getTeamLogo(m.tB);
+
+  document.getElementById("scoreA").textContent = m.gA ?? 0;
+  document.getElementById("scoreB").textContent = m.gB ?? 0;
+
+  const goals = m.goals || [];
+  document.getElementById("goalLogA").innerHTML = goals
+    .filter(g => g.team === m.tA)
+    .map(g => `${g.name || g.player}${g.time ? ` (${g.time}')` : ""}`)
+    .join("<br>");
+  document.getElementById("goalLogB").innerHTML = goals
+    .filter(g => g.team === m.tB)
+    .map(g => `${g.name || g.player}${g.time ? ` (${g.time}')` : ""}`)
+    .join("<br>");
+
+  // if you use these elsewhere, keep them in sync
+  matchNumber = m.number;
+  currentGoals = goals;
+
+  document.querySelector(".main-display").style.display = "flex";
 }
 
 function updateLiveScoreboard() {
@@ -2878,7 +2911,9 @@ async function loadMatches(sessionId) {
     }
 
     // 5) Build grouped dropdown by court name
-    matchDropdown.innerHTML = `<option disabled selected>-- Select Match --</option>`;
+    matchDropdown.innerHTML = selectedMatchId
+    ? `<option disabled>-- Select Match --</option>`
+    : `<option disabled selected>-- Select Match --</option>`;
     const grouped = {};
 
     matchResults.forEach(m => {
@@ -2985,6 +3020,7 @@ async function loadMatches(sessionId) {
 
   // Handle match selection
 matchDropdown.addEventListener("change", async (e) => {
+
   const matchId = e.target.value;
   const matchObj = matchResults.find(m => m.id === matchId);
 
