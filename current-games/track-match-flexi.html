@@ -3002,10 +3002,20 @@ matchDropdown.addEventListener("change", async (e) => {
     document.getElementById("teamBName").textContent = data.team2_id;
     document.getElementById("teamAIcon").src = getTeamLogo(data.team1_id);
     document.getElementById("teamBIcon").src = getTeamLogo(data.team2_id);
-    document.getElementById("scoreA").textContent = "0";
-    document.getElementById("scoreB").textContent = "0";
-    document.getElementById("goalLogA").innerHTML = "";
-    document.getElementById("goalLogB").innerHTML = "";
+document.getElementById("scoreA").textContent = matchObj.gA ?? 0;
+document.getElementById("scoreB").textContent = matchObj.gB ?? 0;
+
+document.getElementById("goalLogA").innerHTML =
+  (matchObj.goals || [])
+    .filter(g => g.team === matchObj.tA)
+    .map(g => `${g.name || g.player}${g.time ? ` (${g.time}')` : ""}`)
+    .join("<br>");
+
+document.getElementById("goalLogB").innerHTML =
+  (matchObj.goals || [])
+    .filter(g => g.team === matchObj.tB)
+    .map(g => `${g.name || g.player}${g.time ? ` (${g.time}')` : ""}`)
+    .join("<br>");
 
     matchNumber = matchObj.number; // e.g. match 3 = index 2 + 1
     document.getElementById("matchTitle").textContent = `Match ${matchNumber}`;
