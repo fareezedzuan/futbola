@@ -2939,6 +2939,24 @@ async function loadMatches(sessionId) {
         });
       });
 
+      // After options are appended...
+const stillExists = selectedMatchId && matchResults.some(m => m.id === selectedMatchId);
+
+if (stillExists) {
+  matchDropdown.value = selectedMatchId;
+  renderSelectedMatch(selectedMatchId);
+} else {
+  // No sticky selection (first load or filtered out) → show first pending only
+  const pending = matchResults.find(m => m.status === "pending");
+  if (pending) {
+    // Do NOT set selected here; just show it as a helpful default
+    renderSelectedMatch(pending.id);
+  } else {
+    // nothing to show
+    document.querySelector(".main-display").style.display = "none";
+  }
+}
+
     updateMatchHistory();
     updateLeaderboard();
     recalculateStandingsFromAllMatches();
