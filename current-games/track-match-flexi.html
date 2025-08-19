@@ -2969,8 +2969,10 @@ if (stillExists) {
 
   // Handle match selection
 matchDropdown.addEventListener("change", async (e) => {
+  selectedMatchId = e.target.value;                       // ✅ keep sticky
+  sessionStorage.setItem("selectedMatchId", selectedMatchId); // (optional) survive refresh
 
-  const matchId = e.target.value;
+  const matchId = selectedMatchId;
   const matchObj = matchResults.find(m => m.id === matchId);
 
   if (!matchObj) {
