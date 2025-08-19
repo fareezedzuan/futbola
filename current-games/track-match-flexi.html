@@ -2911,9 +2911,7 @@ async function loadMatches(sessionId) {
     }
 
     // 5) Build grouped dropdown by court name
-    matchDropdown.innerHTML = selectedMatchId
-    ? `<option disabled>-- Select Match --</option>`
-    : `<option disabled selected>-- Select Match --</option>`;
+    matchDropdown.innerHTML = "";
     const grouped = {};
 
     matchResults.forEach(m => {
@@ -2949,10 +2947,8 @@ if (stillExists) {
   // No sticky selection (first load or filtered out) → show first pending only
   const pending = matchResults.find(m => m.status === "pending");
   if (pending) {
-    // Do NOT set selected here; just show it as a helpful default
     renderSelectedMatch(pending.id);
   } else {
-    // nothing to show
     document.querySelector(".main-display").style.display = "none";
   }
 }
@@ -2968,72 +2964,7 @@ if (stillExists) {
     return;
   }
 
-  // === Show first pending match in main display ===
-  const pendingMatches = matchResults.filter(m => m.status === "pending");
-
-  if (pendingMatches.length > 0) {
-    const pending = pendingMatches[0]; // top pending
-
-    const courtLabel = courtNames[pending.court - 1] || `Court ${pending.court}`;
-    document.getElementById("matchTitle").textContent = courtLabel;
-
-    document.getElementById("teamAName").textContent = pending.tA;
-    document.getElementById("teamBName").textContent = pending.tB;
-
-    document.getElementById("teamAIcon").src = getTeamLogo(pending.tA);
-    document.getElementById("teamBIcon").src = getTeamLogo(pending.tB);
-
-    document.getElementById("scoreA").textContent = pending.gA ?? 0;
-    document.getElementById("scoreB").textContent = pending.gB ?? 0;
-
-    document.getElementById("goalLogA").innerHTML =
-      (pending.goals || [])
-        .filter(g => g.team === pending.tA)
-        .map(g => `${g.name || g.player}${g.time ? ` (${g.time}')` : ""}`)
-        .join("<br>");
-
-    document.getElementById("goalLogB").innerHTML =
-      (pending.goals || [])
-        .filter(g => g.team === pending.tB)
-        .map(g => `${g.name || g.player}${g.time ? ` (${g.time}')` : ""}`)
-        .join("<br>");
-
-// ⏱️ Restore timer for the shown pending match (RIGHT HERE)
-// We let the new real-timer drive the UI (restoreTimerFromStorage already ran on load).
-// If DB says the match had started but our local timer isn't running, we just show a static snapshot.
-// The Start/Pause/Resume logic remains driven by handleTimerClick().
-(() => {
-  // if our local real timer is already initialized, just update the display/button
-  if (startEpochMs) {
-    updateTimerDisplay();
-    updateTimerButtonLabel();
-    return;
-  }
-
-  // otherwise, show a best-effort snapshot from DB state
-  if (pending.started_at) {
-    const now = Date.now();
-    // If you later store paused_ms_total / pause_started_at per match in DB, use them here.
-    // For now we assume "running since started_at".
-    const elapsedMs = Math.max(0, now - new Date(pending.started_at).getTime());
-    paintTimer(elapsedMs);
-    const btn = document.getElementById("timerBtn");
-    if (btn) btn.textContent = "Pause"; // implies "running" from DB view
-  } else {
-    paintTimer(0);
-    const btn = document.getElementById("timerBtn");
-    if (btn) btn.textContent = "Start Timer";
-  }
-})();
-
-    // ensure the main display is visible
-    document.querySelector(".main-display").style.display = "flex";
-  } else {
-    // no pending matches: hide the main display
-    document.querySelector(".main-display").style.display = "none";
-    // also stop ticking if nothing pending
-    stopTick?.();
-  }
+  
 }
 
   // Handle match selection
