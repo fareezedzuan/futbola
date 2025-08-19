@@ -929,6 +929,8 @@ let isSaving   = false;   // a write (save/autosave) is in-flight
 let isPolling  = false;   // a poll/loadMatches is in-flight
 let lastWriteAt = 0;      // when the last save started
 
+const WRITE_COOLDOWN_MS = 1500; // 1.5s grace after any write
+
 window.useRealTimer = true; // set to false to fall back to the old timer immediately
 
 function generateRoundRobin(teams) {
@@ -1540,134 +1542,6 @@ async function saveCurrentMatch(matchIndex) {
       is_paused: false,
       paused_ms_total: (pausedMs || 0) + extraPaused,
       pause_started_at: null,
-      timestamp: Date.now()
-    };
-
-    const existing = JSON.parse(localStorage.getItem("unsyncedMatches") || "[]");
-    existing.push(failedData);
-    localStorage.setItem("unsyncedMatches", JSON.stringify(existing));
-
-    alert(`⚠️ Match ${matchIndex + 1} not saved due to network. Will retry when online.`);
-    return false;
-  }
-}
-
-async function saveCurrentMatch(matchIndex) {
-  const tA = document.getElementById("teamAName").textContent;
-  const tB = document.getElementById("teamBName").textContent;
-  const gA = parseInt(document.getElementById("scoreA").textContent, 10);
-  const gB = parseInt(document.getElementById("scoreB").textContent, 10);
-
-  // warn on 0–0
-  if ((gA == null || gA === '' || gA === 0) &&
-      (gB == null || gB === '' || gB === 0)) {
-    const proceed = confirm("⚠️ Both scores are 0 or empty. Are you sure you want to continue?");
-    if (!proceed) return false;
-  }
-
-  // keep match object up to date in memory
-  matchResults[matchIndex] = {
-    ...matchResults[matchIndex],
-    tA, tB, gA, gB
-  };
-
-  // If you keep this guard, don’t add until success (we move add below)
-  if (savedMatchIndexes.has(matchIndex)) {
-    console.warn(`🚫 Match ${matchIndex + 1} already saved — skipping`);
-    return false;
-  }
-
-  console.log("Saving match to Supabase...");
-  console.warn("🟡 saveCurrentMatch() called for matchIndex:", matchIndex);
-  console.warn("→ matchNumber is:", matchNumber);
-
-  // flatten currentGoals into allGoals with match_number
-  allGoals = allGoals.concat(
-    currentGoals.map(g => ({ ...g, match_number: matchIndex + 1 }))
-  );
-
-  updateMatchHistory();
-  updateLeaderboard();
-  updateStandings(tA, tB, gA, gB);
-
-  try {
-    // ⏱️ read timer state and compute total elapsed
-    const sessionId = sessionStorage.getItem("sessionId");
-    let { accumulatedMs, startRefMs /*, isPaused*/ } = loadTimerState(sessionId, matchIndex + 1) || {};
-    accumulatedMs = accumulatedMs || 0;
-    const liveMs  = startRefMs ? (Date.now() - startRefMs) : 0;
-    const totalMs = accumulatedMs + liveMs;
-
-    const payload = {
-      game_id:     sessionStorage.getItem("gameId"),
-      session_id:  sessionStorage.getItem("sessionId"),
-      match_number: matchIndex + 1,
-      team_a:      tA,
-      team_b:      tB,
-      score_a:     gA,
-      score_b:     gB,
-      goals:       currentGoals,
-      status:      "completed",
-      ended_at:    new Date().toISOString(),
-      // If you created this column, uncomment:
-      // duration_seconds: Math.round(totalMs / 1000)
-    };
-
-    console.log("📤 Sending match result to Supabase:", payload);
-
-    const res = await fetch('/api/save-match-result', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-
-    if (!res.ok) {
-      const errorText = await res.text();
-      throw new Error(`Server returned ${res.status}: ${errorText}`);
-    }
-
-    const json = await res.json();
-    console.log("✅ Saved to Supabase:", json);
-
-    // ✅ mark as saved only after success
-    savedMatchIndexes.add(matchIndex);
-
-    // ✅ stop and clear local timer UI/state
-    if (typeof stopTick === "function") stopTick();
-    if (typeof paintTimer === "function") paintTimer(0);
-    const btn = document.getElementById("timerBtn");
-    if (btn) btn.textContent = "Start Timer";
-    clearTimerState(sessionId, matchIndex + 1);
-
-    // reflect locally
-    matchResults[matchIndex] = {
-      ...matchResults[matchIndex],
-      status: 'completed',
-      ended_at: payload.ended_at
-    };
-
-    // optional: refresh lists
-    await loadMatches(sessionId);
-
-    alert("✅ Match saved.");
-    return true;
-
-  } catch (err) {
-    console.error("❌ Network or server error while saving match:", err);
-
-    const failedData = {
-      game_id: sessionStorage.getItem("gameId"),
-      session_id: sessionStorage.getItem("sessionId"),
-      match_number: matchIndex + 1,
-      team_a: tA,
-      team_b: tB,
-      score_a: gA,
-      score_b: gB,
-      goals: currentGoals,
-      status: "completed",
-      // keep when it happened
-      ended_at: new Date().toISOString(),
-      // If you added duration_seconds and want to persist on fail too, you can recompute or skip.
       timestamp: Date.now()
     };
 
@@ -2585,9 +2459,6 @@ function closeEditAddGoalPopup() {
   document.getElementById("editTimeInputSection").style.display = "none";
 }
 
-
-
-
 function populateMVPDropdown() {
   const select = document.getElementById("mvpSelect");
   select.innerHTML = `<option disabled selected>Select a player</option>`;
@@ -2629,10 +2500,19 @@ async function autoSaveMatchProgress(matchIndex) {
     goals: match.goals ?? [],
     status: match.status ?? "pending",
     updated_at: new Date().toISOString(),
-    ...getDbTimerStateForUpsert()
+    ...getDbTimerStateForUpsert()   // ⏱ include pause/running state
   };
 
   console.log("📤 Auto-saving match:", payload);
+
+  // 🚦 write-gating
+  if (isSaving) {
+    console.log("⏭️ Skip autosave: another save in progress");
+    return;
+  }
+
+  isSaving = true;
+  lastWriteAt = Date.now();
 
   try {
     const res = await fetch("/api/save-match-result", {
@@ -2648,9 +2528,11 @@ async function autoSaveMatchProgress(matchIndex) {
     } else {
       console.warn("❌ Auto-save rejected by Supabase:", result);
     }
-
   } catch (err) {
     console.warn("⚠️ Auto-save failed:", err.message);
+  } finally {
+    isSaving = false;
+    lastWriteAt = Date.now(); // start settle window
   }
 }
 
@@ -3065,33 +2947,33 @@ async function loadMatches(sessionId) {
         .map(g => `${g.name || g.player}${g.time ? ` (${g.time}')` : ""}`)
         .join("<br>");
 
-    // ⏱️ Restore timer for the shown pending match (RIGHT HERE)
-    {
-      const sessionIdLS = sessionStorage.getItem("sessionId");
-      const state = loadTimerState(sessionIdLS, pending.number);
-      accumulatedMs = state.accumulatedMs || 0;
-      startRefMs = state.startRefMs || null;
-      isPaused = !!state.isPaused;
+// ⏱️ Restore timer for the shown pending match (RIGHT HERE)
+// We let the new real-timer drive the UI (restoreTimerFromStorage already ran on load).
+// If DB says the match had started but our local timer isn't running, we just show a static snapshot.
+// The Start/Pause/Resume logic remains driven by handleTimerClick().
+(() => {
+  // if our local real timer is already initialized, just update the display/button
+  if (startEpochMs) {
+    updateTimerDisplay();
+    updateTimerButtonLabel();
+    return;
+  }
 
-      // If DB has started_at and we have no local state, rebuild from it
-      if (!accumulatedMs && !startRefMs && pending.started_at) {
-        startRefMs = new Date(pending.started_at).getTime();
-        isPaused = false;
-      }
-
-      if (startRefMs && !isPaused) {
-        startTick(sessionIdLS, pending.number);
-        const btn = document.getElementById("timerBtn");
-        if (btn) btn.textContent = "Pause";
-      } else {
-        stopTick();
-        const now = Date.now();
-        const live = startRefMs ? (now - startRefMs) : 0;
-        paintTimer(accumulatedMs + live);
-        const btn = document.getElementById("timerBtn");
-        if (btn) btn.textContent = isPaused ? "Resume" : "Start Timer";
-      }
-    }
+  // otherwise, show a best-effort snapshot from DB state
+  if (pending.started_at) {
+    const now = Date.now();
+    // If you later store paused_ms_total / pause_started_at per match in DB, use them here.
+    // For now we assume "running since started_at".
+    const elapsedMs = Math.max(0, now - new Date(pending.started_at).getTime());
+    paintTimer(elapsedMs);
+    const btn = document.getElementById("timerBtn");
+    if (btn) btn.textContent = "Pause"; // implies "running" from DB view
+  } else {
+    paintTimer(0);
+    const btn = document.getElementById("timerBtn");
+    if (btn) btn.textContent = "Start Timer";
+  }
+})();
 
     // ensure the main display is visible
     document.querySelector(".main-display").style.display = "flex";
