@@ -3223,10 +3223,13 @@ async function loadMatches(sessionId) {
         .map(g => `${g.name || g.player}${g.time ? ` (${g.time}')` : ""}`)
         .join("<br>");
 
-    // Initial timer paint
-    const elapsed = computeElapsedFromDb(pending);
-    console.log("⏱ pending.started_at:", pending.started_at, "elapsed(ms):", elapsed);
-    document.getElementById("timer").textContent = fmtMMSS(elapsed);
+// Initial timer paint (prefer SQL RPC result if available)
+const elapsedMs = (typeof pending.elapsed_ms === "number")
+  ? pending.elapsed_ms
+  : computeElapsedFromDb(pending);
+
+console.log("⏱ pending.started_at:", pending.started_at, "elapsed(ms):", elapsedMs);
+document.getElementById("timer").textContent = fmtMMSS(elapsedMs);
 
     // Save the current row globally for the 1s ticker
     window.currentMatchRow = pending;
