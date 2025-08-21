@@ -1203,6 +1203,18 @@ async function handleTimerClick() {
           body: JSON.stringify(payload)
         });
 
+        // 🔎 Verify DB row actually has started_at
+const { data: row, error: readErr } = await supabaseClient
+  .from("match_results")
+  .select("session_id, match_number, status, started_at, is_paused, pause_started_at, paused_ms_total, updated_at")
+  .eq("session_id", sessionId)
+  .eq("match_number", match.number)
+  .order("updated_at", { ascending: false })
+  .limit(1)
+  .maybeSingle();
+
+console.log("🔎 Row after save:", { row, readErr });
+
         if (!res.ok) throw new Error(`Server responded ${res.status}`);
         console.log("✅ Match row created with pending status");
       } catch (err) {
