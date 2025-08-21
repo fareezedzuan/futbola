@@ -922,8 +922,8 @@ let courtNames = []; // 🔄 Make this global
 let startEpochMs = null;        // when the match actually started (ms unix)
 let pausedMs = 0;               // total paused duration accumulated (ms)
 let pauseStartedMs = null;      // when current pause started (ms) or null
-let tickIntervalId = null;      // setInterval id for UI updates
 let alarmPlayed = false;        // fire alarm once at duration
+let tickIntervalId = null;      // setInterval id for UI updates
 
 let isSaving   = false;   // a write (save/autosave) is in-flight
 let isPolling  = false;   // a poll/loadMatches is in-flight

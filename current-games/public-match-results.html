@@ -1017,6 +1017,7 @@ let savedMatchIndexes = new Set();
 let registeredUsers = [];
 let selectedMVP = null;
 let courtNames = []; // 🔄 Make this global
+let publicTimerInterval = null;
 
 
 function getSessionIdFromURL() {
@@ -1681,6 +1682,46 @@ function updateStandings(tA, tB, gA, gB) {
       </table>
     `;
   });
+}
+
+function updatePublicTimer(match) {
+  // pick DOM once
+  const el = document.getElementById("centerTimer");
+  if (!el) return;
+
+  // clear any prior loop
+  if (publicTimerInterval) {
+    clearInterval(publicTimerInterval);
+    publicTimerInterval = null;
+  }
+
+  // never started → show 00:00
+  if (!match?.started_at) {
+    el.textContent = "00:00";
+    return;
+  }
+
+  // helper to paint mm:ss from ms
+  const paint = (ms) => {
+    const totalSec = Math.max(0, Math.floor(ms / 1000));
+    const mm = String(Math.floor(totalSec / 60)).padStart(2, "0");
+    const ss = String(totalSec % 60).padStart(2, "0");
+    el.textContent = `${mm}:${ss}`;
+  };
+
+  const startMs = new Date(match.started_at).getTime();
+
+  // finished → freeze at final duration
+  if (match.ended_at) {
+    const endMs = new Date(match.ended_at).getTime();
+    paint(endMs - startMs);
+    return;
+  }
+
+  // live → tick every second from started_at
+  const tick = () => paint(Date.now() - startMs);
+  tick();
+  publicTimerInterval = setInterval(tick, 1000);
 }
 
 function exportSummary() {
@@ -2716,6 +2757,7 @@ setInterval(async () => {
 
       updateLiveScoreboard();
       renderGoalLog();
+      updatePublicTimer(match);
     }
   }
 }, 5000);
@@ -2903,6 +2945,8 @@ if (resultError) {
       match.gB = r.score_b ?? null;
       match.goals = r.goals ?? [];
       match.status = r.status ?? "incoming";
+      match.started_at = r.started_at ?? null;
+      match.ended_at   = r.ended_at ?? null;
 
       (match.goals || []).forEach(goal => {
         allGoals.push({ ...goal, match_number: r.match_number });
