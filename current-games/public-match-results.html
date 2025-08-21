@@ -1019,6 +1019,68 @@ let selectedMVP = null;
 let courtNames = []; // 🔄 Make this global
 let publicTimerInterval = null;
 
+const PUBLIC_POLL_MS = 750;
+
+async function fetchCurrentPendingRow() {
+  const sessionId = sessionStorage.getItem("sessionId");
+  if (!sessionId) return null;
+
+  const { data, error } = await supabaseClient
+    .from("match_results")
+    .select("*")
+    .eq("session_id", sessionId)
+    .eq("status", "pending")
+    .order("started_at", { ascending: false })
+    .limit(1);
+
+  if (error) { console.warn("public poll error:", error); return null; }
+  return (data && data[0]) || null;
+}
+
+function renderPublicFromRow(r) {
+  // If you also load courtNames & matchResults on public, keep these lines;
+  // otherwise just show team names and score from r.
+  document.getElementById("teamAName").textContent = r.team_a;
+  document.getElementById("teamBName").textContent = r.team_b;
+  document.getElementById("teamAIcon").src = getTeamLogo(r.team_a);
+  document.getElementById("teamBIcon").src = getTeamLogo(r.team_b);
+  document.getElementById("scoreA").textContent = r.score_a ?? 0;
+  document.getElementById("scoreB").textContent = r.score_b ?? 0;
+
+  // goal logs (if you store goals[])
+  const goals = Array.isArray(r.goals) ? r.goals : [];
+  document.getElementById("goalLogA").innerHTML =
+    goals.filter(g => g.team === r.team_a)
+         .map(g => `${g.player}${g.time ? ` (${g.time})` : ""}`)
+         .join("<br>");
+  document.getElementById("goalLogB").innerHTML =
+    goals.filter(g => g.team === r.team_b)
+         .map(g => `${g.player}${g.time ? ` (${g.time})` : ""}`)
+         .join("<br>");
+
+  // live timer
+  const ms = computeElapsedFromDb(r);
+  document.getElementById("timer").textContent = fmtMMSS(ms);
+}
+
+let publicTimerRow = null; // last row we’re showing
+
+async function tickPublic() {
+  // If we don’t have a row yet (or match finished), refetch;
+  // otherwise just repaint timer every tick.
+  if (!publicTimerRow || publicTimerRow.status !== "pending") {
+    publicTimerRow = await fetchCurrentPendingRow();
+    if (!publicTimerRow) return; // nothing pending to show
+    renderPublicFromRow(publicTimerRow); // paint everything once
+  } else {
+    // just update the timer text smoothly
+    const ms = computeElapsedFromDb(publicTimerRow);
+    document.getElementById("timer").textContent = fmtMMSS(ms);
+  }
+}
+
+setInterval(tickPublic, PUBLIC_POLL_MS);
+
 
 function getSessionIdFromURL() {
   const params = new URLSearchParams(window.location.search);
@@ -2839,6 +2901,21 @@ function renderNextUp(matches) {
   });
 }
 
+function computeElapsedFromDb(row) {
+  if (!row || !row.started_at) return 0;
+  const start = new Date(row.started_at).getTime();
+  const basePaused = row.paused_ms_total || 0;
+  const extraPaused = (row.is_paused && row.pause_started_at)
+    ? (Date.now() - new Date(row.pause_started_at).getTime())
+    : 0;
+  return Math.max(0, Date.now() - start - basePaused - extraPaused);
+}
+function fmtMMSS(ms) {
+  const s = Math.floor(ms/1000);
+  const mm = String(Math.floor(s/60)).padStart(2,'0');
+  const ss = String(s%60).padStart(2,'0');
+  return `${mm}:${ss}`;
+}
 
   // Load matches based on session + court
 async function loadMatches(sessionId) {
