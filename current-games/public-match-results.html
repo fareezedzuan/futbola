@@ -1336,6 +1336,14 @@ document.getElementById("playersB").innerHTML = playersBHTML;
   document.getElementById("scorerPopup").style.display = "block";
 }
 
+function computeElapsed(startedAt, pausedMsTotal, pauseStartedAt) {
+  if (!startedAt) return 0;
+  const now = Date.now();
+  const base = now - new Date(startedAt).getTime();
+  const extraPaused = pauseStartedAt ? (now - new Date(pauseStartedAt).getTime()) : 0;
+  return base - (pausedMsTotal + extraPaused);
+}
+
 function closePopup() {
   document.getElementById("overlay").style.display = "none";
   document.getElementById("scorerPopup").style.display = "none";
@@ -3088,6 +3096,7 @@ if (pendingMatches.length > 0) {
 
   document.getElementById("scoreA").textContent = pending.gA ?? 0;
   document.getElementById("scoreB").textContent = pending.gB ?? 0;
+  document.getElementById("timer").textContent = fmtMMSS(computeElapsedFromDb(pending));
 
   console.log("🔍 Pending goals object:", pending.goals);
 
