@@ -2699,6 +2699,18 @@ async function autoSaveMatchProgress(matchIndex) {
   } catch (err) {
     console.warn("⚠️ Auto-save failed:", err.message);
   }
+
+  // ⬇️ ADD THIS DEBUG READBACK HERE
+const { data: dbg, error: dbgErr } = await supabaseClient
+  .from("match_results")
+  .select("started_at, is_paused, pause_started_at, paused_ms_total, updated_at")
+  .eq("session_id", sessionId)
+  .eq("match_number", match.number)
+  .maybeSingle();
+
+console.log("🔎 post-start row:", dbg, dbgErr);
+
+console.log("✅ Match row created with pending status");
 }
 
 async function selectMVP() {
