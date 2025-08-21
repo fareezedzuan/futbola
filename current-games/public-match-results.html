@@ -3103,13 +3103,13 @@ async function loadMatches(sessionId) {
         m.is_paused = !!resultData.is_paused;
       }
 
-      const { data: elapsed, error: elapsedErr } = await supabaseClient.rpc("get_match_elapsed", {
-    p_session: sessionId,
-    p_match: m.match_number
-  });
-  m.elapsed_ms = typeof elapsed === "number" ? elapsed : 0;
-  // optional: quick log
-  console.log("⏱ SQL elapsed for match", m.match_number, "=", m.elapsed_ms);
+const { data: elapsed, error: elapsedErr } = await supabaseClient.rpc("get_match_elapsed", {
+  p_session: sessionId,
+  p_match: m.match_number
+});
+// store as number (ms)
+m.elapsed_ms = (typeof elapsed === "number") ? elapsed : 0;
+console.log("⏱ SQL elapsed for match", m.match_number, "=", m.elapsed_ms);
     }
 
     // 2) Fetch court names
@@ -3123,25 +3123,27 @@ async function loadMatches(sessionId) {
     window.courtNames = courtNames;
 
     // 3) Reset global state (base list)
-    matchResults = matches.map(m => {
-      console.log("📋 Loaded match with court:", m.match_number, m.court_number);
-      return {
-        id: m.id,
-        number: m.match_number,
-        tA: m.team1_id,
-        tB: m.team2_id,
-        gA: m.gA ?? null,
-        gB: m.gB ?? null,
-        goals: m.goals || [],
-        court: m.court_number || 1,
-        status: m.status || "incoming",
-        started_at: m.started_at || null,
-        ended_at: m.ended_at || null,
-        paused_ms_total: m.paused_ms_total || 0,
-        pause_started_at: m.pause_started_at || null,
-        is_paused: !!m.is_paused
-      };
-    });
+matchResults = matches.map(m => {
+  console.log("📋 Loaded match with court:", m.match_number, m.court_number);
+  return {
+    id: m.id,
+    number: m.match_number,
+    tA: m.team1_id,
+    tB: m.team2_id,
+    gA: m.gA ?? null,
+    gB: m.gB ?? null,
+    goals: m.goals || [],
+    court: m.court_number || 1,
+    status: m.status || "incoming",
+    started_at: m.started_at || null,
+    ended_at: m.ended_at || null,
+    paused_ms_total: m.paused_ms_total || 0,
+    pause_started_at: m.pause_started_at || null,
+    is_paused: !!m.is_paused,
+    // ✅ carry SQL elapsed (fallback to 0)
+    elapsed_ms: (typeof m.elapsed_ms === "number") ? m.elapsed_ms : 0
+  };
+});
 
     // keep matchups in sync
     matchups = matchResults.map(m => [m.tA, m.tB]);
@@ -3231,6 +3233,14 @@ const elapsedMs = (typeof pending.elapsed_ms === "number")
 console.log("⏱ pending.started_at:", pending.started_at, "elapsed(ms):", elapsedMs);
 document.getElementById("timer").textContent = fmtMMSS(elapsedMs);
 
+// ✅ anchor local ticker from the SQL baseline, so it moves even if started_at is null
+window.currentMatchRow = pending;
+window.publicTimerAnchor = {
+  t0: Date.now(),
+  e0: elapsedMs,
+  paused: !!pending.is_paused
+};
+
     // Save the current row globally for the 1s ticker
     window.currentMatchRow = pending;
 
@@ -3291,16 +3301,22 @@ document.getElementById("timer").textContent = fmtMMSS(elapsedMs);
     document.querySelector(".main-display").style.display = "none";
   }
 
-  // === 1s ticker (singleton) ===
-  if (!window.publicTimerInterval) {
-    window.publicTimerInterval = setInterval(() => {
-      if (!window.currentMatchRow) return;
-      // keep the elapsed correct using DB timestamps
-      const ms = computeElapsedFromDb(window.currentMatchRow);
-      const el = document.getElementById("timer");
-      if (el) el.textContent = fmtMMSS(ms);
-    }, 1000);
-  }
+if (!window.publicTimerInterval) {
+  window.publicTimerInterval = setInterval(() => {
+    if (!window.currentMatchRow || !window.publicTimerAnchor) return;
+
+    const anchor = window.publicTimerAnchor;
+    let ms = anchor.e0;
+
+    // only advance when not paused
+    if (!anchor.paused) {
+      ms += (Date.now() - anchor.t0);
+    }
+
+    const el = document.getElementById("timer");
+    if (el) el.textContent = fmtMMSS(ms);
+  }, 1000);
+}
 }
 
   // Handle match selection
