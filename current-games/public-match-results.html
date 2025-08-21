@@ -1170,49 +1170,57 @@ async function handleTimerClick() {
   const match     = matchResults[matchNumber - 1];
   if (!sessionId || !match) return;
 
-  // START
+  // === START ===
   if (!timerRunning) {
     timerRunning = true;
     timerPaused  = false;
     document.getElementById("timerBtn").textContent = "Pause";
 
     const nowIso = new Date().toISOString();
+    const keyEq = (q) => q.eq("session_id", sessionId).eq("match_number", match.number);
 
-    // 1) Best-effort API write (keep your existing pipeline)
-    try {
-      await fetch("/api/save-match-result", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          session_id: sessionId,
-          game_id: gameId,
-          match_number: match.number,
-          team_a: match.tA,
-          team_b: match.tB,
-          status: "pending",
-          started_at: nowIso,
-          is_paused: false,
-          pause_started_at: null,
-          paused_ms_total: 0,
-          updated_at: nowIso
-        })
-      });
-    } catch {}
+    // Create row if missing, or set started_at if null
+    const { data: existing } = await keyEq(
+      supabaseClient.from("match_results").select("id, started_at, paused_ms_total")
+    ).maybeSingle();
 
-    // 2) Safety write (guarantee started_at exists)
-    await supabaseClient
-      .from("match_results")
-      .update({
+    if (!existing) {
+      const { error: insErr } = await supabaseClient.from("match_results").insert([{
+        session_id: sessionId,
+        game_id: gameId,
+        match_number: match.number,
+        team_a: match.tA,
+        team_b: match.tB,
         status: "pending",
         started_at: nowIso,
         is_paused: false,
         pause_started_at: null,
-        // keep paused_ms_total as-is if row already existed, else 0
-      })
-      .eq("session_id", sessionId)
-      .eq("match_number", match.number);
+        paused_ms_total: 0,
+        updated_at: nowIso
+      }]);
+      if (insErr) console.error("❌ insert err", insErr);
+    } else if (!existing.started_at) {
+      const { error: updErr } = await keyEq(
+        supabaseClient.from("match_results").update({
+          status: "pending",
+          started_at: nowIso,
+          is_paused: false,
+          pause_started_at: null,
+          updated_at: nowIso
+        })
+      );
+      if (updErr) console.error("❌ start update err", updErr);
+    }
 
-    // local UI timer/alarm (optional, does not affect public page)
+    // Verify
+    const { data: dbg } = await keyEq(
+      supabaseClient.from("match_results").select(
+        "started_at,is_paused,pause_started_at,paused_ms_total,updated_at"
+      )
+    ).maybeSingle();
+    console.log("🔎 post-start row:", dbg);
+
+    // Local alarm/ticker (optional UI-only)
     alarmStartTimestamp = Date.now();
     alarmScheduledTime  = duration * 60 * 1000;
     clearTimeout(alarmTimeout);
@@ -1234,80 +1242,49 @@ async function handleTimerClick() {
     return;
   }
 
-  // PAUSE / RESUME
+  // === PAUSE / RESUME ===
   timerPaused = !timerPaused;
   document.getElementById("timerBtn").textContent = timerPaused ? "Resume Timer" : "Pause";
+  const keyEq = (q) => q.eq("session_id", sessionId).eq("match_number", match.number);
 
   if (timerPaused) {
+    // PAUSE
     const pauseIso = new Date().toISOString();
-
-    // mark pause start
-    try {
-      await fetch("/api/save-match-result", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          session_id: sessionId,
-          match_number: match.number,
-          is_paused: true,
-          pause_started_at: pauseIso,
-          updated_at: pauseIso
-        })
-      });
-    } catch {}
-
-    await supabaseClient
-      .from("match_results")
-      .update({ is_paused: true, pause_started_at: pauseIso })
-      .eq("session_id", sessionId)
-      .eq("match_number", match.number);
-
+    const { error: updErr } = await keyEq(
+      supabaseClient.from("match_results").update({
+        is_paused: true,
+        pause_started_at: pauseIso,
+        updated_at: pauseIso
+      })
+    );
+    if (updErr) console.error("❌ pause update err", updErr);
     clearTimeout(alarmTimeout);
   } else {
-    // resume: accumulate paused time
-    const now = Date.now();
+    // RESUME: add (now - pause_started_at) to paused_ms_total
+    const { data: row } = await keyEq(
+      supabaseClient.from("match_results").select("pause_started_at,paused_ms_total")
+    ).maybeSingle();
 
-    const { data: row } = await supabaseClient
-      .from("match_results")
-      .select("pause_started_at, paused_ms_total")
-      .eq("session_id", sessionId)
-      .eq("match_number", match.number)
-      .maybeSingle();
-
+    const nowMs       = Date.now();
     const extraPaused = row?.pause_started_at
-      ? Math.max(0, now - new Date(row.pause_started_at).getTime())
+      ? Math.max(0, nowMs - new Date(row.pause_started_at).getTime())
       : 0;
 
     const newPausedTotal = (row?.paused_ms_total || 0) + extraPaused;
-    const resumeIso = new Date().toISOString();
+    const resumeIso      = new Date().toISOString();
 
-    try {
-      await fetch("/api/save-match-result", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          session_id: sessionId,
-          match_number: match.number,
-          is_paused: false,
-          pause_started_at: null,
-          paused_ms_total: newPausedTotal,
-          updated_at: resumeIso
-        })
-      });
-    } catch {}
-
-    await supabaseClient
-      .from("match_results")
-      .update({
+    const { error: updErr } = await keyEq(
+      supabaseClient.from("match_results").update({
         is_paused: false,
         pause_started_at: null,
-        paused_ms_total: newPausedTotal
+        paused_ms_total: newPausedTotal,
+        updated_at: resumeIso
       })
-      .eq("session_id", sessionId)
-      .eq("match_number", match.number);
+    );
+    if (updErr) console.error("❌ resume update err", updErr);
 
-    // re-arm local alarm with remaining time
-    const timePassed = now - alarmStartTimestamp;
+    // Re-arm local alarm with remaining time
+    const timePassed = nowMs - alarmStartTimestamp;
     const remaining  = Math.max(alarmScheduledTime - timePassed, 0);
     alarmStartTimestamp = Date.now();
     alarmScheduledTime  = remaining;
