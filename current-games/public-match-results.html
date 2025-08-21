@@ -3233,16 +3233,13 @@ const elapsedMs = (typeof pending.elapsed_ms === "number")
 console.log("⏱ pending.started_at:", pending.started_at, "elapsed(ms):", elapsedMs);
 document.getElementById("timer").textContent = fmtMMSS(elapsedMs);
 
-// ✅ anchor local ticker from the SQL baseline, so it moves even if started_at is null
-window.currentMatchRow = pending;
-window.publicTimerAnchor = {
-  t0: Date.now(),
-  e0: elapsedMs,
+// ✅ Single source of truth for the ticker
+window.publicTimerState = {
+  row: pending,              // the DB row
+  t0: Date.now(),            // wall-clock anchor
+  e0: elapsedMs,             // elapsed at anchor (from SQL or compute)
   paused: !!pending.is_paused
 };
-
-    // Save the current row globally for the 1s ticker
-    window.currentMatchRow = pending;
 
     // Append additional pending rows (kept same as your code)
     document
@@ -3301,20 +3298,28 @@ window.publicTimerAnchor = {
     document.querySelector(".main-display").style.display = "none";
   }
 
+// === 1s ticker (singleton) ===
 if (!window.publicTimerInterval) {
   window.publicTimerInterval = setInterval(() => {
-    if (!window.currentMatchRow || !window.publicTimerAnchor) return;
+    const el = document.getElementById("timer");
+    if (!el || !window.currentMatchRow) return;
 
-    const anchor = window.publicTimerAnchor;
-    let ms = anchor.e0;
+    const row = window.currentMatchRow;
 
-    // only advance when not paused
-    if (!anchor.paused) {
-      ms += (Date.now() - anchor.t0);
+    let ms;
+    if (typeof window.currentBaseElapsed === "number") {
+      // if paused, freeze on base; else add wall-clock drift
+      if (row.is_paused) {
+        ms = window.currentBaseElapsed;
+      } else {
+        ms = window.currentBaseElapsed + (Date.now() - (window.currentBaseTime || Date.now()));
+      }
+    } else {
+      // fallback if we didn't get SQL elapsed
+      ms = computeElapsedFromDb(row);
     }
 
-    const el = document.getElementById("timer");
-    if (el) el.textContent = fmtMMSS(ms);
+    el.textContent = fmtMMSS(ms);
   }, 1000);
 }
 }
