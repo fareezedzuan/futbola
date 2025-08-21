@@ -3102,6 +3102,14 @@ async function loadMatches(sessionId) {
         m.pause_started_at = resultData.pause_started_at || null;
         m.is_paused = !!resultData.is_paused;
       }
+
+      const { data: elapsed, error: elapsedErr } = await supabaseClient.rpc("get_match_elapsed", {
+    p_session: sessionId,
+    p_match: m.match_number
+  });
+  m.elapsed_ms = typeof elapsed === "number" ? elapsed : 0;
+  // optional: quick log
+  console.log("⏱ SQL elapsed for match", m.match_number, "=", m.elapsed_ms);
     }
 
     // 2) Fetch court names
