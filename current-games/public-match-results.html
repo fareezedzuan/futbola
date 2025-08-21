@@ -1075,6 +1075,32 @@ function computeElapsedFromDb(row) {
   return Math.max(0, Date.now() - start - basePaused - extraPaused);
 }
 
+let _publicTick = null;
+let _publicRow = null; // current pending row from match_results
+
+function startPublicTicker(row) {
+  _publicRow = row || null;
+  if (_publicTick) clearInterval(_publicTick);
+  tickPublic(); // paint immediately
+  _publicTick = setInterval(tickPublic, 1000);
+}
+
+function stopPublicTicker() {
+  if (_publicTick) { clearInterval(_publicTick); _publicTick = null; }
+  _publicRow = null;
+}
+
+function tickPublic() {
+  const el = document.getElementById("timer"); // ✅ correct id
+  if (!el) return;
+  if (!_publicRow || !_publicRow.started_at) {
+    el.textContent = "00:00";
+    return;
+  }
+  const elapsed = computeElapsedFromDb(_publicRow);
+  el.textContent = fmtMMSS(elapsed);
+}
+
 function fmtMMSS(ms) {
   const s = Math.floor(ms / 1000);
   const mm = String(Math.floor(s / 60)).padStart(2, '0');
@@ -2620,7 +2646,6 @@ async function selectMVP() {
 
 window.addEventListener("DOMContentLoaded", async () => {
   console.log("✅ DOM fully loaded");
-  sessionStorage.clear();
 
   const sessionDropdown = document.getElementById("sessionDropdown");
   const matchDropdown = document.getElementById("matchDropdown");
@@ -2942,11 +2967,28 @@ function fmtMMSS(ms) {
   return `${mm}:${ss}`;
 }
 
+// --- Timer helpers (PUBLIC) ---
+function computeElapsedFromDb(row) {
+  if (!row || !row.started_at) return 0;
+  const start = new Date(row.started_at).getTime();
+  const basePaused = row.paused_ms_total || 0;
+  const extraPaused = (row.is_paused && row.pause_started_at)
+    ? (Date.now() - new Date(row.pause_started_at).getTime())
+    : 0;
+  return Math.max(0, Date.now() - start - basePaused - extraPaused);
+}
+function fmtMMSS(ms) {
+  const s = Math.floor(ms / 1000);
+  const mm = String(Math.floor(s / 60)).padStart(2, '0');
+  const ss = String(s % 60).padStart(2, '0');
+  return `${mm}:${ss}`;
+}
+
   // Load matches based on session + court
+// === Load matches + drive public ticking timer ===
 async function loadMatches(sessionId) {
   console.log("🔍 Attempting to load match results for sessionId:", sessionId);
-
-    if (!sessionId) {
+  if (!sessionId) {
     console.warn("⚠️ No sessionId provided. Skipping match load.");
     return;
   }
@@ -2967,40 +3009,44 @@ async function loadMatches(sessionId) {
   }
 
   const selectedGroup = document.getElementById("groupFilter")?.value;
-    if (selectedGroup && selectedGroup !== "all") {
-      query = query.eq("group_label", selectedGroup);
-    }
+  if (selectedGroup && selectedGroup !== "all") {
+    query = query.eq("group_label", selectedGroup);
+  }
 
   try {
-    // 1. Fetch matches
+    // 1) Fetch matches
     const { data: matches, error } = await query;
     if (error) throw error;
 
-    // After: const { data: matches, error } = await query; ...
-// Fetch extra match metadata (names, logos, live scores)
-for (let m of matches) {
-  m.tA = m.team1_id;
-m.tB = m.team2_id;
-m.tALogo = getTeamLogo(m.team1_id);
-m.tBLogo = getTeamLogo(m.team2_id);
+    // 1a) Enrich with logos + (optional) live score from match_results (single row or null)
+    for (let m of matches) {
+      m.tA = m.team1_id;
+      m.tB = m.team2_id;
+      m.tALogo = getTeamLogo(m.team1_id);
+      m.tBLogo = getTeamLogo(m.team2_id);
 
-  // Optionally, fetch live score and scorers from match_results
-  const { data: resultData } = await supabaseClient
-    .from("match_results")
-    .select("score_a, score_b, goals")
-    .eq("session_id", sessionId)
-    .eq("match_number", m.match_number)
-    .single();
+      const { data: resultData, error: rdErr } = await supabaseClient
+        .from("match_results")
+        .select("score_a, score_b, goals, status, started_at, ended_at, paused_ms_total, pause_started_at, is_paused")
+        .eq("session_id", sessionId)
+        .eq("match_number", m.match_number)
+        .maybeSingle();
 
-  if (resultData) {
-    m.gA = resultData.score_a;
-    m.gB = resultData.score_b;
-    m.goals = resultData.goals || [];
-  }
-}
+      if (!rdErr && resultData) {
+        m.gA = resultData.score_a ?? null;
+        m.gB = resultData.score_b ?? null;
+        m.goals = resultData.goals || [];
+        m.status = resultData.status || "incoming";
+        m.started_at = resultData.started_at || null;
+        m.ended_at = resultData.ended_at || null;
+        m.paused_ms_total = resultData.paused_ms_total || 0;
+        m.pause_started_at = resultData.pause_started_at || null;
+        m.is_paused = !!resultData.is_paused;
+      }
+    }
 
-    // 2. Fetch court names from games_sessions
-    const { data: sessionMeta, error: metaError } = await supabaseClient
+    // 2) Fetch court names
+    const { data: sessionMeta } = await supabaseClient
       .from("games_sessions")
       .select("court_names")
       .eq("id", sessionId)
@@ -3009,63 +3055,41 @@ m.tBLogo = getTeamLogo(m.team2_id);
     courtNames = sessionMeta?.court_names || [];
     window.courtNames = courtNames;
 
-    // 3. Reset global state
-matchResults = matches.map(m => {
-  console.log("📋 Loaded match with court:", m.match_number, m.court_number);
-  return {
-    id: m.id,
-    number: m.match_number,
-    tA: m.team1_id,
-    tB: m.team2_id,
-    gA: null,
-    gB: null,
-    court: m.court_number || 1,
-    status: "incoming"
-  };
-});
+    // 3) Reset global state (base list)
+    matchResults = matches.map(m => {
+      console.log("📋 Loaded match with court:", m.match_number, m.court_number);
+      return {
+        id: m.id,
+        number: m.match_number,
+        tA: m.team1_id,
+        tB: m.team2_id,
+        gA: m.gA ?? null,
+        gB: m.gB ?? null,
+        goals: m.goals || [],
+        court: m.court_number || 1,
+        status: m.status || "incoming",
+        started_at: m.started_at || null,
+        ended_at: m.ended_at || null,
+        paused_ms_total: m.paused_ms_total || 0,
+        pause_started_at: m.pause_started_at || null,
+        is_paused: !!m.is_paused
+      };
+    });
 
-// 🔧 ADD THIS to rebuild matchups properly
-matchups = matchResults.map(m => [m.tA, m.tB]);
-
+    // keep matchups in sync
+    matchups = matchResults.map(m => [m.tA, m.tB]);
     allGoals = [];
+    matchResults.forEach(m => {
+      (m.goals || []).forEach(g => allGoals.push({ ...g, match_number: m.number }));
+    });
 
-    // 🧠 Merge results from match_results into matchResults
-const { data: results, error: resultError } = await supabaseClient
-  .from("match_results")
-  .select("*")
-  .eq("session_id", sessionId);
-
-  console.log("📥 match_results", results);
-
-if (resultError) {
-  console.error("❌ Failed to fetch match results:", resultError);
-} else {
-  results.forEach(r => {
-    const match = matchResults.find(m => m.number === r.match_number);
-    if (match) {
-      match.gA = r.score_a ?? null;
-      match.gB = r.score_b ?? null;
-      match.goals = r.goals ?? [];
-      match.status = r.status ?? "incoming";
-      match.started_at = r.started_at ?? null;
-      match.ended_at   = r.ended_at ?? null;
-
-      (match.goals || []).forEach(goal => {
-        allGoals.push({ ...goal, match_number: r.match_number });
-      });
-    }
-  });
-}
-
-
-    // 4. Build grouped dropdown by court name
+    // 4) Build grouped dropdown by court name
     matchDropdown.innerHTML = `<option disabled selected>-- Select Match --</option>`;
     const grouped = {};
-
     matchResults.forEach(m => {
-      const court = m.court || 1;
-      if (!grouped[court]) grouped[court] = [];
-      grouped[court].push(m);
+      const c = m.court || 1;
+      if (!grouped[c]) grouped[c] = [];
+      grouped[c].push(m);
     });
 
     Object.keys(grouped)
@@ -3085,123 +3109,124 @@ if (resultError) {
         });
       });
 
+    // 5) Housekeeping/UI updates
     updateMatchHistory();
     updateLeaderboard();
     recalculateStandingsFromAllMatches();
     renderNextUp(matchResults);
-    // updateStandingsUI();
 
   } catch (err) {
     console.error("❌ Failed to load matches:", err);
     matchDropdown.innerHTML = `<option disabled selected>⚠️ Failed to load matches</option>`;
+    return;
   }
 
-// === Show first pending match in main display ===
-const pendingMatches = matchResults.filter(m => m.status === "pending");
+  // === Show first pending match in main display + drive timer ===
+  const pendingMatches = matchResults.filter(m => m.status === "pending");
 
-if (pendingMatches.length > 0) {
-  const pending = pendingMatches[0]; // Show first pending
+  if (pendingMatches.length > 0) {
+    const pending = pendingMatches[0];
 
-  const courtLabel = courtNames[pending.court - 1] || `Court ${pending.court}`;
-  document.getElementById("matchTitle").textContent = courtLabel;
+    // Title is court name
+    const courtLabel = courtNames[pending.court - 1] || `Court ${pending.court}`;
+    document.getElementById("matchTitle").textContent = courtLabel;
 
-  document.getElementById("teamAName").textContent = pending.tA;
-  document.getElementById("teamBName").textContent = pending.tB;
+    // Teams + logos + scores
+    document.getElementById("teamAName").textContent = pending.tA;
+    document.getElementById("teamBName").textContent = pending.tB;
+    document.getElementById("teamAIcon").src = getTeamLogo(pending.tA);
+    document.getElementById("teamBIcon").src = getTeamLogo(pending.tB);
+    document.getElementById("scoreA").textContent = pending.gA ?? 0;
+    document.getElementById("scoreB").textContent = pending.gB ?? 0;
 
-  document.getElementById("teamAIcon").src = getTeamLogo(pending.tA);
-  document.getElementById("teamBIcon").src = getTeamLogo(pending.tB);
+    // Goal logs
+    document.getElementById("goalLogA").innerHTML =
+      (pending.goals || [])
+        .filter(g => g.team === pending.tA)
+        .map(g => `${g.name || g.player}${g.time ? ` (${g.time}')` : ""}`)
+        .join("<br>");
 
-  document.getElementById("scoreA").textContent = pending.gA ?? 0;
-  document.getElementById("scoreB").textContent = pending.gB ?? 0;
-  document.getElementById("timer").textContent = fmtMMSS(computeElapsedFromDb(pending));
+    document.getElementById("goalLogB").innerHTML =
+      (pending.goals || [])
+        .filter(g => g.team === pending.tB)
+        .map(g => `${g.name || g.player}${g.time ? ` (${g.time}')` : ""}`)
+        .join("<br>");
 
-  console.log("🔍 Pending goals object:", pending.goals);
+    // Initial timer paint
+    const elapsed = computeElapsedFromDb(pending);
+    document.getElementById("timer").textContent = fmtMMSS(elapsed);
 
-  document.getElementById("goalLogA").innerHTML =
-    (pending.goals || [])
-      .filter(g => g.team === pending.tA)
-      .map(g => `${g.name || g.player}${g.time ? ` (${g.time}')` : ""}`)
-      .join("<br>");
+    // Save the current row globally for the 1s ticker
+    window.currentMatchRow = pending;
 
-  document.getElementById("goalLogB").innerHTML =
-    (pending.goals || [])
-      .filter(g => g.team === pending.tB)
-      .map(g => `${g.name || g.player}${g.time ? ` (${g.time}')` : ""}`)
-      .join("<br>");
-
-      const elapsed = computeElapsedFromDb(pending);
-document.getElementById("timer").textContent = fmtMMSS(elapsed);
-
-  // 🔁 Clear any previously appended extra rows/headers to avoid duplicates
-  document
-    .querySelectorAll(".main-display .extra-row-display, .main-display .extra-header")
-    .forEach(el => el.remove());
-
-  // ➕ Append additional pending matches as extra rows (same container)
-  if (pendingMatches.length > 1) {
-    const main = document.querySelector(".main-display");
-
-    // 🔁 Clear any previous extra rows and headers before adding new ones
+    // Append additional pending rows (kept same as your code)
     document
       .querySelectorAll(".main-display .extra-row-display, .main-display .extra-header")
       .forEach(el => el.remove());
 
-    pendingMatches.slice(1).forEach(pm => {
-      const label = courtNames[pm.court - 1] || `Court ${pm.court}`;
+    if (pendingMatches.length > 1) {
+      const main = document.querySelector(".main-display");
+      pendingMatches.slice(1).forEach(pm => {
+        const label = courtNames[pm.court - 1] || `Court ${pm.court}`;
 
-    // a) per-row court title (same style as main)
-    const header = document.createElement("div");
-    header.className = "match-header extra-header";  // <- add extra-header so we can remove it
-    header.textContent = label;                      // <- use the label for this row (not courtLabel)
-    main.appendChild(header);
+        const header = document.createElement("div");
+        header.className = "match-header extra-header";
+        header.textContent = label;
+        main.appendChild(header);
 
-      // b) row UI (clone style, no IDs)
-      const row = document.createElement("div");
-      row.className = "row-display extra-row-display";
-      row.innerHTML = `
-        <div class="team-block">
-          <img src="${getTeamLogo(pm.tA)}" />
-          <span>${pm.tA}</span>
-          <div class="score-number">${pm.gA ?? 0}</div>
-          <div class="goal-log">${
-            (pm.goals || [])
-              .filter(g => g.team === pm.tA)
-              .map(g => `${g.name || g.player}${g.time ? ` (${g.time}')` : ""}`)
-              .join("<br>")
-          }</div>
-        </div>
+        const row = document.createElement("div");
+        row.className = "row-display extra-row-display";
+        row.innerHTML = `
+          <div class="team-block">
+            <img src="${getTeamLogo(pm.tA)}" />
+            <span>${pm.tA}</span>
+            <div class="score-number">${pm.gA ?? 0}</div>
+            <div class="goal-log">${
+              (pm.goals || [])
+                .filter(g => g.team === pm.tA)
+                .map(g => `${g.name || g.player}${g.time ? ` (${g.time}')` : ""}`)
+                .join("<br>")
+            }</div>
+          </div>
 
-        <div class="timer-block">
-          <div class="center-timer">00:00</div>
-        </div>
+          <div class="timer-block">
+            <div class="center-timer">00:00</div>
+          </div>
 
-        <div class="team-block">
-          <img src="${getTeamLogo(pm.tB)}" />
-          <span>${pm.tB}</span>
-          <div class="score-number">${pm.gB ?? 0}</div>
-          <div class="goal-log">${
-            (pm.goals || [])
-              .filter(g => g.team === pm.tB)
-              .map(g => `${g.name || g.player}${g.time ? ` (${g.time}')` : ""}`)
-              .join("<br>")
-          }</div>
-        </div>
-      `;
-      main.appendChild(row);
-    });
+          <div class="team-block">
+            <img src="${getTeamLogo(pm.tB)}" />
+            <span>${pm.tB}</span>
+            <div class="score-number">${pm.gB ?? 0}</div>
+            <div class="goal-log">${
+              (pm.goals || [])
+                .filter(g => g.team === pm.tB)
+                .map(g => `${g.name || g.player}${g.time ? ` (${g.time}')` : ""}`)
+                .join("<br>")
+            }</div>
+          </div>
+        `;
+        main.appendChild(row);
+      });
+    }
+
+    // show
+    document.querySelector(".main-display").style.display = "flex";
+  } else {
+    // hide
+    document.querySelector(".main-display").style.display = "none";
   }
 
-  // ensure the main display is visible
-  document.querySelector(".main-display").style.display = "flex";
-} else {
-  // no pending matches: hide the main display
-  document.querySelector(".main-display").style.display = "none";
+  // === 1s ticker (singleton) ===
+  if (!window.publicTimerInterval) {
+    window.publicTimerInterval = setInterval(() => {
+      if (!window.currentMatchRow) return;
+      // keep the elapsed correct using DB timestamps
+      const ms = computeElapsedFromDb(window.currentMatchRow);
+      const el = document.getElementById("timer");
+      if (el) el.textContent = fmtMMSS(ms);
+    }, 1000);
+  }
 }
-
-
-}
-
-
 
   // Handle match selection
 matchDropdown.addEventListener("change", async (e) => {
