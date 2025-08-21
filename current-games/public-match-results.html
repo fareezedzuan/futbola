@@ -1177,6 +1177,7 @@ async function handleTimerClick() {
 
     if (match && match.status !== "completed") {
       try {
+        const nowIso = new Date().toISOString(); 
         const payload = {
           session_id: sessionId,
           game_id: gameId,
@@ -1187,7 +1188,11 @@ async function handleTimerClick() {
           score_b: 0,
           goals: [],
           status: "pending",
-          updated_at: new Date().toISOString()
+          started_at: nowIso,                              // <-- add
+          is_paused: false,                                // <-- add
+          pause_started_at: null,                          // <-- add
+          paused_ms_total: 0,                              // <-- add
+          updated_at: nowIso                               // <-- keep, but reuse nowIso
         };
 
         console.log("📤 Sending pending match to server:", payload);
@@ -3126,6 +3131,10 @@ async function loadMatches(sessionId) {
 
   if (pendingMatches.length > 0) {
     const pending = pendingMatches[0];
+    console.log("⏱ pending.started_at:", pending.started_at,
+              "paused_ms_total:", pending.paused_ms_total,
+              "pause_started_at:", pending.pause_started_at,
+              "is_paused:", pending.is_paused);
 
     // Title is court name
     const courtLabel = courtNames[pending.court - 1] || `Court ${pending.court}`;
@@ -3154,6 +3163,7 @@ async function loadMatches(sessionId) {
 
     // Initial timer paint
     const elapsed = computeElapsedFromDb(pending);
+    console.log("⏱ pending.started_at:", pending.started_at, "elapsed(ms):", elapsed);
     document.getElementById("timer").textContent = fmtMMSS(elapsed);
 
     // Save the current row globally for the 1s ticker
