@@ -3112,6 +3112,9 @@ if (pendingMatches.length > 0) {
       .map(g => `${g.name || g.player}${g.time ? ` (${g.time}')` : ""}`)
       .join("<br>");
 
+      const elapsed = computeElapsedFromDb(pending);
+document.getElementById("timer").textContent = fmtMMSS(elapsed);
+
   // 🔁 Clear any previously appended extra rows/headers to avoid duplicates
   document
     .querySelectorAll(".main-display .extra-row-display, .main-display .extra-header")
