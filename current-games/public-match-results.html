@@ -1163,93 +1163,57 @@ function formatScorers(goals) {
     .map(g => `${g.name || g.player} ${g.time ? `(${g.time}')` : ""}`)
     .join("<br>");
 }
+
 async function handleTimerClick() {
   const sessionId = sessionStorage.getItem("sessionId");
   const gameId    = sessionStorage.getItem("gameId");
   const match     = matchResults[matchNumber - 1];
   if (!sessionId || !match) return;
 
-  // Helper: read current DB row
-  const readRow = async () => {
-    const { data, error } = await supabaseClient
-      .from("match_results")
-      .select("status, started_at, is_paused, pause_started_at, paused_ms_total, score_a, score_b")
-      .eq("session_id", sessionId)
-      .eq("match_number", match.number)
-      .maybeSingle();
-    if (error) console.warn("readRow error:", error);
-    return data || null;
-  };
-
-  // -------- START or RESUME ----------
+  // START
   if (!timerRunning) {
     timerRunning = true;
     timerPaused  = false;
     document.getElementById("timerBtn").textContent = "Pause";
 
-    const now      = Date.now();
-    const nowIso   = new Date(now).toISOString();
-    const existing = await readRow();
+    const nowIso = new Date().toISOString();
 
+    // 1) Best-effort API write (keep your existing pipeline)
     try {
-      if (!existing || !existing.started_at) {
-        // TRUE START: create/overwrite row with started_at
-        const payload = {
+      await fetch("/api/save-match-result", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
           session_id: sessionId,
           game_id: gameId,
           match_number: match.number,
           team_a: match.tA,
           team_b: match.tB,
-          score_a: match.gA ?? 0,
-          score_b: match.gB ?? 0,
-          goals: match.goals ?? [],
           status: "pending",
           started_at: nowIso,
           is_paused: false,
           pause_started_at: null,
-          paused_ms_total: existing?.paused_ms_total || 0,
+          paused_ms_total: 0,
           updated_at: nowIso
-        };
+        })
+      });
+    } catch {}
 
-        const { error: upsertErr } = await supabaseClient
-          .from("match_results")
-          .upsert(payload, { onConflict: "session_id,match_number" });
-        if (upsertErr) console.warn("START upsert error:", upsertErr);
+    // 2) Safety write (guarantee started_at exists)
+    await supabaseClient
+      .from("match_results")
+      .update({
+        status: "pending",
+        started_at: nowIso,
+        is_paused: false,
+        pause_started_at: null,
+        // keep paused_ms_total as-is if row already existed, else 0
+      })
+      .eq("session_id", sessionId)
+      .eq("match_number", match.number);
 
-      } else if (existing.is_paused) {
-        // RESUME: add (now - pause_started_at) to paused_ms_total
-        const extraPaused = existing.pause_started_at
-          ? Math.max(0, now - new Date(existing.pause_started_at).getTime())
-          : 0;
-
-        const { error: updErr } = await supabaseClient
-          .from("match_results")
-          .update({
-            is_paused: false,
-            pause_started_at: null,
-            paused_ms_total: (existing.paused_ms_total || 0) + extraPaused,
-            status: "pending",
-            updated_at: nowIso
-          })
-          .eq("session_id", sessionId)
-          .eq("match_number", match.number);
-        if (updErr) console.warn("RESUME update error:", updErr);
-
-      } else {
-        // Already running in DB: just ensure status
-        const { error: updErr } = await supabaseClient
-          .from("match_results")
-          .update({ status: "pending", updated_at: nowIso })
-          .eq("session_id", sessionId)
-          .eq("match_number", match.number);
-        if (updErr) console.warn("Ensure status error:", updErr);
-      }
-    } catch (e) {
-      console.warn("START/RESUME failed:", e);
-    }
-
-    // Local alarm/ticker (optional UI)
-    alarmStartTimestamp = now;
+    // local UI timer/alarm (optional, does not affect public page)
+    alarmStartTimestamp = Date.now();
     alarmScheduledTime  = duration * 60 * 1000;
     clearTimeout(alarmTimeout);
     alarmTimeout = setTimeout(playAlarm, alarmScheduledTime);
@@ -1270,47 +1234,79 @@ async function handleTimerClick() {
     return;
   }
 
-  // -------- PAUSE or RESUME (toggle while running) ----------
+  // PAUSE / RESUME
   timerPaused = !timerPaused;
   document.getElementById("timerBtn").textContent = timerPaused ? "Resume Timer" : "Pause";
 
-  const now       = Date.now();
-  const nowIso    = new Date(now).toISOString();
-  const rowBefore = await readRow();
-
   if (timerPaused) {
-    // PAUSE: set flags + pause_started_at
-    const { error: updErr } = await supabaseClient
+    const pauseIso = new Date().toISOString();
+
+    // mark pause start
+    try {
+      await fetch("/api/save-match-result", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          session_id: sessionId,
+          match_number: match.number,
+          is_paused: true,
+          pause_started_at: pauseIso,
+          updated_at: pauseIso
+        })
+      });
+    } catch {}
+
+    await supabaseClient
       .from("match_results")
-      .update({
-        is_paused: true,
-        pause_started_at: nowIso,
-        updated_at: nowIso
-      })
+      .update({ is_paused: true, pause_started_at: pauseIso })
       .eq("session_id", sessionId)
       .eq("match_number", match.number);
-    if (updErr) console.warn("PAUSE update error:", updErr);
 
     clearTimeout(alarmTimeout);
   } else {
-    // RESUME from toggle: accumulate paused duration
-    const extraPaused = rowBefore?.pause_started_at
-      ? Math.max(0, now - new Date(rowBefore.pause_started_at).getTime())
+    // resume: accumulate paused time
+    const now = Date.now();
+
+    const { data: row } = await supabaseClient
+      .from("match_results")
+      .select("pause_started_at, paused_ms_total")
+      .eq("session_id", sessionId)
+      .eq("match_number", match.number)
+      .maybeSingle();
+
+    const extraPaused = row?.pause_started_at
+      ? Math.max(0, now - new Date(row.pause_started_at).getTime())
       : 0;
 
-    const { error: updErr } = await supabaseClient
+    const newPausedTotal = (row?.paused_ms_total || 0) + extraPaused;
+    const resumeIso = new Date().toISOString();
+
+    try {
+      await fetch("/api/save-match-result", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          session_id: sessionId,
+          match_number: match.number,
+          is_paused: false,
+          pause_started_at: null,
+          paused_ms_total: newPausedTotal,
+          updated_at: resumeIso
+        })
+      });
+    } catch {}
+
+    await supabaseClient
       .from("match_results")
       .update({
         is_paused: false,
         pause_started_at: null,
-        paused_ms_total: (rowBefore?.paused_ms_total || 0) + extraPaused,
-        updated_at: nowIso
+        paused_ms_total: newPausedTotal
       })
       .eq("session_id", sessionId)
       .eq("match_number", match.number);
-    if (updErr) console.warn("RESUME(update) error:", updErr);
 
-    // re-arm alarm with remaining time
+    // re-arm local alarm with remaining time
     const timePassed = now - alarmStartTimestamp;
     const remaining  = Math.max(alarmScheduledTime - timePassed, 0);
     alarmStartTimestamp = Date.now();
