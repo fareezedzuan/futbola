@@ -1179,7 +1179,7 @@ async function handleTimerClick() {
     try {
       const nowIso = new Date().toISOString();
 
-      // Create/ensure row exists with started_at set
+      // 1) call your API (keep existing behavior)
       const payload = {
         session_id: sessionId,
         game_id: gameId,
@@ -1190,23 +1190,36 @@ async function handleTimerClick() {
         score_b: match.gB ?? 0,
         goals: match.goals ?? [],
         status: "pending",
-        started_at: nowIso,          // ✅ base for public elapsed = now - started_at - paused_ms_total
-        is_paused: false,            // ✅ running
-        pause_started_at: null,      // ✅ not paused
-        paused_ms_total: 0,          // ✅ nothing paused yet
+        started_at: nowIso,
+        is_paused: false,
+        pause_started_at: null,
+        paused_ms_total: 0,
         updated_at: nowIso
       };
-
       await fetch("/api/save-match-result", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
-      });
+      }).catch(() => {});
+
+      // 2) SAFETY WRITE: ensure started_at really exists (API might ignore)
+      await supabaseClient
+        .from("match_results")
+        .update({
+          status: "pending",
+          started_at: nowIso,
+          is_paused: false,
+          pause_started_at: null
+        })
+        .is("started_at", null)               // only fill if missing
+        .eq("session_id", sessionId)
+        .eq("match_number", match.number);
+
     } catch (e) {
-      console.warn("Failed to start timer in DB:", e);
+      console.warn("Failed to start timer:", e);
     }
 
-    // keep your local alarm/ticker if you want the button to still work
+    // local alarm (optional)
     alarmStartTimestamp = Date.now();
     alarmScheduledTime  = duration * 60 * 1000;
     clearTimeout(alarmTimeout);
@@ -1228,60 +1241,83 @@ async function handleTimerClick() {
     return;
   }
 
-  // PAUSE or RESUME
+  // PAUSE / RESUME
   timerPaused = !timerPaused;
   document.getElementById("timerBtn").textContent = timerPaused ? "Resume Timer" : "Pause";
 
   if (timerPaused) {
-    // PAUSE: mark paused and remember when pause started
-    try {
-      await fetch("/api/save-match-result", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          session_id: sessionId,
-          match_number: match.number,
-          is_paused: true,                         // ✅ paused
-          pause_started_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
-      });
-    } catch (e) {
-      console.warn("Failed to pause timer in DB:", e);
-    }
+    // PAUSE: set flags + pause_started_at
+    const pauseIso = new Date().toISOString();
+
+    // API (best effort)
+    fetch("/api/save-match-result", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        session_id: sessionId,
+        match_number: match.number,
+        is_paused: true,
+        pause_started_at: pauseIso,
+        updated_at: pauseIso
+      })
+    }).catch(() => {});
+
+    // Safety write
+    await supabaseClient
+      .from("match_results")
+      .update({
+        is_paused: true,
+        pause_started_at: pauseIso
+      })
+      .eq("session_id", sessionId)
+      .eq("match_number", match.number);
+
     clearTimeout(alarmTimeout);
   } else {
     // RESUME: add (now - pause_started_at) to paused_ms_total, clear pause flags
-    try {
-      const { data: row } = await supabaseClient
-        .from("match_results")
-        .select("pause_started_at, paused_ms_total")
-        .eq("session_id", sessionId)
-        .eq("match_number", match.number)
-        .maybeSingle();
+    const now = Date.now();
 
-      const now = Date.now();
-      const extraPaused =
-        row?.pause_started_at ? (now - new Date(row.pause_started_at).getTime()) : 0;
+    // read current pause fields
+    const { data: row, error: readErr } = await supabaseClient
+      .from("match_results")
+      .select("pause_started_at, paused_ms_total")
+      .eq("session_id", sessionId)
+      .eq("match_number", match.number)
+      .maybeSingle();
 
-      await fetch("/api/save-match-result", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          session_id: sessionId,
-          match_number: match.number,
-          is_paused: false,                        // ✅ running again
-          pause_started_at: null,
-          paused_ms_total: (row?.paused_ms_total || 0) + Math.max(0, extraPaused),
-          updated_at: new Date().toISOString()
-        })
-      });
-    } catch (e) {
-      console.warn("Failed to resume timer in DB:", e);
-    }
+    const extraPaused = row?.pause_started_at
+      ? Math.max(0, now - new Date(row.pause_started_at).getTime())
+      : 0;
+
+    const newPausedTotal = (row?.paused_ms_total || 0) + extraPaused;
+    const resumeIso = new Date().toISOString();
+
+    // API (best effort)
+    fetch("/api/save-match-result", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        session_id: sessionId,
+        match_number: match.number,
+        is_paused: false,
+        pause_started_at: null,
+        paused_ms_total: newPausedTotal,
+        updated_at: resumeIso
+      })
+    }).catch(() => {});
+
+    // Safety write
+    await supabaseClient
+      .from("match_results")
+      .update({
+        is_paused: false,
+        pause_started_at: null,
+        paused_ms_total: newPausedTotal
+      })
+      .eq("session_id", sessionId)
+      .eq("match_number", match.number);
 
     // re-arm local alarm with remaining time
-    const now = Date.now();
     const timePassed = now - alarmStartTimestamp;
     const remaining  = Math.max(alarmScheduledTime - timePassed, 0);
     alarmStartTimestamp = Date.now();
