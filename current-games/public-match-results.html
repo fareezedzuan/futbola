@@ -1065,6 +1065,23 @@ function renderPublicFromRow(r) {
 
 let publicTimerRow = null; // last row we’re showing
 
+function computeElapsedFromDb(row) {
+  if (!row || !row.started_at) return 0;
+  const start = new Date(row.started_at).getTime();
+  const basePaused = row.paused_ms_total || 0;
+  const extraPaused = (row.is_paused && row.pause_started_at)
+    ? (Date.now() - new Date(row.pause_started_at).getTime())
+    : 0;
+  return Math.max(0, Date.now() - start - basePaused - extraPaused);
+}
+
+function fmtMMSS(ms) {
+  const s = Math.floor(ms / 1000);
+  const mm = String(Math.floor(s / 60)).padStart(2, '0');
+  const ss = String(s % 60).padStart(2, '0');
+  return `${mm}:${ss}`;
+}
+
 async function tickPublic() {
   // If we don’t have a row yet (or match finished), refetch;
   // otherwise just repaint timer every tick.
