@@ -3360,30 +3360,31 @@ window.publicTimerState = {
     document.querySelector(".main-display").style.display = "none";
   }
 
-// === 1s ticker (singleton) ===
-if (!window.publicTimerInterval) {
-  window.publicTimerInterval = setInterval(() => {
-    const el = document.getElementById("timer");
-    if (!el || !window.currentMatchRow) return;
+// // === 1s ticker (singleton) ===
+// if (!window.publicTimerInterval) {
+//   window.publicTimerInterval = setInterval(() => {
+//     const el = document.getElementById("timer");
+//     if (!el || !window.currentMatchRow) return;
 
-    const row = window.currentMatchRow;
+//     const row = window.currentMatchRow;
 
-    let ms;
-    if (typeof window.currentBaseElapsed === "number") {
-      // if paused, freeze on base; else add wall-clock drift
-      if (row.is_paused) {
-        ms = window.currentBaseElapsed;
-      } else {
-        ms = window.currentBaseElapsed + (Date.now() - (window.currentBaseTime || Date.now()));
-      }
-    } else {
-      // fallback if we didn't get SQL elapsed
-      ms = computeElapsedFromDb(row);
-    }
+//     let ms;
+//     if (typeof window.currentBaseElapsed === "number") {
+//       // if paused, freeze on base; else add wall-clock drift
+//       if (row.is_paused) {
+//         ms = window.currentBaseElapsed;
+//       } else {
+//         ms = window.currentBaseElapsed + (Date.now() - (window.currentBaseTime || Date.now()));
+//       }
+//     } else {
+//       // fallback if we didn't get SQL elapsed
+//       ms = computeElapsedFromDb(row);
+//     }
 
-    el.textContent = fmtMMSS(ms);
-  }, 1000);
-}
+//     el.textContent = fmtMMSS(ms);
+//   }, 1000);
+// }
+
 }
 
   // Handle match selection
