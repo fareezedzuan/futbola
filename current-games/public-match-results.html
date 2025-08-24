@@ -1059,8 +1059,14 @@ function renderPublicFromRow(r) {
          .join("<br>");
 
   // live timer
-  const ms = computeElapsedFromDb(r);
-  document.getElementById("timer").textContent = fmtMMSS(ms);
+  // live timer (DO NOT paint here)
+const timerEl = document.getElementById("timer");
+// give the timer a stable matchId; "public" is fine if there’s only one
+timerEl.setAttribute("data-timer", "public");
+
+// seed the perpetual drawer once and push the current server state into it
+ensureTimer("public", timerEl);
+updateTimerFromServer("public", r);
 }
 
 let publicTimerRow = null; // last row we’re showing
@@ -1078,28 +1084,28 @@ function computeElapsedFromDb(row) {
 let _publicTick = null;
 let _publicRow = null; // current pending row from match_results
 
-function startPublicTicker(row) {
-  _publicRow = row || null;
-  if (_publicTick) clearInterval(_publicTick);
-  tickPublic(); // paint immediately
-  _publicTick = setInterval(tickPublic, 1000);
-}
+// function startPublicTicker(row) {
+//   _publicRow = row || null;
+//   if (_publicTick) clearInterval(_publicTick);
+//   tickPublic(); // paint immediately
+//   _publicTick = setInterval(tickPublic, 1000);
+// }
 
-function stopPublicTicker() {
-  if (_publicTick) { clearInterval(_publicTick); _publicTick = null; }
-  _publicRow = null;
-}
+// function stopPublicTicker() {
+//   if (_publicTick) { clearInterval(_publicTick); _publicTick = null; }
+//   _publicRow = null;
+// }
 
-function tickPublic() {
-  const el = document.getElementById("timer"); // ✅ correct id
-  if (!el) return;
-  if (!_publicRow || !_publicRow.started_at) {
-    el.textContent = "00:00";
-    return;
-  }
-  const elapsed = computeElapsedFromDb(_publicRow);
-  el.textContent = fmtMMSS(elapsed);
-}
+// function tickPublic() {
+//   const el = document.getElementById("timer"); // ✅ correct id
+//   if (!el) return;
+//   if (!_publicRow || !_publicRow.started_at) {
+//     el.textContent = "00:00";
+//     return;
+//   }
+//   const elapsed = computeElapsedFromDb(_publicRow);
+//   el.textContent = fmtMMSS(elapsed);
+// }
 
 function fmtMMSS(ms) {
   const s = Math.floor(ms / 1000);
@@ -1109,16 +1115,13 @@ function fmtMMSS(ms) {
 }
 
 async function tickPublic() {
-  // If we don’t have a row yet (or match finished), refetch;
-  // otherwise just repaint timer every tick.
   if (!publicTimerRow || publicTimerRow.status !== "pending") {
     publicTimerRow = await fetchCurrentPendingRow();
-    if (!publicTimerRow) return; // nothing pending to show
-    renderPublicFromRow(publicTimerRow); // paint everything once
+    if (!publicTimerRow) return;
+    renderPublicFromRow(publicTimerRow);   // paints everything except the timer text
+    updateTimerFromServer("public", publicTimerRow);
   } else {
-    // just update the timer text smoothly
-    const ms = computeElapsedFromDb(publicTimerRow);
-    document.getElementById("timer").textContent = fmtMMSS(ms);
+    updateTimerFromServer("public", publicTimerRow);
   }
 }
 
