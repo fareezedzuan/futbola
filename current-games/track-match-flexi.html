@@ -961,92 +961,212 @@ function getTeamLogo(colorName) {
   };
   return logos[colorName] || "../images/futbolaLogo.png"; // fallback
 }
-
 async function handleTimerClick() {
   // 3 states: not started -> start; running -> pause; paused -> resume
   const sessionId = sessionStorage.getItem("sessionId");
-  const gameId = sessionStorage.getItem("gameId");
-  const match = matchResults[matchNumber - 1]; // current match object (1-based)
+  const gameId    = sessionStorage.getItem("gameId");
+  const match     = matchResults[matchNumber - 1]; // current match object (1-based)
   const safeTeamA = document.getElementById("teamAName")?.textContent || match?.tA;
   const safeTeamB = document.getElementById("teamBName")?.textContent || match?.tB;
 
-  if (!startEpochMs) {
-    // START
-    startEpochMs = Date.now();
-    pausedMs = 0;
-    pauseStartedMs = null;
-    alarmPlayed = false;
+  console.group("⏱ handleTimerClick");
+  console.log("state snapshot", {
+    matchNumber,
+    hasStartEpochMs: !!startEpochMs,
+    pauseStartedMs,
+    pausedMs,
+    sessionId,
+    gameId,
+    teamA: safeTeamA,
+    teamB: safeTeamB
+  });
+
+  if (!sessionId) { console.error("❌ Missing sessionId"); console.groupEnd(); return; }
+  if (!gameId)    { console.warn("⚠️ Missing gameId (not fatal)"); }
+  if (!match && !safeTeamA && !safeTeamB) {
+    console.error("❌ No current match context"); console.groupEnd(); return;
+  }
+
+  // Small helper: POST then log server response body
+  async function postMatchResult(payload, label) {
+    console.log(`📤 ${label}: /api/save-match-result payload →`, payload);
+    let res, bodyText = "";
+    try {
+      res = await fetch("/api/save-match-result", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      bodyText = await res.text();
+      console.log(`📩 ${label}: HTTP ${res.status}`, bodyText);
+    } catch (netErr) {
+      console.error(`🌐 ${label}: Network/Fetch error`, netErr);
+      throw netErr;
+    }
+    if (!res.ok) {
+      // Surface server errors loudly
+      throw new Error(`Server returned ${res.status}. Body: ${bodyText}`);
+    }
+    // Try to parse JSON for extra diagnostics (ok if it fails)
+    try {
+      const parsed = JSON.parse(bodyText);
+      console.log(`✅ ${label}: parsed JSON`, parsed);
+      return parsed;
+    } catch { /* text only is fine */ }
+    return null;
+  }
+
+  // Verify row from Supabase after write
+  async function verifyAndHeal(expect) {
+    const matchNo = match?.number ?? matchNumber;
+    const { data: row, error } = await supabaseClient
+      .from("match_results")
+      .select("status, started_at, is_paused, pause_started_at, paused_ms_total")
+      .eq("session_id", sessionId)       // session_id is TEXT in your schema
+      .eq("match_number", matchNo)
+      .maybeSingle();
+
+    console.log("🔎 DB row after write", { error, row });
+
+    if (error) {
+      console.warn("⚠️ Verify-read failed:", error);
+      return;
+    }
+    if (!row) {
+      console.warn("⚠️ Row missing after write — creating skeleton pending row as safety.");
+      const skeleton = {
+        session_id: sessionId,
+        game_id: gameId || null,
+        match_number: matchNo,
+        team_a: safeTeamA || null,
+        team_b: safeTeamB || null,
+        status: expect.status ?? "pending",
+        started_at: expect.started_at ?? null,
+        is_paused: !!expect.is_paused,
+        pause_started_at: expect.pause_started_at ?? null,
+        paused_ms_total: expect.paused_ms_total ?? 0,
+        score_a: match?.gA ?? 0,
+        score_b: match?.gB ?? 0,
+        goals: match?.goals ?? []
+      };
+      const { error: insErr } = await supabaseClient.from("match_results").insert(skeleton);
+      console[insErr ? "error" : "log"]("🧯 safety insert", { skeleton, insErr });
+      return;
+    }
+
+    // Heal missing/incorrect fields if needed
+    const patch = {};
+    if (expect.started_at && !row.started_at) patch.started_at = expect.started_at;
+    if (typeof expect.is_paused === "boolean" && row.is_paused !== expect.is_paused) patch.is_paused = expect.is_paused;
+    if (("pause_started_at" in expect) && row.pause_started_at !== expect.pause_started_at) patch.pause_started_at = expect.pause_started_at;
+    if (typeof expect.paused_ms_total === "number" && (row.paused_ms_total ?? 0) !== expect.paused_ms_total) patch.paused_ms_total = expect.paused_ms_total;
+    if (expect.status && row.status !== expect.status) patch.status = expect.status;
+
+    if (Object.keys(patch).length > 0) {
+      console.warn("🛠 Healing row with patch:", patch);
+      const { error: upErr } = await supabaseClient
+        .from("match_results")
+        .update(patch)
+        .eq("session_id", sessionId)
+        .eq("match_number", matchNo);
+      if (upErr) console.error("❌ Heal write failed:", upErr);
+      else console.log("✅ Heal write OK");
+    } else {
+      console.log("✅ Row already consistent with expected state.");
+    }
+  }
+
+  try {
+    // === START ===
+    if (!startEpochMs) {
+      startEpochMs   = Date.now();
+      pausedMs       = 0;
+      pauseStartedMs = null;
+      alarmPlayed    = false;
+
+      persistTimerState();
+      startTicking();
+      updateTimerButtonLabel();
+
+      const expect = {
+        status: "pending",
+        started_at: new Date(startEpochMs).toISOString(),
+        is_paused: false,
+        pause_started_at: null,
+        paused_ms_total: 0
+      };
+
+      const payload = {
+        game_id: gameId,
+        session_id: sessionId,                         // TEXT in DB
+        match_number: match?.number ?? matchNumber,
+        team_a: safeTeamA,
+        team_b: safeTeamB,
+        score_a: match?.gA ?? 0,
+        score_b: match?.gB ?? 0,
+        goals: match?.goals ?? [],
+        ...expect
+      };
+
+      await postMatchResult(payload, "START");
+      await verifyAndHeal(expect);
+
+      console.groupEnd();
+      return;
+    }
+
+    // === PAUSE ===
+    if (!pauseStartedMs) {
+      pauseStartedMs = Date.now();
+
+      persistTimerState();
+      stopTicking();
+      updateTimerButtonLabel();
+
+      const expect = {
+        status: "pending",
+        started_at: new Date(startEpochMs).toISOString(),
+        is_paused: true,
+        pause_started_at: new Date(pauseStartedMs).toISOString(),
+        paused_ms_total: pausedMs || 0
+      };
+
+      const payload = {
+        game_id: gameId,
+        session_id: sessionId,
+        match_number: match?.number ?? matchNumber,
+        team_a: safeTeamA,
+        team_b: safeTeamB,
+        score_a: match?.gA ?? 0,
+        score_b: match?.gB ?? 0,
+        goals: match?.goals ?? [],
+        ...expect
+      };
+
+      await postMatchResult(payload, "PAUSE");
+      await verifyAndHeal(expect);
+
+      console.groupEnd();
+      return;
+    }
+
+    // === RESUME ===
+    const pausedDuration = Date.now() - pauseStartedMs;
+    pausedMs       += pausedDuration;
+    pauseStartedMs  = null;
+
     persistTimerState();
     startTicking();
     updateTimerButtonLabel();
 
-    // 🔄 reflect in DB
-    try {
-      const payload = {
-        game_id: gameId,
-        session_id: sessionId,
-        match_number: match?.number ?? matchNumber,
-        team_a: safeTeamA,
-        team_b: safeTeamB,
-        score_a: match?.gA ?? 0,
-        score_b: match?.gB ?? 0,
-        goals: match?.goals ?? [],
-        status: "pending",
-        started_at: new Date(startEpochMs).toISOString(),
-        ...getDbTimerStateForUpsert()
-      };
-      await fetch("/api/save-match-result", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-    } catch (e) { console.warn("startTimer upsert failed:", e); }
+    const expect = {
+      status: "pending",
+      started_at: new Date(startEpochMs).toISOString(),
+      is_paused: false,
+      pause_started_at: null,
+      paused_ms_total: pausedMs || 0
+    };
 
-    return;
-  }
-
-  if (!pauseStartedMs) {
-    // PAUSE
-    pauseStartedMs = Date.now();
-    persistTimerState();
-    stopTicking();
-    updateTimerButtonLabel();
-
-    // 🔄 reflect in DB: mark paused and record pause_started_at
-    try {
-      const payload = {
-        game_id: gameId,
-        session_id: sessionId,
-        match_number: match?.number ?? matchNumber,
-        team_a: safeTeamA,
-        team_b: safeTeamB,
-        score_a: match?.gA ?? 0,
-        score_b: match?.gB ?? 0,
-        goals: match?.goals ?? [],
-        status: "pending",
-        // started_at already set previously; we only update pause state
-        ...getDbTimerStateForUpsert()
-      };
-      await fetch("/api/save-match-result", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-    } catch (e) { console.warn("pause upsert failed:", e); }
-
-    return;
-  }
-
-  // RESUME
-  const pausedDuration = Date.now() - pauseStartedMs;
-  pausedMs += pausedDuration;
-  pauseStartedMs = null;
-  persistTimerState();
-  startTicking();
-  updateTimerButtonLabel();
-
-  // 🔄 reflect in DB: clear pause_started_at, keep paused_ms_total
-  try {
     const payload = {
       game_id: gameId,
       session_id: sessionId,
@@ -1056,17 +1176,18 @@ async function handleTimerClick() {
       score_a: match?.gA ?? 0,
       score_b: match?.gB ?? 0,
       goals: match?.goals ?? [],
-      status: "pending",
-      ...getDbTimerStateForUpsert() // now is_paused=false, pause_started_at=null, paused_ms_total updated
+      ...expect
     };
-    await fetch("/api/save-match-result", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
-  } catch (e) { console.warn("resume upsert failed:", e); }
-}
 
+    await postMatchResult(payload, "RESUME");
+    await verifyAndHeal(expect);
+
+  } catch (e) {
+    console.error("💥 handleTimerClick error:", e);
+  } finally {
+    console.groupEnd();
+  }
+}
 function persistTimerState() {
   const payload = {
     startEpochMs,
@@ -2423,6 +2544,98 @@ async function updateStats() {
   } finally {
     btn.disabled = false;
     btn.textContent = "Update Stats";
+  }
+}
+
+// ===== DEBUG HELPERS =====
+function debugGroup(title, obj) {
+  console.group(title);
+  try { console.log(JSON.stringify(obj, null, 2)); } catch { console.log(obj); }
+  console.groupEnd();
+}
+
+window.addEventListener('error', (e) => {
+  console.error("🌋 window.error:", e.message, e.filename, e.lineno, e.colno, e.error);
+});
+window.addEventListener('unhandledrejection', (e) => {
+  console.error("🤯 unhandledrejection:", e.reason);
+});
+
+/**
+ * Write via /api/save-match-result and then VERIFY the row in Supabase.
+ * If started_at was sent but still null in DB, try a safety update and log it.
+ */
+async function writeAndVerify(payload, tag) {
+  console.group(`📝 ${tag} — upsert payload`);
+  console.log(payload);
+  console.groupEnd();
+
+  // 1) call API
+  let res, text, json = null;
+  try {
+    res = await fetch("/api/save-match-result", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    text = await res.text();
+    try { json = JSON.parse(text); } catch {}
+    console.log(`🔔 ${tag} — API status:`, res.status, res.statusText);
+    console.log(`🔔 ${tag} — API body:`, json ?? text);
+  } catch (err) {
+    console.error(`❌ ${tag} — fetch failed:`, err);
+  }
+
+  // 2) read back from DB
+  try {
+    const { data: rows, error } = await supabaseClient
+      .from("match_results")
+      .select("match_number,status,started_at,is_paused,pause_started_at,paused_ms_total,created_at")
+      .eq("session_id", payload.session_id)     // session_id is TEXT in your schema
+      .eq("match_number", payload.match_number) // integer in your schema
+      .order("created_at", { ascending: false })
+      .limit(1);
+
+    if (error) {
+      console.error(`❌ ${tag} — readback error:`, error);
+      return;
+    }
+
+    const row = rows?.[0] ?? null;
+    console.group(`🔎 ${tag} — DB readback (top row)`);
+    console.log(row);
+    console.groupEnd();
+
+    // 3) If we sent started_at but DB row still null, attempt a safety write
+    if (payload.started_at && (!row || !row.started_at)) {
+      console.warn(`⚠️ ${tag} — started_at missing in DB; attempting safety update...`);
+      const { error: upErr } = await supabaseClient
+        .from("match_results")
+        .update({
+          status: payload.status ?? "pending",
+          started_at: payload.started_at,
+          is_paused: !!payload.is_paused,
+          pause_started_at: payload.pause_started_at ?? null,
+          paused_ms_total: payload.paused_ms_total ?? 0
+        })
+        .eq("session_id", payload.session_id)
+        .eq("match_number", payload.match_number);
+
+      if (upErr) {
+        console.error(`❌ ${tag} — safety update failed:`, upErr);
+      } else {
+        const { data: rb2 } = await supabaseClient
+          .from("match_results")
+          .select("match_number,status,started_at,is_paused,pause_started_at,paused_ms_total,created_at")
+          .eq("session_id", payload.session_id)
+          .eq("match_number", payload.match_number)
+          .order("created_at", { ascending: false })
+          .limit(1);
+        console.log(`✅ ${tag} — safety update readback:`, rb2?.[0] ?? null);
+      }
+    }
+  } catch (err) {
+    console.error(`❌ ${tag} — verification block crashed:`, err);
   }
 }
 
