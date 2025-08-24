@@ -1293,6 +1293,68 @@ async function handleTimerClick() {
   }
 }
 
+// One timer per matchId
+const timers = new Map(); 
+// timers.get(matchId) = { el, tickId, baselineAtMs, baselineElapsedMs, isPaused }
+
+function ensureTimer(matchId, el) {
+  let t = timers.get(matchId);
+  if (!t) {
+    t = { el, tickId: null, baselineAtMs: Date.now(), baselineElapsedMs: 0, isPaused: true };
+    timers.set(matchId, t);
+    t.tickId = setInterval(() => {
+      // draw only, no fetch here
+      const now = Date.now();
+      const runningDelta = t.isPaused ? 0 : (now - t.baselineAtMs);
+      const ms = Math.max(0, t.baselineElapsedMs + runningDelta);
+      t.el.textContent = formatMMSS(ms); // e.g. "12:34"
+    }, 200);
+  } else if (t.el !== el) {
+    // if DOM node was replaced, keep state but point to new element
+    t.el = el;
+  }
+  return t;
+}
+
+// Call this after each 5s fetch for each match:
+function updateTimerFromServer(matchId, { started_at, paused_ms_total, pause_started_at, is_paused }) {
+  const el = document.querySelector(`[data-timer="${matchId}"]`);
+  if (!el) return;
+
+  const t = ensureTimer(matchId, el);
+
+  // Compute server-elapsed at "now" without resetting the interval
+  if (started_at) {
+    const startedMs = new Date(started_at).getTime();
+    const pauseNowMs = is_paused && pause_started_at ? new Date(pause_started_at).getTime() : null;
+
+    // elapsed on server up to this instant
+    const serverElapsed = (is_paused && pauseNowMs
+      ? (pauseNowMs - startedMs)
+      : (Date.now() - startedMs)
+    ) - 0 + (paused_ms_total || 0);
+
+    // Update baseline so the drawing loop picks it up smoothly
+    t.baselineElapsedMs = Math.max(0, serverElapsed);
+    t.baselineAtMs = Date.now();
+    t.isPaused = !!is_paused;
+  } else {
+    // No started_at: if we already have elapsed>0, keep showing it (don’t zero it)
+    // Otherwise, show an em dash instead of 00:00
+    if ((t.baselineElapsedMs || 0) === 0) {
+      t.isPaused = true;
+      el.textContent = "—";
+    }
+  }
+}
+
+function formatMMSS(ms) {
+  const total = Math.floor(ms / 1000);
+  const m = Math.floor(total / 60);
+  const s = total % 60;
+  return `${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
+}
+
 function updateTimerDisplay() {
   const min = Math.floor(timeElapsed / 60);
   const sec = timeElapsed % 60;
