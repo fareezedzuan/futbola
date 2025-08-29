@@ -2876,6 +2876,14 @@ window.addEventListener("DOMContentLoaded", async () => {
     const gameId = sessionInfo?.game_id;
     const courtNames = sessionInfo?.court_names || [];
 
+    // 🆕 Save real game date & venue for export
+    if (sessionInfo?.game?.game_date) {
+      sessionStorage.setItem("date", sessionInfo.game.game_date);
+    }
+    if (sessionInfo?.game?.venue) {
+      sessionStorage.setItem("venue", sessionInfo.game.venue);
+    }
+
     if (!gameId) {
       console.warn("⚠️ No gameId for session");
       return;
