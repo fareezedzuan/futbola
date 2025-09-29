@@ -1357,15 +1357,15 @@ function formatMMSS(ms) {
   return `${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
 }
 
-function updateTimerDisplay() {
+/*function updateTimerDisplay() {
   const min = Math.floor(timeElapsed / 60);
   const sec = timeElapsed % 60;
   document.getElementById("timer").textContent = `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
-}
+}*/
 
-function stopAlarmOnce() {
+/*function stopAlarmOnce() {
   playAlarm();
-}
+}*/
 
 function playAlarm() {
   const alarm = document.getElementById("alarmSound");
@@ -1388,7 +1388,7 @@ function stopAlarmOnce() {
   stopAlarm();
 }
 
-function resetTimer() {
+/*function resetTimer() {
   clearInterval(timer);
   timeElapsed = 0;
   timerRunning = false;
@@ -1396,7 +1396,7 @@ function resetTimer() {
   updateTimerDisplay();
   document.getElementById('timerBtn').textContent = "Start Timer";
   clearTimeout(alarmTimeout);
-}
+}*/
 
 async function startNextMatch(options = {}) {
   const skipSave = options.skipSave || false;
@@ -1450,7 +1450,7 @@ document.getElementById("matchTitle").textContent = courtLabel;
   }, 100);
 }
 
-function triggerScorer(side) {
+/*function triggerScorer(side) {
   if (window.isPublicView) return; 
   const teamA = document.getElementById("teamAName").textContent;
   const teamB = document.getElementById("teamBName").textContent;
@@ -1488,7 +1488,7 @@ document.getElementById("playersB").innerHTML = playersBHTML;
 
   document.getElementById("overlay").style.display = "block";
   document.getElementById("scorerPopup").style.display = "block";
-}
+}*/
 
 function computeElapsed(startedAt, pausedMsTotal, pauseStartedAt) {
   if (!startedAt) return 0;
@@ -1498,10 +1498,10 @@ function computeElapsed(startedAt, pausedMsTotal, pauseStartedAt) {
   return base - (pausedMsTotal + extraPaused);
 }
 
-function closePopup() {
+/*function closePopup() {
   document.getElementById("overlay").style.display = "none";
   document.getElementById("scorerPopup").style.display = "none";
-}
+}*/
 
 function addGoal(team, player, isOG = false) {
   const timeMin = Math.floor(timeElapsed / 60);
@@ -2009,7 +2009,7 @@ function exportSummary() {
   );
 }
 
-function openEditGoals() {
+/*function openEditGoals() {
   const container = document.getElementById("editGoalsList");
   container.innerHTML = "";
 
@@ -2103,9 +2103,9 @@ function editGoal(index) {
   renderGoalLog();
   updateLiveScoreboard(); // ✅ Add this
   openEditGoals(); // Refresh popup
-}
+}*/
 
-function promptScorerConfirm(team, player, isOG) {
+/*function promptScorerConfirm(team, player, isOG) {
   pendingScorer = player;
   pendingTeam = team;
   pendingIsOG = isOG;
@@ -2128,7 +2128,7 @@ function cancelScorerConfirm() {
   pendingScorer = null;
   pendingTeam = null;
   pendingIsOG = false;
-}
+}*/
 
 function checkRoundCompletion() {
   const matchesPerRound = baseMatchups.length;
@@ -2231,7 +2231,7 @@ function editMatchGoal(matchIndex, i) {
   editMatchGoals(matchIndex); // Re-render the popup with updated goal
 }
 
-function deleteMatchGoal(matchIndex, i) {
+/*function deleteMatchGoal(matchIndex, i) {
   if (!confirm("Delete this goal?")) return;
 
   const matchNumber = matchIndex + 1;
@@ -2259,9 +2259,9 @@ function deleteMatchGoal(matchIndex, i) {
     updateLiveScoreboard();
     updateMatchHistory();
   }
-}
+}*/
 
-function saveEditedMatchGoals(matchIndex) {
+/*function saveEditedMatchGoals(matchIndex) {
   console.warn("🧠 matchIndex:", matchIndex);
   console.warn("🧠 matchResults.length:", matchResults.length);
   console.warn("🧠 matchResults[matchIndex]:", matchResults[matchIndex]);
@@ -2358,7 +2358,7 @@ matchResults[matchIndex].gB = gB;
 
     alert("⚠️ Could not sync to Supabase. Saved locally and will retry when online.");
   });
-}
+}*/
 
 function recalculateStandingsFromAllMatches() {
   standings = {};
@@ -2556,7 +2556,7 @@ async function updateStats() {
   }
 }
 
-function promptAddGoalToMatch(matchIndex) {
+/*function promptAddGoalToMatch(matchIndex) {
   window.pendingEditMatchIndex = matchIndex;
   const [teamA, teamB] = matchups[matchIndex];
 
@@ -2567,7 +2567,7 @@ function promptAddGoalToMatch(matchIndex) {
 
   document.getElementById("editAddGoalPopup").style.display = "block";
   document.getElementById("overlay").style.display = "block";
-}
+}*/
 
 function selectEditTeam(scoringTeam, opponentTeam) {
   const scoringIdx = teamNames.indexOf(scoringTeam);
