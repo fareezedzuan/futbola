@@ -770,8 +770,8 @@ select.dropdown:focus {
 
 <body>
 
-<div class="overlay" id="overlay" onclick="closePopup()"></div>
-<div class="scorer-popup" id="scorerPopup">
+<!-- <div class="overlay" id="overlay" onclick="closePopup()"></div>
+<div class="scorer-popup" id="scorerPopup"> -->
   <div class="close-popup" onclick="closePopup()">×</div>
   <h4>Select Scorer</h4>
   <div class="scorer-columns">
@@ -784,10 +784,10 @@ select.dropdown:focus {
 <div class="scorer-popup" id="confirmScorerPopup">
   <div class="close-popup" onclick="cancelScorerConfirm()">×</div>
   <h4 id="confirmScorerText">Confirm goal by:</h4>
-  <div style="text-align: center; margin-top: 10px;">
+  <!-- <div style="text-align: center; margin-top: 10px;">
     <button class="btn-primary" onclick="confirmScorerAdd()">✅ Confirm</button>
     <button class="btn-primary" onclick="cancelScorerConfirm()">❌ Cancel</button>
-  </div>
+  </div> -->
 </div>
 
 <div class="container">
@@ -826,23 +826,23 @@ select.dropdown:focus {
   <div class="match-header" id="matchTitle">Court 1</div>
 
   <div class="row-display">
-    <div class="team-block" onclick="triggerScorer('A')">
+    <!-- === <div class="team-block" onclick="triggerScorer('A')">
       <img id="teamAIcon" src="../images/futbolaLogo.png" />
       <span id="teamAName">Team A</span>
       <div class="score-number" id="scoreA">0</div>
       <div class="goal-log" id="goalLogA"></div>
-    </div>
+    </div>=== -->
 
     <div class="timer-block">
       <div class="center-timer" id="timer">00:00</div>
     </div>
 
-    <div class="team-block" onclick="triggerScorer('B')">
+    <!-- === <div class="team-block" onclick="triggerScorer('B')">
       <img id="teamBIcon" src="../images/futbolaLogo.png" />
       <span id="teamBName">Team B</span>
       <div class="score-number" id="scoreB">0</div>
       <div class="goal-log" id="goalLogB"></div>
-    </div>
+    </div>=== -->
   </div>
 </div>
 
@@ -1071,15 +1071,15 @@ updateTimerFromServer("public", r);
 
 let publicTimerRow = null; // last row we’re showing
 
-function computeElapsedFromDb(row) {
-  if (!row || !row.started_at) return 0;
-  const start = new Date(row.started_at).getTime();
-  const basePaused = row.paused_ms_total || 0;
-  const extraPaused = (row.is_paused && row.pause_started_at)
-    ? (Date.now() - new Date(row.pause_started_at).getTime())
-    : 0;
-  return Math.max(0, Date.now() - start - basePaused - extraPaused);
-}
+// function computeElapsedFromDb(row) {
+//   if (!row || !row.started_at) return 0;
+//   const start = new Date(row.started_at).getTime();
+//   const basePaused = row.paused_ms_total || 0;
+//   const extraPaused = (row.is_paused && row.pause_started_at)
+//     ? (Date.now() - new Date(row.pause_started_at).getTime())
+//     : 0;
+//   return Math.max(0, Date.now() - start - basePaused - extraPaused);
+// }
 
 let _publicTick = null;
 let _publicRow = null; // current pending row from match_results
@@ -1107,12 +1107,12 @@ let _publicRow = null; // current pending row from match_results
 //   el.textContent = fmtMMSS(elapsed);
 // }
 
-function fmtMMSS(ms) {
-  const s = Math.floor(ms / 1000);
-  const mm = String(Math.floor(s / 60)).padStart(2, '0');
-  const ss = String(s % 60).padStart(2, '0');
-  return `${mm}:${ss}`;
-}
+// function fmtMMSS(ms) {
+//   const s = Math.floor(ms / 1000);
+//   const mm = String(Math.floor(s / 60)).padStart(2, '0');
+//   const ss = String(s % 60).padStart(2, '0');
+//   return `${mm}:${ss}`;
+// }
 
 async function tickPublic() {
   if (!publicTimerRow || publicTimerRow.status !== "pending") {
@@ -1503,33 +1503,33 @@ function computeElapsed(startedAt, pausedMsTotal, pauseStartedAt) {
   document.getElementById("scorerPopup").style.display = "none";
 }*/
 
-function addGoal(team, player, isOG = false) {
-  const timeMin = Math.floor(timeElapsed / 60);
-  const extra = timeMin >= duration ? `+${timeMin - duration}` : "";
-  const formatted = `${Math.min(timeMin + 1, duration)}${extra}'`;
+// function addGoal(team, player, isOG = false) {
+//   const timeMin = Math.floor(timeElapsed / 60);
+//   const extra = timeMin >= duration ? `+${timeMin - duration}` : "";
+//   const formatted = `${Math.min(timeMin + 1, duration)}${extra}'`;
 
-  currentGoals.push({ team, player, time: formatted, isOG });
+//   currentGoals.push({ team, player, time: formatted, isOG });
 
-  const scoreId = team === document.getElementById("teamAName").textContent ? "scoreA" : "scoreB";
-  const scoreEl = document.getElementById(scoreId);
-  scoreEl.textContent = parseInt(scoreEl.textContent) + 1;
+//   const scoreId = team === document.getElementById("teamAName").textContent ? "scoreA" : "scoreB";
+//   const scoreEl = document.getElementById(scoreId);
+//   scoreEl.textContent = parseInt(scoreEl.textContent) + 1;
 
-  // 🔄 Update current match object in memory
-  const matchIndex = matchNumber - 1;
-  const match = matchResults[matchIndex];
-  if (match) {
-    match.gA = parseInt(document.getElementById("scoreA").textContent);
-    match.gB = parseInt(document.getElementById("scoreB").textContent);
-    match.goals = [...currentGoals]; // clone goals array
-    match.status = "pending";
-  }
+//   // 🔄 Update current match object in memory
+//   const matchIndex = matchNumber - 1;
+//   const match = matchResults[matchIndex];
+//   if (match) {
+//     match.gA = parseInt(document.getElementById("scoreA").textContent);
+//     match.gB = parseInt(document.getElementById("scoreB").textContent);
+//     match.goals = [...currentGoals]; // clone goals array
+//     match.status = "pending";
+//   }
 
-  renderGoalLog();
-  closePopup();
+//   renderGoalLog();
+//   closePopup();
 
-  // 💾 Auto-save
-  autoSaveMatchProgress(matchIndex);
-}
+//   // 💾 Auto-save
+//   autoSaveMatchProgress(matchIndex);
+// }
 
 function renderGoalLog() {
   const tA = document.getElementById("teamAName").textContent;
@@ -3074,21 +3074,21 @@ function renderNextUp(matches) {
   });
 }
 
-function computeElapsedFromDb(row) {
-  if (!row || !row.started_at) return 0;
-  const start = new Date(row.started_at).getTime();
-  const basePaused = row.paused_ms_total || 0;
-  const extraPaused = (row.is_paused && row.pause_started_at)
-    ? (Date.now() - new Date(row.pause_started_at).getTime())
-    : 0;
-  return Math.max(0, Date.now() - start - basePaused - extraPaused);
-}
-function fmtMMSS(ms) {
-  const s = Math.floor(ms/1000);
-  const mm = String(Math.floor(s/60)).padStart(2,'0');
-  const ss = String(s%60).padStart(2,'0');
-  return `${mm}:${ss}`;
-}
+// function computeElapsedFromDb(row) {
+//   if (!row || !row.started_at) return 0;
+//   const start = new Date(row.started_at).getTime();
+//   const basePaused = row.paused_ms_total || 0;
+//   const extraPaused = (row.is_paused && row.pause_started_at)
+//     ? (Date.now() - new Date(row.pause_started_at).getTime())
+//     : 0;
+//   return Math.max(0, Date.now() - start - basePaused - extraPaused);
+// }
+// function fmtMMSS(ms) {
+//   const s = Math.floor(ms/1000);
+//   const mm = String(Math.floor(s/60)).padStart(2,'0');
+//   const ss = String(s%60).padStart(2,'0');
+//   return `${mm}:${ss}`;
+// }
 
 // --- Timer helpers (PUBLIC) ---
 function computeElapsedFromDb(row) {
