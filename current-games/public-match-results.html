@@ -770,8 +770,8 @@ select.dropdown:focus {
 
 <body>
 
-<!-- <div class="overlay" id="overlay" onclick="closePopup()"></div>
-<div class="scorer-popup" id="scorerPopup"> -->
+<div class="overlay" id="overlay" onclick="closePopup()"></div>
+<div class="scorer-popup" id="scorerPopup">
   <div class="close-popup" onclick="closePopup()">×</div>
   <h4>Select Scorer</h4>
   <div class="scorer-columns">
@@ -784,10 +784,10 @@ select.dropdown:focus {
 <div class="scorer-popup" id="confirmScorerPopup">
   <div class="close-popup" onclick="cancelScorerConfirm()">×</div>
   <h4 id="confirmScorerText">Confirm goal by:</h4>
-  <!-- <div style="text-align: center; margin-top: 10px;">
+  <div style="text-align: center; margin-top: 10px;">
     <button class="btn-primary" onclick="confirmScorerAdd()">✅ Confirm</button>
     <button class="btn-primary" onclick="cancelScorerConfirm()">❌ Cancel</button>
-  </div> -->
+  </div>
 </div>
 
 <div class="container">
@@ -826,23 +826,23 @@ select.dropdown:focus {
   <div class="match-header" id="matchTitle">Court 1</div>
 
   <div class="row-display">
-    <!-- === <div class="team-block" onclick="triggerScorer('A')">
+    <div class="team-block" onclick="triggerScorer('A')">
       <img id="teamAIcon" src="../images/futbolaLogo.png" />
       <span id="teamAName">Team A</span>
       <div class="score-number" id="scoreA">0</div>
       <div class="goal-log" id="goalLogA"></div>
-    </div>=== -->
+    </div>
 
     <div class="timer-block">
       <div class="center-timer" id="timer">00:00</div>
     </div>
 
-    <!-- === <div class="team-block" onclick="triggerScorer('B')">
+    <div class="team-block" onclick="triggerScorer('B')">
       <img id="teamBIcon" src="../images/futbolaLogo.png" />
       <span id="teamBName">Team B</span>
       <div class="score-number" id="scoreB">0</div>
       <div class="goal-log" id="goalLogB"></div>
-    </div>=== -->
+    </div>
   </div>
 </div>
 
@@ -1071,15 +1071,15 @@ updateTimerFromServer("public", r);
 
 let publicTimerRow = null; // last row we’re showing
 
-// function computeElapsedFromDb(row) {
-//   if (!row || !row.started_at) return 0;
-//   const start = new Date(row.started_at).getTime();
-//   const basePaused = row.paused_ms_total || 0;
-//   const extraPaused = (row.is_paused && row.pause_started_at)
-//     ? (Date.now() - new Date(row.pause_started_at).getTime())
-//     : 0;
-//   return Math.max(0, Date.now() - start - basePaused - extraPaused);
-// }
+function computeElapsedFromDb(row) {
+  if (!row || !row.started_at) return 0;
+  const start = new Date(row.started_at).getTime();
+  const basePaused = row.paused_ms_total || 0;
+  const extraPaused = (row.is_paused && row.pause_started_at)
+    ? (Date.now() - new Date(row.pause_started_at).getTime())
+    : 0;
+  return Math.max(0, Date.now() - start - basePaused - extraPaused);
+}
 
 let _publicTick = null;
 let _publicRow = null; // current pending row from match_results
@@ -1107,12 +1107,12 @@ let _publicRow = null; // current pending row from match_results
 //   el.textContent = fmtMMSS(elapsed);
 // }
 
-// function fmtMMSS(ms) {
-//   const s = Math.floor(ms / 1000);
-//   const mm = String(Math.floor(s / 60)).padStart(2, '0');
-//   const ss = String(s % 60).padStart(2, '0');
-//   return `${mm}:${ss}`;
-// }
+function fmtMMSS(ms) {
+  const s = Math.floor(ms / 1000);
+  const mm = String(Math.floor(s / 60)).padStart(2, '0');
+  const ss = String(s % 60).padStart(2, '0');
+  return `${mm}:${ss}`;
+}
 
 async function tickPublic() {
   if (!publicTimerRow || publicTimerRow.status !== "pending") {
@@ -1156,9 +1156,7 @@ function getTeamLogo(colorName) {
     Black: "../images/black.png",
     Yellow: "../images/yellow.png",
     Blue: "../images/blue.png",
-    Turquoise: "../images/turquoise.png",
-        Pink: "../images/pink.png",
-        Purple: "../images/purple.png"
+    Turquoise: "../images/turquoise.png"
   };
   return logos[colorName] || "../images/futbolaLogo.png"; // fallback
 }
@@ -1357,15 +1355,15 @@ function formatMMSS(ms) {
   return `${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
 }
 
-/*function updateTimerDisplay() {
+function updateTimerDisplay() {
   const min = Math.floor(timeElapsed / 60);
   const sec = timeElapsed % 60;
   document.getElementById("timer").textContent = `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
-}*/
+}
 
-/*function stopAlarmOnce() {
+function stopAlarmOnce() {
   playAlarm();
-}*/
+}
 
 function playAlarm() {
   const alarm = document.getElementById("alarmSound");
@@ -1388,7 +1386,7 @@ function stopAlarmOnce() {
   stopAlarm();
 }
 
-/*function resetTimer() {
+function resetTimer() {
   clearInterval(timer);
   timeElapsed = 0;
   timerRunning = false;
@@ -1396,7 +1394,7 @@ function stopAlarmOnce() {
   updateTimerDisplay();
   document.getElementById('timerBtn').textContent = "Start Timer";
   clearTimeout(alarmTimeout);
-}*/
+}
 
 async function startNextMatch(options = {}) {
   const skipSave = options.skipSave || false;
@@ -1450,7 +1448,7 @@ document.getElementById("matchTitle").textContent = courtLabel;
   }, 100);
 }
 
-/*function triggerScorer(side) {
+function triggerScorer(side) {
   if (window.isPublicView) return; 
   const teamA = document.getElementById("teamAName").textContent;
   const teamB = document.getElementById("teamBName").textContent;
@@ -1488,7 +1486,7 @@ document.getElementById("playersB").innerHTML = playersBHTML;
 
   document.getElementById("overlay").style.display = "block";
   document.getElementById("scorerPopup").style.display = "block";
-}*/
+}
 
 function computeElapsed(startedAt, pausedMsTotal, pauseStartedAt) {
   if (!startedAt) return 0;
@@ -1498,38 +1496,38 @@ function computeElapsed(startedAt, pausedMsTotal, pauseStartedAt) {
   return base - (pausedMsTotal + extraPaused);
 }
 
-/*function closePopup() {
+function closePopup() {
   document.getElementById("overlay").style.display = "none";
   document.getElementById("scorerPopup").style.display = "none";
-}*/
+}
 
-// function addGoal(team, player, isOG = false) {
-//   const timeMin = Math.floor(timeElapsed / 60);
-//   const extra = timeMin >= duration ? `+${timeMin - duration}` : "";
-//   const formatted = `${Math.min(timeMin + 1, duration)}${extra}'`;
+function addGoal(team, player, isOG = false) {
+  const timeMin = Math.floor(timeElapsed / 60);
+  const extra = timeMin >= duration ? `+${timeMin - duration}` : "";
+  const formatted = `${Math.min(timeMin + 1, duration)}${extra}'`;
 
-//   currentGoals.push({ team, player, time: formatted, isOG });
+  currentGoals.push({ team, player, time: formatted, isOG });
 
-//   const scoreId = team === document.getElementById("teamAName").textContent ? "scoreA" : "scoreB";
-//   const scoreEl = document.getElementById(scoreId);
-//   scoreEl.textContent = parseInt(scoreEl.textContent) + 1;
+  const scoreId = team === document.getElementById("teamAName").textContent ? "scoreA" : "scoreB";
+  const scoreEl = document.getElementById(scoreId);
+  scoreEl.textContent = parseInt(scoreEl.textContent) + 1;
 
-//   // 🔄 Update current match object in memory
-//   const matchIndex = matchNumber - 1;
-//   const match = matchResults[matchIndex];
-//   if (match) {
-//     match.gA = parseInt(document.getElementById("scoreA").textContent);
-//     match.gB = parseInt(document.getElementById("scoreB").textContent);
-//     match.goals = [...currentGoals]; // clone goals array
-//     match.status = "pending";
-//   }
+  // 🔄 Update current match object in memory
+  const matchIndex = matchNumber - 1;
+  const match = matchResults[matchIndex];
+  if (match) {
+    match.gA = parseInt(document.getElementById("scoreA").textContent);
+    match.gB = parseInt(document.getElementById("scoreB").textContent);
+    match.goals = [...currentGoals]; // clone goals array
+    match.status = "pending";
+  }
 
-//   renderGoalLog();
-//   closePopup();
+  renderGoalLog();
+  closePopup();
 
-//   // 💾 Auto-save
-//   autoSaveMatchProgress(matchIndex);
-// }
+  // 💾 Auto-save
+  autoSaveMatchProgress(matchIndex);
+}
 
 function renderGoalLog() {
   const tA = document.getElementById("teamAName").textContent;
@@ -2009,7 +2007,7 @@ function exportSummary() {
   );
 }
 
-/*function openEditGoals() {
+function openEditGoals() {
   const container = document.getElementById("editGoalsList");
   container.innerHTML = "";
 
@@ -2103,9 +2101,9 @@ function editGoal(index) {
   renderGoalLog();
   updateLiveScoreboard(); // ✅ Add this
   openEditGoals(); // Refresh popup
-}*/
+}
 
-/*function promptScorerConfirm(team, player, isOG) {
+function promptScorerConfirm(team, player, isOG) {
   pendingScorer = player;
   pendingTeam = team;
   pendingIsOG = isOG;
@@ -2128,7 +2126,7 @@ function cancelScorerConfirm() {
   pendingScorer = null;
   pendingTeam = null;
   pendingIsOG = false;
-}*/
+}
 
 function checkRoundCompletion() {
   const matchesPerRound = baseMatchups.length;
@@ -2231,7 +2229,7 @@ function editMatchGoal(matchIndex, i) {
   editMatchGoals(matchIndex); // Re-render the popup with updated goal
 }
 
-/*function deleteMatchGoal(matchIndex, i) {
+function deleteMatchGoal(matchIndex, i) {
   if (!confirm("Delete this goal?")) return;
 
   const matchNumber = matchIndex + 1;
@@ -2259,9 +2257,9 @@ function editMatchGoal(matchIndex, i) {
     updateLiveScoreboard();
     updateMatchHistory();
   }
-}*/
+}
 
-/*function saveEditedMatchGoals(matchIndex) {
+function saveEditedMatchGoals(matchIndex) {
   console.warn("🧠 matchIndex:", matchIndex);
   console.warn("🧠 matchResults.length:", matchResults.length);
   console.warn("🧠 matchResults[matchIndex]:", matchResults[matchIndex]);
@@ -2358,7 +2356,7 @@ matchResults[matchIndex].gB = gB;
 
     alert("⚠️ Could not sync to Supabase. Saved locally and will retry when online.");
   });
-}*/
+}
 
 function recalculateStandingsFromAllMatches() {
   standings = {};
@@ -2556,7 +2554,7 @@ async function updateStats() {
   }
 }
 
-/*function promptAddGoalToMatch(matchIndex) {
+function promptAddGoalToMatch(matchIndex) {
   window.pendingEditMatchIndex = matchIndex;
   const [teamA, teamB] = matchups[matchIndex];
 
@@ -2567,7 +2565,7 @@ async function updateStats() {
 
   document.getElementById("editAddGoalPopup").style.display = "block";
   document.getElementById("overlay").style.display = "block";
-}*/
+}
 
 function selectEditTeam(scoringTeam, opponentTeam) {
   const scoringIdx = teamNames.indexOf(scoringTeam);
@@ -3074,21 +3072,21 @@ function renderNextUp(matches) {
   });
 }
 
-// function computeElapsedFromDb(row) {
-//   if (!row || !row.started_at) return 0;
-//   const start = new Date(row.started_at).getTime();
-//   const basePaused = row.paused_ms_total || 0;
-//   const extraPaused = (row.is_paused && row.pause_started_at)
-//     ? (Date.now() - new Date(row.pause_started_at).getTime())
-//     : 0;
-//   return Math.max(0, Date.now() - start - basePaused - extraPaused);
-// }
-// function fmtMMSS(ms) {
-//   const s = Math.floor(ms/1000);
-//   const mm = String(Math.floor(s/60)).padStart(2,'0');
-//   const ss = String(s%60).padStart(2,'0');
-//   return `${mm}:${ss}`;
-// }
+function computeElapsedFromDb(row) {
+  if (!row || !row.started_at) return 0;
+  const start = new Date(row.started_at).getTime();
+  const basePaused = row.paused_ms_total || 0;
+  const extraPaused = (row.is_paused && row.pause_started_at)
+    ? (Date.now() - new Date(row.pause_started_at).getTime())
+    : 0;
+  return Math.max(0, Date.now() - start - basePaused - extraPaused);
+}
+function fmtMMSS(ms) {
+  const s = Math.floor(ms/1000);
+  const mm = String(Math.floor(s/60)).padStart(2,'0');
+  const ss = String(s%60).padStart(2,'0');
+  return `${mm}:${ss}`;
+}
 
 // --- Timer helpers (PUBLIC) ---
 function computeElapsedFromDb(row) {
