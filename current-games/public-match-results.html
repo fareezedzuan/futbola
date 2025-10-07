@@ -168,6 +168,10 @@
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkYnFyb3hoeXBuYWRvbGN4eHhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3MjkwNzYsImV4cCI6MjA1NzMwNTA3Nn0.c7_RVxoFdJNqQ62R3t1emH2Wf4dSsQaunHsHmbQxOBA'
   );
 
+  // hard flag so multi-session code never wires up in single mode
+const __IS_SINGLE__ = new URLSearchParams(location.search).has("match_id")
+  || (new URLSearchParams(location.search).has("session") && new URLSearchParams(location.search).has("match_number"));
+
   // ========= Helpers (pure/read-only) =========
   const getTeamLogo = (colorName) => ({
     Red: "../images/red.png",
@@ -262,11 +266,7 @@ function renderSingleMatch(row) {
   document.getElementById("teamAName").textContent = tA;
   document.getElementById("teamBName").textContent = tB;
 
-  const getTeamLogo = (name) => ({
-    Red:"../images/red.png",White:"../images/white.png",Green:"../images/green.png",
-    Orange:"../images/orange.png",Black:"../images/black.png",Yellow:"../images/yellow.png",
-    Blue:"../images/blue.png",Turquoise:"../images/turquoise.png"
-  })[name] || "../images/futbolaLogo.png";
+
   document.getElementById("teamAIcon").src = getTeamLogo(tA);
   document.getElementById("teamBIcon").src = getTeamLogo(tB);
 
@@ -512,53 +512,64 @@ async function pollSameMatch() {
   }
 
   // ========= Main logic =========
-  async function loadSessionsAndWire() {
-    // sessions dropdown
-    const sessions = await fetchSessions();
-    sessionDropdown.innerHTML = `<option disabled selected value="">-- Choose Session --</option>`;
-    sessions.forEach(sess => {
-      const date = sess.game?.game_date || "No Date";
-      const venue = sess.game?.venue || "No Venue";
-      const opt = document.createElement("option");
-      opt.value = sess.id;
-      opt.textContent = `${venue} (${date})`;
-      sessionDropdown.appendChild(opt);
-    });
+async function loadSessionsAndWire() {
+  // Single-match mode: do not wire the multi-session UI at all
+  if (__IS_SINGLE__) return;
 
-    // URL ?session=
-    const urlSession = new URLSearchParams(location.search).get("session");
-    if (urlSession) {
-      sessionDropdown.value = urlSession;
-      sessionDropdown.dispatchEvent(new Event("change"));
-    }
+  // 1) Populate the sessions dropdown
+  const sessions = await fetchSessions();
+  sessionDropdown.innerHTML = `<option disabled selected value="">-- Choose Session --</option>`;
+  sessions.forEach(sess => {
+    const date = sess.game?.game_date || "No Date";
+    const venue = sess.game?.venue || "No Venue";
+    const opt = document.createElement("option");
+    opt.value = sess.id;
+    opt.textContent = `${venue} (${date})`;
+    sessionDropdown.appendChild(opt);
+  });
 
-    // on change
-    sessionDropdown.addEventListener("change", async (e) => {
-      const sessionId = e.target.value;
-      const meta = sessions.find(s => s.id === sessionId);
-      courtNames = meta?.court_names || [];
-      venueText.textContent = meta?.game?.venue || "Venue";
-      dateText.textContent = meta?.game?.game_date || "Date";
-      await refreshForSession(sessionId);
-      // also wire filters
-      courtFilter.innerHTML = `<option value="all">All Courts</option>`;
-      courtNames.forEach((name, i) => {
-        const o = document.createElement("option");
-        o.value = i+1; o.textContent = name;
-        courtFilter.appendChild(o);
-      });
-    });
-
-    courtFilter.addEventListener("change", () => {
-      const sid = sessionDropdown.value;
-      if (sid) refreshForSession(sid);
-    });
-
-    groupFilter.addEventListener("change", () => {
-      const sid = sessionDropdown.value;
-      if (sid) refreshForSession(sid);
-    });
+  // 2) If URL provides ?session=..., select it
+  const urlSession = new URLSearchParams(location.search).get("session");
+  if (urlSession) {
+    sessionDropdown.value = urlSession;
+    // trigger change handler to load everything for that session
+    sessionDropdown.dispatchEvent(new Event("change"));
   }
+
+  // 3) Wire session change → load matches/results + filters
+  sessionDropdown.addEventListener("change", async (e) => {
+    const sessionId = e.target.value;
+    const meta = sessions.find(s => s.id === sessionId);
+
+    // Header meta
+    courtNames = meta?.court_names || [];
+    venueText.textContent = meta?.game?.venue || "Venue";
+    dateText.textContent  = meta?.game?.game_date || "Date";
+
+    // Load data for this session
+    await refreshForSession(sessionId);
+
+    // Build court filter options from courtNames
+    courtFilter.innerHTML = `<option value="all">All Courts</option>`;
+    courtNames.forEach((name, i) => {
+      const o = document.createElement("option");
+      o.value = i + 1;
+      o.textContent = name;
+      courtFilter.appendChild(o);
+    });
+  });
+
+  // 4) Filters → refresh same session with new filters
+  courtFilter.addEventListener("change", () => {
+    const sid = sessionDropdown.value;
+    if (sid) refreshForSession(sid);
+  });
+
+  groupFilter.addEventListener("change", () => {
+    const sid = sessionDropdown.value;
+    if (sid) refreshForSession(sid);
+  });
+}
 
   async function refreshForSession(sessionId) {
     const filters = { court: courtFilter.value, group: groupFilter.value };
@@ -640,28 +651,27 @@ async function pollSameMatch() {
 
 // ========= boot =========
 (async function boot(){
-  const params = new URLSearchParams(location.search);
-  const hasSingle = params.has("match_id") || (params.has("session") && params.has("match_number"));
+  const hasSingle = __IS_SINGLE__;
 
   if (hasSingle) {
-    // Hide the session chooser & extra sections in single-match mode
     const filtersRow = document.getElementById("filtersRow");
     if (filtersRow) filtersRow.style.display = "none";
+    // belt-and-suspenders: disable controls too
+    document.getElementById("sessionDropdown")?.setAttribute("disabled","disabled");
+    document.getElementById("courtFilter")?.setAttribute("disabled","disabled");
+    document.getElementById("groupFilter")?.setAttribute("disabled","disabled");
 
-    // (Optional) also hide sections not relevant to single match:
+    // (optional) hide extra sections so only the single match shows
     // document.getElementById("nextUpSection").style.display = "none";
     // document.querySelector('[data-section="matchResults"]')?.style.display = "none";
     // document.querySelector('[data-section="standings"]')?.style.display = "none";
     // document.querySelector('[data-section="topScorers"]')?.style.display = "none";
 
     const row = await loadSingleMatchRow();
-    if (!row) return;
+    if (!row) return; // could also show a friendly "Match not found"
     renderSingleMatch(row);
-
-    // Poll only this one row
     setInterval(pollSameMatch, 1000);
   } else {
-    // Fallback: original multi-session UI
     await loadSessionsAndWire();
     setInterval(pollPending, 1000);
   }
