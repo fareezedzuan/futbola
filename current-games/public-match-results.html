@@ -141,20 +141,19 @@
       <div id="nextUpList"></div>
     </div>
 
-    <!-- Match Results -->
-    <div class="section">
+    <div class="section" data-section="matchResults">
       <h3>Match Results</h3>
       <div id="matchHistory"></div>
     </div>
 
     <!-- Live Standings -->
-    <div class="section">
+    <div class="section" data-section="standings">
       <h3>Live Standings</h3>
       <div id="standingsTable"></div>
     </div>
 
     <!-- Top Scorers -->
-    <div class="section">
+    <div class="section" data-section="topScorers">
       <h3>Top Scorers</h3>
       <div id="topScorersList" class="scorer-list"></div>
     </div>
@@ -228,6 +227,99 @@
       t.el.textContent = "00:00";
     }
   }
+
+  // ========= Single-match mode helpers (URL-locked) =========
+async function loadSingleMatchRow() {
+  const params = new URLSearchParams(location.search);
+  const matchId = params.get("match_id");           // preferred: PK on match_results
+  const sessionId = params.get("session");          // fallback: session + match_number
+  const matchNo = params.get("match_number");
+
+  if (matchId) {
+    const { data, error } = await supabaseClient.from("match_results").select("*").eq("id", matchId).single();
+    if (error) { console.error(error); return null; }
+    return data;
+  }
+  if (sessionId && matchNo) {
+    const { data, error } = await supabaseClient.from("match_results").select("*")
+      .eq("session_id", sessionId).eq("match_number", matchNo).single();
+    if (error) { console.error(error); return null; }
+    return data;
+  }
+  return null;
+}
+
+function renderSingleMatch(row) {
+  // header meta if available
+  if (row.venue) document.getElementById("venueText").textContent = row.venue;
+  if (row.game_date) document.getElementById("dateText").textContent = row.game_date;
+
+  const courtLabel = row.court_name || (row.court_number ? `Court ${row.court_number}` : "Court");
+  document.getElementById("matchTitle").textContent = courtLabel;
+
+  const tA = row.team_a || row.team1_id || "Team A";
+  const tB = row.team_b || row.team2_id || "Team B";
+  document.getElementById("teamAName").textContent = tA;
+  document.getElementById("teamBName").textContent = tB;
+
+  const getTeamLogo = (name) => ({
+    Red:"../images/red.png",White:"../images/white.png",Green:"../images/green.png",
+    Orange:"../images/orange.png",Black:"../images/black.png",Yellow:"../images/yellow.png",
+    Blue:"../images/blue.png",Turquoise:"../images/turquoise.png"
+  })[name] || "../images/futbolaLogo.png";
+  document.getElementById("teamAIcon").src = getTeamLogo(tA);
+  document.getElementById("teamBIcon").src = getTeamLogo(tB);
+
+  document.getElementById("scoreA").textContent = (row.score_a ?? 0);
+  document.getElementById("scoreB").textContent = (row.score_b ?? 0);
+
+  const goals = row.goals || [];
+  const gA = goals.filter(g=>g.team===tA).map(g=>`${g.player||g.name}${g.time?` (${g.time})`:""}`).join("<br>");
+  const gB = goals.filter(g=>g.team===tB).map(g=>`${g.player||g.name}${g.time?` (${g.time})`:""}`).join("<br>");
+  document.getElementById("goalLogA").innerHTML = gA;
+  document.getElementById("goalLogB").innerHTML = gB;
+
+  document.getElementById("mainPending").style.display = "flex";
+  updateTimerFromServer("main", row);
+}
+
+async function pollSameMatch() {
+  const params = new URLSearchParams(location.search);
+  const matchId = params.get("match_id");
+  const sessionId = params.get("session");
+  const matchNo = params.get("match_number");
+  if (!matchId && !(sessionId && matchNo)) return;
+
+  let q = supabaseClient.from("match_results").select("*").limit(1);
+  if (matchId) q = q.eq("id", matchId);
+  else q = q.eq("session_id", sessionId).eq("match_number", matchNo);
+
+  const { data, error } = await q;
+  if (error || !data || !data.length) return;
+  const row = data[0];
+
+  // update UI fields if provided
+  if (row.team_a || row.team1_id) {
+    const tA = row.team_a || row.team1_id;
+    document.getElementById("teamAName").textContent = tA;
+    document.getElementById("teamAIcon").src = getTeamLogo(tA);
+  }
+  if (row.team_b || row.team2_id) {
+    const tB = row.team_b || row.team2_id;
+    document.getElementById("teamBName").textContent = tB;
+    document.getElementById("teamBIcon").src = getTeamLogo(tB);
+  }
+  if (row.score_a != null) document.getElementById("scoreA").textContent = row.score_a;
+  if (row.score_b != null) document.getElementById("scoreB").textContent = row.score_b;
+
+  const tAname = document.getElementById("teamAName").textContent;
+  const tBname = document.getElementById("teamBName").textContent;
+  const goals = row.goals || [];
+  document.getElementById("goalLogA").innerHTML = goals.filter(g=>g.team===tAname).map(g=>`${g.player||g.name}${g.time?` (${g.time})`:""}`).join("<br>");
+  document.getElementById("goalLogB").innerHTML = goals.filter(g=>g.team===tBname).map(g=>`${g.player||g.name}${g.time?` (${g.time})`:""}`).join("<br>");
+
+  updateTimerFromServer("main", row);
+}
 
   // ========= Data state =========
   let courtNames = [];
@@ -546,12 +638,35 @@
     $("scoreB").textContent = row.score_b ?? $("scoreB").textContent;
   }
 
-  // ========= boot =========
-  (async function boot(){
+// ========= boot =========
+(async function boot(){
+  const params = new URLSearchParams(location.search);
+  const hasSingle = params.has("match_id") || (params.has("session") && params.has("match_number"));
+
+  if (hasSingle) {
+    // Hide the session chooser & extra sections in single-match mode
+    const filtersRow = document.getElementById("filtersRow");
+    if (filtersRow) filtersRow.style.display = "none";
+
+    // (Optional) also hide sections not relevant to single match:
+    // document.getElementById("nextUpSection").style.display = "none";
+    // document.querySelector('[data-section="matchResults"]')?.style.display = "none";
+    // document.querySelector('[data-section="standings"]')?.style.display = "none";
+    // document.querySelector('[data-section="topScorers"]')?.style.display = "none";
+
+    const row = await loadSingleMatchRow();
+    if (!row) return;
+    renderSingleMatch(row);
+
+    // Poll only this one row
+    setInterval(pollSameMatch, 1000);
+  } else {
+    // Fallback: original multi-session UI
     await loadSessionsAndWire();
-    // If URL had session param, its change handler already ran. Otherwise, wait for user.
-    setInterval(pollPending, POLL_MS);
-  })();
+    setInterval(pollPending, 1000);
+  }
+})();
+
   </script>
 </body>
 </html>
