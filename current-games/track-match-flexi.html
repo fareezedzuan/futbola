@@ -731,7 +731,7 @@ select.dropdown:focus {
 
   <label for="matchDropdown" style="font-weight:bold; color:#702963;">Select Match to Officiate:</label>
   <select id="matchDropdown" class="dropdown" style="width:100%; padding:8px; font-size:16px;">
-    <option disabled selected value="">-- Select Match --</option>
+    <option disabled selected value="">-- Choose Match --</option>
   </select>
 </div>
 
@@ -2927,9 +2927,9 @@ try {
     courtFilter.innerHTML = `<option value="all">All Courts</option>`;
     courtNames.forEach((name, idx) => {
       const opt = document.createElement("option");
-      opt.value = String(m.id); // << force string
-      opt.textContent = `Match ${m.number}: ${m.tA} vs ${m.tB}`;
-      matchDropdown.appendChild(opt);
+      opt.value = idx + 1;
+      opt.textContent = name;
+      courtFilter.appendChild(opt);
     });
 
     // 🆕 Populate groupFilter dropdown
@@ -3135,13 +3135,6 @@ async function loadMatches(sessionId) {
 
     // 5) Build grouped dropdown by court name
     matchDropdown.innerHTML = "";
-    // real placeholder so the first real selection always fires "change"
-    const placeholder = document.createElement("option");
-    placeholder.disabled = true;
-    placeholder.selected = true;
-    placeholder.value = "";
-    placeholder.textContent = "-- Choose Match --";
-    matchDropdown.appendChild(placeholder);
     const grouped = {};
 
     matchResults.forEach(m => {
@@ -3168,7 +3161,7 @@ async function loadMatches(sessionId) {
       });
 
       // After options are appended...
-const stillExists = selectedMatchId && matchResults.some(m => String(m.id) === String(selectedMatchId));
+const stillExists = selectedMatchId && matchResults.some(m => m.id === selectedMatchId);
 
 if (stillExists) {
   matchDropdown.value = selectedMatchId;
@@ -3187,9 +3180,6 @@ if (stillExists) {
     updateLeaderboard();
     recalculateStandingsFromAllMatches();
     // renderNextUp(matchResults); // (keep/call if you still use Next Up)
-    // ✅ Always start from placeholder so the first click on "Match 1" fires a real change
-matchDropdown.value = "";
-matchDropdown.selectedIndex = 0;
 
   } catch (err) {
     console.error("❌ Failed to load matches:", err);
@@ -3200,19 +3190,23 @@ matchDropdown.selectedIndex = 0;
   
 }
 
-// REPLACE the whole existing change handler for matchDropdown with this:
+  // Handle match selection
 matchDropdown.addEventListener("change", async (e) => {
-  const matchId = e.target.value;
-  const matchObj = matchResults.find(x => x.id === matchId);
+  selectedMatchId = e.target.value;                       // ✅ keep sticky
+  sessionStorage.setItem("selectedMatchId", selectedMatchId); // (optional) survive refresh
+
+  const matchId = selectedMatchId;
+  const matchObj = matchResults.find(m => m.id === matchId);
 
   if (!matchObj) {
     alert("⚠️ Match not found.");
     return;
   }
+  
 
-  // Court label
+  // Show court name in UI
   const courtLabel = courtNames[matchObj.court - 1] || `Court ${matchObj.court}`;
-  document.getElementById("matchTitle").textContent = courtLabel;
+  //document.getElementById("courtLabel").textContent = courtLabel;
 
   try {
     const { data, error } = await supabaseClient
@@ -3226,21 +3220,30 @@ matchDropdown.addEventListener("change", async (e) => {
       return;
     }
 
-    // Scoreboard UI
+    // Set up scoreboard UI
     document.getElementById("teamAName").textContent = data.team1_id;
     document.getElementById("teamBName").textContent = data.team2_id;
     document.getElementById("teamAIcon").src = getTeamLogo(data.team1_id);
     document.getElementById("teamBIcon").src = getTeamLogo(data.team2_id);
-    document.getElementById("scoreA").textContent = "0";
-    document.getElementById("scoreB").textContent = "0";
-    document.getElementById("goalLogA").innerHTML = "";
-    document.getElementById("goalLogB").innerHTML = "";
+document.getElementById("scoreA").textContent = matchObj.gA ?? 0;
+document.getElementById("scoreB").textContent = matchObj.gB ?? 0;
 
-    // 1-based number kept in sync
-    matchNumber = matchObj.number;
+document.getElementById("goalLogA").innerHTML =
+  (matchObj.goals || [])
+    .filter(g => g.team === matchObj.tA)
+    .map(g => `${g.name || g.player}${g.time ? ` (${g.time}')` : ""}`)
+    .join("<br>");
 
-    // ✅ THIS was the crash line previously
-    currentGoals = allGoals.filter(g => g.match_number === matchObj.number);
+document.getElementById("goalLogB").innerHTML =
+  (matchObj.goals || [])
+    .filter(g => g.team === matchObj.tB)
+    .map(g => `${g.name || g.player}${g.time ? ` (${g.time}')` : ""}`)
+    .join("<br>");
+
+    matchNumber = matchObj.number; // e.g. match 3 = index 2 + 1
+    document.getElementById("matchTitle").textContent = `Match ${matchNumber}`;
+
+    currentGoals = allGoals.filter(g => g.match_number === matchNumber);
 
     updateLiveScoreboard();
     renderGoalLog();
