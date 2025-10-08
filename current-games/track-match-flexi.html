@@ -3250,7 +3250,7 @@ document.getElementById("goalLogB").innerHTML =
     matchNumber = matchObj.number; // e.g. match 3 = index 2 + 1
     document.getElementById("matchTitle").textContent = `Match ${matchNumber}`;
 
-    currentGoals = allGoals.filter(g => g.match_number === matchNumber);
+    currentGoals = allGoals.filter(g => g.match_number === matchObj.number);
 
     updateLiveScoreboard();
     renderGoalLog();
