@@ -2927,9 +2927,9 @@ try {
     courtFilter.innerHTML = `<option value="all">All Courts</option>`;
     courtNames.forEach((name, idx) => {
       const opt = document.createElement("option");
-      opt.value = idx + 1;
-      opt.textContent = name;
-      courtFilter.appendChild(opt);
+      opt.value = String(m.id); // << force string
+      opt.textContent = `Match ${m.number}: ${m.tA} vs ${m.tB}`;
+      matchDropdown.appendChild(opt);
     });
 
     // 🆕 Populate groupFilter dropdown
@@ -3135,6 +3135,13 @@ async function loadMatches(sessionId) {
 
     // 5) Build grouped dropdown by court name
     matchDropdown.innerHTML = "";
+    // real placeholder so the first real selection always fires "change"
+    const placeholder = document.createElement("option");
+    placeholder.disabled = true;
+    placeholder.selected = true;
+    placeholder.value = "";
+    placeholder.textContent = "-- Choose Match --";
+    matchDropdown.appendChild(placeholder);
     const grouped = {};
 
     matchResults.forEach(m => {
@@ -3161,7 +3168,7 @@ async function loadMatches(sessionId) {
       });
 
       // After options are appended...
-const stillExists = selectedMatchId && matchResults.some(m => m.id === selectedMatchId);
+const stillExists = selectedMatchId && matchResults.some(m => String(m.id) === String(selectedMatchId));
 
 if (stillExists) {
   matchDropdown.value = selectedMatchId;
@@ -3195,8 +3202,8 @@ matchDropdown.addEventListener("change", async (e) => {
   selectedMatchId = e.target.value;                       // ✅ keep sticky
   sessionStorage.setItem("selectedMatchId", selectedMatchId); // (optional) survive refresh
 
-  const matchId = selectedMatchId;
-  const matchObj = matchResults.find(m => m.id === matchId);
+  const matchId = String(selectedMatchId);
+  const matchObj = matchResults.find(m => String(m.id) === matchId);
 
   if (!matchObj) {
     alert("⚠️ Match not found.");
