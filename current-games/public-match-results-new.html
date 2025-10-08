@@ -1,0 +1,682 @@
+<!-- public-match-results.clean.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Live Match Results – futbola</title>
+  <link rel="icon" href="../images/futbola-favicon.ico" type="image/x-icon">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    /* ====== your existing look & feel, trimmed to public-only ====== */
+    body {
+      font-family: Arial, sans-serif;
+      background-image: url('./images/backgroundOrangeGradient.jpg');
+      margin: 0; padding: 0; overflow-y: scroll;
+    }
+    .container { max-width: 1200px; margin: auto; padding: 20px; }
+
+    .main-display {
+      display: none; /* hidden until we have a pending match */
+      flex-direction: column;
+      background: white;
+      padding: 20px;
+      min-height: 320px;
+      height: auto;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      border-top: 5px solid #ff5a5f;
+    }
+    .match-header {
+      font-size: 35px; font-weight: bold; text-align: center;
+      color: #702963; margin-bottom: 10px; width: 100%;
+    }
+    .row-display { display:flex; justify-content:space-between; align-items:center; width:100%; }
+    .team-block { width:30%; text-align:center; }
+    .team-block img { height:100px; max-width:80%; margin:0 auto 10px auto; display:block; }
+    .team-block span { font-size:40px; font-weight:bold; color:#702963; }
+    .score-number { font-size:40px; font-weight:bold; color:#702963; margin-top:5px; }
+    .goal-log { font-size:14px; margin-top:10px; }
+
+    .timer-block { width:35%; text-align:center; display:flex; justify-content:center; align-items:center; overflow:hidden; }
+    .center-timer {
+      font-size:clamp(24px,7vw,80px);
+      font-weight:bold; color:black; text-shadow:2px 2px 6px rgba(0,0,0,0.2);
+      line-height:1; white-space:nowrap;
+    }
+
+    .section { background:#f3f3f3; padding:15px; border-radius:8px; margin-top:20px; }
+    .goal-line { font-size:13px; color:#444; margin:4px 0; }
+
+    table { width:100%; border-collapse:collapse; margin-top:10px; }
+    th, td { border:1px solid #ccc; padding:6px; text-align:center; }
+    th { background-color:#ffe4e1; }
+
+    .match-result-row {
+      display:flex; align-items:center; justify-content:space-between;
+      background:#fff; border-radius:10px; padding:12px 16px; margin:10px 0;
+      box-shadow:0 2px 6px rgba(0,0,0,0.05);
+    }
+    .team-side { display:flex; align-items:center; gap:8px; font-weight:bold; color:#702963; font-size:16px; }
+    .team-side.right > div { text-align:right; }
+    .team-logo { width:28px; height:28px; object-fit:contain; }
+    .match-score { font-size:20px; font-weight:bold; background:#702963; color:#fff; padding:6px 16px; border-radius:8px; min-width:70px; text-align:center; }
+
+    /* Standings table style */
+    #standingsTable table { width:100%; background:#fff; border-radius:8px; overflow:hidden; }
+    #standingsTable th { background:#f4f4f4; font-size:14px; color:#333; text-align:left; padding:8px; }
+    #standingsTable td { padding:8px; font-size:14px; text-align:center; border-bottom:1px solid #eee; }
+    #standingsTable .club { display:flex; align-items:center; gap:8px; text-align:left; font-weight:bold; color:#702963; }
+    .club-logo { width:24px; height:24px; object-fit:contain; }
+    #standingsTable .points { font-weight:bold; color:#000; }
+
+    /* Next Up style */
+    .nextup-row {
+      display:flex; align-items:center; justify-content:space-between;
+      background:#fff; border-radius:10px; padding:10px 14px; margin:8px 0; box-shadow:0 2px 6px rgba(0,0,0,0.08);
+    }
+    .nextup-court { font-weight:700; color:#702963; margin-right:10px; min-width:140px; }
+    .nextup-team { display:flex; align-items:center; gap:8px; font-weight:600; color:#702963; }
+    .nextup-vs { font-weight:700; color:#702963; padding:2px 10px; }
+
+    /* Public page: non-interactive */
+    .public-readonly .team-block,
+    .public-readonly .score-number,
+    .public-readonly img { pointer-events:none; cursor:default; }
+  </style>
+</head>
+<body class="public-readonly">
+  <div class="container">
+    <!-- Header -->
+    <div id="venueHeader" style="text-align:center; font-size:40px; font-weight:bold; color:#702963; margin-bottom:20px;">
+      📍 <span id="venueText">Venue</span> | 📅 <span id="dateText">Date</span>
+    </div>
+
+    <!-- Filters -->
+    <div id="filtersRow" class="section" style="margin-bottom: 20px;">
+      <label for="sessionDropdown" style="font-weight:bold; color:#702963;">Select Game Session:</label>
+      <select id="sessionDropdown" class="dropdown" style="width:100%; padding:8px; font-size:16px; margin-bottom:12px;">
+        <option disabled selected value="">-- Choose Session --</option>
+      </select>
+
+      <label for="courtFilter">Filter by Court:</label>
+      <select id="courtFilter" class="dropdown">
+        <option value="all">All Courts</option>
+      </select>
+
+      <label for="groupFilter">Filter by Group:</label>
+      <select id="groupFilter" class="dropdown">
+        <option value="all">All Groups</option>
+      </select>
+    </div>
+
+    <!-- Main pending match -->
+    <div class="main-display" id="mainPending">
+      <div class="match-header" id="matchTitle">Court 1</div>
+
+      <div class="row-display">
+        <div class="team-block">
+          <img id="teamAIcon" src="../images/futbolaLogo.png" alt="" />
+          <span id="teamAName">Team A</span>
+          <div class="score-number" id="scoreA">0</div>
+          <div class="goal-log" id="goalLogA"></div>
+        </div>
+
+        <div class="timer-block">
+          <div class="center-timer" id="timer" data-timer="main">00:00</div>
+        </div>
+
+        <div class="team-block">
+          <img id="teamBIcon" src="../images/futbolaLogo.png" alt="" />
+          <span id="teamBName">Team B</span>
+          <div class="score-number" id="scoreB">0</div>
+          <div class="goal-log" id="goalLogB"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Next Up -->
+    <div id="nextUpSection" class="section" style="margin-top:16px;">
+      <h3 style="margin:0 0 8px;">Next Up</h3>
+      <div id="nextUpList"></div>
+    </div>
+
+    <div class="section" data-section="matchResults">
+      <h3>Match Results</h3>
+      <div id="matchHistory"></div>
+    </div>
+
+    <!-- Live Standings -->
+    <div class="section" data-section="standings">
+      <h3>Live Standings</h3>
+      <div id="standingsTable"></div>
+    </div>
+
+    <!-- Top Scorers -->
+    <div class="section" data-section="topScorers">
+      <h3>Top Scorers</h3>
+      <div id="topScorersList" class="scorer-list"></div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script>
+  // ========= Supabase init (copied from your current file) =========
+  const { createClient } = supabase;
+  const supabaseClient = createClient(
+    'https://kdbqroxhypnadolcxxxc.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkYnFyb3hoeXBuYWRvbGN4eHhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3MjkwNzYsImV4cCI6MjA1NzMwNTA3Nn0.c7_RVxoFdJNqQ62R3t1emH2Wf4dSsQaunHsHmbQxOBA'
+  );
+
+  // hard flag so multi-session code never wires up in single mode
+const __IS_SINGLE__ = new URLSearchParams(location.search).has("match_id")
+  || (new URLSearchParams(location.search).has("session") && new URLSearchParams(location.search).has("match_number"));
+
+  // ========= Helpers (pure/read-only) =========
+  const getTeamLogo = (colorName) => ({
+    Red: "../images/red.png",
+    White: "../images/white.png",
+    Green: "../images/green.png",
+    Orange: "../images/orange.png",
+    Black: "../images/black.png",
+    Yellow: "../images/yellow.png",
+    Blue: "../images/blue.png",
+    Turquoise: "../images/turquoise.png"
+  })[colorName] || "../images/futbolaLogo.png";
+
+  const fmtMMSS = (ms) => {
+    const s = Math.max(0, Math.floor(ms / 1000));
+    const mm = String(Math.floor(s / 60)).padStart(2, '0');
+    const ss = String(s % 60).padStart(2, '0');
+    return `${mm}:${ss}`;
+  };
+
+  // ========= Drift-free, DB-driven timers (no local borrow/carry) =========
+  const timers = new Map();
+  function ensureTimer(matchId, el) {
+    let t = timers.get(matchId);
+    if (!t) {
+      t = { el, tickId: null, baselineAtMs: Date.now(), baselineElapsedMs: 0, isPaused: true };
+      timers.set(matchId, t);
+      t.tickId = setInterval(() => {
+        const now = Date.now();
+        const runningDelta = t.isPaused ? 0 : (now - t.baselineAtMs);
+        const ms = Math.max(0, t.baselineElapsedMs + runningDelta);
+        t.el.textContent = fmtMMSS(ms);
+      }, 200);
+    } else if (t.el !== el) {
+      t.el = el;
+    }
+    return t;
+  }
+
+  function updateTimerFromServer(matchId, row) {
+    const el = document.querySelector(`[data-timer="${matchId}"]`);
+    if (!el || !row) return;
+    const t = ensureTimer(matchId, el);
+
+    if (row.started_at) {
+      const startedMs = Date.parse(row.started_at);
+      const pausedTotal = Number(row.paused_ms_total || 0);
+      const basisNow = (row.is_paused && row.pause_started_at)
+        ? Date.parse(row.pause_started_at)
+        : Date.now();
+      const serverElapsed = Math.max(0, (basisNow - startedMs) - pausedTotal);
+      t.baselineElapsedMs = serverElapsed;
+      t.baselineAtMs = Date.now();
+      t.isPaused = !!row.is_paused;
+    } else {
+      t.isPaused = true;
+      t.baselineElapsedMs = 0;
+      t.el.textContent = "00:00";
+    }
+  }
+
+  // ========= Single-match mode helpers (URL-locked) =========
+async function loadSingleMatchRow() {
+  const params = new URLSearchParams(location.search);
+  const matchId = params.get("match_id");           // preferred: PK on match_results
+  const sessionId = params.get("session");          // fallback: session + match_number
+  const matchNo = params.get("match_number");
+
+  if (matchId) {
+    const { data, error } = await supabaseClient.from("match_results").select("*").eq("id", matchId).single();
+    if (error) { console.error(error); return null; }
+    return data;
+  }
+  if (sessionId && matchNo) {
+    const { data, error } = await supabaseClient.from("match_results").select("*")
+      .eq("session_id", sessionId).eq("match_number", matchNo).single();
+    if (error) { console.error(error); return null; }
+    return data;
+  }
+  return null;
+}
+
+function renderSingleMatch(row) {
+  // header meta if available
+  if (row.venue) document.getElementById("venueText").textContent = row.venue;
+  if (row.game_date) document.getElementById("dateText").textContent = row.game_date;
+
+  const courtLabel = row.court_name || (row.court_number ? `Court ${row.court_number}` : "Court");
+  document.getElementById("matchTitle").textContent = courtLabel;
+
+  const tA = row.team_a || row.team1_id || "Team A";
+  const tB = row.team_b || row.team2_id || "Team B";
+  document.getElementById("teamAName").textContent = tA;
+  document.getElementById("teamBName").textContent = tB;
+
+
+  document.getElementById("teamAIcon").src = getTeamLogo(tA);
+  document.getElementById("teamBIcon").src = getTeamLogo(tB);
+
+  document.getElementById("scoreA").textContent = (row.score_a ?? 0);
+  document.getElementById("scoreB").textContent = (row.score_b ?? 0);
+
+  const goals = row.goals || [];
+  const gA = goals.filter(g=>g.team===tA).map(g=>`${g.player||g.name}${g.time?` (${g.time})`:""}`).join("<br>");
+  const gB = goals.filter(g=>g.team===tB).map(g=>`${g.player||g.name}${g.time?` (${g.time})`:""}`).join("<br>");
+  document.getElementById("goalLogA").innerHTML = gA;
+  document.getElementById("goalLogB").innerHTML = gB;
+
+  document.getElementById("mainPending").style.display = "flex";
+  updateTimerFromServer("main", row);
+}
+
+async function pollSameMatch() {
+  const params = new URLSearchParams(location.search);
+  const matchId = params.get("match_id");
+  const sessionId = params.get("session");
+  const matchNo = params.get("match_number");
+  if (!matchId && !(sessionId && matchNo)) return;
+
+  let q = supabaseClient.from("match_results").select("*").limit(1);
+  if (matchId) q = q.eq("id", matchId);
+  else q = q.eq("session_id", sessionId).eq("match_number", matchNo);
+
+  const { data, error } = await q;
+  if (error || !data || !data.length) return;
+  const row = data[0];
+
+  // update UI fields if provided
+  if (row.team_a || row.team1_id) {
+    const tA = row.team_a || row.team1_id;
+    document.getElementById("teamAName").textContent = tA;
+    document.getElementById("teamAIcon").src = getTeamLogo(tA);
+  }
+  if (row.team_b || row.team2_id) {
+    const tB = row.team_b || row.team2_id;
+    document.getElementById("teamBName").textContent = tB;
+    document.getElementById("teamBIcon").src = getTeamLogo(tB);
+  }
+  if (row.score_a != null) document.getElementById("scoreA").textContent = row.score_a;
+  if (row.score_b != null) document.getElementById("scoreB").textContent = row.score_b;
+
+  const tAname = document.getElementById("teamAName").textContent;
+  const tBname = document.getElementById("teamBName").textContent;
+  const goals = row.goals || [];
+  document.getElementById("goalLogA").innerHTML = goals.filter(g=>g.team===tAname).map(g=>`${g.player||g.name}${g.time?` (${g.time})`:""}`).join("<br>");
+  document.getElementById("goalLogB").innerHTML = goals.filter(g=>g.team===tBname).map(g=>`${g.player||g.name}${g.time?` (${g.time})`:""}`).join("<br>");
+
+  updateTimerFromServer("main", row);
+}
+
+  // ========= Data state =========
+  let courtNames = [];
+  let matchResults = [];      // [{ number, tA, tB, gA, gB, goals, court, status, ... }]
+  let allGoals = [];          // flattened goals for leaderboard
+  const POLL_MS = 1000;
+
+  // ========= UI refs =========
+  const $ = (id) => document.getElementById(id);
+  const venueText = $("venueText");
+  const dateText = $("dateText");
+  const sessionDropdown = $("sessionDropdown");
+  const courtFilter = $("courtFilter");
+  const groupFilter = $("groupFilter");
+
+  // ========= Fetch helpers =========
+  async function fetchSessions() {
+    const { data, error } = await supabaseClient
+      .from("games_sessions")
+      .select("id, game_id, court_names, game:games(venue, game_date)")
+      .order("created_at", { ascending: false });
+    if (error) { console.error(error); return []; }
+    return data || [];
+  }
+
+  async function fetchSessionMatches(sessionId, filters) {
+    let q = supabaseClient
+      .from("session_matches")
+      .select("id, match_number, team1_id, team2_id, court_number, group_label")
+      .eq("game_session_id", sessionId)
+      .order("match_number");
+    if (filters.court && filters.court !== "all") {
+      q = q.eq("court_number", parseInt(filters.court));
+    }
+    if (filters.group && filters.group !== "all") {
+      q = q.eq("group_label", filters.group);
+    }
+    const { data, error } = await q;
+    if (error) { console.error(error); return []; }
+    return data || [];
+  }
+
+  async function fetchResultsForSession(sessionId) {
+    const { data, error } = await supabaseClient
+      .from("match_results")
+      .select("match_number, score_a, score_b, goals, status, started_at, ended_at, paused_ms_total, pause_started_at, is_paused")
+      .eq("session_id", sessionId);
+    if (error) { console.error(error); return []; }
+    return data || [];
+  }
+
+  // ========= Rendering =========
+  function renderNextUp(matches) {
+    const host = $("nextUpList");
+    host.innerHTML = "";
+    const byCourt = {};
+    matches.forEach(m => {
+      if (m.status === "incoming") {
+        const key = m.court || 1;
+        if (!byCourt[key] || m.number < byCourt[key].number) byCourt[key] = m;
+      }
+    });
+    const courts = Object.keys(byCourt).sort((a,b) => a - b);
+    if (!courts.length) {
+      host.innerHTML = `<div style="color:#666;">No upcoming games.</div>`;
+      return;
+    }
+    courts.forEach(courtKey => {
+      const m = byCourt[courtKey];
+      const courtLabel = (courtNames?.[m.court - 1]) || `Court ${m.court}`;
+      const row = document.createElement("div");
+      row.className = "nextup-row";
+      row.innerHTML = `
+        <div class="nextup-court">${courtLabel}</div>
+        <div class="nextup-team"><img src="${getTeamLogo(m.tA)}" alt="${m.tA}"><span>${m.tA}</span></div>
+        <div class="nextup-vs">vs</div>
+        <div class="nextup-team" style="justify-content:flex-end;"><span>${m.tB}</span><img src="${getTeamLogo(m.tB)}" alt="${m.tB}"></div>
+      `;
+      host.appendChild(row);
+    });
+  }
+
+  function renderMatchHistory() {
+    const container = $("matchHistory");
+    container.innerHTML = "";
+    if (!matchResults.length) {
+      container.innerHTML = "<p style='text-align:center;'>No matches loaded.</p>";
+      return;
+    }
+    const groupedByCourt = {};
+    matchResults.forEach(m => {
+      const c = m.court || 1;
+      (groupedByCourt[c] ||= []).push(m);
+    });
+    Object.keys(groupedByCourt).sort((a,b)=>a-b).forEach(court => {
+      const courtLabel = courtNames?.[court-1] || `Court ${court}`;
+      const h = document.createElement("h3");
+      h.className = "court-heading";
+      h.style.cssText = "margin-top:1.5em;color:#702963;text-align:left;";
+      h.textContent = `🏟️ ${courtLabel}`;
+      container.appendChild(h);
+
+      groupedByCourt[court].forEach(m => {
+        const formatScorers = (team) => (m.goals||[]).filter(g=>g.team===team).map(g => `${g.player||g.name}${g.time?` ${g.time}`:""}`).join(", ");
+        const row = document.createElement("div");
+        row.className = "match-result-row";
+        row.innerHTML = `
+          <div class="team-side left">
+            <img class="team-logo" src="${getTeamLogo(m.tA)}" />
+            <div>
+              <div>${m.tA}</div>
+              <div style="font-size:12px;color:#666;">${formatScorers(m.tA)}</div>
+            </div>
+          </div>
+          <div class="match-score">${m.gA ?? '-'} - ${m.gB ?? '-'}</div>
+          <div class="team-side right">
+            <div>
+              <div>${m.tB}</div>
+              <div style="font-size:12px;color:#666;">${formatScorers(m.tB)}</div>
+            </div>
+            <img class="team-logo" src="${getTeamLogo(m.tB)}" />
+          </div>
+        `;
+        container.appendChild(row);
+      });
+    });
+  }
+
+  function renderTopScorersFromResults(results) {
+    const tally = {};
+    results.forEach(r => {
+      (r.goals || []).forEach(g => {
+        if (!g.isOG && String(g.player||"").toLowerCase() !== "others") {
+          const key = (g.player || "").trim();
+          tally[key] = (tally[key] || 0) + 1;
+        }
+      });
+    });
+    const sorted = Object.entries(tally).sort((a,b)=>b[1]-a[1]);
+    const container = $("topScorersList");
+    container.innerHTML = sorted.map(([name,count], i) => `
+      <div class="scorer-row" style="display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #eee;padding:8px 12px;font-size:16px;">
+        <div class="scorer-pos" style="width:30px;font-weight:bold;color:#702963;text-align:center;">${i+1}</div>
+        <div class="scorer-player" style="display:flex;align-items:center;gap:10px;flex-grow:1;">
+          <strong>${name}</strong>
+        </div>
+        <div class="scorer-goals" style="font-weight:bold;color:#702963;min-width:30px;text-align:right;">${count}</div>
+      </div>
+    `).join("");
+  }
+
+  function renderStandingsFromResults(results) {
+    // Build standings from completed matches only
+    const table = {};
+    const stats = n => table[n] ||= { team:n, MP:0,W:0,D:0,L:0,GF:0,GA:0,Pts:0 };
+    results.forEach(r => {
+      const tA = r.team_a || r.tA, tB = r.team_b || r.tB;
+      const gA = r.score_a ?? r.gA, gB = r.score_b ?? r.gB;
+      if (tA==null || tB==null || gA==null || gB==null) return;
+      const A = stats(tA), B = stats(tB);
+      A.MP++; B.MP++;
+      A.GF += gA; A.GA += gB;
+      B.GF += gB; B.GA += gA;
+      if (gA > gB) { A.W++; B.L++; A.Pts += 3; }
+      else if (gB > gA) { B.W++; A.L++; B.Pts += 3; }
+      else { A.D++; B.D++; A.Pts += 1; B.Pts += 1; }
+    });
+    const rows = Object.values(table).map(t => ({...t, GD:t.GF - t.GA}))
+      .sort((a,b)=> b.Pts-a.Pts || b.GD-a.GD || b.GF-a.GF);
+    $("standingsTable").innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th>Pos</th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th>
+            <th>GF</th><th>GA</th><th>GD</th><th>Pts</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map((r,i)=>`
+            <tr>
+              <td>${i+1}</td>
+              <td class="club"><img src="${getTeamLogo(r.team)}" class="club-logo"/><span>${r.team}</span></td>
+              <td>${r.MP}</td><td>${r.W}</td><td>${r.D}</td><td>${r.L}</td>
+              <td>${r.GF}</td><td>${r.GA}</td><td>${r.GD}</td><td class="points">${r.Pts}</td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    `;
+  }
+
+  // ========= Main logic =========
+async function loadSessionsAndWire() {
+  // Single-match mode: do not wire the multi-session UI at all
+  if (__IS_SINGLE__) return;
+
+  // 1) Populate the sessions dropdown
+  const sessions = await fetchSessions();
+  sessionDropdown.innerHTML = `<option disabled selected value="">-- Choose Session --</option>`;
+  sessions.forEach(sess => {
+    const date = sess.game?.game_date || "No Date";
+    const venue = sess.game?.venue || "No Venue";
+    const opt = document.createElement("option");
+    opt.value = sess.id;
+    opt.textContent = `${venue} (${date})`;
+    sessionDropdown.appendChild(opt);
+  });
+
+  // 2) If URL provides ?session=..., select it
+  const urlSession = new URLSearchParams(location.search).get("session");
+  if (urlSession) {
+    sessionDropdown.value = urlSession;
+    // trigger change handler to load everything for that session
+    sessionDropdown.dispatchEvent(new Event("change"));
+  }
+
+  // 3) Wire session change → load matches/results + filters
+  sessionDropdown.addEventListener("change", async (e) => {
+    const sessionId = e.target.value;
+    const meta = sessions.find(s => s.id === sessionId);
+
+    // Header meta
+    courtNames = meta?.court_names || [];
+    venueText.textContent = meta?.game?.venue || "Venue";
+    dateText.textContent  = meta?.game?.game_date || "Date";
+
+    // Load data for this session
+    await refreshForSession(sessionId);
+
+    // Build court filter options from courtNames
+    courtFilter.innerHTML = `<option value="all">All Courts</option>`;
+    courtNames.forEach((name, i) => {
+      const o = document.createElement("option");
+      o.value = i + 1;
+      o.textContent = name;
+      courtFilter.appendChild(o);
+    });
+  });
+
+  // 4) Filters → refresh same session with new filters
+  courtFilter.addEventListener("change", () => {
+    const sid = sessionDropdown.value;
+    if (sid) refreshForSession(sid);
+  });
+
+  groupFilter.addEventListener("change", () => {
+    const sid = sessionDropdown.value;
+    if (sid) refreshForSession(sid);
+  });
+}
+
+  async function refreshForSession(sessionId) {
+    const filters = { court: courtFilter.value, group: groupFilter.value };
+    const base = await fetchSessionMatches(sessionId, filters);
+    const results = await fetchResultsForSession(sessionId);
+
+    // index results by match_number
+    const byNo = new Map(results.map(r => [r.match_number, r]));
+    // compose matchResults
+    matchResults = base.map(m => {
+      const r = byNo.get(m.match_number) || {};
+      return {
+        id: m.id,
+        number: m.match_number,
+        tA: m.team1_id,
+        tB: m.team2_id,
+        gA: r.score_a ?? null,
+        gB: r.score_b ?? null,
+        goals: r.goals || [],
+        court: m.court_number || 1,
+        status: r.status || "incoming",
+        started_at: r.started_at || null,
+        ended_at: r.ended_at || null,
+        paused_ms_total: r.paused_ms_total || 0,
+        pause_started_at: r.pause_started_at || null,
+        is_paused: !!r.is_paused
+      };
+    });
+
+    // flatten goals for leaderboard
+    allGoals = [];
+    matchResults.forEach(m => (m.goals||[]).forEach(g => allGoals.push({...g, match_number:m.number })));
+
+    // render lists
+    renderMatchHistory();
+    renderNextUp(matchResults);
+    renderTopScorersFromResults(results);
+    renderStandingsFromResults(matchResults);
+
+    // main pending
+    const pendings = matchResults.filter(m => m.status === "pending");
+    if (pendings.length) {
+      const p = pendings[0];
+      $("matchTitle").textContent = courtNames[p.court - 1] || `Court ${p.court}`;
+      $("teamAName").textContent = p.tA; $("teamBName").textContent = p.tB;
+      $("teamAIcon").src = getTeamLogo(p.tA); $("teamBIcon").src = getTeamLogo(p.tB);
+      $("scoreA").textContent = p.gA ?? 0; $("scoreB").textContent = p.gB ?? 0;
+      $("goalLogA").innerHTML = (p.goals||[]).filter(g=>g.team===p.tA).map(g=>`${g.player||g.name}${g.time?` (${g.time})`:""}`).join("<br>");
+      $("goalLogB").innerHTML = (p.goals||[]).filter(g=>g.team===p.tB).map(g=>`${g.player||g.name}${g.time?` (${g.time})`:""}`).join("<br>");
+      document.querySelector(".main-display").style.display = "flex";
+      updateTimerFromServer("main", p);
+    } else {
+      document.querySelector(".main-display").style.display = "none";
+    }
+  }
+
+  // periodic poll for pending row (keeps timer aligned to DB)
+  async function pollPending() {
+    const sessionId = sessionDropdown.value;
+    if (!sessionId) return;
+    const { data, error } = await supabaseClient
+      .from("match_results")
+      .select("*")
+      .eq("session_id", sessionId)
+      .eq("status", "pending")
+      .order("started_at", { ascending:false })
+      .limit(1);
+    if (error) { console.warn("poll error:", error); return; }
+    const row = data && data[0];
+    if (!row) return;
+    // push into main
+    updateTimerFromServer("main", row);
+    // also refresh labels if teams/scores changed
+    $("teamAName").textContent = row.team_a || $("teamAName").textContent;
+    $("teamBName").textContent = row.team_b || $("teamBName").textContent;
+    $("scoreA").textContent = row.score_a ?? $("scoreA").textContent;
+    $("scoreB").textContent = row.score_b ?? $("scoreB").textContent;
+  }
+
+// ========= boot =========
+(async function boot(){
+  const hasSingle = __IS_SINGLE__;
+
+  if (hasSingle) {
+    const filtersRow = document.getElementById("filtersRow");
+    if (filtersRow) filtersRow.style.display = "none";
+    // belt-and-suspenders: disable controls too
+    document.getElementById("sessionDropdown")?.setAttribute("disabled","disabled");
+    document.getElementById("courtFilter")?.setAttribute("disabled","disabled");
+    document.getElementById("groupFilter")?.setAttribute("disabled","disabled");
+
+    // (optional) hide extra sections so only the single match shows
+    // document.getElementById("nextUpSection").style.display = "none";
+    // document.querySelector('[data-section="matchResults"]')?.style.display = "none";
+    // document.querySelector('[data-section="standings"]')?.style.display = "none";
+    // document.querySelector('[data-section="topScorers"]')?.style.display = "none";
+
+    const row = await loadSingleMatchRow();
+    if (!row) return; // could also show a friendly "Match not found"
+    renderSingleMatch(row);
+    setInterval(pollSameMatch, 1000);
+  } else {
+    await loadSessionsAndWire();
+    setInterval(pollPending, 1000);
+  }
+})();
+
+  </script>
+</body>
+</html>
