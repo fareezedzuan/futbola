@@ -731,7 +731,7 @@ select.dropdown:focus {
 
   <label for="matchDropdown" style="font-weight:bold; color:#702963;">Select Match to Officiate:</label>
   <select id="matchDropdown" class="dropdown" style="width:100%; padding:8px; font-size:16px;">
-    <option disabled selected value="">-- Choose Match --</option>
+    <option disabled selected value="">-- Select Match --</option>
   </select>
 </div>
 
@@ -3187,6 +3187,9 @@ if (stillExists) {
     updateLeaderboard();
     recalculateStandingsFromAllMatches();
     // renderNextUp(matchResults); // (keep/call if you still use Next Up)
+    // ✅ Always start from placeholder so the first click on "Match 1" fires a real change
+matchDropdown.value = "";
+matchDropdown.selectedIndex = 0;
 
   } catch (err) {
     console.error("❌ Failed to load matches:", err);
@@ -3197,23 +3200,19 @@ if (stillExists) {
   
 }
 
-  // Handle match selection
+// REPLACE the whole existing change handler for matchDropdown with this:
 matchDropdown.addEventListener("change", async (e) => {
-  selectedMatchId = e.target.value;                       // ✅ keep sticky
-  sessionStorage.setItem("selectedMatchId", selectedMatchId); // (optional) survive refresh
-
-  const matchId = String(selectedMatchId);
-  const matchObj = matchResults.find(m => String(m.id) === matchId);
+  const matchId = e.target.value;
+  const matchObj = matchResults.find(x => x.id === matchId);
 
   if (!matchObj) {
     alert("⚠️ Match not found.");
     return;
   }
-  
 
-  // Show court name in UI
+  // Court label
   const courtLabel = courtNames[matchObj.court - 1] || `Court ${matchObj.court}`;
-  //document.getElementById("courtLabel").textContent = courtLabel;
+  document.getElementById("matchTitle").textContent = courtLabel;
 
   try {
     const { data, error } = await supabaseClient
@@ -3227,29 +3226,20 @@ matchDropdown.addEventListener("change", async (e) => {
       return;
     }
 
-    // Set up scoreboard UI
+    // Scoreboard UI
     document.getElementById("teamAName").textContent = data.team1_id;
     document.getElementById("teamBName").textContent = data.team2_id;
     document.getElementById("teamAIcon").src = getTeamLogo(data.team1_id);
     document.getElementById("teamBIcon").src = getTeamLogo(data.team2_id);
-document.getElementById("scoreA").textContent = matchObj.gA ?? 0;
-document.getElementById("scoreB").textContent = matchObj.gB ?? 0;
+    document.getElementById("scoreA").textContent = "0";
+    document.getElementById("scoreB").textContent = "0";
+    document.getElementById("goalLogA").innerHTML = "";
+    document.getElementById("goalLogB").innerHTML = "";
 
-document.getElementById("goalLogA").innerHTML =
-  (matchObj.goals || [])
-    .filter(g => g.team === matchObj.tA)
-    .map(g => `${g.name || g.player}${g.time ? ` (${g.time}')` : ""}`)
-    .join("<br>");
+    // 1-based number kept in sync
+    matchNumber = matchObj.number;
 
-document.getElementById("goalLogB").innerHTML =
-  (matchObj.goals || [])
-    .filter(g => g.team === matchObj.tB)
-    .map(g => `${g.name || g.player}${g.time ? ` (${g.time}')` : ""}`)
-    .join("<br>");
-
-    matchNumber = matchObj.number; // e.g. match 3 = index 2 + 1
-    document.getElementById("matchTitle").textContent = `Match ${matchNumber}`;
-
+    // ✅ THIS was the crash line previously
     currentGoals = allGoals.filter(g => g.match_number === matchObj.number);
 
     updateLiveScoreboard();
