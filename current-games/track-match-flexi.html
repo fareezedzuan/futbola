@@ -3135,6 +3135,12 @@ async function loadMatches(sessionId) {
 
     // 5) Build grouped dropdown by court name
     matchDropdown.innerHTML = "";
+    const placeholder = document.createElement("option");
+placeholder.disabled = true;
+placeholder.selected = true;
+placeholder.value = "";
+placeholder.textContent = "-- Choose Match --";
+matchDropdown.appendChild(placeholder);
     const grouped = {};
 
     matchResults.forEach(m => {
