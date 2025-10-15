@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Create Game</title>
+  <link rel="icon" href="../images/futbola-favicon.ico" type="image/x-icon">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-image: url('./images/backgroundOrangeGradient.jpg');
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      overflow-y: auto;
+      margin: 0;
+    }
+
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 620px;
+      margin: 0 auto; /* center horizontally */
+      border-top: 5px solid #ff5a5f;
+    }
+
+    h2 {
+      color: #702963;
+      margin-bottom: 10px;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    label {
+      display: block;
+      text-align: left;
+      margin-top: 10px;
+      font-weight: bold;
+      color: #ff5a5f;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+
+    .toggle-container {
+      display: flex;
+      align-items: center;
+      margin-top: 10px;
+      justify-content: space-between;
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 50px;
+      height: 24px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0;
+      right: 0; bottom: 0;
+      background-color: #ccc;
+      transition: .4s;
+      border-radius: 34px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: #ff5a5f;
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(26px);
+    }
+
+    button {
+      background-color: #ff0000;
+      color: white;
+      padding: 12px 15px;
+      border: none;
+      border-radius: 5px;
+      font-size: 18px;
+      margin-top: 20px;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    button:hover {
+      background-color: #cc0000;
+    }
+
+    .footer {
+      margin-top: 20px;
+      font-size: 14px;
+      color: #777;
+    }
+  </style>
+</head>
+<body>
+<div style="margin: 0 auto;">
+  <h2 style="text-align: center; color: #702963; margin-bottom: 20px;">
+    Create a New Game
+  </h2>
+  <div class="container">
+
+    <form id="createGameForm">
+      <label for="session_title">Session Title:</label>
+      <input type="text" id="session_title" name="session_title" placeholder="Casual Futsal for Fun, For Beginner, Female Only, etc." required />
+
+      <label for="venue">Venue:</label>
+      <input type="text" id="venue" name="venue" required />
+
+      <label for="game_date">Game Date:</label>
+      <input type="date" id="game_date" name="game_date" required />
+
+      <label for="start_time">Start Time:</label>
+      <input type="time" id="start_time" name="start_time" required />
+
+      <label for="end_time">End Time:</label>
+      <input type="time" id="end_time" name="end_time" required />
+
+      <label for="level">Game Level:</label>
+      <select id="level" name="level" required>
+        <option disabled selected>Select level</option>
+        <option value="casual">Casual</option>
+        <option value="casual-competitive">Casual-Competitive</option>
+        <option value="tournament">Tournament</option>
+        <option value="training">Training</option>
+        <option value="other">Other</option>
+      </select>
+
+      <label for="player_format">Players per Team:</label>
+      <select id="player_format" name="player_format" required>
+        <option disabled selected>Select format</option>
+        <option value="5">5-a-side</option>
+        <option value="6">6-a-side</option>
+        <option value="7">7-a-side</option>
+        <option value="8">8-a-side</option>
+        <option value="9">9-a-side</option>
+        <option value="10">10-a-side</option>
+        <option value="11">11-a-side</option>
+        <option value="other">Other</option>
+      </select>
+
+      <label for="teams">Number of Teams:</label>
+      <select id="teams" name="teams" required>
+        <option disabled selected>Select number</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+        <option value="7">7</option>
+        <option value="8">8</option>
+        <option value="other">Other</option>
+      </select>
+
+      <label for="courts">Number of Courts:</label>
+      <select id="courts" name="courts" required>
+        <option disabled selected>Select number</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="other">Other</option>
+      </select>
+
+      <label for="minutes">Minutes per Period:</label>
+      <input type="number" id="minutes" name="minutes" min="10" max="99" required />
+
+      <label for="play_style">Game Style / Notes:</label>
+      <input type="text" id="play_style" name="play_style" placeholder="Round Robin, King Stay, Friendly, etc." />
+
+      <label for="contact_method">Preferred Contact Method:</label>
+        <select id="contact_method" name="contact_method" required>
+        <option value="none" selected>None</option>
+        <option value="whatsapp">WhatsApp Group</option>
+        <option value="telegram">Telegram Group</option>
+        <option value="manual">Manual Contact</option>
+        </select>
+
+        <div id="contactLinkContainer" style="display: none;">
+            <label for="contact_link">Group/Contact Link:</label>
+            <input type="url" id="contact_link" name="contact_link" placeholder="Paste link (WhatsApp, Telegram, etc.)" />
+        </div>
+
+      <label for="payment_type">Payment Type:</label>
+      <select id="payment_type" name="payment_type">
+        <option disabled selected>Select payment</option>
+        <option value="pay_on_court">Pay on Court</option>
+        <option value="pay_full">Full Payment</option>
+        <option value="pay_booking">Booking Fee</option>
+        <option value="other">Other</option>
+      </select>
+
+      <label for="price">Price (RM):</label>
+      <input type="number" id="price" name="price" min="0" step="0.01" required />
+
+      <label for="max_players">Max Players:</label>
+      <input type="number" id="max_players" name="max_players" min="1" max="30" required />
+
+      <div class="toggle-container">
+        <span>Public Session</span>
+        <label class="switch">
+          <input type="checkbox" id="is_public" name="is_public">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="toggle-container">
+        <span>Recurring Session</span>
+        <label class="switch">
+          <input type="checkbox" id="is_recurring" name="is_recurring">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <button type="button" id="submitGameButton">Create Game</button>
+    </form>
+
+    <p class="footer">Follow us on Instagram <a href="https://www.instagram.com/futbola_my" target="_blank">@futbola_my</a></p>
+  </div>
+
+    <a href="/" style="display: block; width: fit-content; margin: 40px auto 0; background-color: #ff0000; color: white; padding: 12px 20px; text-decoration: none; border-radius: 5px; font-weight: bold; text-align: center;">
+      ← Back to Homepage
+    </a>
+</div>
+
+<script type="module">
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+  const supabase = createClient(
+    'https://kdbqroxhypnadolcxxxc.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkYnFyb3hoeXBuYWRvbGN4eHhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3MjkwNzYsImV4cCI6MjA1NzMwNTA3Nn0.c7_RVxoFdJNqQ62R3t1emH2Wf4dSsQaunHsHmbQxOBA'
+  );
+
+    // 🔐 Step 1: Check login
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+    alert("Not logged in. Redirecting...");
+    window.location.href = "/login.html";
+    }
+
+    // 🔍 Step 2: Check if user is Organizer/Admin
+    const { data: profile } = await supabase
+    .from("profiles")
+    .select("category_role, full_name")
+    .eq("id", user.id)
+    .single();
+
+    const allowedRoles = ["Organizer", "Admin"];
+    const roles = profile?.category_role || [];
+    const isHost = allowedRoles.some(r => roles.includes(r));
+
+    if (!isHost) {
+    alert("Only Organizers or Admins can create games. Please update your profile first.");
+    window.location.href = "/profile-setup.html";
+    }
+
+    // 📝 Step 3: Submit game logic
+    document.getElementById("submitGameButton").addEventListener("click", async () => {
+    const data = {
+        host_id: user.id,
+        host_name: profile?.full_name || "Unknown Host",
+        session_title: document.getElementById("session_title").value,
+        venue: document.getElementById("venue").value,
+        game_date: document.getElementById("game_date").value,
+        start_time: document.getElementById("start_time").value,
+        end_time: document.getElementById("end_time").value,
+        level: document.getElementById("level").value,
+        player_format: document.getElementById("player_format").value,
+        teams: document.getElementById("teams").value,
+        courts: document.getElementById("courts").value,
+        minutes: parseInt(document.getElementById("minutes").value),
+        play_style: document.getElementById("play_style").value,
+        //wa_link: document.getElementById("wa_link").value,
+        payment_type: document.getElementById("payment_type").value,
+        price: parseFloat(document.getElementById("price").value),
+        max_players: parseInt(document.getElementById("max_players").value),
+        is_public: document.getElementById("is_public").checked,
+        is_recurring: document.getElementById("is_recurring").checked,
+        contact_method: document.getElementById("contact_method").value,
+        contact_link: document.getElementById("contact_link").value || null
+    };
+
+    try {
+        console.log("🚀 Submitting game data:", data);
+        const { error } = await supabase.from("games").insert([data]);
+
+            if (!error) {
+            alert("Game created successfully!");
+            } else {
+            alert("Insert failed: " + error.message);
+            }
+    } catch (err) {
+        alert("Error: " + err.message);
+    }
+    });
+
+    // 🎛️ Step 4: Toggle extra contact input
+    document.getElementById("contact_method").addEventListener("change", function () {
+    const container = document.getElementById("contactLinkContainer");
+    container.style.display = ["whatsapp", "telegram"].includes(this.value) ? "block" : "none";
+    });
+</script>
+</body>
+</html>

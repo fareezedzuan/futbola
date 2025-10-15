@@ -1,334 +1,568 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Create Game</title>
   <link rel="icon" href="../images/futbola-favicon.ico" type="image/x-icon">
   <style>
-    body {
-      font-family: Arial, sans-serif;
+    :root { --brand:#ff5a5f; --accent:#702963; --ink:#111827; --muted:#64748b }
+    *{ box-sizing:border-box }
+    body{
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       background-image: url('./images/backgroundOrangeGradient.jpg');
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      overflow-y: auto;
-      margin: 0;
+      margin:0; padding:16px; min-height:100vh;
+      display:flex; align-items:center; justify-content:center;
     }
+    .container{
+      width:100%; max-width:680px; background:#fff; border-radius:14px;
+      border-top:6px solid var(--brand);
+      box-shadow:0 16px 40px rgba(0,0,0,.10);
+      padding:22px;
+    }
+    h2{ color:var(--accent); margin:0 0 12px; text-align:center; font-weight:800 }
+    label{ display:block; margin-top:12px; font-weight:800; color:var(--brand) }
+    input, select{
+      width:100%; padding:12px; margin-top:6px; font-size:16px;
+      border:1px solid #e5e7eb; border-radius:12px; outline:none;
+    }
+    .row{ display:grid; grid-template-columns:1fr 1fr; gap:12px }
+    .hint{ color:var(--muted); font-size:12px; margin-top:6px }
+    .divider{ height:1px; background:#eee; margin:16px 0 }
+    .card{ background:#fafafa; border:1px solid #eee; border-radius:12px; padding:12px; margin-top:14px }
+    .card h4{ margin:0 0 6px; color:#111 }
+    .pill{ background:#f1f5f9; border:1px solid #e5e7eb; padding:4px 10px; border-radius:999px; font-size:12px; font-weight:700; color:#111 }
 
-    .container {
-      background: white;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-      width: 100%;
-      max-width: 620px;
-      margin: 0 auto; /* center horizontally */
-      border-top: 5px solid #ff5a5f;
-    }
+    /* Segmented control */
+    .seg{ display:flex; border:1px solid #e5e7eb; border-radius:12px; overflow:hidden; margin-top:6px }
+    .seg button{ flex:1; padding:10px; border:0; background:#fff; color:#334155; font-weight:800; cursor:pointer }
+    .seg button + button{ border-left:1px solid #e5e7eb }
+    .seg button.active{ background:#ffe4e6; color:#991b1b }
 
-    h2 {
-      color: #702963;
-      margin-bottom: 10px;
-      font-weight: bold;
-      text-align: center;
-    }
+    /* Toggle switch */
+    .toggle{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:10px }
+    .switch{ position:relative; width:48px; height:30px; background:#e5e7eb; border-radius:999px; transition:.2s; cursor:pointer }
+    .switch::after{ content:""; position:absolute; top:3px; left:3px; width:24px; height:24px; background:#fff; border-radius:50%; transition:.2s; box-shadow:0 1px 3px rgba(0,0,0,.2) }
+    .switch.on{ background:#16a34a }
+    .switch.on::after{ left:21px }
 
-    label {
-      display: block;
-      text-align: left;
-      margin-top: 10px;
-      font-weight: bold;
-      color: #ff5a5f;
-    }
+    /* Position configurator */
+    .pos-row{ display:grid; grid-template-columns:1fr 120px 150px; gap:10px; align-items:center; margin-top:8px }
+    .pos-row input[type=number]{ text-align:center }
+    .pos-pill{ display:inline-flex; align-items:center; gap:8px }
+    .count-toggle{ display:inline-flex; border:1px solid #e5e7eb; border-radius:999px; overflow:hidden }
+    .count-toggle button{ width:34px; height:30px; border:0; background:#fff; cursor:pointer; font-weight:800 }
+    .count-toggle span{ min-width:40px; display:grid; place-items:center; background:#f8fafc; border-left:1px solid #e5e7eb; border-right:1px solid #e5e7eb }
 
-    input, select {
-      width: 100%;
-      padding: 10px;
-      margin-top: 5px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      font-size: 16px;
+    /* Pitch preview (upright template) */
+    .pitch-wrap{
+      position:relative; width:100%; aspect-ratio: 468 / 351; /* match your provided image proportion */
+      background: #2f8d3a url('./images/pitch-upright.png') center/cover no-repeat;
+      /* ^^^ replace with your asset path – same orientation as the PNG you shared */
+      border-radius:12px; overflow:hidden; box-shadow:inset 0 0 0 2px #e5ffe5
     }
+    .pv-pos{ position:absolute; transform:translate(-50%, -50%); display:flex; flex-direction:column; align-items:center; gap:6px }
+    .pv-slot{ width:40px; height:40px; border-radius:50%; border:3px solid rgba(255,255,255,.95); background:rgba(255,255,255,.12); overflow:hidden; display:grid; place-items:center }
+    .pv-slot.empty{ border-style:dashed; opacity:.65 }
+    .pv-slot img{ width:100%; height:100%; object-fit:cover }
+    .pv-label{ color:#fff; font:800 11px/1.1 system-ui; text-shadow:0 1px 1px rgba(0,0,0,.6) }
+    .pv-legend{ display:flex; gap:14px; align-items:center; font-size:12px; color:#334155; margin-top:8px }
+    .pv-dot{ width:12px; height:12px; border-radius:50%; display:inline-block; border:2px solid #0a7d2f; background:#0a7d2f }
+    .pv-dot.empty{ border-color:#cbd5e1; background:#e2e8f0 }
+    @media (max-width:520px){ .pv-slot{ width:32px; height:32px } }
 
-    .toggle-container {
-      display: flex;
-      align-items: center;
-      margin-top: 10px;
-      justify-content: space-between;
-    }
+    /* Button */
+    button.submit{ width:100%; background:#ff0000; color:#fff; border:0; border-radius:12px; padding:14px; font-size:18px; font-weight:900; margin-top:18px; cursor:pointer }
+    button.submit:hover{ background:#cc0000 }
 
-    .switch {
-      position: relative;
-      display: inline-block;
-      width: 50px;
-      height: 24px;
-    }
-
-    .switch input {
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
-
-    .slider {
-      position: absolute;
-      cursor: pointer;
-      top: 0; left: 0;
-      right: 0; bottom: 0;
-      background-color: #ccc;
-      transition: .4s;
-      border-radius: 34px;
-    }
-
-    .slider:before {
-      position: absolute;
-      content: "";
-      height: 18px;
-      width: 18px;
-      left: 3px;
-      bottom: 3px;
-      background-color: white;
-      transition: .4s;
-      border-radius: 50%;
-    }
-
-    input:checked + .slider {
-      background-color: #ff5a5f;
-    }
-
-    input:checked + .slider:before {
-      transform: translateX(26px);
-    }
-
-    button {
-      background-color: #ff0000;
-      color: white;
-      padding: 12px 15px;
-      border: none;
-      border-radius: 5px;
-      font-size: 18px;
-      margin-top: 20px;
-      cursor: pointer;
-      width: 100%;
-    }
-
-    button:hover {
-      background-color: #cc0000;
-    }
-
-    .footer {
-      margin-top: 20px;
-      font-size: 14px;
-      color: #777;
-    }
+    .footer{ margin-top: 14px; font-size:13px; text-align:center; color:#6b7280 }
+    a{ color:#2563eb; text-decoration:none }
   </style>
 </head>
 <body>
-<div style="margin: 0 auto;">
-  <h2 style="text-align: center; color: #702963; margin-bottom: 20px;">
-    Create a New Game
-  </h2>
   <div class="container">
+    <h2>Create a New Game</h2>
 
     <form id="createGameForm">
-      <label for="session_title">Session Title:</label>
-      <input type="text" id="session_title" name="session_title" placeholder="Casual Futsal for Fun, For Beginner, Female Only, etc." required />
+      <!-- Core fields -->
+      <label for="session_title">Session Title</label>
+      <input id="session_title" placeholder="e.g. Futbola CF Friday Night" required />
 
-      <label for="venue">Venue:</label>
-      <input type="text" id="venue" name="venue" required />
+      <label for="venue">Venue</label>
+      <input id="venue" placeholder="e.g. Bangi Uptown Sports" required />
 
-      <label for="game_date">Game Date:</label>
-      <input type="date" id="game_date" name="game_date" required />
+      <div class="row">
+        <div>
+          <label for="game_date">Game Date</label>
+          <input type="date" id="game_date" required />
+        </div>
+        <div>
+          <label for="level">Recommended Level</label>
+          <select id="level" required>
+            <option value="" disabled selected>Select level</option>
+            <option value="casual">Casual</option>
+            <option value="semi-competitive">Semi-Competitive</option>
+            <option value="competitive">Competitive</option>
+            <option value="any">All welcome</option>
+          </select>
+        </div>
+      </div>
 
-      <label for="start_time">Start Time:</label>
-      <input type="time" id="start_time" name="start_time" required />
+      <div class="row">
+        <div>
+          <label for="start_time">Start</label>
+          <input type="time" id="start_time" required />
+        </div>
+        <div>
+          <label for="end_time">End</label>
+          <input type="time" id="end_time" required />
+        </div>
+      </div>
 
-      <label for="end_time">End Time:</label>
-      <input type="time" id="end_time" name="end_time" required />
+      <label for="play_style">Play Style / Notes</label>
+      <input id="play_style" placeholder="e.g. 5-a-side, 3 teams rotation" required />
 
-      <label for="level">Game Level:</label>
-      <select id="level" name="level" required>
-        <option disabled selected>Select level</option>
-        <option value="casual">Casual</option>
-        <option value="casual-competitive">Casual-Competitive</option>
-        <option value="tournament">Tournament</option>
-        <option value="training">Training</option>
-        <option value="other">Other</option>
-      </select>
+      <div class="row">
+        <div>
+          <label for="price">Price (RM)</label>
+          <input type="number" id="price" min="0" step="0.01" placeholder="e.g. 25.00" required />
+        </div>
+        <div>
+          <label for="max_players">Max Players</label>
+          <input type="number" id="max_players" min="1" max="200" required />
+        </div>
+      </div>
 
-      <label for="player_format">Players per Team:</label>
-      <select id="player_format" name="player_format" required>
-        <option disabled selected>Select format</option>
-        <option value="5">5-a-side</option>
-        <option value="6">6-a-side</option>
-        <option value="7">7-a-side</option>
-        <option value="8">8-a-side</option>
-        <option value="9">9-a-side</option>
-        <option value="10">10-a-side</option>
-        <option value="11">11-a-side</option>
-        <option value="other">Other</option>
-      </select>
+      <div class="divider"></div>
 
-      <label for="teams">Number of Teams:</label>
-      <select id="teams" name="teams" required>
-        <option disabled selected>Select number</option>
-        <option value="2">2</option>
-        <option value="3">3</option>
-        <option value="4">4</option>
-        <option value="5">5</option>
-        <option value="6">6</option>
-        <option value="7">7</option>
-        <option value="8">8</option>
-        <option value="other">Other</option>
-      </select>
+      <!-- Segmented: Game Type -->
+      <label>Game Type</label>
+      <div class="seg" id="gameTypeSeg">
+        <button type="button" data-val="futsal" class="active">Futsal</button>
+        <button type="button" data-val="football">Football (11v11)</button>
+      </div>
+      <p class="hint">Football unlocks team & position booking.</p>
 
-      <label for="courts">Number of Courts:</label>
-      <select id="courts" name="courts" required>
-        <option disabled selected>Select number</option>
-        <option value="1">1</option>
-        <option value="2">2</option>
-        <option value="other">Other</option>
-      </select>
+      <!-- Toggles -->
+      <div class="toggle">
+        <div>
+          <strong>Team Selection</strong><br/><small class="hint">Players choose Team A or Team B.</small>
+        </div>
+        <div class="switch" id="teamSwitch" role="switch" aria-checked="false"></div>
+      </div>
 
-      <label for="minutes">Minutes per Period:</label>
-      <input type="number" id="minutes" name="minutes" min="10" max="99" required />
+      <div class="toggle">
+        <div>
+          <strong>Position Selection</strong><br/><small class="hint">Players pick positions; caps enforced.</small>
+        </div>
+        <div class="switch" id="posSwitch" role="switch" aria-checked="false"></div>
+      </div>
 
-      <label for="play_style">Game Style / Notes:</label>
-      <input type="text" id="play_style" name="play_style" placeholder="Round Robin, King Stay, Friendly, etc." />
+      <div class="toggle">
+        <div>
+          <strong>Public</strong><br/><small class="hint">Show on public listing.</small>
+        </div>
+        <div class="switch" id="publicSwitch" role="switch" aria-checked="true"></div>
+      </div>
 
-      <label for="contact_method">Preferred Contact Method:</label>
-        <select id="contact_method" name="contact_method" required>
-        <option value="none" selected>None</option>
-        <option value="whatsapp">WhatsApp Group</option>
-        <option value="telegram">Telegram Group</option>
-        <option value="manual">Manual Contact</option>
-        </select>
+      <div class="toggle">
+        <div>
+          <strong>Recurring</strong><br/><small class="hint">Repeat weekly.</small>
+        </div>
+        <div class="switch" id="recurringSwitch" role="switch" aria-checked="false"></div>
+      </div>
 
-        <div id="contactLinkContainer" style="display: none;">
-            <label for="contact_link">Group/Contact Link:</label>
-            <input type="url" id="contact_link" name="contact_link" placeholder="Paste link (WhatsApp, Telegram, etc.)" />
+      <!-- Recurring details -->
+      <div id="recurringCard" class="card" style="display:none">
+        <h4>Recurring (Weekly)</h4>
+        <div class="row">
+          <div>
+            <label style="color:#374151;font-weight:700">Repeat on</label>
+            <div id="weekdaySeg" class="seg" style="margin-top:6px; display:grid; grid-template-columns:repeat(7,1fr)"></div>
+          </div>
+          <div>
+            <label style="color:#374151;font-weight:700">Occurrences</label>
+            <input type="number" id="recurrences" min="1" max="52" value="8"/>
+            <p class="hint">How many weeks?</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Team names -->
+      <div id="teamNamesCard" class="card" style="display:none">
+        <h4>Team Names</h4>
+        <div class="row">
+          <div>
+            <label for="team_a_name" style="color:#374151;font-weight:700">Team A</label>
+            <input id="team_a_name" placeholder="e.g. Futbola CF" />
+          </div>
+          <div>
+            <label for="team_b_name" style="color:#374151;font-weight:700">Team B</label>
+            <input id="team_b_name" placeholder="e.g. Visitors" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Payment segmented -->
+      <div class="card">
+        <h4>Payment</h4>
+        <label style="color:#374151;font-weight:700">Payment Type</label>
+        <div class="seg" id="paymentSeg" style="margin-top:6px">
+          <button type="button" data-val="pay_on_court" class="active">Pay on Court</button>
+          <button type="button" data-val="qr">QR Pay</button>
+          <button type="button" data-val="bank">Bank Transfer</button>
+          <button type="button" data-val="online">Online (FPX/Card)</button>
+        </div>
+        <p class="hint">Choose how players should pay; you can still confirm manually later.</p>
+      </div>
+
+      <!-- Contact segmented -->
+      <div class="card">
+        <h4>Contact</h4>
+        <label style="color:#374151;font-weight:700">Contact Method</label>
+        <div class="seg" id="contactSeg" style="margin-top:6px">
+          <button type="button" data-val="whatsapp" class="active">WhatsApp</button>
+          <button type="button" data-val="phone">Phone</button>
+          <button type="button" data-val="instagram">Instagram</button>
+          <button type="button" data-val="telegram">Telegram</button>
+          <button type="button" data-val="website">Website</button>
         </div>
 
-      <label for="payment_type">Payment Type:</label>
-      <select id="payment_type" name="payment_type">
-        <option disabled selected>Select payment</option>
-        <option value="pay_on_court">Pay on Court</option>
-        <option value="pay_full">Full Payment</option>
-        <option value="pay_booking">Booking Fee</option>
-        <option value="other">Other</option>
-      </select>
-
-      <label for="price">Price (RM):</label>
-      <input type="number" id="price" name="price" min="0" step="0.01" required />
-
-      <label for="max_players">Max Players:</label>
-      <input type="number" id="max_players" name="max_players" min="1" max="30" required />
-
-      <div class="toggle-container">
-        <span>Public Session</span>
-        <label class="switch">
-          <input type="checkbox" id="is_public" name="is_public">
-          <span class="slider"></span>
-        </label>
+        <label for="contact_link" style="margin-top:12px">Contact Link / Handle</label>
+        <input id="contact_link" placeholder="+60123456789 (WhatsApp) or https://instagram.com/yourpage" />
+        <p class="hint" id="contactHint">Tip: for WhatsApp, enter phone (e.g. +60123456789). We’ll format to wa.me automatically.</p>
       </div>
 
-      <div class="toggle-container">
-        <span>Recurring Session</span>
-        <label class="switch">
-          <input type="checkbox" id="is_recurring" name="is_recurring">
-          <span class="slider"></span>
-        </label>
+      <!-- Position Configurator (Football + Position ON) -->
+      <div id="positionCard" class="card" style="display:none">
+        <div style="display:flex; justify-content:space-between; align-items:center">
+          <h4>Football Positions & Limits</h4>
+          <span class="pill" id="totalSlotsPill">Total Slots: 0</span>
+        </div>
+        <p class="hint">Default 4-3-3: GK (1), CB (2), LB, RB, DM, CM (2), LW, RW, ST — each with 2 players. + Super Subs.</p>
+
+        <div class="pos-row" style="font-weight:800;color:#374151;margin-top:0">
+          <div>Position Group</div>
+          <div>Positions</div>
+          <div>Players / Position</div>
+        </div>
+        <div id="posRows"></div>
+
+        <div class="divider"></div>
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:10px">
+          <div><strong>Super Subs</strong> <span class="hint">(any position)</span></div>
+          <div class="count-toggle" data-for="subs">
+            <button type="button" data-delta="-1">−</button>
+            <span id="subsVal">3</span>
+            <button type="button" data-delta="1">+</button>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+        <div>
+          <div class="pv-legend">
+            <span class="pv-dot"></span> Booked
+            <span class="pv-dot empty"></span> Empty
+            <span class="hint">Preview (Team A)</span>
+          </div>
+          <div id="pitchPreview" class="pitch-wrap" aria-label="Pitch preview"></div>
+        </div>
+
+        <p class="hint">Common preset → 11×2 (22) + 3 subs = <strong>25</strong> total.</p>
       </div>
 
-      <button type="button" id="submitGameButton">Create Game</button>
+      <button type="button" id="submitGameButton" class="submit">Create Game</button>
     </form>
 
-    <p class="footer">Follow us on Instagram <a href="https://www.instagram.com/futbola_my" target="_blank">@futbola_my</a></p>
+    <p class="footer">
+      Follow us on Instagram
+      <a href="https://www.instagram.com/futbola_my" target="_blank">@futbola_my</a>
+    </p>
   </div>
 
-    <a href="/" style="display: block; width: fit-content; margin: 40px auto 0; background-color: #ff0000; color: white; padding: 12px 20px; text-decoration: none; border-radius: 5px; font-weight: bold; text-align: center;">
-      ← Back to Homepage
-    </a>
-</div>
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-<script type="module">
-  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+    const supabase = createClient(
+      'https://kdbqroxhypnadolcxxxc.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkYnFyb3hoeXBuYWRvbGN4eHhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3MjkwNzYsImV4cCI6MjA1NzMwNTA3Nn0.c7_RVxoFdJNqQ62R3t1emH2Wf4dSsQaunHsHmbQxOBA'
+    );
 
-  const supabase = createClient(
-    'https://kdbqroxhypnadolcxxxc.supabase.co',
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkYnFyb3hoeXBuYWRvbGN4eHhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3MjkwNzYsImV4cCI6MjA1NzMwNTA3Nn0.c7_RVxoFdJNqQ62R3t1emH2Wf4dSsQaunHsHmbQxOBA'
-  );
-
-    // 🔐 Step 1: Check login
+    // ====== Auth & role check ======
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-    alert("Not logged in. Redirecting...");
-    window.location.href = "/login.html";
-    }
-
-    // 🔍 Step 2: Check if user is Organizer/Admin
-    const { data: profile } = await supabase
-    .from("profiles")
-    .select("category_role, full_name")
-    .eq("id", user.id)
-    .single();
-
-    const allowedRoles = ["Organizer", "Admin"];
+    if (!user) { alert("Not logged in. Redirecting..."); window.location.href = "/login.html"; }
+    const { data: profile } = await supabase.from("profiles").select("category_role, full_name").eq("id", user.id).single();
+    const allowedRoles = ["Organizer","Admin"];
     const roles = profile?.category_role || [];
-    const isHost = allowedRoles.some(r => roles.includes(r));
-
-    if (!isHost) {
-    alert("Only Organizers or Admins can create games. Please update your profile first.");
-    window.location.href = "/profile-setup.html";
+    if (!allowedRoles.some(r => roles.includes(r))) {
+      alert("Only Organizers or Admins can create games. Please update your profile first.");
+      window.location.href = "/profile-setup.html";
     }
 
-    // 📝 Step 3: Submit game logic
-    document.getElementById("submitGameButton").addEventListener("click", async () => {
-    const data = {
+    // ====== Helpers ======
+    const $ = s => document.querySelector(s);
+    const $$ = s => Array.from(document.querySelectorAll(s));
+    const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v|0));
+    function bindSegmented(segEl, onChange){
+      segEl.querySelectorAll('button').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          segEl.querySelectorAll('button').forEach(b=>b.classList.remove('active'));
+          btn.classList.add('active'); onChange(btn.dataset.val);
+        });
+      });
+    }
+    function toggleSwitch(el, on){ el.classList.toggle('on', on); el.setAttribute('aria-checked', on ? 'true' : 'false'); }
+    function isOn(el){ return el.getAttribute('aria-checked') === 'true' }
+
+    // ====== Elements/State ======
+    const segGameType = $('#gameTypeSeg');
+    const teamSwitch = $('#teamSwitch'); const posSwitch = $('#posSwitch');
+    const publicSwitch = $('#publicSwitch'); const recurSwitch = $('#recurringSwitch');
+    const teamCard = $('#teamNamesCard'); const posCard = $('#positionCard'); const recurCard = $('#recurringCard');
+
+    const weekdaySeg = $('#weekdaySeg'); const recurrences = $('#recurrences');
+    const paymentSeg = $('#paymentSeg'); const contactSeg = $('#contactSeg');
+    const contactLink = $('#contact_link'); const contactHint = $('#contactHint');
+    const posRowsEl = $('#posRows'); const totalPill = $('#totalSlotsPill'); const maxPlayers = $('#max_players');
+
+    let gameType = 'futsal';
+    let paymentType = 'pay_on_court';
+    let contactMethod = 'whatsapp';
+    const selectedDays = new Set();
+
+    const PRESET = [
+      { key:'GK', label:'GK', positions:1, players:2 },
+      { key:'CB', label:'CB', positions:2, players:2 },
+      { key:'LB', label:'LB', positions:1, players:2 },
+      { key:'RB', label:'RB', positions:1, players:2 },
+      { key:'DM', label:'DM', positions:1, players:2 },
+      { key:'CM', label:'CM', positions:2, players:2 },
+      { key:'LW', label:'LW', positions:1, players:2 },
+      { key:'RW', label:'RW', positions:1, players:2 },
+      { key:'ST', label:'ST', positions:1, players:2 },
+    ];
+    let cfg = { positions: JSON.parse(JSON.stringify(PRESET)), subs: 3 };
+
+    // ====== Build segmented controls ======
+    bindSegmented(segGameType, (val)=>{ gameType=val; refreshVisibility(); updateTotals(); });
+    bindSegmented(paymentSeg,  (val)=>{ paymentType=val; });
+    bindSegmented(contactSeg,  (val)=>{
+      contactMethod=val;
+      switch (contactMethod){
+        case 'whatsapp': contactHint.textContent='Tip: enter phone (e.g. +60123456789). We’ll format to https://wa.me/.'; contactLink.placeholder='+60123456789'; break;
+        case 'phone':    contactHint.textContent='Tip: enter phone number (e.g. +60123456789).'; contactLink.placeholder='+60123456789'; break;
+        case 'instagram':contactHint.textContent='Tip: paste profile URL (https://instagram.com/...).'; contactLink.placeholder='https://instagram.com/yourpage'; break;
+        case 'telegram': contactHint.textContent='Tip: paste t.me link (https://t.me/yourusername).'; contactLink.placeholder='https://t.me/yourusername'; break;
+        default:         contactHint.textContent='Tip: paste full URL (https://...).'; contactLink.placeholder='https://yourwebsite.com/contact';
+      }
+    });
+
+    // Switches init
+    toggleSwitch(publicSwitch, true);
+    toggleSwitch(teamSwitch, false);
+    toggleSwitch(posSwitch, false);
+    toggleSwitch(recurSwitch, false);
+    [teamSwitch, posSwitch, publicSwitch, recurSwitch].forEach(sw=>{
+      sw.addEventListener('click', ()=>{ toggleSwitch(sw, !isOn(sw)); refreshVisibility(); updateTotals(); });
+    });
+
+    // Weekdays segmented build
+    (function initWeekdays(){
+      const days = ['S','M','T','W','T','F','S'];
+      weekdaySeg.innerHTML='';
+      days.forEach((d,i)=>{
+        const btn=document.createElement('button');
+        btn.type='button'; btn.textContent=d; btn.style.padding='8px'; btn.style.border='0'; btn.style.cursor='pointer';
+        btn.style.background='#fff'; btn.style.color='#334155';
+        btn.addEventListener('click', ()=>{
+          if(selectedDays.has(i)) selectedDays.delete(i); else selectedDays.add(i);
+          $$('#weekdaySeg button').forEach((b,idx)=>{
+            b.style.background = selectedDays.has(idx)? '#dcfce7':'#fff';
+            b.style.color = selectedDays.has(idx)? '#065f46':'#334155';
+          });
+        });
+        weekdaySeg.appendChild(btn);
+      });
+    })();
+
+    // Position rows
+    function renderPosRows(){
+      posRowsEl.innerHTML = '';
+      cfg.positions.forEach((p,idx)=>{
+        const row = document.createElement('div');
+        row.className = 'pos-row';
+        row.innerHTML = `
+          <div class="pos-pill"><span class="pill">${p.key}</span>
+            <input value="${p.label}" aria-label="${p.key} label"/></div>
+          <div class="count-toggle" data-for="positions" data-idx="${idx}">
+            <button type="button" data-delta="-1">−</button>
+            <span>${p.positions}</span>
+            <button type="button" data-delta="1">+</button>
+          </div>
+          <div class="count-toggle" data-for="players" data-idx="${idx}">
+            <button type="button" data-delta="-1">−</button>
+            <span>${p.players}</span>
+            <button type="button" data-delta="1">+</button>
+          </div>
+        `;
+        posRowsEl.appendChild(row);
+      });
+      // wire +/-
+      $$('#posRows .count-toggle').forEach(tg=>{
+        const type = tg.dataset.for;
+        const idx  = +tg.dataset.idx;
+        tg.querySelectorAll('button').forEach(btn=>{
+          btn.addEventListener('click', ()=>{
+            const delta = +btn.dataset.delta;
+            if (type==='positions'){ cfg.positions[idx].positions = clamp(cfg.positions[idx].positions + delta, 0, 11); }
+            else { cfg.positions[idx].players = clamp(cfg.positions[idx].players + delta, 0, 10); }
+            renderPosRows(); updateTotals();
+          });
+        });
+      });
+      // label edits
+      $$('#posRows input').forEach((inp,i)=>{ inp.addEventListener('input', e=>{ cfg.positions[i].label = e.target.value; }); });
+    }
+
+    // Totals & visibility
+    function updateTotals(){
+      const total = cfg.positions.reduce((sum,p)=> sum + (p.positions * p.players), 0) + cfg.subs;
+      totalPill.textContent = `Total Slots: ${total}`;
+      if (gameType==='football' && isOn(posSwitch)){
+        const mp = $('#max_players');
+        if (!mp.value || +mp.value < total) mp.value = total;
+      }
+      renderPitchPreview();
+    }
+    function refreshVisibility(){
+      teamCard.style.display = isOn(teamSwitch) ? '' : 'none';
+      const showPos = (gameType==='football' && isOn(posSwitch));
+      posCard.style.display = showPos ? '' : 'none';
+      recurCard.style.display = isOn(recurSwitch) ? '' : 'none';
+      renderPitchPreview();
+    }
+
+    // Subs +/- control
+    (function renderSubsControl(){
+      const subsCtl = document.querySelector('.count-toggle[data-for="subs"]'); const label = $('#subsVal');
+      subsCtl.querySelectorAll('button').forEach(b=>{
+        b.onclick = ()=>{ cfg.subs = clamp(cfg.subs + (+b.dataset.delta), 0, 50); label.textContent = cfg.subs; updateTotals(); };
+      });
+    })();
+
+    // ====== Pitch Preview (upright) ======
+    // Coordinates are % of upright pitch (top goal at y~8%, bottom goal at y~92%)
+    function distribute(n, minX, maxX){ if(n<=1) return [(minX+maxX)/2]; const step=(maxX-minX)/(n-1); return Array.from({length:n},(_,i)=>minX+i*step) }
+    function buildPreviewSlots(cfg){
+      const out=[]; const Y={F:26,M:50,D:74,GK:90};
+      const get = k => cfg.positions.find(p=>p.key===k) || {positions:0,players:0};
+      const push=(prefix,n,x1,x2,y)=>{ const xs=distribute(n,x1,x2); for(let i=0;i<n;i++) out.push({ key:`${prefix}${n>1?i+1:""}`, x:xs[i], y }); };
+      if(get('LW').positions) push('LW',get('LW').positions,16,32,Y.F);
+      if(get('ST').positions) push('ST',get('ST').positions,46,54,Y.F);
+      if(get('RW').positions) push('RW',get('RW').positions,68,84,Y.F);
+      if(get('DM').positions) push('DM',get('DM').positions,42,58,Y.M+4);
+      if(get('CM').positions) push('CM',get('CM').positions,32,68,Y.M);
+      if(get('LB').positions) push('LB',get('LB').positions,16,28,Y.D);
+      if(get('CB').positions) push('CB',get('CB').positions,36,64,Y.D);
+      if(get('RB').positions) push('RB',get('RB').positions,72,84,Y.D);
+      if(get('GK').positions) push('GK',get('GK').positions,46,54,Y.GK);
+      const pMap=Object.fromEntries(cfg.positions.map(p=>[p.key,p.players]));
+      return out.map(s=>({ ...s, playersPerPos: (pMap[s.key.replace(/[0-9]+$/,'')] || 2) }));
+    }
+    function renderPitchPreview(){
+      const wrap = $('#pitchPreview'); if(!wrap) return;
+      wrap.innerHTML = ""; // clear
+      if(!(gameType==='football' && isOn(posSwitch))) return;
+
+      // ensure background uses your upright template; replace path if needed
+      if (!wrap.style.backgroundImage) {
+        wrap.style.backgroundImage = "url('./images/pitch-upright.png')";
+      }
+
+      const slots = buildPreviewSlots(cfg);
+      const demoFaces = ["https://i.pravatar.cc/100?img=12","https://i.pravatar.cc/100?img=14","https://i.pravatar.cc/100?img=21","https://i.pravatar.cc/100?img=27","https://i.pravatar.cc/100?img=33"];
+      const bookedEvery = 2; // demo: half booked
+      slots.forEach((slot,idx)=>{
+        const node=document.createElement('div'); node.className='pv-pos';
+        node.style.left=slot.x+'%'; node.style.top=slot.y+'%';
+        for(let i=0;i<slot.playersPerPos;i++){
+          const s=document.createElement('div'); s.className='pv-slot';
+          if((i+idx)%bookedEvery===0){ const img=document.createElement('img'); img.src=demoFaces[(i+idx)%demoFaces.length]; s.appendChild(img); }
+          else s.classList.add('empty');
+          node.appendChild(s);
+        }
+        const lbl=document.createElement('div'); lbl.className='pv-label'; lbl.textContent=slot.key; node.appendChild(lbl);
+        wrap.appendChild(node);
+      });
+    }
+
+    // ====== Contact link normalizer ======
+    function normalizeContactLink(method, raw){
+      const v=(raw||'').trim();
+      if(!v) return '';
+      if (method==='whatsapp'){
+        const num = v.replace(/[^\d+]/g,'');
+        const digits = num.startsWith('+') ? num.slice(1) : num;
+        return digits ? `https://wa.me/${digits}` : '';
+      }
+      if (method==='phone'){
+        const num = v.replace(/[^\d+]/g,'');
+        return num ? `tel:${num}` : '';
+      }
+      if (method==='instagram'){
+        if(/^https?:\/\//i.test(v)) return v;
+        return `https://instagram.com/${v.replace(/^@/,'')}`;
+      }
+      if (method==='telegram'){
+        if(/^https?:\/\//i.test(v)) return v;
+        return `https://t.me/${v.replace(/^@/,'')}`;
+      }
+      if(!/^https?:\/\//i.test(v)) return `https://${v}`;
+      return v;
+    }
+
+    // ====== Render initial UI ======
+    renderPosRows(); refreshVisibility(); updateTotals();
+
+    // ====== Submit (insert only existing DB fields to avoid errors) ======
+    $('#submitGameButton').addEventListener('click', async ()=>{
+      const data = {
         host_id: user.id,
         host_name: profile?.full_name || "Unknown Host",
-        session_title: document.getElementById("session_title").value,
-        venue: document.getElementById("venue").value,
-        game_date: document.getElementById("game_date").value,
-        start_time: document.getElementById("start_time").value,
-        end_time: document.getElementById("end_time").value,
-        level: document.getElementById("level").value,
-        player_format: document.getElementById("player_format").value,
-        teams: document.getElementById("teams").value,
-        courts: document.getElementById("courts").value,
-        minutes: parseInt(document.getElementById("minutes").value),
-        play_style: document.getElementById("play_style").value,
-        //wa_link: document.getElementById("wa_link").value,
-        payment_type: document.getElementById("payment_type").value,
-        price: parseFloat(document.getElementById("price").value),
-        max_players: parseInt(document.getElementById("max_players").value),
-        is_public: document.getElementById("is_public").checked,
-        is_recurring: document.getElementById("is_recurring").checked,
-        contact_method: document.getElementById("contact_method").value,
-        contact_link: document.getElementById("contact_link").value || null
-    };
+        session_title: $('#session_title').value,
+        venue: $('#venue').value,
+        game_date: $('#game_date').value,
+        start_time: $('#start_time').value,
+        end_time: $('#end_time').value,
+        level: $('#level').value,
+        player_format: (gameType === 'football' ? '11' : '5'), // minimal mapping to keep your column
+        teams: isOn(teamSwitch) ? '2' : '1',
+        courts: '1',
+        minutes: 60, // keep your old semantics; change if needed
+        play_style: $('#play_style').value,
 
-    try {
-        console.log("🚀 Submitting game data:", data);
+        payment_type: paymentType,                   // 'pay_on_court'|'qr'|'bank'|'online'
+        price: parseFloat($('#price').value),
+        max_players: parseInt($('#max_players').value,10),
+
+        is_public: isOn(publicSwitch),
+        is_recurring: isOn(recurSwitch),
+
+        contact_method: contactMethod,
+        contact_link: normalizeContactLink(contactMethod, $('#contact_link').value) || null
+      };
+
+      if (!data.contact_link){
+        alert('Please provide a valid contact link/number for the selected contact method.');
+        return;
+      }
+
+      try{
         const { error } = await supabase.from("games").insert([data]);
-
-            if (!error) {
-            alert("Game created successfully!");
-            } else {
-            alert("Insert failed: " + error.message);
-            }
-    } catch (err) {
-        alert("Error: " + err.message);
-    }
+        if (!error) alert("Game created successfully!");
+        else alert("Insert failed: " + error.message);
+      }catch(err){ alert("Error: " + err.message); }
     });
-
-    // 🎛️ Step 4: Toggle extra contact input
-    document.getElementById("contact_method").addEventListener("change", function () {
-    const container = document.getElementById("contactLinkContainer");
-    container.style.display = ["whatsapp", "telegram"].includes(this.value) ? "block" : "none";
-    });
-</script>
+  </script>
 </body>
 </html>
