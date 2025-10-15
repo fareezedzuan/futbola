@@ -524,45 +524,108 @@
     // ====== Render initial UI ======
     renderPosRows(); refreshVisibility(); updateTotals();
 
-    // ====== Submit (insert only existing DB fields to avoid errors) ======
-    $('#submitGameButton').addEventListener('click', async ()=>{
-      const data = {
-        host_id: user.id,
-        host_name: profile?.full_name || "Unknown Host",
-        session_title: $('#session_title').value,
-        venue: $('#venue').value,
-        game_date: $('#game_date').value,
-        start_time: $('#start_time').value,
-        end_time: $('#end_time').value,
-        level: $('#level').value,
-        player_format: (gameType === 'football' ? '11' : '5'), // minimal mapping to keep your column
-        teams: isOn(teamSwitch) ? '2' : '1',
-        courts: '1',
-        minutes: 60, // keep your old semantics; change if needed
-        play_style: $('#play_style').value,
+// Build a flat position_limits JSON from the UI configurator
+// Example output (football): {"GK":2,"CB":4,"LB":2,"RB":2,"DM":2,"CM":4,"LW":2,"RW":2,"ST":2,"SUB":3}
+function buildPositionLimitsFromConfig(cfg){
+  const out = {};
+  (cfg.positions || []).forEach(p => {
+    const cap = (p.positions|0) * (p.players|0); // positions × players per position
+    if (cap > 0) out[p.key] = cap;
+  });
+  // Super subs (shared)
+  if ((cfg.subs|0) > 0) out['SUB'] = cfg.subs|0;
+  return out;
+}
 
-        payment_type: paymentType,                   // 'pay_on_court'|'qr'|'bank'|'online'
-        price: parseFloat($('#price').value),
-        max_players: parseInt($('#max_players').value,10),
+// Derive weekdays array (0..6) and occurrences for recurrence_rule
+function buildRecurrenceRule(isRecurring, selectedDaysSet, occurrencesInput){
+  if (!isRecurring) return null;
+  const weekdays = Array.from(selectedDaysSet.values()).sort(); // [0..6]
+  const occurrences = Math.max(1, Math.min(52, (parseInt(occurrencesInput.value,10) || 1)));
+  return { weekdays, occurrences };
+}
 
-        is_public: isOn(publicSwitch),
-        is_recurring: isOn(recurSwitch),
+// ====== Submit: now sends ALL new columns too ======
+$('#submitGameButton').addEventListener('click', async ()=>{
+  const gType = gameType;                       // 'futsal' | 'football'
+  const teamSel = isOn(teamSwitch);             // boolean
+  const posSel  = isOn(posSwitch);              // boolean
+  const isPublic = isOn(publicSwitch);
+  const isRecurring = isOn(recurSwitch);
 
-        contact_method: contactMethod,
-        contact_link: normalizeContactLink(contactMethod, $('#contact_link').value) || null
-      };
+  // Contact link normalization
+  const normalizedContact = normalizeContactLink(contactMethod, $('#contact_link').value);
+  if (!normalizedContact){
+    alert('Please provide a valid contact link/number for the selected contact method.');
+    return;
+  }
 
-      if (!data.contact_link){
-        alert('Please provide a valid contact link/number for the selected contact method.');
-        return;
-      }
+  // Build position_limits + options when needed
+  let positionLimits = null;
+  let options = null;
 
-      try{
-        const { error } = await supabase.from("games").insert([data]);
-        if (!error) alert("Game created successfully!");
-        else alert("Insert failed: " + error.message);
-      }catch(err){ alert("Error: " + err.message); }
-    });
+  if (gType === 'football' && posSel){
+    positionLimits = buildPositionLimitsFromConfig(cfg); // flat caps
+    options = {
+      formation: '4-3-3',
+      subs_total: cfg.subs|0,
+      // store full editor state so you can rebuild later if needed
+      positions_config: cfg.positions
+    };
+
+    // If caps > max_players, auto-bump
+    const capSum = Object.values(positionLimits).reduce((a,b)=>a+(b|0),0);
+    const mp = $('#max_players');
+    if (!mp.value || +mp.value < capSum) mp.value = capSum;
+  }
+
+  // Recurrence rule struct
+  const recurrenceRule = buildRecurrenceRule(isRecurring, selectedDays, $('#recurrences'));
+
+  const data = {
+    // existing columns (kept)
+    host_id: user.id,
+    host_name: profile?.full_name || "Unknown Host",
+    session_title: $('#session_title').value,
+    venue: $('#venue').value,
+    game_date: $('#game_date').value,
+    start_time: $('#start_time').value,
+    end_time: $('#end_time').value,
+    level: $('#level').value,
+    play_style: $('#play_style').value,
+    price: parseFloat($('#price').value),
+    max_players: parseInt($('#max_players').value,10),
+    is_public: isPublic,
+    is_recurring: isRecurring,
+    payment_type: paymentType,            // 'pay_on_court' | 'qr' | 'bank' | 'online'
+    contact_method: contactMethod,        // 'whatsapp' | 'phone' | 'instagram' | 'telegram' | 'website'
+    contact_link: normalizedContact,
+
+    // legacy fields you were already sending (keep for now)
+    player_format: (gType === 'football' ? '11' : '5'),
+    teams: teamSel ? 2 : 1,
+    courts: 1,
+    minutes: 60,
+
+    // NEW columns you just added
+    game_type: gType,
+    team_selection: teamSel,
+    position_selection: posSel,
+    team_a_name: $('#team_a_name')?.value || 'Team A',
+    team_b_name: $('#team_b_name')?.value || 'Team B',
+    position_limits: positionLimits,      // jsonb or null
+    recurrence_rule: recurrenceRule,      // jsonb or null
+    options                                // jsonb or null
+  };
+
+  try{
+    const { error } = await supabase.from("games").insert([data]);
+    if (!error) alert("Game created successfully!");
+    else alert("Insert failed: " + error.message);
+  }catch(err){
+    alert("Error: " + err.message);
+  }
+});
   </script>
 </body>
 </html>
