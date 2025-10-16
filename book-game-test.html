@@ -91,28 +91,6 @@
       overflow-wrap: break-word;
     }
 
-    /* --- team segmented + pitch (add) --- */
-    .seg { display:flex; border:1px solid #e5e7eb; border-radius:10px; overflow:hidden; }
-    .seg button{ flex:1; padding:8px; border:0; background:#fff; color:#334155; font-weight:700; cursor:pointer; font-size:14px }
-    .seg button + button{ border-left:1px solid #e5e7eb }
-    .seg button.active{ background:#ffe4e6; color:#991b1b }
-    .note { font-size:12px; color:#64748b; margin-top:6px; }
-
-    /* Pitch preview (upright) */
-    .pitch-wrap{
-      position:relative; width:100%; aspect-ratio: 468/351;
-      background: #2f8d3a url('./images/pitch-upright.png') center/cover no-repeat;
-      border-radius:12px; overflow:hidden; box-shadow:inset 0 0 0 2px #e5ffe5
-    }
-    .pv-pos{ position:absolute; transform:translate(-50%,-50%); display:flex; flex-direction:column; align-items:center; gap:6px }
-    .pv-slot{ width:34px; height:34px; border-radius:50%; border:3px solid rgba(255,255,255,.95); background:rgba(255,255,255,.12); overflow:hidden; display:grid; place-items:center }
-    .pv-slot.empty{ border-style:dashed; opacity:.65 }
-    .pv-slot img{ width:100%; height:100%; object-fit:cover }
-    .pv-label{ color:#fff; font:800 10px/1.1 system-ui; text-shadow:0 1px 1px rgba(0,0,0,.6) }
-    .pv-legend{ display:flex; gap:14px; align-items:center; font-size:12px; color:#334155; margin:6px 0 8px 0; }
-    .pv-dot{ width:12px; height:12px; border-radius:50%; display:inline-block; border:2px solid #0a7d3a; background:#0a7d3a }
-    .pv-dot.empty{ border-color:#cbd5e1; background:#e2e8f0 }
-
     #calendarGrid {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
@@ -442,6 +420,18 @@ function renderCalendarGrid() {
 //renderGames(today); box.textContent = dayLabel;
 
 function renderGames(selectedDate = null) {
+  // ---- position options helper (caps + remaining) ----
+function buildPositionOptions(limits, counts) {
+  const POS = ['GK','CB','LB','RB','DM','CM','LW','RW','ST','SUB'];
+  if (!limits) return POS.map(p => `<option value="${p}">${p}</option>`).join('');
+  return POS.filter(p => (limits[p]|0) > 0).map(p => {
+    const cap = limits[p] | 0;
+    const taken = (counts && counts[p]) ? counts[p] : 0;
+    const remaining = Math.max(cap - taken, 0);
+    const disabled = remaining <= 0 ? 'disabled' : '';
+    return `<option value="${p}" ${disabled}>${p} (${taken}/${cap})</option>`;
+  }).join('');
+}
   container.innerHTML = "";
 
   const filtered = selectedDate
@@ -493,54 +483,38 @@ function renderGames(selectedDate = null) {
           <input name="phone" placeholder="Enter phone number" type="tel" required />
         `}
         <button type="submit">✅ Book Now</button>
+        ${ (game.game_type === 'football' && game.position_selection) ? `
+  <label style="font-weight:700;color:#702963;margin-top:8px">Position</label>
+  <select name="position" id="pos-${game.id}" required>
+    <option value="">Loading positions…</option>
+  </select>
+  <div class="note" style="font-size:12px;color:#64748b;margin-top:6px">
+    Positions are limited; full positions will be disabled.
+  </div>
+` : `` }
       </form>
     `}
       <div class="player-list" id="players-${game.id}"></div>
     `;
     container.appendChild(div);
-
-    // ---- new: team / position UI activation ----
-    const teamWrap = div.querySelector(`.team-pos-ui[data-for="${game.id}"]`);
-    const posWrap  = div.querySelector(`.team-pos-ui-pos[data-for="${game.id}"]`);
-    const pitchWrap= div.querySelector(`.pitch-preview[data-for="${game.id}"]`);
-
-    // Team toggle
-    if (game.team_selection) {
-      const seg = div.querySelector(`[data-teamseg="${game.id}"]`);
-      const hidden = seg?.nextElementSibling;
-      if (seg && hidden) {
-        seg.style.display = '';
-        const btns = seg.querySelectorAll('button');
-        btns[0].textContent = game.team_a_name || 'Team A';
-        btns[1].textContent = game.team_b_name || 'Team B';
-        btns.forEach(btn=>{
-          btn.addEventListener('click',()=>{
-            btns.forEach(b=>b.classList.remove('active'));
-            btn.classList.add('active');
-            hidden.value = btn.dataset.val;
-          });
-        });
-      }
-    }
-
-    // Position + Pitch
-    if (game.game_type === 'football' && game.position_selection) {
-      if (posWrap) posWrap.style.display = '';
-      if (pitchWrap) pitchWrap.style.display = '';
-
-      const select = posWrap?.querySelector('select[name="position"]');
-      let counts = {};
-      try {
-        const { data: posCounts } = await supabase
-          .from("game_bookings")
-          .select("position, count:count(*)")
-          .eq("game_id", game.id)
-          .group("position");
-        (posCounts||[]).forEach(r=>{ counts[r.position] = +r.count || 0; });
-      } catch (_) {}
-      if (select) select.innerHTML = buildPositionOptions(game.position_limits, counts);
-      renderPitchForGame(game);
-    }
+    // -- build position options (football + position_selection) --
+if (game.game_type === 'football' && game.position_selection) {
+  const selectEl = div.querySelector(`#pos-${game.id}`);
+  if (selectEl) {
+    let counts = {};
+    try {
+      const { data: rows } = await supabase
+        .from("game_bookings")
+        .select("position")
+        .eq("game_id", game.id);
+      (rows || []).forEach(r => {
+        const k = r.position || 'SUB';
+        counts[k] = (counts[k] || 0) + 1;
+      });
+    } catch (_e) {}
+    selectEl.innerHTML = buildPositionOptions(game.position_limits, counts);
+  }
+}
 
     // guest toggle
     if (user && !isPast) {
@@ -671,6 +645,33 @@ async function bookGame(gameId, form) {
     return;
   }
 
+// 🆕 If football + position selection, require a position
+let position = null;
+try {
+  if (typeof game !== 'undefined' && game && game.game_type === 'football' && game.position_selection) {
+    position = form.position?.value || null;
+    if (!position) {
+      alert("Please select a position.");
+      submitButton.disabled = false; submitButton.textContent = "✅ Book Now";
+      return;
+    }
+    // Best-effort client-side cap check
+    const caps = game.position_limits || {};
+    if (caps && caps[position]) {
+      const { data: rows } = await supabase
+        .from("game_bookings")
+        .select("position")
+        .eq("game_id", gameId);
+      const taken = (rows || []).filter(r => r.position === position).length;
+      if (taken >= (caps[position] | 0)) {
+        alert("That position is already full. Please choose another.");
+        submitButton.disabled = false; submitButton.textContent = "✅ Book Now";
+        return;
+      }
+    }
+  }
+} catch (_e) {}
+
   // ✅ Check if game full
   const [{ data: bookings }, { data: game }] = await Promise.all([
     supabase.from("game_bookings").select("id").eq("game_id", gameId),
@@ -739,12 +740,9 @@ async function bookGame(gameId, form) {
     jersey_name,
     phone
   };
-
-  // include team/position if applicable
-  if (game.team_selection) payload.team_side = form.team_side?.value || 'A';
-  if (game.game_type === 'football' && game.position_selection)
-    payload.position = form.position?.value || null;
+if (position) payload.position = position;
   const { error } = await supabase.from("game_bookings").insert([payload]);
+
 
   if (error) {
     alert("Booking failed: " + error.message);
