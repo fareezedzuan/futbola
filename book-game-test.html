@@ -644,7 +644,32 @@ async function bookGame(gameId, form) {
     alert("Please enter guest name and phone.");
     return;
   }
-
+// 🆕 If football + position selection, require a position
+let position = null;
+try {
+  if (typeof game !== 'undefined' && game && game.game_type === 'football' && game.position_selection) {
+    position = form.position?.value || null;
+    if (!position) {
+      alert("Please select a position.");
+      submitButton.disabled = false; submitButton.textContent = "✅ Book Now";
+      return;
+    }
+    // Best-effort client-side cap check
+    const caps = game.position_limits || {};
+    if (caps && caps[position]) {
+      const { data: rows } = await supabase
+        .from("game_bookings")
+        .select("position")
+        .eq("game_id", gameId);
+      const taken = (rows || []).filter(r => r.position === position).length;
+      if (taken >= (caps[position] | 0)) {
+        alert("That position is already full. Please choose another.");
+        submitButton.disabled = false; submitButton.textContent = "✅ Book Now";
+        return;
+      }
+    }
+  }
+} catch (_e) {}
   
   // ✅ Check if game full
   const [{ data: bookings }, { data: game }] = await Promise.all([
