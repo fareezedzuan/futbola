@@ -82,6 +82,18 @@
 .pv-slot.empty{ border-style:dashed; opacity:.65 }
 .pv-slot img{ width:100%; height:100%; object-fit:cover }
 
+/* tiny name under each avatar */
+.pv-name{
+  font:700 9px/1.1 system-ui;
+  color:#111;
+  text-align:center;
+  margin-top:2px;
+  max-width:50px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
 /* label BELOW the avatars, clean black text */
 .pv-label{
   color:#111; font:800 12px/1.1 system-ui;
@@ -515,14 +527,24 @@ slots.forEach((slot,idx)=>{
 
   for (let i=0; i<slot.playersPerPos; i++){
     const s = document.createElement('div'); s.className='pv-slot';
-    if ((i+idx)%bookedEvery===0){
-      const img=document.createElement('img');
-      img.src=demoFaces[(i+idx)%demoFaces.length];
-      s.appendChild(img);
-    } else {
-      s.classList.add('empty');
-    }
-    row.appendChild(s);
+if ((i+idx)%bookedEvery===0){
+  const img=document.createElement('img');
+  img.src=demoFaces[(i+idx)%demoFaces.length];
+  s.appendChild(img);
+
+  // 🔹 add name label under avatar
+  const nm=document.createElement('div');
+  nm.className='pv-name';
+  nm.textContent = slot.names?.[i] || `P${i+1}`;  // fallback name
+  s.appendChild(nm);
+} else {
+  s.classList.add('empty');
+  const nm=document.createElement('div');
+  nm.className='pv-name';
+  nm.textContent='—';
+  s.appendChild(nm);
+}
+row.appendChild(s);
   }
 
   node.appendChild(row); // avatars first
