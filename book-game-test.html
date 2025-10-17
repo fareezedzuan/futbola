@@ -562,8 +562,13 @@ async function renderPitchForGame(game){
     const row = document.createElement('div');
     row.className = 'pv-row';
 
-  const baseKey = slot.key.replace(/[0-9]+$/,'');
-const taken = byPos[baseKey] || [];
+// ensure unique mapping per numbered position (CB1 != CB2, CM1 != CM2)
+let taken = byPos[slot.key];
+if (!taken || !taken.length) {
+  // fallback to base key if there’s no direct match
+  const baseKey = slot.key.replace(/[0-9]+$/, '');
+  taken = byPos[baseKey] || [];
+}
 for (let i=0; i<slot.playersPerPos; i++){
   const item = document.createElement('div'); item.className = 'pv-item';
   const s = document.createElement('div'); s.className = 'pv-slot';
