@@ -506,7 +506,7 @@ function buildPitchNodesFromLimits(limits){
   if(get('RW')) push('RW',1,68,84,Y.F);
   if(get('DM')) push('DM',1,42,58,Y.M+4);
   if(get('CM')) push('CM', Math.min((get('CM')/2)|0,2), 32,68,Y.M);
-  if(get('LB')) push('LB',1,16,32,Y.D);   // was (16,28)
+  if(get('LB')) push('LB',1,16,22,Y.D);   // was (16,28)
   if(get('CB')) push('CB', Math.min((get('CB')/2)|0,2), 36,64,Y.D);
   if(get('RB')) push('RB',1,78,90,Y.D);   // was (72,84)
   if(get('GK')) push('GK',1,46,54,Y.GK);
