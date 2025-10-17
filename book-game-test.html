@@ -552,6 +552,8 @@ async function renderPitchForGame(game){
   });
 
   const slots = buildPitchNodesFromLimits(limits);
+  // advance-by-consumption map so CM1 uses [0..1], CM2 uses [2..3], etc.
+const posCursor = {};  // key → next start index
 
   slots.forEach((slot)=>{
     const node = document.createElement('div');
@@ -563,11 +565,19 @@ async function renderPitchForGame(game){
     row.className = 'pv-row';
 
 // ensure unique mapping per numbered position (CB1 != CB2, CM1 != CM2)
-// ensure unique mapping per numbered position (CB1 != CB2, CM1 != CM2)
-const rawKey  = slot.key;                       // e.g., "CB1"
-const baseKey = rawKey.replace(/[0-9]+$/, '');  // e.g., "CB"
+const rawKey  = slot.key;                     // e.g., "CM1"
+const baseKey = rawKey.replace(/[0-9]+$/, ''); // e.g., "CM"
+
+// prefer exact key (CM1) if present; otherwise fall back to base (CM)
 let taken = byPos[rawKey];
-if (!taken || !taken.length) taken = byPos[baseKey] || [];
+let cursorKey = rawKey;
+if (!taken || !taken.length) {
+  taken = byPos[baseKey] || [];
+  cursorKey = baseKey;
+}
+
+// figure out where to start consuming for this group
+let start = posCursor[cursorKey] || 0;
 
 for (let i = 0; i < slot.playersPerPos; i++) {
   const item = document.createElement('div');
@@ -576,10 +586,10 @@ for (let i = 0; i < slot.playersPerPos; i++) {
   const s = document.createElement('div');
   s.className = 'pv-slot';
 
-  // subs pick by slot.subIndex; normal positions pick by i
+  // SUB nodes use fixed index per stack; others consume sequentially
   const player = (baseKey === 'SUB' && slot.playersPerPos === 1)
     ? taken[slot.subIndex]
-    : taken[i];
+    : taken[start + i];
 
   if (player && player.avatar) {
     const img = document.createElement('img');
@@ -600,9 +610,14 @@ for (let i = 0; i < slot.playersPerPos; i++) {
   row.appendChild(item);
 }
 
+// advance consumption for this group (SUB handled by subIndex already)
+if (baseKey !== 'SUB') {
+  posCursor[cursorKey] = start + slot.playersPerPos;
+}
+
 node.appendChild(row);
 
-// Label: only once for SUB (bottom-most), otherwise show rawKey (CB1/CB2, CM1/CM2…)
+// label once for SUB (on the bottom), otherwise show rawKey (CM1/CM2)
 const shouldLabel = !slot.isSub || slot.subIndex === (slot.subCount - 1);
 if (shouldLabel) {
   const lbl = document.createElement('div');
