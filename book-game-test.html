@@ -563,42 +563,51 @@ async function renderPitchForGame(game){
     row.className = 'pv-row';
 
 // ensure unique mapping per numbered position (CB1 != CB2, CM1 != CM2)
-let taken = byPos[slot.key];
-if (!taken || !taken.length) {
-  // fallback to base key if there’s no direct match
-  const baseKey = slot.key.replace(/[0-9]+$/, '');
-  taken = byPos[baseKey] || [];
-}
-for (let i=0; i<slot.playersPerPos; i++){
-  const item = document.createElement('div'); item.className = 'pv-item';
-  const s = document.createElement('div'); s.className = 'pv-slot';
+// ensure unique mapping per numbered position (CB1 != CB2, CM1 != CM2)
+const rawKey  = slot.key;                       // e.g., "CB1"
+const baseKey = rawKey.replace(/[0-9]+$/, '');  // e.g., "CB"
+let taken = byPos[rawKey];
+if (!taken || !taken.length) taken = byPos[baseKey] || [];
 
-  // pick a DISTINCT sub player by subIndex; normal positions use i
+for (let i = 0; i < slot.playersPerPos; i++) {
+  const item = document.createElement('div');
+  item.className = 'pv-item';
+
+  const s = document.createElement('div');
+  s.className = 'pv-slot';
+
+  // subs pick by slot.subIndex; normal positions pick by i
   const player = (baseKey === 'SUB' && slot.playersPerPos === 1)
     ? taken[slot.subIndex]
     : taken[i];
 
-  if (player){
+  if (player && player.avatar) {
     const img = document.createElement('img');
-    img.src = player.avatar || 'images/default-avatar.png';
+    img.src = player.avatar;
+    img.onerror = () => { img.src = 'images/default-avatar.png'; };
     s.appendChild(img);
   } else {
     s.classList.add('empty');
   }
 
   item.appendChild(s);
+
   const nm = document.createElement('div');
   nm.className = 'pv-name';
-  nm.textContent = player ? player.name : '—';
+  nm.textContent = player ? (player.name || 'Player') : '—';
   item.appendChild(nm);
+
   row.appendChild(item);
 }
-node.appendChild(row);   // <-- add the avatars row to the node
-// label: only once for SUB (on the last stacked node), normal elsewhere
-if (!slot.isSub || (slot.isSub && slot.subIndex === (slot.subCount - 1))) {
+
+node.appendChild(row);
+
+// Label: only once for SUB (bottom-most), otherwise show rawKey (CB1/CB2, CM1/CM2…)
+const shouldLabel = !slot.isSub || slot.subIndex === (slot.subCount - 1);
+if (shouldLabel) {
   const lbl = document.createElement('div');
   lbl.className = 'pv-label';
-  lbl.textContent = slot.isSub ? 'SUB' : slot.key;
+  lbl.textContent = slot.isSub ? 'SUB' : rawKey;
   node.appendChild(lbl);
 }
 
