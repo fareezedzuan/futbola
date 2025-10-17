@@ -272,7 +272,7 @@ const { data: allBookings } = await supabase
   .select("game_id");
 
 const bookingCountMap = {};
-allBookings.forEach(b => {
+(allBookings || []).forEach(b => {
   if (!bookingCountMap[b.game_id]) bookingCountMap[b.game_id] = 0;
   bookingCountMap[b.game_id]++;
 });
@@ -438,7 +438,7 @@ function buildPositionOptions(limits, counts) {
     ? datedGames.filter(g => g.game_date === selectedDate)
     : datedGames.slice(0, 3);
 
-  [...filtered, ...premiumGames].forEach(game => {
+  [...filtered, ...premiumGames].forEach(async (game) => {
     const startDateTime = new Date(`${game.game_date}T${game.start_time}`);
     const isPast = startDateTime < new Date();
     const div = document.createElement("div");
@@ -535,10 +535,10 @@ if (game.game_type === 'football' && game.position_selection) {
     }
 
     // bind form submit
-    document.getElementById(`form-${game.id}`)?.addEventListener("submit", (e) => {
-      e.preventDefault();
-      bookGame(game.id, e.target);
-    });
+document.getElementById(`form-${game.id}`)?.addEventListener("submit", (e) => {
+  e.preventDefault();
+  bookGame(game.id, e.target, game);
+});
 
     // load players (optional: hook up game logic)
     loadPlayers(game.id, game.game_date);
@@ -624,7 +624,7 @@ async function loadPlayers(gameId, gameDate) {
 
 console.log(user?.user_metadata?.avatar_url);
 
-async function bookGame(gameId, form) {
+async function bookGame(gameId, form, game) {
   const submitButton = form.querySelector('button[type="submit"]');
   submitButton.disabled = true;
   submitButton.textContent = "⏳ Booking...";
