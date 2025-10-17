@@ -481,18 +481,22 @@ function buildPitchNodesFromLimits(limits){
   if(get('RB')) push('RB',1,78,90,Y.D);   // was (72,84)
   if(get('GK')) push('GK',1,46,54,Y.GK);
   // show SUBs vertically outside top-right corner
-  if (get('SUB')) {
-    const subCount = Math.min(get('SUB'), 3);
-    const yPositions = [20, 35, 50]; // vertical alignment
-    for (let i = 0; i < subCount; i++) {
-      out.push({
-        key: `SUB${i+1}`,
-        x: 96,        // near right edge of pitch
-        y: yPositions[i],
-        playersPerPos: 1              // one circle each
-      });
-    }
+// show SUBs vertically outside top-right corner (with metadata)
+if (get('SUB')) {
+  const subCount = Math.min(get('SUB'), 3);
+  const yPositions = [20, 35, 50]; // vertical alignment
+  for (let i = 0; i < subCount; i++) {
+    out.push({
+      key: `SUB${i+1}`,
+      x: 96,
+      y: yPositions[i],
+      playersPerPos: 1,
+      isSub: true,
+      subIndex: i,     // which sub this node is (0..2)
+      subCount         // total rendered sub nodes
+    });
   }
+}
   return out;
 }
 async function renderPitchForGame(game){
@@ -528,38 +532,40 @@ async function renderPitchForGame(game){
     const row = document.createElement('div');
     row.className = 'pv-row';
 
-    const taken = byPos[slot.key.replace(/[0-9]+$/,'')] || [];
-    for (let i=0; i<slot.playersPerPos; i++){
-      const item = document.createElement('div');
-      item.className = 'pv-item';
+  const baseKey = slot.key.replace(/[0-9]+$/,'');
+const taken = byPos[baseKey] || [];
+for (let i=0; i<slot.playersPerPos; i++){
+  const item = document.createElement('div'); item.className = 'pv-item';
+  const s = document.createElement('div'); s.className = 'pv-slot';
 
-      const s = document.createElement('div');
-      s.className = 'pv-slot';
+  // pick a DISTINCT sub player by subIndex; normal positions use i
+  const player = (baseKey === 'SUB' && slot.playersPerPos === 1)
+    ? taken[slot.subIndex]
+    : taken[i];
 
-      const player = taken[i];
-      if (player){
-        const img = document.createElement('img');
-        img.src = player.avatar || 'images/default-avatar.png';
-        s.appendChild(img);
-      } else {
-        s.classList.add('empty');
-      }
-      item.appendChild(s);
+  if (player){
+    const img = document.createElement('img');
+    img.src = player.avatar || 'images/default-avatar.png';
+    s.appendChild(img);
+  } else {
+    s.classList.add('empty');
+  }
 
-      const nm = document.createElement('div');
-      nm.className = 'pv-name';
-      nm.textContent = player ? player.name : '—';
-      item.appendChild(nm);
+  item.appendChild(s);
+  const nm = document.createElement('div');
+  nm.className = 'pv-name';
+  nm.textContent = player ? player.name : '—';
+  item.appendChild(nm);
+  row.appendChild(item);
+}
 
-      row.appendChild(item);
-    }
-
-    node.appendChild(row);
-
-    const lbl = document.createElement('div');
-    lbl.className = 'pv-label';
-    lbl.textContent = slot.key;
-    node.appendChild(lbl);
+// label: only once for SUB (on the last stacked node), normal elsewhere
+if (!slot.isSub || (slot.isSub && slot.subIndex === (slot.subCount - 1))) {
+  const lbl = document.createElement('div');
+  lbl.className = 'pv-label';
+  lbl.textContent = slot.isSub ? 'SUB' : slot.key;
+  node.appendChild(lbl);
+}
 
     wrap.appendChild(node);
   });
