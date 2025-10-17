@@ -633,6 +633,57 @@ if (shouldLabel) {
   });
 }
 
+function optimisticPlaceOnPitch(gameId, booking) {
+  const wrap = document.getElementById(`pitch-${gameId}`);
+  if (!wrap) return;
+
+  const avatar = booking?.profiles?.avatar_url || 'images/default-avatar.png';
+  const name   = booking?.profiles?.jersey_name || booking?.jersey_name || 'Player';
+  const pos    = (booking?.position || '').toUpperCase();  // e.g., "CM", "CM1", "GK", "SUB"
+
+  if (!pos) return;
+
+  // helper: find all nodes whose label matches this position group
+  const nodes = [...wrap.querySelectorAll('.pv-pos')].filter(n => {
+    const label = n.querySelector('.pv-label')?.textContent?.trim().toUpperCase() || '';
+    if (!label) return false;
+    if (pos.startsWith('SUB')) return label === 'SUB';  // all subs share one label on last node
+    if (/\d$/.test(pos))      return label === pos;     // exact match (CB1, CM2, ...)
+    return label.startsWith(pos);                       // base role (CM -> CM1/CM2/…)
+  });
+
+  if (!nodes.length) return;
+
+  // choose node:
+  //  - for exact keys (CB1/CM2) use that node
+  //  - for base keys (CM) pick the first node with an empty slot
+  let targetNode = nodes[0];
+  if (!/\d$/.test(pos) && !pos.startsWith('SUB')) {
+    const withEmpty = nodes.find(n => n.querySelector('.pv-slot.empty'));
+    if (withEmpty) targetNode = withEmpty;
+  }
+
+  // fill the first empty slot in that node
+  const emptySlot = targetNode.querySelector('.pv-slot.empty');
+  if (!emptySlot) return;
+
+  emptySlot.classList.remove('empty');
+  const img = document.createElement('img');
+  img.src = avatar;
+  img.onerror = () => { img.src = 'images/default-avatar.png'; };
+  emptySlot.appendChild(img);
+
+  // update/append the name (it sits in the .pv-item under the slot)
+  const item = emptySlot.parentElement; // .pv-item
+  let nm = item.querySelector('.pv-name');
+  if (!nm) {
+    nm = document.createElement('div');
+    nm.className = 'pv-name';
+    item.appendChild(nm);
+  }
+  nm.textContent = name;
+}
+
 //renderGames(today); box.textContent = dayLabel;
 
 function renderGames(selectedDate = null) {
@@ -966,38 +1017,45 @@ if (bookings.length >= gameData.max_players) {
     phone
   };
 if (position) payload.position = position;
-  const { error } = await supabase.from("game_bookings").insert([payload]);
+  const { data: newBooking, error } = await supabase
+  .from("game_bookings")
+  .insert([payload])
+  .select("id, position, jersey_name, user_id, profiles(avatar_url, jersey_name)")
+  .single();
 
-
-  if (error) {
-    alert("Booking failed: " + error.message);
-    console.error(error);
-    submitButton.disabled = false;
-    submitButton.textContent = "✅ Book Now";
-  } else {
-    alert("Booking successful!");
-
-    const { data: gameDetails } = await supabase
-      .from("games")
-      .select("contact_method, contact_link")
-      .eq("id", gameId)
-      .single();
-
-    if (gameDetails?.contact_link) {
-      const method = gameDetails.contact_method || "group";
-      const confirmJoin = confirm(`✅ Booking successful!\n\nWould you like to join the ${method} group for updates?`);
-
-      if (confirmJoin) {
-        window.open(gameDetails.contact_link, "_blank");
-      }
-    }
-
-    loadPlayers(gameId);
-    if (game && game.game_type === 'football' && game.position_selection) { await renderPitchForGame(game); }
-    form.reset();
-    submitButton.disabled = false;
-    submitButton.textContent = "✅ Book Now";
+if (error) {
+  alert("Booking failed: " + error.message);
+  console.error(error);
+  submitButton.disabled = false;
+  submitButton.textContent = "✅ Book Now";
+} else {
+  // ⚡ optimistic: show on pitch immediately (then full refresh below)
+  if (game && game.game_type === 'football' && game.position_selection && newBooking?.position) {
+    try { optimisticPlaceOnPitch(game.id, newBooking); } catch (_) {}
   }
+
+  alert("Booking successful!");
+
+  const { data: gameDetails } = await supabase
+    .from("games")
+    .select("contact_method, contact_link")
+    .eq("id", gameId)
+    .single();
+
+  if (gameDetails?.contact_link) {
+    const method = gameDetails.contact_method || "group";
+    const confirmJoin = confirm(`✅ Booking successful!\n\nWould you like to join the ${method} group for updates?`);
+    if (confirmJoin) window.open(gameDetails.contact_link, "_blank");
+  }
+
+  // refresh list + pitch to reconcile state
+  loadPlayers(gameId);
+  if (game && game.game_type === 'football' && game.position_selection) { await renderPitchForGame(game); }
+
+  form.reset();
+  submitButton.disabled = false;
+  submitButton.textContent = "✅ Book Now";
+}
 }
 
 function formatPayment(type) {
