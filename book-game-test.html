@@ -206,12 +206,19 @@
 .pv-label{
   color:#111; font:800 12px/1.1 system-ui; text-shadow:none; margin:0; text-align:center;
 }
-@media (max-width:560px){
-  .pitch-wrap{ max-width:100%; aspect-ratio:468/320; }
-  .pv-slot{ width:32px; height:32px }
-  .pv-item{ margin-left:-8px }
-  .pv-name{ font-size:8.5px; max-width:48px }
-  .pv-label{ font-size:11px }
+/* 📱 mobile & portrait: make pitch taller (more vertical space) */
+@media (max-width:600px){
+  .pitch-wrap{
+    max-width:100%;
+    aspect-ratio: 468 / 380;     /* was 468 / 300 → taller */
+    background-size: cover;      /* keep proportions */
+  }
+
+  /* keep avatar size reasonable */
+  .pv-slot{ width:34px; height:34px; }
+  .pv-item{ margin-left:-8px; }
+  .pv-name{ font-size:8.5px; max-width:50px; }
+  .pv-label{ font-size:11px; }
 }
 
   </style>
