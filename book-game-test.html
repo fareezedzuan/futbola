@@ -672,12 +672,12 @@ try {
 } catch (_e) {}
   
   // ✅ Check if game full
-  const [{ data: bookings }, { data: game }] = await Promise.all([
+  const [{ data: bookings }, { data: gameData }] = await Promise.all([
     supabase.from("game_bookings").select("id").eq("game_id", gameId),
     supabase.from("games").select("max_players").eq("id", gameId).single()
   ]);
-  if (bookings.length >= game.max_players) {
-    alert("This game is already full.");
+if (bookings.length >= gameData.max_players) {
+  alert("This game is already full.");
     loadPlayers(gameId);
     return;
   }
