@@ -55,53 +55,69 @@
     .count-toggle span{ min-width:40px; display:grid; place-items:center; background:#f8fafc; border-left:1px solid #e5e7eb; border-right:1px solid #e5e7eb }
 
     /* Pitch preview (upright template) */
-    .pitch-wrap{
-      position:relative; width:100%; aspect-ratio: 468 / 351; /* match your provided image proportion */
-      background: #2f8d3a url('./images/pitch-upright.png') center/cover no-repeat;
-      /* ^^^ replace with your asset path – same orientation as the PNG you shared */
-      border-radius:12px; overflow:hidden; box-shadow:inset 0 0 0 2px #e5ffe5
-    }
-/* Pitch positions display: side-by-side and black labels */
+/* Bigger pitch */
+.pitch-wrap{
+  position:relative;
+  width:100%;
+  max-width: 820px;        /* larger on desktop */
+  margin: 0 auto;          /* centered */
+  aspect-ratio: 468 / 300; /* a touch taller */
+  background:#2f8d3a url('./images/pitch-upright.png') center/cover no-repeat;
+  border-radius:12px; overflow:hidden; box-shadow:inset 0 0 0 2px #e5ffe5;
+}
+
+/* Each position node: avatars in a row, label below */
 .pv-pos{
   position:absolute;
   transform:translate(-50%, -50%);
   display:flex;
-  flex-direction:column;     /* stack vertically again */
+  flex-direction:column;   /* row of avatars, then label */
   align-items:center;
-  gap:4px;
+  gap:6px;
 }
+
+/* Row that holds the two avatar circles */
+.pv-row{
+  display:flex;
+  align-items:center;
+  gap:0;                   /* overlap via negative margin in .pv-slot */
+}
+
+/* Avatar circles with slight overlap */
 .pv-slot{
-  width:40px;
-  height:40px;
+  width:44px; height:44px;             /* a bit bigger */
   border-radius:50%;
-  border:3px solid rgba(0,0,0,.85);  /* darker border for contrast */
+  border:3px solid rgba(0,0,0,.9);
   background:rgba(255,255,255,.25);
   overflow:hidden;
-  display:grid;
-  place-items:center;
+  display:grid; place-items:center;
+  margin-left:-10px;                    /* overlap */
 }
-.pv-slot.empty{
-  border-style:dashed;
-  opacity:.65;
-}
-.pv-slot img{
-  width:100%;
-  height:100%;
-  object-fit:cover;
-}
+.pv-slot:first-child{ margin-left:0; }  /* no overlap on the first */
+.pv-slot.empty{ border-style:dashed; opacity:.65 }
+.pv-slot img{ width:100%; height:100%; object-fit:cover }
+
+/* Position label below */
 .pv-label{
-  color:#111;                /* black font */
-  font:800 11px/1.1 system-ui;
+  color:#111;
+  font:800 12px/1.1 system-ui;          /* slightly larger */
   text-shadow:none;
   margin:0;
   text-align:center;
 }
-    .pv-legend{ display:flex; gap:14px; align-items:center; font-size:12px; color:#334155; margin-top:8px }
-    .pv-dot{ width:12px; height:12px; border-radius:50%; display:inline-block; border:2px solid #0a7d2f; background:#0a7d2f }
-    .pv-dot.empty{ border-color:#cbd5e1; background:#e2e8f0 }
-    @media (max-width:520px){
-  .pv-slot{ width:32px; height:32px; }
-  .pv-label{ font-size:10px; margin-left:4px; }
+
+/* Optional: tiny name under each avatar */
+.pv-name{
+  font:700 9px/1.1 system-ui;
+  color:#111; text-align:center;
+  margin-top:2px; max-width:60px;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+
+@media (max-width:560px){
+  .pitch-wrap{ max-width: 100%; aspect-ratio: 468 / 320; }
+  .pv-slot{ width:36px; height:36px; margin-left:-8px; }
+  .pv-label{ font-size:11px; }
 }
 
     /* Button */
@@ -515,18 +531,44 @@
       const slots = buildPreviewSlots(cfg);
       const demoFaces = ["https://i.pravatar.cc/100?img=12","https://i.pravatar.cc/100?img=14","https://i.pravatar.cc/100?img=21","https://i.pravatar.cc/100?img=27","https://i.pravatar.cc/100?img=33"];
       const bookedEvery = 2; // demo: half booked
-      slots.forEach((slot,idx)=>{
-        const node=document.createElement('div'); node.className='pv-pos';
-        node.style.left=slot.x+'%'; node.style.top=slot.y+'%';
-        for(let i=0;i<slot.playersPerPos;i++){
-          const s=document.createElement('div'); s.className='pv-slot';
-          if((i+idx)%bookedEvery===0){ const img=document.createElement('img'); img.src=demoFaces[(i+idx)%demoFaces.length]; s.appendChild(img); }
-          else s.classList.add('empty');
-          node.appendChild(s);
-        }
-        const lbl=document.createElement('div'); lbl.className='pv-label'; lbl.textContent=slot.key; node.appendChild(lbl);
-        wrap.appendChild(node);
-      });
+slots.forEach((slot,idx)=>{
+  const node = document.createElement('div');
+  node.className = 'pv-pos';
+  node.style.left = slot.x + '%';
+  node.style.top  = slot.y + '%';
+
+  // row to keep two avatars side-by-side with slight overlap
+  const row = document.createElement('div');
+  row.className = 'pv-row';
+
+  for (let i=0; i<slot.playersPerPos; i++){
+    const s = document.createElement('div');
+    s.className = 'pv-slot';
+    // demo fill; replace with real roster mapping if you have it
+    if ((i+idx)%2===0){
+      const img = document.createElement('img');
+      img.src = pickFace(i+idx);
+      s.appendChild(img);
+      // OPTIONAL name:
+      // const nm = document.createElement('div');
+      // nm.className = 'pv-name';
+      // nm.textContent = (slot.names && slot.names[i]) || '';
+      // s.appendChild(nm);
+    } else {
+      s.classList.add('empty');
+    }
+    row.appendChild(s);
+  }
+
+  node.appendChild(row);
+
+  const lbl = document.createElement('div');
+  lbl.className = 'pv-label';
+  lbl.textContent = slot.key;
+  node.appendChild(lbl);
+
+  wrap.appendChild(node);
+});
     }
 
     // ====== Contact link normalizer ======
