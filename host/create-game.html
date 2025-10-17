@@ -61,12 +61,33 @@
       /* ^^^ replace with your asset path – same orientation as the PNG you shared */
       border-radius:12px; overflow:hidden; box-shadow:inset 0 0 0 2px #e5ffe5
     }
-    .pv-pos{ position:absolute; transform:translate(-50%, -50%); display:flex; flex-direction:column; align-items:center; gap:6px }
-    .pv-slot{ width:40px; height:40px; border-radius:50%; border:3px solid rgba(255,255,255,.95); background:rgba(255,255,255,.12); overflow:hidden; display:grid; place-items:center }
-    .pv-slot.empty{ border-style:dashed; opacity:.65 }
-    .pv-slot img{ width:100%; height:100%; object-fit:cover }
-    .pv-label{ color:#111; font:800 11px/1.1 system-ui; text-shadow:0 1px 1px rgba(0,0,0,.6) }
-    .pv-legend{ display:flex; gap:14px; align-items:center; font-size:12px; color:#334155; margin-top:8px }
+/* keep node vertical: avatars row then label */
+.pv-pos{
+  position:absolute; transform:translate(-50%, -50%);
+  display:flex; flex-direction:column; align-items:center; gap:6px;
+}
+
+/* NEW: a row wrapper so the two avatars sit side-by-side */
+.pv-row{ display:flex; align-items:center; gap:0; }
+
+/* avatar circles, with a tiny overlap */
+.pv-slot{
+  width:44px; height:44px; border-radius:50%;
+  border:3px solid rgba(0,0,0,.9);
+  background:rgba(255,255,255,.25);
+  overflow:hidden; display:grid; place-items:center;
+  margin-left:-10px;              /* overlap */
+}
+.pv-slot:first-child{ margin-left:0; }
+.pv-slot.empty{ border-style:dashed; opacity:.65 }
+.pv-slot img{ width:100%; height:100%; object-fit:cover }
+
+/* label BELOW the avatars, clean black text */
+.pv-label{
+  color:#111; font:800 12px/1.1 system-ui;
+  text-shadow:none; margin:0; text-align:center;
+}
+  .pv-legend{ display:flex; gap:14px; align-items:center; font-size:12px; color:#334155; margin-top:8px }
     .pv-dot{ width:12px; height:12px; border-radius:50%; display:inline-block; border:2px solid #0a7d2f; background:#0a7d2f }
     .pv-dot.empty{ border-color:#cbd5e1; background:#e2e8f0 }
     @media (max-width:520px){ .pv-slot{ width:32px; height:32px } }
@@ -482,18 +503,33 @@
       const slots = buildPreviewSlots(cfg);
       const demoFaces = ["https://i.pravatar.cc/100?img=12","https://i.pravatar.cc/100?img=14","https://i.pravatar.cc/100?img=21","https://i.pravatar.cc/100?img=27","https://i.pravatar.cc/100?img=33"];
       const bookedEvery = 2; // demo: half booked
-      slots.forEach((slot,idx)=>{
-        const node=document.createElement('div'); node.className='pv-pos';
-        node.style.left=slot.x+'%'; node.style.top=slot.y+'%';
-        for(let i=0;i<slot.playersPerPos;i++){
-          const s=document.createElement('div'); s.className='pv-slot';
-          if((i+idx)%bookedEvery===0){ const img=document.createElement('img'); img.src=demoFaces[(i+idx)%demoFaces.length]; s.appendChild(img); }
-          else s.classList.add('empty');
-          node.appendChild(s);
-        }
-        const lbl=document.createElement('div'); lbl.className='pv-label'; lbl.textContent=slot.key; node.appendChild(lbl);
-        wrap.appendChild(node);
-      });
+slots.forEach((slot,idx)=>{
+  const node = document.createElement('div');
+  node.className = 'pv-pos';
+  node.style.left = slot.x + '%';
+  node.style.top  = slot.y + '%';
+
+  // row = keep two avatars on one line (with overlap via CSS)
+  const row = document.createElement('div');
+  row.className = 'pv-row';
+
+  for (let i=0; i<slot.playersPerPos; i++){
+    const s = document.createElement('div'); s.className='pv-slot';
+    if ((i+idx)%bookedEvery===0){
+      const img=document.createElement('img');
+      img.src=demoFaces[(i+idx)%demoFaces.length];
+      s.appendChild(img);
+    } else {
+      s.classList.add('empty');
+    }
+    row.appendChild(s);
+  }
+
+  node.appendChild(row); // avatars first
+  const lbl = document.createElement('div'); lbl.className='pv-label'; lbl.textContent=slot.key;
+  node.appendChild(lbl); // label below
+  wrap.appendChild(node);
+});
     }
 
     // ====== Contact link normalizer ======
