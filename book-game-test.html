@@ -206,19 +206,26 @@
 .pv-label{
   color:#111; font:800 12px/1.1 system-ui; text-shadow:none; margin:0; text-align:center;
 }
-/* 📱 mobile & portrait: make pitch taller (more vertical space) */
+/* 📱 phones: make pitch taller vertically (keep width) */
 @media (max-width:600px){
   .pitch-wrap{
     max-width:100%;
-    aspect-ratio: 468 / 380;     /* was 468 / 300 → taller */
-    background-size: cover;      /* keep proportions */
+    aspect-ratio: 468 / 420;   /* was 380 → taller */
+    background-size: cover;
   }
+  .pv-slot{ width:34px; height:34px }
+  .pv-item{ margin-left:-8px }
+  .pv-name{ font-size:8.5px; max-width:50px }
+  .pv-label{ font-size:11px }
+}
 
-  /* keep avatar size reasonable */
-  .pv-slot{ width:34px; height:34px; }
-  .pv-item{ margin-left:-8px; }
-  .pv-name{ font-size:8.5px; max-width:50px; }
-  .pv-label{ font-size:11px; }
+/* 📱 extra-small (SE / zoomed displays): even taller */
+@media (max-width:380px){
+  .pitch-wrap{
+    aspect-ratio: 468 / 460;   /* stretch more top/bottom */
+  }
+  .pv-slot{ width:32px; height:32px }
+  .pv-item{ margin-left:-7px }
 }
 
   </style>
