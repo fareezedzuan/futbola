@@ -558,7 +558,7 @@ for (let i=0; i<slot.playersPerPos; i++){
   item.appendChild(nm);
   row.appendChild(item);
 }
-
+node.appendChild(row);   // <-- add the avatars row to the node
 // label: only once for SUB (on the last stacked node), normal elsewhere
 if (!slot.isSub || (slot.isSub && slot.subIndex === (slot.subCount - 1))) {
   const lbl = document.createElement('div');
