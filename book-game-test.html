@@ -745,18 +745,6 @@ ${ (game.game_type === 'football' && game.position_selection) ? `
   <div id="pitch-${game.id}" class="pitch-wrap" aria-label="Pitch"></div>
 ` : `` }
 
-${ game.team_selection ? `
-  <div style="display:flex;gap:10px;align-items:center;margin:8px 0;">
-    <strong style="color:#702963">Team</strong>
-    <label style="display:inline-flex;gap:12px;align-items:center;border:1px solid #e5e7eb;border-radius:999px;padding:6px 10px;">
-      <input type="radio" name="team-${game.id}" value="A" checked>
-      <span>${game.team_a_name || 'Futbola A'}</span>
-      <input type="radio" name="team-${game.id}" value="B" style="margin-left:16px">
-      <span>${game.team_b_name || 'Futbola B'}</span>
-    </label>
-  </div>
-` : `` }
-
       </div>
       
     ${isPast ? `
@@ -1048,7 +1036,7 @@ if (position) payload.position = position;
 // require team selection if the game uses teams
 let selectedTeam = null;
 if (game?.team_selection) {
-  selectedTeam = form.querySelector(`#team-select-${gameId}`)?.value || "";
+ selectedTeam = document.querySelector(`#team-select-${gameId}`)?.value || "";
   if (!selectedTeam) {
     alert("Please select your team.");
     submitButton.disabled = false; submitButton.textContent = "✅ Book Now";
