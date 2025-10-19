@@ -1079,22 +1079,78 @@ try {
       submitButton.disabled = false; submitButton.textContent = "✅ Book Now";
       return;
     }
-    // Best-effort client-side cap check
-    const caps = game.position_limits || {};
-    if (caps && caps[position]) {
-      const { data: rows } = await supabase
-        .from("game_bookings")
-        .select("position")
-        .eq("game_id", gameId);
-      const taken = (rows || []).filter(r => r.position === position).length;
-      if (taken >= (caps[position] | 0)) {
-        alert("That position is already full. Please choose another.");
-        submitButton.disabled = false; submitButton.textContent = "✅ Book Now";
-        return;
-      }
+async function bookGame(gameId, form, game) {
+  const submitButton = form.querySelector('button[type="submit"]');
+  submitButton.disabled = true;
+  submitButton.textContent = "⏳ Booking...";
+
+  const selfBooking = form.selfBooking?.checked;
+  const jersey_name = form.jersey_name?.value?.trim();
+  const phone = form.phone?.value?.trim();
+
+  // 🚫 For guests, jersey_name and phone required
+  if (!user && (!jersey_name || !phone)) {
+    alert("Please enter both jersey name and phone number.");
+    return;
+  }
+
+  // 🚫 For user booking someone else, fields required
+  if (user && !selfBooking && (!jersey_name || !phone)) {
+    alert("Please enter guest name and phone.");
+    return;
+  }
+// 🆕 If football + position selection, require a position
+let position = null;
+try {
+  if (typeof game !== 'undefined' && game && game.game_type === 'football' && game.position_selection) {
+    position = form.position?.value || null;
+    if (!position) {
+      alert("Please select a position.");
+      submitButton.disabled = false; submitButton.textContent = "✅ Book Now";
+      return;
+    }
+// Best-effort client-side cap check (TEAM-AWARE + base position)
+try {
+  const caps = game.position_limits || {};
+
+  // position could be CM / CB / GK (no numbers). If you ever pass CM1/CM2 later,
+  // we normalize to its base key for cap lookup & counting.
+  const basePos = (position || '').toUpperCase().replace(/[0-9]+$/, '');
+  const cap = caps[basePos] | 0;
+
+  if (cap > 0) {
+    // read team from the dropdown (not from the form; selector may be outside the form)
+    const selectedTeam =
+      document.querySelector(`#team-select-${gameId}`)?.value || '';
+
+    // build query filtered by team if team_selection is ON and a team was chosen
+    let q = supabase
+      .from('game_bookings')
+      .select('position, team_side')
+      .eq('game_id', gameId);
+
+    if (game?.team_selection && selectedTeam) {
+      q = q.eq('team_side', selectedTeam.toUpperCase()); // ← TEAM FILTER
+    }
+
+    const { data: rows } = await q;
+
+    // count taken seats for THIS base position only (e.g., 'CM')
+    const taken = (rows || []).filter(r =>
+      (r.position || '').toUpperCase().replace(/[0-9]+$/, '') === basePos
+    ).length;
+
+    if (taken >= cap) {
+      alert('That position is already full for the selected team. Please choose another.');
+      submitButton.disabled = false;
+      submitButton.textContent = '✅ Book Now';
+      return;
     }
   }
+} catch (_) { /* ignore precheck errors; server will still enforce */ }
+  }
 } catch (_e) {}
+  }
   
   // ✅ Check if game full
   const [{ data: bookings }, { data: gameData }] = await Promise.all([
