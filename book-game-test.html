@@ -346,6 +346,8 @@ const bookingCountMap = {};
   if (!bookingCountMap[b.game_id]) bookingCountMap[b.game_id] = 0;
   bookingCountMap[b.game_id]++;
 });
+// ids for the games shown on this page (used by the team+position preload)
+const gameIds = (games || []).map(g => g.id);
 
 // counts by team + position for all games rendered
 let posTeamCounts = {};
@@ -650,10 +652,11 @@ if (shouldLabel) {
   });
 }
 
-function optimisticPlaceOnPitch(gameId, booking) {
-  const wrap = document.getElementById(`pitch-${gameId}`);
+function optimisticPlaceOnPitch(gameId, booking, hasTeams=false) {
+  const teamSide = (booking?.team_side || 'A').toUpperCase();
+  const wrapId = hasTeams ? `pitch-${gameId}-${teamSide}` : `pitch-${gameId}`;
+  const wrap = document.getElementById(wrapId);
   if (!wrap) return;
-
   const avatar = booking?.profiles?.avatar_url || 'images/default-avatar.png';
   const name   = booking?.profiles?.jersey_name || booking?.jersey_name || 'Player';
   const pos    = (booking?.position || '').toUpperCase();  // e.g., "CM", "CM1", "GK", "SUB"
@@ -859,9 +862,7 @@ function buildPositionOptions(limits, counts) {
 ` : (game.game_type === 'football' && game.position_selection) ? `
   <div class="pitch-wrap" id="pitch-${game.id}" aria-label="Pitch"></div>
 ` : `` }
-${ (game.game_type === 'football' && game.position_selection) ? `
-  <div id="pitch-${game.id}" class="pitch-wrap" aria-label="Pitch"></div>
-` : `` }
+
       </div>
     ${isPast ? `
       <p style="color:#999; font-size:14px; font-weight:bold; margin:10px 0;">📅 Past session</p>
@@ -882,8 +883,7 @@ ${ (game.game_type === 'football' && game.position_selection) ? `
           <input name="jersey_name" placeholder="Enter jersey name" required />
           <input name="phone" placeholder="Enter phone number" type="tel" required />
         `}
-        <button type="submit">✅ Book Now</button>
-        ${ (game.game_type === 'football' && game.position_selection) ? `
+        <button type="submit">✅ Book Now</button>\
   <label style="font-weight:700;color:#702963;margin-top:8px">Position <small id="team-hint-${game.id}" style="color:#64748b"></small></label>
   <select name="position" id="pos-${game.id}" required>
     <option value="">Loading positions…</option>
@@ -1193,8 +1193,15 @@ if (error) {
   }
 
   // refresh list + pitch to reconcile state
-  loadPlayers(gameId);
-  if (game && game.game_type === 'football' && game.position_selection) { await renderPitchForGame(game); }
+loadPlayers(gameId);
+if (game && game.game_type === 'football' && game.position_selection) {
+  if (game.team_selection) {
+    await renderTeamPitch(game, 'A');
+    await renderTeamPitch(game, 'B');
+  } else {
+    await renderPitchForGame(game);
+  }
+}
 
   form.reset();
   submitButton.disabled = false;
