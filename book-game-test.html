@@ -346,25 +346,6 @@ const bookingCountMap = {};
   if (!bookingCountMap[b.game_id]) bookingCountMap[b.game_id] = 0;
   bookingCountMap[b.game_id]++;
 });
-// ids for the games shown on this page (used by the team+position preload)
-const gameIds = (games || []).map(g => g.id);
-
-// counts by team + position for all games rendered
-let posTeamCounts = {};
-if (gameIds.length) {
-  const { data: rowsTP } = await supabase
-    .from("game_bookings")
-    .select("game_id, position, team_side")
-    .in("game_id", gameIds);
-
-  (rowsTP || []).forEach(r => {
-    const gid = r.game_id;
-    const team = (r.team_side || 'A').toUpperCase(); // default A if null
-    const pos  = (r.position || 'SUB').toUpperCase();
-    posTeamCounts[gid] ||= { A:{}, B:{} };
-    posTeamCounts[gid][team][pos] = (posTeamCounts[gid][team][pos] || 0) + 1;
-  });
-}
 
 if (error) {
   container.innerHTML = "<p>Error loading games</p>";
@@ -652,11 +633,10 @@ if (shouldLabel) {
   });
 }
 
-function optimisticPlaceOnPitch(gameId, booking, hasTeams=false) {
-  const teamSide = (booking?.team_side || 'A').toUpperCase();
-  const wrapId = hasTeams ? `pitch-${gameId}-${teamSide}` : `pitch-${gameId}`;
-  const wrap = document.getElementById(wrapId);
+function optimisticPlaceOnPitch(gameId, booking) {
+  const wrap = document.getElementById(`pitch-${gameId}`);
   if (!wrap) return;
+
   const avatar = booking?.profiles?.avatar_url || 'images/default-avatar.png';
   const name   = booking?.profiles?.jersey_name || booking?.jersey_name || 'Player';
   const pos    = (booking?.position || '').toUpperCase();  // e.g., "CM", "CM1", "GK", "SUB"
@@ -706,104 +686,6 @@ function optimisticPlaceOnPitch(gameId, booking, hasTeams=false) {
 
 //renderGames(today); box.textContent = dayLabel;
 
-function buildPositionOptionsByTeam(limits, countsForTeam) {
-  const POS = ['GK','CB','LB','RB','DM','CM','LW','RW','ST','SUB'];
-  if (!limits) return POS.map(p => `<option value="${p}">${p}</option>`).join('');
-  return POS.filter(p => (limits[p]|0) > 0).map(p => {
-    const cap = limits[p] | 0;
-    const taken = (countsForTeam && countsForTeam[p]) ? countsForTeam[p] : 0;
-    const remaining = Math.max(cap - taken, 0);
-    const disabled = remaining <= 0 ? 'disabled' : '';
-    return `<option value="${p}" ${disabled}>${p} (${taken}/${cap})</option>`;
-  }).join('');
-}
-
-async function renderTeamPitch(game, teamSide) {
-  const wrap = document.getElementById(`pitch-${game.id}-${teamSide}`);
-  if (!wrap) return;
-  wrap.innerHTML = "";
-
-  const limits = game.position_limits || null;
-  if (!limits){ wrap.innerHTML = `<div style="padding:10px;text-align:center;color:#64748b">No position caps set.</div>`; return; }
-
-  // fetch just this team's bookings
-  const { data: rows } = await supabase
-    .from("game_bookings")
-    .select("position, jersey_name, user_id, profiles(avatar_url, jersey_name)")
-    .eq("game_id", game.id)
-    .eq("team_side", teamSide);
-
-  const byPos = {};
-  (rows||[]).forEach(r=>{
-    const key = (r.position || 'SUB').toUpperCase();
-    const name = r.profiles?.jersey_name || r.jersey_name || 'Player';
-    const avatar = r.profiles?.avatar_url || 'images/default-avatar.png';
-    (byPos[key] ||= []).push({ name, avatar, user_id: r.user_id });
-  });
-
-  // use the same pitch builder you already have:
-  const slots = buildPitchNodesFromLimits(limits);
-
-  // cursor per position to avoid duplicates across CM1/CM2, CB1/CB2, etc.
-  const posCursor = {};
-
-  slots.forEach(slot=>{
-    const node = document.createElement('div');
-    node.className = 'pv-pos';
-    node.style.left = slot.x + '%';
-    node.style.top  = slot.y + '%';
-
-    const row = document.createElement('div');
-    row.className = 'pv-row';
-
-    const rawKey  = slot.key;                        // "CM1"
-    const baseKey = rawKey.replace(/[0-9]+$/,'');    // "CM"
-
-    let taken = byPos[rawKey];
-    let cursorKey = rawKey;
-    if (!taken || !taken.length) {
-      taken = byPos[baseKey] || [];
-      cursorKey = baseKey;
-    }
-    let start = posCursor[cursorKey] || 0;
-
-    for (let i=0; i<slot.playersPerPos; i++){
-      const item = document.createElement('div'); item.className='pv-item';
-      const s = document.createElement('div'); s.className='pv-slot';
-      const player = (baseKey === 'SUB' && slot.playersPerPos === 1)
-        ? taken[slot.subIndex]
-        : taken[start + i];
-
-      if (player && player.avatar){
-        const img=document.createElement('img');
-        img.src=player.avatar; img.onerror=()=>{img.src='images/default-avatar.png'};
-        s.appendChild(img);
-      } else {
-        s.classList.add('empty');
-      }
-      item.appendChild(s);
-
-      const nm=document.createElement('div'); nm.className='pv-name';
-      nm.textContent = player ? (player.name || 'Player') : '—';
-      item.appendChild(nm);
-      row.appendChild(item);
-    }
-
-    if (baseKey !== 'SUB') posCursor[cursorKey] = start + slot.playersPerPos;
-
-    node.appendChild(row);
-
-    const labelOnce = !slot.isSub || slot.subIndex === (slot.subCount - 1);
-    if (labelOnce) {
-      const lbl=document.createElement('div'); lbl.className='pv-label';
-      lbl.textContent = slot.isSub ? 'SUB' : rawKey;
-      node.appendChild(lbl);
-    }
-
-    wrap.appendChild(node);
-  });
-}
-
 function renderGames(selectedDate = null) {
   // ---- position options helper (caps + remaining) ----
 function buildPositionOptions(limits, counts) {
@@ -847,22 +729,9 @@ function buildPositionOptions(limits, counts) {
         <p><strong>💳 Payment:</strong> ${formatPayment(game.payment_type) || 'Manual'}</p>
         ${game.premium ? `<p style="color:goldenrod;">⭐ Premium</p>` : ""}
         <p class="availability">Slots: loading...</p>
-        ${ (game.game_type === 'football' && game.position_selection && game.team_selection) ? `
-  <div style="display:flex;gap:8px;align-items:center;margin:8px 0 6px">
-    <strong style="color:#702963">Team</strong>
-    <label style="display:inline-flex;gap:10px;align-items:center;border:1px solid #e5e7eb;border-radius:999px;padding:4px 8px;">
-      <input type="radio" name="team-${game.id}" value="A" checked>
-      <span>${game.team_a_name || 'Team A'}</span>
-      <input type="radio" name="team-${game.id}" value="B" style="margin-left:14px">
-      <span>${game.team_b_name || 'Team B'}</span>
-    </label>
-  </div>
-  <div class="pitch-wrap" id="pitch-${game.id}-A" aria-label="Pitch A"></div>
-  <div class="pitch-wrap" id="pitch-${game.id}-B" aria-label="Pitch B"></div>
-` : (game.game_type === 'football' && game.position_selection) ? `
-  <div class="pitch-wrap" id="pitch-${game.id}" aria-label="Pitch"></div>
+${ (game.game_type === 'football' && game.position_selection) ? `
+  <div id="pitch-${game.id}" class="pitch-wrap" aria-label="Pitch"></div>
 ` : `` }
-
       </div>
     ${isPast ? `
       <p style="color:#999; font-size:14px; font-weight:bold; margin:10px 0;">📅 Past session</p>
@@ -883,8 +752,9 @@ function buildPositionOptions(limits, counts) {
           <input name="jersey_name" placeholder="Enter jersey name" required />
           <input name="phone" placeholder="Enter phone number" type="tel" required />
         `}
-        <button type="submit">✅ Book Now</button>\
-  <label style="font-weight:700;color:#702963;margin-top:8px">Position <small id="team-hint-${game.id}" style="color:#64748b"></small></label>
+        <button type="submit">✅ Book Now</button>
+        ${ (game.game_type === 'football' && game.position_selection) ? `
+  <label style="font-weight:700;color:#702963;margin-top:8px">Position</label>
   <select name="position" id="pos-${game.id}" required>
     <option value="">Loading positions…</option>
   </select>
@@ -897,39 +767,28 @@ function buildPositionOptions(limits, counts) {
       <div class="player-list" id="players-${game.id}"></div>
     `;
     container.appendChild(div);
+    // -- build position options (football + position_selection) --
 if (game.game_type === 'football' && game.position_selection) {
   const selectEl = div.querySelector(`#pos-${game.id}`);
-  const teamRadios = div.querySelectorAll(`input[name="team-${game.id}"]`);
-  const teamHint = div.querySelector(`#team-hint-${game.id}`);
-  const countsA = (posTeamCounts[game.id]?.A) || {};
-  const countsB = (posTeamCounts[game.id]?.B) || {};
-
-  function refreshSelect(team) {
-    if (!selectEl) return;
-    const countsForTeam = (team === 'B') ? countsB : countsA;
-    selectEl.innerHTML = buildPositionOptionsByTeam(game.position_limits, countsForTeam);
-    if (teamHint) teamHint.textContent = `(${team === 'B' ? (game.team_b_name || 'Team B') : (game.team_a_name || 'Team A')})`;
+  if (selectEl) {
+    let counts = {};
+    try {
+      const { data: rows } = await supabase
+        .from("game_bookings")
+        .select("position")
+        .eq("game_id", game.id);
+      (rows || []).forEach(r => {
+        const k = r.position || 'SUB';
+        counts[k] = (counts[k] || 0) + 1;
+      });
+    } catch (_e) {}
+    selectEl.innerHTML = buildPositionOptions(game.position_limits, counts);
   }
+}
 
-  // initial team = A unless team_selection off
-  let currentTeam = (game.team_selection ? 'A' : 'A');
-  refreshSelect(currentTeam);
-
-  // render pitches
-  if (game.team_selection) {
-    await renderTeamPitch(game, 'A');
-    await renderTeamPitch(game, 'B');
-  } else {
-    await renderPitchForGame(game); // your existing single-team renderer
-  }
-
-  // react to team toggle
-  teamRadios.forEach(r => {
-    r.addEventListener('change', e => {
-      currentTeam = e.target.value;
-      refreshSelect(currentTeam);
-    });
-  });
+// -- render pitch view (mirrors Create Game layout) --
+if (game.game_type === 'football' && game.position_selection) {
+  await renderPitchForGame(game);
 }
 
 
@@ -1158,9 +1017,6 @@ if (bookings.length >= gameData.max_players) {
     phone
   };
 if (position) payload.position = position;
-// set team_side if present
-const selectedTeam = form.querySelector(`input[name="team-${gameId}"]:checked`)?.value || null;
-if (selectedTeam) payload.team_side = selectedTeam;
   const { data: newBooking, error } = await supabase
   .from("game_bookings")
   .insert([payload])
@@ -1193,15 +1049,8 @@ if (error) {
   }
 
   // refresh list + pitch to reconcile state
-loadPlayers(gameId);
-if (game && game.game_type === 'football' && game.position_selection) {
-  if (game.team_selection) {
-    await renderTeamPitch(game, 'A');
-    await renderTeamPitch(game, 'B');
-  } else {
-    await renderPitchForGame(game);
-  }
-}
+  loadPlayers(gameId);
+  if (game && game.game_type === 'football' && game.position_selection) { await renderPitchForGame(game); }
 
   form.reset();
   submitButton.disabled = false;
