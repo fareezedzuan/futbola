@@ -729,6 +729,18 @@ function buildPositionOptions(limits, counts) {
         <p><strong>💳 Payment:</strong> ${formatPayment(game.payment_type) || 'Manual'}</p>
         ${game.premium ? `<p style="color:goldenrod;">⭐ Premium</p>` : ""}
         <p class="availability">Slots: loading...</p>
+
+      ${ game.team_selection ? `
+  <div style="margin:8px 0;">
+    <label style="font-weight:700;color:#702963;display:block;margin-bottom:6px">Pick your team</label>
+    <select id="team-select-${game.id}" name="team_side" required style="width:100%;padding:8px;border:1px solid #e5e7eb;border-radius:6px">
+      <option value="" selected disabled>— Select your team —</option>
+      <option value="A">${game.team_a_name || 'Futbola A'}</option>
+      <option value="B">${game.team_b_name || 'Futbola B'}</option>
+    </select>
+  </div>
+` : `` }
+
 ${ (game.game_type === 'football' && game.position_selection) ? `
   <div id="pitch-${game.id}" class="pitch-wrap" aria-label="Pitch"></div>
 ` : `` }
@@ -769,9 +781,9 @@ ${ game.team_selection ? `
         <button type="submit">✅ Book Now</button>
         ${ (game.game_type === 'football' && game.position_selection) ? `
   <label style="font-weight:700;color:#702963;margin-top:8px">Position</label>
-  <select name="position" id="pos-${game.id}" required>
-    <option value="">Loading positions…</option>
-  </select>
+<select name="position" id="pos-${game.id}" required>
+  <option value="" selected disabled>— Select your position —</option>
+</select>
   <div class="note" style="font-size:12px;color:#64748b;margin-top:6px">
     Positions are limited; full positions will be disabled.
   </div>
@@ -796,7 +808,9 @@ if (game.game_type === 'football' && game.position_selection) {
         counts[k] = (counts[k] || 0) + 1;
       });
     } catch (_e) {}
-    selectEl.innerHTML = buildPositionOptions(game.position_limits, counts);
+    selectEl.innerHTML =
+  `<option value="" selected disabled>— Select your position —</option>` +
+  buildPositionOptions(game.position_limits, counts);
   }
 }
 
@@ -1031,9 +1045,18 @@ if (bookings.length >= gameData.max_players) {
     phone
   };
 if (position) payload.position = position;
-// record chosen team (Futbola A / Futbola B)
-const selectedTeam = form.querySelector(`input[name="team-${gameId}"]:checked`)?.value || null;
-if (selectedTeam) payload.team_side = selectedTeam;
+// require team selection if the game uses teams
+let selectedTeam = null;
+if (game?.team_selection) {
+  selectedTeam = form.querySelector(`#team-select-${gameId}`)?.value || "";
+  if (!selectedTeam) {
+    alert("Please select your team.");
+    submitButton.disabled = false; submitButton.textContent = "✅ Book Now";
+    return;
+  }
+  payload.team_side = selectedTeam.toUpperCase(); // 'A' or 'B'
+}
+
   const { data: newBooking, error } = await supabase
   .from("game_bookings")
   .insert([payload])
