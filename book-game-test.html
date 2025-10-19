@@ -1,0 +1,1218 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Book Game - Futbola</title>
+  <link rel="icon" href="./images/futbola-favicon.ico" type="image/x-icon">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-image: url('./images/backgroundOrangeGradient.jpg');
+      padding: 20px;
+      margin: 0;
+    }
+
+    h2 {
+      text-align: center;
+      color: #702963;
+    }
+
+    .game-card {
+      background: white;
+      border-top: 5px solid #ff5a5f;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      margin-bottom: 30px;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .game-info p {
+      margin: 6px 0;
+      font-size: 15px;
+    }
+
+    .availability {
+      margin: 10px 0;
+      font-weight: bold;
+      color: #ff5a5f;
+    }
+
+    .form-section input, .form-section select {
+      width: 100%;
+      padding: 8px;
+      margin: 5px 0;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    .form-section button {
+      width: 100%;
+      padding: 10px;
+      background-color: #ff0000;
+      color: white;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    .form-section button:hover {
+      background-color: #cc0000;
+    }
+
+    .player-list {
+      margin-top: 10px;
+    }
+
+    .player-avatar {
+      display: inline-block;
+      margin: 4px;
+      text-align: center;
+    }
+
+    .player-avatar img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 2px solid #ff5a5f;
+      object-fit: cover;
+    }
+
+    .player-avatar span {
+      display: block;
+      font-size: 12px;
+      max-width: 60px;
+      overflow-wrap: break-word;
+    }
+
+    #calendarGrid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;                      /* reduced from 10px */
+      max-width: 100%;               /* allow full width use */
+      margin: 0 auto 20px auto;
+      padding: 5px 6px;
+    }
+
+    .calendar-box {
+      background-color: white;
+      color: black;
+      text-align: center;
+      padding: 6px 2px;              /* reduced from 12px 6px */
+      border-radius: 6px;            /* slightly tighter */
+      font-size: 12px;               /* one step down */
+      font-weight: bold;
+      border: 2px solid #ff0000;
+      box-shadow: 1px 1px 4px rgba(0,0,0,0.05);
+      transition: all 0.2s ease;
+      cursor: pointer;
+      min-width: 34px;               /* force narrow fit */
+      height: 50px;                  /* consistent vertical fit */
+      display: flex;                /* better layout */
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      line-height: 1.1;
+    }
+
+    .calendar-box:hover {
+      border-color: #702963;
+    }
+
+    .calendar-box.selected {
+      border-color: #ff0000;
+      background-color: #ffe5e5;
+      color: #702963;
+    }
+
+    .calendar-box.available {
+      border-color: #28a745;
+    }
+
+    .calendar-box.almost {
+      border-color: #ffc107;
+    }
+
+    .calendar-box.full {
+      border-color: #dc3545;
+    }
+
+    .calendar-box.nogame {
+      opacity: 1;
+      border: 2px solid black;
+      color: #333;
+    }
+
+    .calendar-box.past {
+      opacity: 0.4;
+      background: #f6f6f6;
+      border: 2px solid #bbb;
+      cursor: default;
+      color: #999;
+    }
+
+    .calendar-header {
+      text-align: center;
+      font-weight: bold;
+      font-size: 18px;
+      margin-bottom: 8px;
+      color: #702963;
+    }
+    #calendarGridWrapper {
+      border: 2px solid #702963;
+      border-radius: 10px;
+      padding: 20px 10px;
+      background: white;
+      max-width: 640px;
+      margin: 0 auto 30px auto;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.05);
+    }
+
+    /* ===== PITCH PREVIEW (upright) ===== */
+.pitch-wrap{
+  position:relative;
+  width:100%;
+  max-width:820px;
+  margin:10px auto 14px auto;
+  aspect-ratio:468/300;
+  background:#2f8d3a url('./images/pitch-upright.png') center/cover no-repeat;
+  border-radius:12px; overflow:hidden; box-shadow:inset 0 0 0 2px #e5ffe5;
+}
+.pv-pos{
+  position:absolute; transform:translate(-50%,-50%);
+  display:flex; flex-direction:column; align-items:center; gap:6px;
+}
+.pv-row{ display:flex; align-items:center; gap:0; }
+.pv-item{ display:flex; flex-direction:column; align-items:center; margin-left:-10px; }
+.pv-item:first-child{ margin-left:0; }
+.pv-slot{
+  width:44px; height:44px; border-radius:50%;
+  border:3px solid rgba(0,0,0,.9);
+  background:rgba(255,255,255,.25);
+  overflow:hidden; display:grid; place-items:center;
+}
+.pv-slot.empty{ border-style:dashed; opacity:.65 }
+.pv-slot img{ width:100%; height:100%; object-fit:cover }
+.pv-name{
+  font:700 9px/1.1 system-ui; color:#111; text-align:center;
+  margin-top:2px; max-width:60px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.pv-label{
+  color:#111;
+  font:800 12px/1.1 system-ui;
+  text-shadow:none;
+  margin-top:0;             /* almost touching names */
+  line-height:1.0;
+  text-align:center;
+}
+/* 📱 phones: make pitch taller vertically & avatars 20% smaller */
+@media (max-width:600px){
+  .pitch-wrap{
+    max-width:100%;
+    aspect-ratio: 468 / 420;   /* taller field */
+    background-size: cover;
+  }
+
+  /* ↓ shrink avatars by 20 % */
+  .pv-slot{
+    width:28px;      /* was 34px */
+    height:28px;     /* was 34px */
+  }
+  .pv-item{ margin-left:-6px; }
+
+  .pv-name{
+    font-size:8px;
+    max-width:45px;
+  }
+
+  .pv-label{
+    font-size:10px;
+    margin-top:0;
+  }
+}
+
+/* 📱 extra-small (SE / zoomed displays): even taller */
+@media (max-width:380px){
+  .pitch-wrap{ aspect-ratio: 468 / 460; }
+  .pv-slot{ width:26px; height:26px; }
+  .pv-item{ margin-left:-5px; }
+}
+
+  </style>
+</head>
+<body>
+<h2>Book Game</h2>
+<div id="logoutContainer" style="text-align: center; margin-bottom: 20px;"></div>
+<div id="calendarGridWrapper">
+  <div class="calendar-header" id="monthLabel"></div>
+  <div id="calendarGrid"></div>
+</div>
+
+<div id="gameContainer"></div>
+
+<a class="button" href="/"
+  style="display: block; width: fit-content; margin: 40px auto 0; background-color: #ff0000; color: white; padding: 12px 20px; text-decoration: none; border-radius: 5px; font-weight: bold; text-align: center;">
+  ← Back to Homepage
+</a>
+
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+const SUPABASE_URL = 'https://kdbqroxhypnadolcxxxc.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkYnFyb3hoeXBuYWRvbGN4eHhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3MjkwNzYsImV4cCI6MjA1NzMwNTA3Nn0.c7_RVxoFdJNqQ62R3t1emH2Wf4dSsQaunHsHmbQxOBA'; // trimmed for safety
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const container = document.getElementById("gameContainer");
+const { data: userData } = await supabase.auth.getUser();
+const user = userData.user;
+
+const logoutContainer = document.getElementById("logoutContainer");
+
+if (user) {
+  logoutContainer.innerHTML = `
+    <button id="logoutBtn" style="
+      background-color: #702963;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+    ">🚪 Logout</button>
+  `;
+
+  document.getElementById("logoutBtn").addEventListener("click", async () => {
+    await supabase.auth.signOut();
+    location.reload(); // or window.location.href = "/"
+  });
+} else {
+  logoutContainer.innerHTML = `
+    <a href="/login.html" style="
+      color: #702963;
+      font-weight: bold;
+      text-decoration: none;
+      padding: 10px 20px;
+      border: 2px solid #702963;
+      border-radius: 5px;
+      display: inline-block;
+    ">🔐 Log In</a>
+  `;
+}
+
+const calendarGrid = document.getElementById("calendarGrid");
+const todayDate = new Date();
+todayDate.setHours(0, 0, 0, 0); 
+const todayStr = `${todayDate.getFullYear()}-${String(todayDate.getMonth() + 1).padStart(2, '0')}-${String(todayDate.getDate()).padStart(2, '0')}`;
+
+const start = new Date(todayDate);
+start.setDate(start.getDate() - todayDate.getDay() - 6); // lock to previous Monday - 7
+const end = new Date(start);
+end.setDate(start.getDate() + 27); // 4 full weeks
+
+const allDates = [];
+for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+  allDates.push(new Date(d));
+}
+
+const MONTHS = [
+  "January","February","March","April","May","June",
+  "July","August","September","October","November","December"
+];
+
+function setMonthLabel(dateObj) {
+  const el = document.getElementById("monthLabel");
+  if (!el) return;
+  el.textContent = `${MONTHS[dateObj.getMonth()]} ${dateObj.getFullYear()}`;
+}
+
+const { data: games, error } = await supabase
+  .from("games")
+  .select("*")
+  .gte("game_date", start.toISOString().split("T")[0])
+  .order("game_date", { ascending: true });
+
+const { data: allBookings } = await supabase
+  .from("game_bookings")
+  .select("game_id");
+
+const bookingCountMap = {};
+(allBookings || []).forEach(b => {
+  if (!bookingCountMap[b.game_id]) bookingCountMap[b.game_id] = 0;
+  bookingCountMap[b.game_id]++;
+});
+
+// counts by team + position for all games rendered
+let posTeamCounts = {};
+if (gameIds.length) {
+  const { data: rowsTP } = await supabase
+    .from("game_bookings")
+    .select("game_id, position, team_side")
+    .in("game_id", gameIds);
+
+  (rowsTP || []).forEach(r => {
+    const gid = r.game_id;
+    const team = (r.team_side || 'A').toUpperCase(); // default A if null
+    const pos  = (r.position || 'SUB').toUpperCase();
+    posTeamCounts[gid] ||= { A:{}, B:{} };
+    posTeamCounts[gid][team][pos] = (posTeamCounts[gid][team][pos] || 0) + 1;
+  });
+}
+
+if (error) {
+  container.innerHTML = "<p>Error loading games</p>";
+  console.error(error);
+} else {
+// const calendar = document.getElementById("datePicker");
+// calendar.addEventListener("change", () => {
+//   const selected = calendar.value;
+//   renderGames(selected);
+//};
+
+const premiumGames = games.filter(g => g.premium);
+const datedGames = games.filter(g => !g.premium);
+
+const gameMap = {};
+games.forEach(g => {
+  const date = g.game_date;
+  if (!gameMap[date]) gameMap[date] = [];
+  gameMap[date].push(g);
+});
+
+renderCalendarGrid();
+
+function renderCalendarGrid() {
+  calendarGrid.innerHTML = "";
+  setMonthLabel(todayDate);
+  allDates.forEach(dateObj => {
+    const dateStr = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
+    const weekday = dateObj.toLocaleDateString("en-MY", { weekday: 'short' });
+    const dayNum = dateObj.getDate();
+    const monthNum = dateObj.getMonth() + 1;
+
+    const box = document.createElement("div");
+    box.classList.add("calendar-box");
+
+    const gameList = gameMap[dateStr] || [];
+    const isPast = dateObj < todayDate;
+    let statusClass = "nogame";
+
+    // layout content
+    box.innerHTML = `
+      <div style="font-size: 11px; color: #702963;">${weekday}</div>
+      <div style="font-size: 14px; font-weight: bold;">${dayNum}/${monthNum}</div>
+      <div class="dot-container"></div>
+    `;
+
+    const dotContainer = box.querySelector('.dot-container');
+    dotContainer.style.marginTop = "4px";
+    dotContainer.style.display = "flex";
+    dotContainer.style.justifyContent = "center";
+    dotContainer.style.gap = "3px";
+
+    gameList.forEach(g => {
+      const filled = bookingCountMap[g.id] || 0;
+      const max = g.max_players || 0;
+      let dotColor = 'gray';
+
+      if (max > 0) {
+        const ratio = filled / max;
+        if (ratio >= 1) dotColor = 'red';
+        else if (ratio >= 0.7) dotColor = 'orange';
+        else dotColor = 'green';
+      }
+
+      const dot = document.createElement("span");
+      dot.style.width = "6px";
+      dot.style.height = "6px";
+      dot.style.borderRadius = "50%";
+      dot.style.backgroundColor = dotColor;
+      dot.style.display = "inline-block";
+
+      dotContainer.appendChild(dot);
+    });
+
+    if (gameList.length > 0) {
+    if (isPast) {
+      box.style.border = "2px solid #cc0000"; // Red border = past w/ game
+    } else {
+      box.style.border = "2px solid black";   // Normal border
+    }
+  } else {
+    box.style.border = "1px solid #ddd";       // No games
+  }
+
+    // class logic
+    if (isPast && gameList.length > 0) {
+      box.style.border = "2px solid #cc0000";
+    }
+    if (dateObj < todayDate) {
+      box.classList.add("past");
+    }
+
+    
+    if (gameList.length) {
+      let totalSlots = 0;
+      let filledSlots = 0;
+
+      gameList.forEach(g => {
+        totalSlots += g.max_players || 0;
+        filledSlots += bookingCountMap[g.id] || 0;
+      });
+
+      const ratio = totalSlots === 0 ? 0 : filledSlots / totalSlots;
+
+      if (ratio >= 1) statusClass = "full";
+      else if (ratio >= 0.7) statusClass = "almost";
+      else statusClass = "available";
+    }
+
+    box.classList.add(statusClass);
+
+    if (isPast && gameList.length > 0) {
+      box.style.border = "2px solid #cc0000"; // Red border for past played days
+    }
+
+    box.classList.add(statusClass);
+
+    if (dateObj < todayDate) {
+      box.classList.add("past");
+    }
+
+    if (dateStr === todayStr) {
+      box.classList.add("selected");
+      setMonthLabel(dateObj); 
+      //calendar.value = dateStr;
+      renderGames(dateStr);
+    }
+
+    box.addEventListener("click", () => {
+      document.querySelectorAll(".calendar-box").forEach(b => b.classList.remove("selected"));
+      box.classList.add("selected");
+      setMonthLabel(dateObj); 
+      //calendar.value = dateStr;
+      renderGames(dateStr);
+    });
+
+    calendarGrid.appendChild(box);
+    
+  });
+}
+
+// ---- pitch helpers (same layout spirit as Create Game) ----
+function distribute(n, minX, maxX){
+  if(n<=1) return [(minX+maxX)/2];
+  const step=(maxX-minX)/(n-1);
+  return Array.from({length:n},(_,i)=>minX+i*step);
+}
+// Use old CB spacing; widen LB/RB outwards.
+function buildPitchNodesFromLimits(limits){
+  const out=[]; const Y={F:26,M:50,D:74,GK:90};
+  const get=k=> (limits?.[k]|0);
+  const push=(prefix,slots,x1,x2,y)=>{
+    const xs=distribute(slots,x1,x2);
+    for(let i=0;i<slots;i++) out.push({ key:`${prefix}${slots>1?i+1:""}`, x:xs[i], y, playersPerPos:2 });
+  };
+  if(get('LW')) push('LW',1,16,32,Y.F);
+  if(get('ST')) push('ST',1,46,54,Y.F);
+  if(get('RW')) push('RW',1,68,84,Y.F);
+  if(get('DM')) push('DM',1,42,58,Y.M+4);
+  if(get('CM')){
+  const cmCount = Math.min(Math.ceil(get('CM')/2), 3);
+  push('CM', cmCount, 24,76,Y.M,2);      // was 28..72
+}
+  if(get('LB')) push('LB',1,8,20,Y.D);    // was (16,28)
+  if(get('CB')) push('CB', Math.min((get('CB')/2)|0,2), 36,64,Y.D);
+  if(get('RB')) push('RB',1,80,92,Y.D);   // was (72,84)
+  if(get('GK')) push('GK',1,46,54,Y.GK);
+  // show SUBs vertically outside top-right corner
+// show SUBs vertically outside top-right corner (with metadata)
+if (get('SUB')) {
+  const subCount = Math.min(get('SUB'), 3);
+  const yPositions = [20, 35, 50]; // vertical alignment
+  for (let i = 0; i < subCount; i++) {
+    out.push({
+      key: `SUB${i+1}`,
+      x: 96,
+      y: yPositions[i],
+      playersPerPos: 1,
+      isSub: true,
+      subIndex: i,     // which sub this node is (0..2)
+      subCount         // total rendered sub nodes
+    });
+  }
+}
+  return out;
+}
+async function renderPitchForGame(game){
+  const wrap = document.getElementById(`pitch-${game.id}`);
+  if (!wrap) return;
+  wrap.innerHTML = "";
+
+  const limits = game.position_limits || null;
+  if (!limits){ wrap.innerHTML = `<div style="padding:10px;text-align:center;color:#64748b">No position caps set.</div>`; return; }
+
+  // gather bookings (avatar+name) by position
+  const { data: rows } = await supabase
+    .from("game_bookings")
+    .select("position, jersey_name, user_id, profiles(avatar_url, jersey_name)")
+    .eq("game_id", game.id);
+
+  const byPos = {};
+  (rows||[]).forEach(r=>{
+    const key = r.position || 'SUB';
+    const name = r.profiles?.jersey_name || r.jersey_name || 'Player';
+    const avatar = r.profiles?.avatar_url || 'images/default-avatar.png';
+    (byPos[key] ||= []).push({ name, avatar, user_id: r.user_id });
+  });
+
+  const slots = buildPitchNodesFromLimits(limits);
+  // advance-by-consumption map so CM1 uses [0..1], CM2 uses [2..3], etc.
+const posCursor = {};  // key → next start index
+
+  slots.forEach((slot)=>{
+    const node = document.createElement('div');
+    node.className = 'pv-pos';
+    node.style.left = slot.x + '%';
+    node.style.top  = slot.y + '%';
+
+    const row = document.createElement('div');
+    row.className = 'pv-row';
+
+// ensure unique mapping per numbered position (CB1 != CB2, CM1 != CM2)
+const rawKey  = slot.key;                     // e.g., "CM1"
+const baseKey = rawKey.replace(/[0-9]+$/, ''); // e.g., "CM"
+
+// prefer exact key (CM1) if present; otherwise fall back to base (CM)
+let taken = byPos[rawKey];
+let cursorKey = rawKey;
+if (!taken || !taken.length) {
+  taken = byPos[baseKey] || [];
+  cursorKey = baseKey;
+}
+
+// figure out where to start consuming for this group
+let start = posCursor[cursorKey] || 0;
+
+for (let i = 0; i < slot.playersPerPos; i++) {
+  const item = document.createElement('div');
+  item.className = 'pv-item';
+
+  const s = document.createElement('div');
+  s.className = 'pv-slot';
+
+  // SUB nodes use fixed index per stack; others consume sequentially
+  const player = (baseKey === 'SUB' && slot.playersPerPos === 1)
+    ? taken[slot.subIndex]
+    : taken[start + i];
+
+  if (player && player.avatar) {
+    const img = document.createElement('img');
+    img.src = player.avatar;
+    img.onerror = () => { img.src = 'images/default-avatar.png'; };
+    s.appendChild(img);
+  } else {
+    s.classList.add('empty');
+  }
+
+  item.appendChild(s);
+
+  const nm = document.createElement('div');
+  nm.className = 'pv-name';
+  nm.textContent = player ? (player.name || 'Player') : '—';
+  item.appendChild(nm);
+
+  row.appendChild(item);
+}
+
+// advance consumption for this group (SUB handled by subIndex already)
+if (baseKey !== 'SUB') {
+  posCursor[cursorKey] = start + slot.playersPerPos;
+}
+
+node.appendChild(row);
+
+// label once for SUB (on the bottom), otherwise show rawKey (CM1/CM2)
+const shouldLabel = !slot.isSub || slot.subIndex === (slot.subCount - 1);
+if (shouldLabel) {
+  const lbl = document.createElement('div');
+  lbl.className = 'pv-label';
+  lbl.textContent = slot.isSub ? 'SUB' : rawKey;
+  node.appendChild(lbl);
+}
+
+    wrap.appendChild(node);
+  });
+}
+
+function optimisticPlaceOnPitch(gameId, booking) {
+  const wrap = document.getElementById(`pitch-${gameId}`);
+  if (!wrap) return;
+
+  const avatar = booking?.profiles?.avatar_url || 'images/default-avatar.png';
+  const name   = booking?.profiles?.jersey_name || booking?.jersey_name || 'Player';
+  const pos    = (booking?.position || '').toUpperCase();  // e.g., "CM", "CM1", "GK", "SUB"
+
+  if (!pos) return;
+
+  // helper: find all nodes whose label matches this position group
+  const nodes = [...wrap.querySelectorAll('.pv-pos')].filter(n => {
+    const label = n.querySelector('.pv-label')?.textContent?.trim().toUpperCase() || '';
+    if (!label) return false;
+    if (pos.startsWith('SUB')) return label === 'SUB';  // all subs share one label on last node
+    if (/\d$/.test(pos))      return label === pos;     // exact match (CB1, CM2, ...)
+    return label.startsWith(pos);                       // base role (CM -> CM1/CM2/…)
+  });
+
+  if (!nodes.length) return;
+
+  // choose node:
+  //  - for exact keys (CB1/CM2) use that node
+  //  - for base keys (CM) pick the first node with an empty slot
+  let targetNode = nodes[0];
+  if (!/\d$/.test(pos) && !pos.startsWith('SUB')) {
+    const withEmpty = nodes.find(n => n.querySelector('.pv-slot.empty'));
+    if (withEmpty) targetNode = withEmpty;
+  }
+
+  // fill the first empty slot in that node
+  const emptySlot = targetNode.querySelector('.pv-slot.empty');
+  if (!emptySlot) return;
+
+  emptySlot.classList.remove('empty');
+  const img = document.createElement('img');
+  img.src = avatar;
+  img.onerror = () => { img.src = 'images/default-avatar.png'; };
+  emptySlot.appendChild(img);
+
+  // update/append the name (it sits in the .pv-item under the slot)
+  const item = emptySlot.parentElement; // .pv-item
+  let nm = item.querySelector('.pv-name');
+  if (!nm) {
+    nm = document.createElement('div');
+    nm.className = 'pv-name';
+    item.appendChild(nm);
+  }
+  nm.textContent = name;
+}
+
+//renderGames(today); box.textContent = dayLabel;
+
+function buildPositionOptionsByTeam(limits, countsForTeam) {
+  const POS = ['GK','CB','LB','RB','DM','CM','LW','RW','ST','SUB'];
+  if (!limits) return POS.map(p => `<option value="${p}">${p}</option>`).join('');
+  return POS.filter(p => (limits[p]|0) > 0).map(p => {
+    const cap = limits[p] | 0;
+    const taken = (countsForTeam && countsForTeam[p]) ? countsForTeam[p] : 0;
+    const remaining = Math.max(cap - taken, 0);
+    const disabled = remaining <= 0 ? 'disabled' : '';
+    return `<option value="${p}" ${disabled}>${p} (${taken}/${cap})</option>`;
+  }).join('');
+}
+
+async function renderTeamPitch(game, teamSide) {
+  const wrap = document.getElementById(`pitch-${game.id}-${teamSide}`);
+  if (!wrap) return;
+  wrap.innerHTML = "";
+
+  const limits = game.position_limits || null;
+  if (!limits){ wrap.innerHTML = `<div style="padding:10px;text-align:center;color:#64748b">No position caps set.</div>`; return; }
+
+  // fetch just this team's bookings
+  const { data: rows } = await supabase
+    .from("game_bookings")
+    .select("position, jersey_name, user_id, profiles(avatar_url, jersey_name)")
+    .eq("game_id", game.id)
+    .eq("team_side", teamSide);
+
+  const byPos = {};
+  (rows||[]).forEach(r=>{
+    const key = (r.position || 'SUB').toUpperCase();
+    const name = r.profiles?.jersey_name || r.jersey_name || 'Player';
+    const avatar = r.profiles?.avatar_url || 'images/default-avatar.png';
+    (byPos[key] ||= []).push({ name, avatar, user_id: r.user_id });
+  });
+
+  // use the same pitch builder you already have:
+  const slots = buildPitchNodesFromLimits(limits);
+
+  // cursor per position to avoid duplicates across CM1/CM2, CB1/CB2, etc.
+  const posCursor = {};
+
+  slots.forEach(slot=>{
+    const node = document.createElement('div');
+    node.className = 'pv-pos';
+    node.style.left = slot.x + '%';
+    node.style.top  = slot.y + '%';
+
+    const row = document.createElement('div');
+    row.className = 'pv-row';
+
+    const rawKey  = slot.key;                        // "CM1"
+    const baseKey = rawKey.replace(/[0-9]+$/,'');    // "CM"
+
+    let taken = byPos[rawKey];
+    let cursorKey = rawKey;
+    if (!taken || !taken.length) {
+      taken = byPos[baseKey] || [];
+      cursorKey = baseKey;
+    }
+    let start = posCursor[cursorKey] || 0;
+
+    for (let i=0; i<slot.playersPerPos; i++){
+      const item = document.createElement('div'); item.className='pv-item';
+      const s = document.createElement('div'); s.className='pv-slot';
+      const player = (baseKey === 'SUB' && slot.playersPerPos === 1)
+        ? taken[slot.subIndex]
+        : taken[start + i];
+
+      if (player && player.avatar){
+        const img=document.createElement('img');
+        img.src=player.avatar; img.onerror=()=>{img.src='images/default-avatar.png'};
+        s.appendChild(img);
+      } else {
+        s.classList.add('empty');
+      }
+      item.appendChild(s);
+
+      const nm=document.createElement('div'); nm.className='pv-name';
+      nm.textContent = player ? (player.name || 'Player') : '—';
+      item.appendChild(nm);
+      row.appendChild(item);
+    }
+
+    if (baseKey !== 'SUB') posCursor[cursorKey] = start + slot.playersPerPos;
+
+    node.appendChild(row);
+
+    const labelOnce = !slot.isSub || slot.subIndex === (slot.subCount - 1);
+    if (labelOnce) {
+      const lbl=document.createElement('div'); lbl.className='pv-label';
+      lbl.textContent = slot.isSub ? 'SUB' : rawKey;
+      node.appendChild(lbl);
+    }
+
+    wrap.appendChild(node);
+  });
+}
+
+function renderGames(selectedDate = null) {
+  // ---- position options helper (caps + remaining) ----
+function buildPositionOptions(limits, counts) {
+  const POS = ['GK','CB','LB','RB','DM','CM','LW','RW','ST','SUB'];
+  if (!limits) return POS.map(p => `<option value="${p}">${p}</option>`).join('');
+  return POS.filter(p => (limits[p]|0) > 0).map(p => {
+    const cap = limits[p] | 0;
+    const taken = (counts && counts[p]) ? counts[p] : 0;
+    const remaining = Math.max(cap - taken, 0);
+    const disabled = remaining <= 0 ? 'disabled' : '';
+    return `<option value="${p}" ${disabled}>${p} (${taken}/${cap})</option>`;
+  }).join('');
+}
+  container.innerHTML = "";
+
+  const filtered = selectedDate
+    ? datedGames.filter(g => g.game_date === selectedDate)
+    : datedGames.slice(0, 3);
+
+  [...filtered, ...premiumGames].forEach(async (game) => {
+    const startDateTime = new Date(`${game.game_date}T${game.start_time}`);
+    const isPast = startDateTime < new Date();
+    const div = document.createElement("div");
+    div.className = "game-card";
+    div.innerHTML = `
+      <div class="game-info">
+        <p><strong>📛 Title:</strong> ${game.session_title || 'Untitled'}</p>
+        <p><strong>🧑 Host:</strong> ${game.host_name || 'Host'}</p>
+
+        <p><strong>📍 Venue:</strong> ${game.venue}</p>
+        <p><strong>📅 Date:</strong> ${game.game_date}</p>
+        <p><strong>🕒 Time:</strong> ${game.start_time} – ${game.end_time}</p>
+
+        <p><strong>📶 Level:</strong> ${game.level || 'N/A'}</p>
+        <p><strong>🧮 Format:</strong> ${game.player_format || 'N/A'}</p>
+        <p><strong>🏟️ Teams:</strong> ${game.teams || 'N/A'}</p>
+        <p><strong>🕹️ Courts:</strong> ${game.courts || 'N/A'}</p>
+        <p><strong>⏱️ Minutes:</strong> ${game.minutes || 'N/A'} min</p>
+
+        <p><strong>💰 Price:</strong> RM ${parseFloat(game.price || 0).toFixed(2)}</p>
+        <p><strong>💳 Payment:</strong> ${formatPayment(game.payment_type) || 'Manual'}</p>
+        ${game.premium ? `<p style="color:goldenrod;">⭐ Premium</p>` : ""}
+        <p class="availability">Slots: loading...</p>
+        ${ (game.game_type === 'football' && game.position_selection && game.team_selection) ? `
+  <div style="display:flex;gap:8px;align-items:center;margin:8px 0 6px">
+    <strong style="color:#702963">Team</strong>
+    <label style="display:inline-flex;gap:10px;align-items:center;border:1px solid #e5e7eb;border-radius:999px;padding:4px 8px;">
+      <input type="radio" name="team-${game.id}" value="A" checked>
+      <span>${game.team_a_name || 'Team A'}</span>
+      <input type="radio" name="team-${game.id}" value="B" style="margin-left:14px">
+      <span>${game.team_b_name || 'Team B'}</span>
+    </label>
+  </div>
+  <div class="pitch-wrap" id="pitch-${game.id}-A" aria-label="Pitch A"></div>
+  <div class="pitch-wrap" id="pitch-${game.id}-B" aria-label="Pitch B"></div>
+` : (game.game_type === 'football' && game.position_selection) ? `
+  <div class="pitch-wrap" id="pitch-${game.id}" aria-label="Pitch"></div>
+` : `` }
+${ (game.game_type === 'football' && game.position_selection) ? `
+  <div id="pitch-${game.id}" class="pitch-wrap" aria-label="Pitch"></div>
+` : `` }
+      </div>
+    ${isPast ? `
+      <p style="color:#999; font-size:14px; font-weight:bold; margin:10px 0;">📅 Past session</p>
+    ` : `
+      <form class="form-section" id="form-${game.id}">
+        ${user ? `
+          <div style="display: flex; align-items: center; margin-bottom: 10px;">
+            <div style="width: 10%; min-width: 30px;">
+              <input type="checkbox" name="selfBooking" checked style="margin: 0;" />
+            </div>
+            <label style="margin: 0; font-size: 14px;">I am playing</label>
+          </div>
+          <div class="guest-fields" style="display: none;">
+            <input name="jersey_name" placeholder="Enter player's jersey name" />
+            <input name="phone" placeholder="Enter player's phone number" type="tel" />
+          </div>
+        ` : `
+          <input name="jersey_name" placeholder="Enter jersey name" required />
+          <input name="phone" placeholder="Enter phone number" type="tel" required />
+        `}
+        <button type="submit">✅ Book Now</button>
+        ${ (game.game_type === 'football' && game.position_selection) ? `
+  <label style="font-weight:700;color:#702963;margin-top:8px">Position <small id="team-hint-${game.id}" style="color:#64748b"></small></label>
+  <select name="position" id="pos-${game.id}" required>
+    <option value="">Loading positions…</option>
+  </select>
+  <div class="note" style="font-size:12px;color:#64748b;margin-top:6px">
+    Positions are limited; full positions will be disabled.
+  </div>
+` : `` }
+      </form>
+    `}
+      <div class="player-list" id="players-${game.id}"></div>
+    `;
+    container.appendChild(div);
+if (game.game_type === 'football' && game.position_selection) {
+  const selectEl = div.querySelector(`#pos-${game.id}`);
+  const teamRadios = div.querySelectorAll(`input[name="team-${game.id}"]`);
+  const teamHint = div.querySelector(`#team-hint-${game.id}`);
+  const countsA = (posTeamCounts[game.id]?.A) || {};
+  const countsB = (posTeamCounts[game.id]?.B) || {};
+
+  function refreshSelect(team) {
+    if (!selectEl) return;
+    const countsForTeam = (team === 'B') ? countsB : countsA;
+    selectEl.innerHTML = buildPositionOptionsByTeam(game.position_limits, countsForTeam);
+    if (teamHint) teamHint.textContent = `(${team === 'B' ? (game.team_b_name || 'Team B') : (game.team_a_name || 'Team A')})`;
+  }
+
+  // initial team = A unless team_selection off
+  let currentTeam = (game.team_selection ? 'A' : 'A');
+  refreshSelect(currentTeam);
+
+  // render pitches
+  if (game.team_selection) {
+    await renderTeamPitch(game, 'A');
+    await renderTeamPitch(game, 'B');
+  } else {
+    await renderPitchForGame(game); // your existing single-team renderer
+  }
+
+  // react to team toggle
+  teamRadios.forEach(r => {
+    r.addEventListener('change', e => {
+      currentTeam = e.target.value;
+      refreshSelect(currentTeam);
+    });
+  });
+}
+
+
+
+    // guest toggle
+    if (user && !isPast) {
+      const form = document.getElementById(`form-${game.id}`);
+      if (form) {
+        const checkbox = form.querySelector('input[name="selfBooking"]');
+        const guestFields = form.querySelector('.guest-fields');
+        if (checkbox && guestFields) {
+          checkbox.addEventListener("change", () => {
+            const showGuest = !checkbox.checked;
+            guestFields.style.display = showGuest ? "block" : "none";
+            guestFields.querySelectorAll("input").forEach(input => {
+              input.required = showGuest;
+            });
+          });
+        }
+      }
+    }
+
+    // bind form submit
+document.getElementById(`form-${game.id}`)?.addEventListener("submit", (e) => {
+  e.preventDefault();
+  bookGame(game.id, e.target, game);
+});
+
+    // load players (optional: hook up game logic)
+    loadPlayers(game.id, game.game_date);
+  });
+}
+}
+
+async function loadPlayers(gameId, gameDate) {
+  const target = document.getElementById("players-" + gameId);
+  const isPastGame = new Date(gameDate) < todayDate;
+
+  const [{ data: bookings, error: bookingError }, { data: game, error: gameError }] = await Promise.all([
+    //supabase.from("game_bookings").select("*").eq("game_id", gameId),
+    supabase.from("game_bookings").select(`*,profiles (jersey_name, avatar_url)`).eq("game_id", gameId), //new
+    supabase.from("games").select("max_players").eq("id", gameId).single()
+  ]);
+
+  if (bookingError || gameError || !bookings || !game) {
+    target.innerHTML = "<p>Failed to load players</p>";
+    return;
+  }
+  const count = bookings.length;
+  const html = bookings.map(b => {
+    const initial = (b.jersey_name || 'P')[0].toUpperCase();
+    //const label = b.jersey_name || 'Player';
+    // if (b.user_id && b.avatar_url) {
+    //   return `<a href="/player-public.html?id=${b.user_id}" class="player-avatar">
+    //     <img src="${b.avatar_url}" />
+    //     <span>${label}</span>
+    //   </a>`;}
+    const label = b.profiles?.jersey_name || b.jersey_name || 'Player'; //new start
+    const avatarUrl = b.profiles?.avatar_url || b.avatar_url || 'images/default-avatar.png'; 
+
+    if (b.user_id) {
+      return `<a href="/player-public.html?id=${b.user_id}" class="player-avatar">
+        <img src="${avatarUrl}" onerror="this.onerror=null;this.src='images/default-avatar.png';" />
+        <span>${label}</span>
+      </a>`; }//new end
+    else {
+      return `<div class="player-avatar">
+        <div style="
+          width: 40px; height: 40px;
+          border-radius: 50%;
+          background-color: #702963;
+          color: white;
+          font-weight: bold;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin: auto;
+        ">${initial}</div>
+        <span>${label}</span>
+      </div>`;
+    }
+  }).join("");
+
+  target.innerHTML = html;
+
+  const parentCard = target.closest(".game-card");
+  if (!parentCard) return;
+
+  const countEl = parentCard.querySelector(".availability");
+
+  if (countEl) {
+    if (count >= game.max_players) {
+      countEl.textContent = `❌ FULL (${count}/${game.max_players})`;
+      countEl.style.color = "gray";
+
+      // ✅ only attempt to access form if it's a future game
+      if (!isPastGame) {
+        const form = parentCard.querySelector("form");
+        if (form) {
+          form.innerHTML = "<p style='color: gray; font-weight: bold;'>⚠️ Booking Full</p>";
+        }
+      }
+    } else {
+      countEl.textContent = isPastGame
+        ? `📅 ${count} players joined`
+        : `👥 ${count}/${game.max_players} slots filled`;
+    }
+  }
+}
+
+console.log(user?.user_metadata?.avatar_url);
+
+async function bookGame(gameId, form, game) {
+  const submitButton = form.querySelector('button[type="submit"]');
+  submitButton.disabled = true;
+  submitButton.textContent = "⏳ Booking...";
+
+  const selfBooking = form.selfBooking?.checked;
+  const jersey_name = form.jersey_name?.value?.trim();
+  const phone = form.phone?.value?.trim();
+
+  // 🚫 For guests, jersey_name and phone required
+  if (!user && (!jersey_name || !phone)) {
+    alert("Please enter both jersey name and phone number.");
+    return;
+  }
+
+  // 🚫 For user booking someone else, fields required
+  if (user && !selfBooking && (!jersey_name || !phone)) {
+    alert("Please enter guest name and phone.");
+    return;
+  }
+// 🆕 If football + position selection, require a position
+let position = null;
+try {
+  if (typeof game !== 'undefined' && game && game.game_type === 'football' && game.position_selection) {
+    position = form.position?.value || null;
+    if (!position) {
+      alert("Please select a position.");
+      submitButton.disabled = false; submitButton.textContent = "✅ Book Now";
+      return;
+    }
+    // Best-effort client-side cap check
+    const caps = game.position_limits || {};
+    if (caps && caps[position]) {
+      const { data: rows } = await supabase
+        .from("game_bookings")
+        .select("position")
+        .eq("game_id", gameId);
+      const taken = (rows || []).filter(r => r.position === position).length;
+      if (taken >= (caps[position] | 0)) {
+        alert("That position is already full. Please choose another.");
+        submitButton.disabled = false; submitButton.textContent = "✅ Book Now";
+        return;
+      }
+    }
+  }
+} catch (_e) {}
+  
+  // ✅ Check if game full
+  const [{ data: bookings }, { data: gameData }] = await Promise.all([
+    supabase.from("game_bookings").select("id").eq("game_id", gameId),
+    supabase.from("games").select("max_players").eq("id", gameId).single()
+  ]);
+if (bookings.length >= gameData.max_players) {
+  alert("This game is already full.");
+    loadPlayers(gameId);
+    return;
+  }
+
+  // ✅ Check duplicate
+  if (user && selfBooking) {
+    const { data: existing } = await supabase
+      .from("game_bookings")
+      .select("id")
+      .eq("game_id", gameId)
+      .eq("user_id", user.id)
+      .single();
+    if (existing) {
+      alert("You've already booked this game.");
+      return;
+    }
+  } else {
+    const { data: existingGuest } = await supabase
+      .from("game_bookings")
+      .select("id")
+      .eq("game_id", gameId)
+      .eq("phone", phone)
+      .single();
+    if (existingGuest) {
+      alert("This phone number has already booked this game.");
+      return;
+    }
+  }
+
+  // ✅ Fetch profile if needed
+  let profile = null;
+  if (user && selfBooking) {
+    const { data } = await supabase
+      .from("profiles")
+      .select("jersey_name, avatar_url, phone")
+      .eq("id", user.id)
+      .single();
+    profile = data;
+
+        if (!profile?.jersey_name || profile.jersey_name.trim().toLowerCase() === "player" || !profile?.phone) {
+      alert("Please complete your profile with a jersey name and phone number before booking.");
+      return;
+    }
+  }
+
+
+  // ✅ Build payload
+  const payload = user && selfBooking ? {
+    game_id: gameId,
+    user_id: user.id,
+    booked_by_user_id: user.id,
+    jersey_name: profile?.jersey_name || null,
+    avatar_url: profile?.avatar_url || null,
+    phone: profile?.phone || null
+  } : {
+    game_id: gameId,
+    user_id: null,
+    booked_by_user_id: user?.id || null,
+    jersey_name,
+    phone
+  };
+if (position) payload.position = position;
+// set team_side if present
+const selectedTeam = form.querySelector(`input[name="team-${gameId}"]:checked`)?.value || null;
+if (selectedTeam) payload.team_side = selectedTeam;
+  const { data: newBooking, error } = await supabase
+  .from("game_bookings")
+  .insert([payload])
+  .select("id, position, jersey_name, user_id, profiles(avatar_url, jersey_name)")
+  .single();
+
+if (error) {
+  alert("Booking failed: " + error.message);
+  console.error(error);
+  submitButton.disabled = false;
+  submitButton.textContent = "✅ Book Now";
+} else {
+  // ⚡ optimistic: show on pitch immediately (then full refresh below)
+  if (game && game.game_type === 'football' && game.position_selection && newBooking?.position) {
+    try { optimisticPlaceOnPitch(game.id, newBooking); } catch (_) {}
+  }
+
+  alert("Booking successful!");
+
+  const { data: gameDetails } = await supabase
+    .from("games")
+    .select("contact_method, contact_link")
+    .eq("id", gameId)
+    .single();
+
+  if (gameDetails?.contact_link) {
+    const method = gameDetails.contact_method || "group";
+    const confirmJoin = confirm(`✅ Booking successful!\n\nWould you like to join the ${method} group for updates?`);
+    if (confirmJoin) window.open(gameDetails.contact_link, "_blank");
+  }
+
+  // refresh list + pitch to reconcile state
+  loadPlayers(gameId);
+  if (game && game.game_type === 'football' && game.position_selection) { await renderPitchForGame(game); }
+
+  form.reset();
+  submitButton.disabled = false;
+  submitButton.textContent = "✅ Book Now";
+}
+}
+
+function formatPayment(type) {
+  switch (type) {
+    case 'pay_on_court': return 'Pay on Court';
+    case 'pay_full': return 'Full Payment';
+    case 'pay_booking': return 'Booking Fee';
+    case 'other': return 'Other';
+    default: return type || 'Manual';
+  }
+}
+
+
+</script>
+</body>
+</html>
