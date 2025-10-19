@@ -731,14 +731,6 @@ function buildPositionOptions(limits, counts) {
         <p class="availability">Slots: loading...</p>
 
       ${ game.team_selection ? `
-  <div style="margin:8px 0;">
-    <label style="font-weight:700;color:#702963;display:block;margin-bottom:6px">Pick your team</label>
-    <select id="team-select-${game.id}" name="team_side" required style="width:100%;padding:8px;border:1px solid #e5e7eb;border-radius:6px">
-      <option value="" selected disabled>— Select your team —</option>
-      <option value="A">${game.team_a_name || 'Futbola A'}</option>
-      <option value="B">${game.team_b_name || 'Futbola B'}</option>
-    </select>
-  </div>
 ` : `` }
 
 ${ (game.game_type === 'football' && game.position_selection) ? `
@@ -767,6 +759,14 @@ ${ (game.game_type === 'football' && game.position_selection) ? `
           <input name="phone" placeholder="Enter phone number" type="tel" required />
         `}
         <button type="submit">✅ Book Now</button>
+          <div style="margin:8px 0;">
+    <label style="font-weight:700;color:#702963;display:block;margin-bottom:6px">Pick your team</label>
+    <select id="team-select-${game.id}" name="team_side" required style="width:100%;padding:8px;border:1px solid #e5e7eb;border-radius:6px">
+      <option value="" selected disabled>— Select your team —</option>
+      <option value="A">${game.team_a_name || 'Futbola A'}</option>
+      <option value="B">${game.team_b_name || 'Futbola B'}</option>
+    </select>
+  </div>
         ${ (game.game_type === 'football' && game.position_selection) ? `
   <label style="font-weight:700;color:#702963;margin-top:8px">Position</label>
 <select name="position" id="pos-${game.id}" required>
