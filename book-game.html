@@ -633,8 +633,93 @@ if (shouldLabel) {
   });
 }
 
-function optimisticPlaceOnPitch(gameId, booking) {
-  const wrap = document.getElementById(`pitch-${gameId}`);
+async function renderTeamPitch(game, teamSide){
+  const wrap = document.getElementById(`pitch-${game.id}-${teamSide}`);
+  if (!wrap) return;
+  wrap.innerHTML = "";
+
+  const limits = game.position_limits || null;
+  if (!limits){
+    wrap.innerHTML = `<div style="padding:10px;text-align:center;color:#64748b">No position caps set.</div>`;
+    return;
+  }
+
+  const { data: rows } = await supabase
+    .from("game_bookings")
+    .select("position, jersey_name, user_id, team_side, profiles(avatar_url, jersey_name)")
+    .eq("game_id", game.id)
+    .eq("team_side", teamSide);
+
+  const byPos = {};
+  (rows||[]).forEach(r=>{
+    const key = (r.position || 'SUB').toUpperCase();
+    const name = r.profiles?.jersey_name || r.jersey_name || 'Player';
+    const avatar = r.profiles?.avatar_url || 'images/default-avatar.png';
+    (byPos[key] ||= []).push({ name, avatar, user_id: r.user_id });
+  });
+
+  const slots = buildPitchNodesFromLimits(limits);
+  const posCursor = {};
+
+  slots.forEach(slot=>{
+    const node = document.createElement('div');
+    node.className = 'pv-pos';
+    node.style.left = slot.x + '%';
+    node.style.top  = slot.y + '%';
+
+    const row = document.createElement('div');
+    row.className = 'pv-row';
+
+    const rawKey  = slot.key;
+    const baseKey = rawKey.replace(/[0-9]+$/,'');
+    let taken = byPos[rawKey];
+    let cursorKey = rawKey;
+    if (!taken || !taken.length) {
+      taken = byPos[baseKey] || [];
+      cursorKey = baseKey;
+    }
+    let start = posCursor[cursorKey] || 0;
+
+    for (let i=0; i<slot.playersPerPos; i++){
+      const item = document.createElement('div'); item.className='pv-item';
+      const s = document.createElement('div'); s.className='pv-slot';
+
+      const player = (baseKey === 'SUB' && slot.playersPerPos === 1)
+        ? taken[slot.subIndex]
+        : taken[start + i];
+
+      if (player && player.avatar){
+        const img = document.createElement('img');
+        img.src = player.avatar; img.onerror = () => { img.src = 'images/default-avatar.png'; };
+        s.appendChild(img);
+      } else {
+        s.classList.add('empty');
+      }
+
+      item.appendChild(s);
+      const nm = document.createElement('div'); nm.className='pv-name';
+      nm.textContent = player ? (player.name || 'Player') : '—';
+      item.appendChild(nm);
+      row.appendChild(item);
+    }
+
+    if (baseKey !== 'SUB') posCursor[cursorKey] = start + slot.playersPerPos;
+
+    node.appendChild(row);
+    const labelOnce = !slot.isSub || slot.subIndex === (slot.subCount - 1);
+    if (labelOnce) {
+      const lbl = document.createElement('div'); lbl.className='pv-label';
+      lbl.textContent = slot.isSub ? 'SUB' : rawKey;
+      node.appendChild(lbl);
+    }
+    wrap.appendChild(node);
+  });
+}
+
+function optimisticPlaceOnPitch(gameId, booking, hasTeams=false) {
+  const teamSide = (booking?.team_side || 'A').toUpperCase();
+  const wrapId = hasTeams ? `pitch-${gameId}-${teamSide}` : `pitch-${gameId}`;
+  const wrap = document.getElementById(wrapId);
   if (!wrap) return;
 
   const avatar = booking?.profiles?.avatar_url || 'images/default-avatar.png';
@@ -729,10 +814,21 @@ function buildPositionOptions(limits, counts) {
         <p><strong>💳 Payment:</strong> ${formatPayment(game.payment_type) || 'Manual'}</p>
         ${game.premium ? `<p style="color:goldenrod;">⭐ Premium</p>` : ""}
         <p class="availability">Slots: loading...</p>
-${ (game.game_type === 'football' && game.position_selection) ? `
+
+      ${ game.team_selection ? `
+` : `` }
+
+${ (game.game_type === 'football' && game.position_selection && game.team_selection) ? `
+  <h4 style="margin:8px 0 4px;color:#0f172a;font-weight:800;">${game.team_a_name || 'Futbola A'} Lineup</h4>
+  <div id="pitch-${game.id}-A" class="pitch-wrap" aria-label="Pitch A"></div>
+  <h4 style="margin:12px 0 4px;color:#0f172a;font-weight:800;">${game.team_b_name || 'Futbola B'} Lineup</h4>
+  <div id="pitch-${game.id}-B" class="pitch-wrap" aria-label="Pitch B"></div>
+` : (game.game_type === 'football' && game.position_selection) ? `
   <div id="pitch-${game.id}" class="pitch-wrap" aria-label="Pitch"></div>
 ` : `` }
+
       </div>
+      
     ${isPast ? `
       <p style="color:#999; font-size:14px; font-weight:bold; margin:10px 0;">📅 Past session</p>
     ` : `
@@ -752,16 +848,25 @@ ${ (game.game_type === 'football' && game.position_selection) ? `
           <input name="jersey_name" placeholder="Enter jersey name" required />
           <input name="phone" placeholder="Enter phone number" type="tel" required />
         `}
-        <button type="submit">✅ Book Now</button>
+
+          <div style="margin:8px 0;">
+    <label style="font-weight:700;color:#702963;display:block;margin-bottom:6px">Pick your team</label>
+    <select id="team-select-${game.id}" name="team_side" required style="width:100%;padding:8px;border:1px solid #e5e7eb;border-radius:6px">
+      <option value="" selected disabled>— Select your team —</option>
+      <option value="A">${game.team_a_name || 'Futbola A'}</option>
+      <option value="B">${game.team_b_name || 'Futbola B'}</option>
+    </select>
+  </div>
         ${ (game.game_type === 'football' && game.position_selection) ? `
   <label style="font-weight:700;color:#702963;margin-top:8px">Position</label>
-  <select name="position" id="pos-${game.id}" required>
-    <option value="">Loading positions…</option>
-  </select>
+<select name="position" id="pos-${game.id}" required>
+  <option value="" selected disabled>— Select your position —</option>
+</select>
   <div class="note" style="font-size:12px;color:#64748b;margin-top:6px">
     Positions are limited; full positions will be disabled.
   </div>
 ` : `` }
+        <button type="submit">✅ Book Now</button>
       </form>
     `}
       <div class="player-list" id="players-${game.id}"></div>
@@ -769,29 +874,72 @@ ${ (game.game_type === 'football' && game.position_selection) ? `
     container.appendChild(div);
     // -- build position options (football + position_selection) --
 if (game.game_type === 'football' && game.position_selection) {
-  const selectEl = div.querySelector(`#pos-${game.id}`);
-  if (selectEl) {
+  const selectEl  = div.querySelector(`#pos-${game.id}`);
+  const teamSel   = document.querySelector(`#team-select-${game.id}`); // dropdown we added
+  const teamHint  = div.querySelector(`#team-hint-${game.id}`);
+
+  async function refreshSelect() {
+    if (!selectEl) return;
+
+    // which team are we counting for?
+    const team = (game.team_selection && teamSel) ? (teamSel.value || '') : '';
+
+    // count bookings for THIS game and THIS team (if any)
     let counts = {};
-    try {
-      const { data: rows } = await supabase
-        .from("game_bookings")
-        .select("position")
-        .eq("game_id", game.id);
-      (rows || []).forEach(r => {
-        const k = r.position || 'SUB';
-        counts[k] = (counts[k] || 0) + 1;
-      });
-    } catch (_e) {}
-    selectEl.innerHTML = buildPositionOptions(game.position_limits, counts);
+    let q = supabase
+      .from("game_bookings")
+      .select("position")
+      .eq("game_id", game.id);
+
+    if (game.team_selection && team) {
+      q = q.eq("team_side", team);
+    }
+
+    const { data: rows } = await q;
+    (rows || []).forEach(r => {
+      const k = (r.position || 'SUB').toUpperCase();
+      counts[k] = (counts[k] || 0) + 1;
+    });
+
+    // update hint ("(Futbola A)" / "(Futbola B)")
+    if (teamHint && game.team_selection) {
+      const name = team === 'B' ? (game.team_b_name || 'Team B')
+                                : (game.team_a_name || 'Team A');
+      teamHint.textContent = team ? `(${name})` : '';
+    }
+
+    // rebuild options with per-team counts and a safe placeholder on top
+    selectEl.innerHTML =
+      `<option value="" selected disabled>— Select your position —</option>` +
+      buildPositionOptions(game.position_limits, counts);
+  }
+
+  // initial fill
+  await refreshSelect();
+
+  // re-fill when team changes
+  if (game.team_selection && teamSel) {
+    teamSel.addEventListener('change', () => { refreshSelect(); });
+  }
+
+  // render pitches (two when team selection is on)
+  if (game.team_selection) {
+    await renderTeamPitch(game, 'A');
+    await renderTeamPitch(game, 'B');
+  } else {
+    await renderPitchForGame(game);
   }
 }
 
-// -- render pitch view (mirrors Create Game layout) --
+// -- render pitch view (single or split by team) --
 if (game.game_type === 'football' && game.position_selection) {
-  await renderPitchForGame(game);
+  if (game.team_selection) {
+    await renderTeamPitch(game, 'A');
+    await renderTeamPitch(game, 'B');
+  } else {
+    await renderPitchForGame(game);
+  }
 }
-
-
 
     // guest toggle
     if (user && !isPast) {
@@ -910,152 +1058,111 @@ async function bookGame(gameId, form, game) {
   const jersey_name = form.jersey_name?.value?.trim();
   const phone = form.phone?.value?.trim();
 
-  // 🚫 For guests, jersey_name and phone required
+  // Guests must provide name + phone
   if (!user && (!jersey_name || !phone)) {
     alert("Please enter both jersey name and phone number.");
+    submitButton.disabled = false; submitButton.textContent = "✅ Book Now";
+    return;
+  }
+  // User booking someone else must provide guest info
+  if (user && !selfBooking && (!jersey_name || !phone)) {
+    alert("Please enter guest name and phone.");
+    submitButton.disabled = false; submitButton.textContent = "✅ Book Now";
     return;
   }
 
-  // 🚫 For user booking someone else, fields required
-  if (user && !selfBooking && (!jersey_name || !phone)) {
-    alert("Please enter guest name and phone.");
-    return;
-  }
-// 🆕 If football + position selection, require a position
-let position = null;
-try {
-  if (typeof game !== 'undefined' && game && game.game_type === 'football' && game.position_selection) {
-    position = form.position?.value || null;
+  // Require position for football position-based games
+  let position = null;
+  if (game && game.game_type === 'football' && game.position_selection) {
+    position = form.position?.value || "";
     if (!position) {
       alert("Please select a position.");
       submitButton.disabled = false; submitButton.textContent = "✅ Book Now";
       return;
     }
-    // Best-effort client-side cap check
-    const caps = game.position_limits || {};
-    if (caps && caps[position]) {
-      const { data: rows } = await supabase
-        .from("game_bookings")
-        .select("position")
-        .eq("game_id", gameId);
-      const taken = (rows || []).filter(r => r.position === position).length;
-      if (taken >= (caps[position] | 0)) {
-        alert("That position is already full. Please choose another.");
-        submitButton.disabled = false; submitButton.textContent = "✅ Book Now";
-        return;
-      }
+  }
+
+  // Require team (from dropdown) if team selection is on
+  let selectedTeam = "";
+  if (game?.team_selection) {
+    selectedTeam = document.querySelector(`#team-select-${gameId}`)?.value || "";
+    if (!selectedTeam) {
+      alert("Please select your team.");
+      submitButton.disabled = false; submitButton.textContent = "✅ Book Now";
+      return;
     }
   }
-} catch (_e) {}
-  
-  // ✅ Check if game full
-  const [{ data: bookings }, { data: gameData }] = await Promise.all([
-    supabase.from("game_bookings").select("id").eq("game_id", gameId),
-    supabase.from("games").select("max_players").eq("id", gameId).single()
-  ]);
-if (bookings.length >= gameData.max_players) {
-  alert("This game is already full.");
-    loadPlayers(gameId);
+
+  // Best-effort client-side cap check (team-aware; base position)
+  try {
+    if (game?.position_selection && position) {
+      const caps = game.position_limits || {};
+      const basePos = position.toUpperCase().replace(/[0-9]+$/, ''); // CM1 -> CM
+      const cap = caps[basePos] | 0;
+
+      if (cap > 0) {
+        let q = supabase.from('game_bookings')
+          .select('position, team_side')
+          .eq('game_id', gameId);
+        if (game?.team_selection && selectedTeam) {
+          q = q.eq('team_side', selectedTeam.toUpperCase());
+        }
+        const { data: rows } = await q;
+        const taken = (rows || []).filter(r =>
+          (r.position || '').toUpperCase().replace(/[0-9]+$/, '') === basePos
+        ).length;
+        if (taken >= cap) {
+          alert("That position is already full for the selected team. Please choose another.");
+          submitButton.disabled = false; submitButton.textContent = "✅ Book Now";
+          return;
+        }
+      }
+    }
+  } catch (e) {
+    // ignore precheck errors; server insert will still be attempted
+  }
+
+  // Build insert payload
+  const payload = {
+    game_id: gameId,
+    position: position || null,
+    jersey_name: selfBooking ? null : jersey_name || null,
+    phone: selfBooking ? null : phone || null,
+  };
+  if (selectedTeam) payload.team_side = selectedTeam.toUpperCase(); // 'A' or 'B'
+
+  // Insert
+  const { data: newBooking, error } = await supabase
+    .from("game_bookings")
+    .insert([payload])
+    .select("id, position, team_side, jersey_name, user_id, profiles(avatar_url, jersey_name)")
+    .single();
+
+  if (error) {
+    alert("Booking failed: " + error.message);
+    console.error(error);
+    submitButton.disabled = false; submitButton.textContent = "✅ Book Now";
     return;
   }
 
-  // ✅ Check duplicate
-  if (user && selfBooking) {
-    const { data: existing } = await supabase
-      .from("game_bookings")
-      .select("id")
-      .eq("game_id", gameId)
-      .eq("user_id", user.id)
-      .single();
-    if (existing) {
-      alert("You've already booked this game.");
-      return;
-    }
-  } else {
-    const { data: existingGuest } = await supabase
-      .from("game_bookings")
-      .select("id")
-      .eq("game_id", gameId)
-      .eq("phone", phone)
-      .single();
-    if (existingGuest) {
-      alert("This phone number has already booked this game.");
-      return;
-    }
-  }
-
-  // ✅ Fetch profile if needed
-  let profile = null;
-  if (user && selfBooking) {
-    const { data } = await supabase
-      .from("profiles")
-      .select("jersey_name, avatar_url, phone")
-      .eq("id", user.id)
-      .single();
-    profile = data;
-
-        if (!profile?.jersey_name || profile.jersey_name.trim().toLowerCase() === "player" || !profile?.phone) {
-      alert("Please complete your profile with a jersey name and phone number before booking.");
-      return;
-    }
-  }
-
-
-  // ✅ Build payload
-  const payload = user && selfBooking ? {
-    game_id: gameId,
-    user_id: user.id,
-    booked_by_user_id: user.id,
-    jersey_name: profile?.jersey_name || null,
-    avatar_url: profile?.avatar_url || null,
-    phone: profile?.phone || null
-  } : {
-    game_id: gameId,
-    user_id: null,
-    booked_by_user_id: user?.id || null,
-    jersey_name,
-    phone
-  };
-if (position) payload.position = position;
-  const { data: newBooking, error } = await supabase
-  .from("game_bookings")
-  .insert([payload])
-  .select("id, position, jersey_name, user_id, profiles(avatar_url, jersey_name)")
-  .single();
-
-if (error) {
-  alert("Booking failed: " + error.message);
-  console.error(error);
-  submitButton.disabled = false;
-  submitButton.textContent = "✅ Book Now";
-} else {
-  // ⚡ optimistic: show on pitch immediately (then full refresh below)
-  if (game && game.game_type === 'football' && game.position_selection && newBooking?.position) {
-    try { optimisticPlaceOnPitch(game.id, newBooking); } catch (_) {}
-  }
+  // Optimistic paint on pitch (A/B if enabled)
+  try { optimisticPlaceOnPitch(gameId, newBooking, !!game.team_selection); } catch {}
 
   alert("Booking successful!");
 
-  const { data: gameDetails } = await supabase
-    .from("games")
-    .select("contact_method, contact_link")
-    .eq("id", gameId)
-    .single();
-
-  if (gameDetails?.contact_link) {
-    const method = gameDetails.contact_method || "group";
-    const confirmJoin = confirm(`✅ Booking successful!\n\nWould you like to join the ${method} group for updates?`);
-    if (confirmJoin) window.open(gameDetails.contact_link, "_blank");
+  // Refresh players + pitches
+  loadPlayers(gameId);
+  if (game?.game_type === 'football' && game.position_selection) {
+    if (game.team_selection) {
+      await renderTeamPitch(game, 'A');
+      await renderTeamPitch(game, 'B');
+    } else {
+      await renderPitchForGame(game);
+    }
   }
 
-  // refresh list + pitch to reconcile state
-  loadPlayers(gameId);
-  if (game && game.game_type === 'football' && game.position_selection) { await renderPitchForGame(game); }
-
   form.reset();
-  submitButton.disabled = false;
-  submitButton.textContent = "✅ Book Now";
-}
+  submitButton.disabled = false; submitButton.textContent = "✅ Book Now";
 }
 
 function formatPayment(type) {
