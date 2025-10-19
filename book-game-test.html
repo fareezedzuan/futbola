@@ -893,12 +893,15 @@ if (game.game_type === 'football' && game.position_selection) {
   }
 }
 
-// -- render pitch view (mirrors Create Game layout) --
+// -- render pitch view (single or split by team) --
 if (game.game_type === 'football' && game.position_selection) {
-  await renderPitchForGame(game);
+  if (game.team_selection) {
+    await renderTeamPitch(game, 'A');
+    await renderTeamPitch(game, 'B');
+  } else {
+    await renderPitchForGame(game);
+  }
 }
-
-
 
     // guest toggle
     if (user && !isPast) {
