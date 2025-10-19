@@ -633,8 +633,93 @@ if (shouldLabel) {
   });
 }
 
-function optimisticPlaceOnPitch(gameId, booking) {
-  const wrap = document.getElementById(`pitch-${gameId}`);
+async function renderTeamPitch(game, teamSide){
+  const wrap = document.getElementById(`pitch-${game.id}-${teamSide}`);
+  if (!wrap) return;
+  wrap.innerHTML = "";
+
+  const limits = game.position_limits || null;
+  if (!limits){
+    wrap.innerHTML = `<div style="padding:10px;text-align:center;color:#64748b">No position caps set.</div>`;
+    return;
+  }
+
+  const { data: rows } = await supabase
+    .from("game_bookings")
+    .select("position, jersey_name, user_id, team_side, profiles(avatar_url, jersey_name)")
+    .eq("game_id", game.id)
+    .eq("team_side", teamSide);
+
+  const byPos = {};
+  (rows||[]).forEach(r=>{
+    const key = (r.position || 'SUB').toUpperCase();
+    const name = r.profiles?.jersey_name || r.jersey_name || 'Player';
+    const avatar = r.profiles?.avatar_url || 'images/default-avatar.png';
+    (byPos[key] ||= []).push({ name, avatar, user_id: r.user_id });
+  });
+
+  const slots = buildPitchNodesFromLimits(limits);
+  const posCursor = {};
+
+  slots.forEach(slot=>{
+    const node = document.createElement('div');
+    node.className = 'pv-pos';
+    node.style.left = slot.x + '%';
+    node.style.top  = slot.y + '%';
+
+    const row = document.createElement('div');
+    row.className = 'pv-row';
+
+    const rawKey  = slot.key;
+    const baseKey = rawKey.replace(/[0-9]+$/,'');
+    let taken = byPos[rawKey];
+    let cursorKey = rawKey;
+    if (!taken || !taken.length) {
+      taken = byPos[baseKey] || [];
+      cursorKey = baseKey;
+    }
+    let start = posCursor[cursorKey] || 0;
+
+    for (let i=0; i<slot.playersPerPos; i++){
+      const item = document.createElement('div'); item.className='pv-item';
+      const s = document.createElement('div'); s.className='pv-slot';
+
+      const player = (baseKey === 'SUB' && slot.playersPerPos === 1)
+        ? taken[slot.subIndex]
+        : taken[start + i];
+
+      if (player && player.avatar){
+        const img = document.createElement('img');
+        img.src = player.avatar; img.onerror = () => { img.src = 'images/default-avatar.png'; };
+        s.appendChild(img);
+      } else {
+        s.classList.add('empty');
+      }
+
+      item.appendChild(s);
+      const nm = document.createElement('div'); nm.className='pv-name';
+      nm.textContent = player ? (player.name || 'Player') : '—';
+      item.appendChild(nm);
+      row.appendChild(item);
+    }
+
+    if (baseKey !== 'SUB') posCursor[cursorKey] = start + slot.playersPerPos;
+
+    node.appendChild(row);
+    const labelOnce = !slot.isSub || slot.subIndex === (slot.subCount - 1);
+    if (labelOnce) {
+      const lbl = document.createElement('div'); lbl.className='pv-label';
+      lbl.textContent = slot.isSub ? 'SUB' : rawKey;
+      node.appendChild(lbl);
+    }
+    wrap.appendChild(node);
+  });
+}
+
+function optimisticPlaceOnPitch(gameId, booking, hasTeams=false) {
+  const teamSide = (booking?.team_side || 'A').toUpperCase();
+  const wrapId = hasTeams ? `pitch-${gameId}-${teamSide}` : `pitch-${gameId}`;
+  const wrap = document.getElementById(wrapId);
   if (!wrap) return;
 
   const avatar = booking?.profiles?.avatar_url || 'images/default-avatar.png';
@@ -733,7 +818,12 @@ function buildPositionOptions(limits, counts) {
       ${ game.team_selection ? `
 ` : `` }
 
-${ (game.game_type === 'football' && game.position_selection) ? `
+${ (game.game_type === 'football' && game.position_selection && game.team_selection) ? `
+  <h4 style="margin:8px 0 4px;color:#0f172a;font-weight:800;">${game.team_a_name || 'Futbola A'} Lineup</h4>
+  <div id="pitch-${game.id}-A" class="pitch-wrap" aria-label="Pitch A"></div>
+  <h4 style="margin:12px 0 4px;color:#0f172a;font-weight:800;">${game.team_b_name || 'Futbola B'} Lineup</h4>
+  <div id="pitch-${game.id}-B" class="pitch-wrap" aria-label="Pitch B"></div>
+` : (game.game_type === 'football' && game.position_selection) ? `
   <div id="pitch-${game.id}" class="pitch-wrap" aria-label="Pitch"></div>
 ` : `` }
 
@@ -1059,9 +1149,9 @@ if (error) {
   submitButton.textContent = "✅ Book Now";
 } else {
   // ⚡ optimistic: show on pitch immediately (then full refresh below)
-  if (game && game.game_type === 'football' && game.position_selection && newBooking?.position) {
-    try { optimisticPlaceOnPitch(game.id, newBooking); } catch (_) {}
-  }
+if (game && game.game_type === 'football' && game.position_selection && newBooking?.position) {
+  try { optimisticPlaceOnPitch(game.id, newBooking, !!game.team_selection); } catch (_) {}
+}
 
   alert("Booking successful!");
 
@@ -1079,8 +1169,14 @@ if (error) {
 
   // refresh list + pitch to reconcile state
   loadPlayers(gameId);
-  if (game && game.game_type === 'football' && game.position_selection) { await renderPitchForGame(game); }
-
+  if (game && game.game_type === 'football' && game.position_selection) {
+  if (game.team_selection) {
+    await renderTeamPitch(game, 'A');
+    await renderTeamPitch(game, 'B');
+  } else {
+    await renderPitchForGame(game);
+  }
+}
   form.reset();
   submitButton.disabled = false;
   submitButton.textContent = "✅ Book Now";
