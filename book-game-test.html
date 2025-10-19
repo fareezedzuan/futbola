@@ -874,22 +874,60 @@ ${ (game.game_type === 'football' && game.position_selection && game.team_select
     container.appendChild(div);
     // -- build position options (football + position_selection) --
 if (game.game_type === 'football' && game.position_selection) {
-  const selectEl = div.querySelector(`#pos-${game.id}`);
-  if (selectEl) {
+  const selectEl  = div.querySelector(`#pos-${game.id}`);
+  const teamSel   = document.querySelector(`#team-select-${game.id}`); // dropdown we added
+  const teamHint  = div.querySelector(`#team-hint-${game.id}`);
+
+  async function refreshSelect() {
+    if (!selectEl) return;
+
+    // which team are we counting for?
+    const team = (game.team_selection && teamSel) ? (teamSel.value || '') : '';
+
+    // count bookings for THIS game and THIS team (if any)
     let counts = {};
-    try {
-      const { data: rows } = await supabase
-        .from("game_bookings")
-        .select("position")
-        .eq("game_id", game.id);
-      (rows || []).forEach(r => {
-        const k = r.position || 'SUB';
-        counts[k] = (counts[k] || 0) + 1;
-      });
-    } catch (_e) {}
+    let q = supabase
+      .from("game_bookings")
+      .select("position")
+      .eq("game_id", game.id);
+
+    if (game.team_selection && team) {
+      q = q.eq("team_side", team);
+    }
+
+    const { data: rows } = await q;
+    (rows || []).forEach(r => {
+      const k = (r.position || 'SUB').toUpperCase();
+      counts[k] = (counts[k] || 0) + 1;
+    });
+
+    // update hint ("(Futbola A)" / "(Futbola B)")
+    if (teamHint && game.team_selection) {
+      const name = team === 'B' ? (game.team_b_name || 'Team B')
+                                : (game.team_a_name || 'Team A');
+      teamHint.textContent = team ? `(${name})` : '';
+    }
+
+    // rebuild options with per-team counts and a safe placeholder on top
     selectEl.innerHTML =
-  `<option value="" selected disabled>— Select your position —</option>` +
-  buildPositionOptions(game.position_limits, counts);
+      `<option value="" selected disabled>— Select your position —</option>` +
+      buildPositionOptions(game.position_limits, counts);
+  }
+
+  // initial fill
+  await refreshSelect();
+
+  // re-fill when team changes
+  if (game.team_selection && teamSel) {
+    teamSel.addEventListener('change', () => { refreshSelect(); });
+  }
+
+  // render pitches (two when team selection is on)
+  if (game.team_selection) {
+    await renderTeamPitch(game, 'A');
+    await renderTeamPitch(game, 'B');
+  } else {
+    await renderPitchForGame(game);
   }
 }
 
