@@ -932,14 +932,14 @@ if (game.game_type === 'football' && game.position_selection) {
 }
 
 // -- render pitch view (single or split by team) --
-if (game.game_type === 'football' && game.position_selection) {
-  if (game.team_selection) {
-    await renderTeamPitch(game, 'A');
-    await renderTeamPitch(game, 'B');
-  } else {
-    await renderPitchForGame(game);
-  }
-}
+//if (game.game_type === 'football' && game.position_selection) {
+//  if (game.team_selection) {
+//    await renderTeamPitch(game, 'A');
+//    await renderTeamPitch(game, 'B');
+//  } else {
+//    await renderPitchForGame(game);
+//  }
+// }
 
     // guest toggle
     if (user && !isPast) {
@@ -1130,12 +1130,24 @@ const profilePhone = user?.phone                  // Supabase phone auth
                   || user?.user_metadata?.phone   // if you store it in metadata
                   || null;
 
-const payload = {
+// mirror stable: include ids + avatar for self-booking
+const payload = selfBooking ? {
   game_id: gameId,
+  user_id: user?.id || null,
+  booked_by_user_id: user?.id || null,
   position: position || null,
-  jersey_name: selfBooking ? (profileName || null) : (jersey_name || null),
-  phone:        selfBooking ? (profilePhone || null) : (phone || null),
+  jersey_name: profileName || null,
+  phone: profilePhone || null,
+  avatar_url: user?.user_metadata?.avatar_url || null
+} : {
+  game_id: gameId,
+  user_id: null,
+  booked_by_user_id: user?.id || null,
+  position: position || null,
+  jersey_name: jersey_name || null,
+  phone: phone || null
 };
+
 if (selectedTeam) payload.team_side = selectedTeam.toUpperCase(); // 'A' or 'B'
 
   // Insert
