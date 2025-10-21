@@ -1122,13 +1122,25 @@ async function bookGame(gameId, form, game) {
     // ignore precheck errors; server insert will still be attempted
   }
 
-// Build insert payload (self-book uses profile/auth values)
-const profileName  = user?.user_metadata?.jersey_name
-                  || user?.user_metadata?.full_name
-                  || null;
-const profilePhone = user?.phone                  // Supabase phone auth
-                  || user?.user_metadata?.phone   // if you store it in metadata
-                  || null;
+// Build insert payload (self-book pulls from profiles first)
+let profileName = user?.user_metadata?.jersey_name || user?.user_metadata?.full_name || null;
+let profilePhone = user?.phone || user?.user_metadata?.phone || null;
+let profileAvatar = user?.user_metadata?.avatar_url || null;
+
+if (selfBooking && user?.id) {
+  try {
+    const { data: prof } = await supabase
+      .from('profiles')
+      .select('jersey_name, phone, avatar_url')
+      .eq('id', user.id)
+      .single();
+    if (prof) {
+      profileName = prof.jersey_name || profileName;
+      profilePhone = prof.phone || profilePhone;
+      profileAvatar = prof.avatar_url || profileAvatar;
+    }
+  } catch (_) {}
+}
 
 // mirror stable: include ids + avatar for self-booking
 const payload = selfBooking ? {
@@ -1137,8 +1149,8 @@ const payload = selfBooking ? {
   booked_by_user_id: user?.id || null,
   position: position || null,
   jersey_name: profileName || null,
-  phone: profilePhone || null,
-  avatar_url: user?.user_metadata?.avatar_url || null
+  phone: profilePhone || null,      // ← now filled from profiles/auth
+  avatar_url: profileAvatar || null
 } : {
   game_id: gameId,
   user_id: null,
@@ -1167,21 +1179,42 @@ if (selectedTeam) payload.team_side = selectedTeam.toUpperCase(); // 'A' or 'B'
   // Optimistic paint on pitch (A/B if enabled)
   try { optimisticPlaceOnPitch(gameId, newBooking, !!game.team_selection); } catch {}
 
-  alert("Booking successful!");
+// ✅ Booking success + optional WhatsApp group prompt
+alert("Booking successful!");
 
-  // Refresh players + pitches
-  loadPlayers(gameId);
-  if (game?.game_type === 'football' && game.position_selection) {
-    if (game.team_selection) {
-      await renderTeamPitch(game, 'A');
-      await renderTeamPitch(game, 'B');
-    } else {
-      await renderPitchForGame(game);
+// Fetch contact info for this game
+try {
+  const { data: gameDetails } = await supabase
+    .from("games")
+    .select("contact_method, contact_link")
+    .eq("id", gameId)
+    .single();
+
+  if (gameDetails?.contact_link) {
+    const method = gameDetails.contact_method || "WhatsApp";
+    const confirmJoin = confirm(`✅ Booking successful!\n\nWould you like to join the ${method} group for updates?`);
+    if (confirmJoin) {
+      window.open(gameDetails.contact_link, "_blank");
     }
   }
+} catch (e) {
+  console.warn("Failed to fetch contact link:", e);
+}
 
-  form.reset();
-  submitButton.disabled = false; submitButton.textContent = "✅ Book Now";
+// Refresh players + pitches
+loadPlayers(gameId);
+if (game?.game_type === 'football' && game.position_selection) {
+  if (game.team_selection) {
+    await renderTeamPitch(game, 'A');
+    await renderTeamPitch(game, 'B');
+  } else {
+    await renderPitchForGame(game);
+  }
+}
+
+form.reset();
+submitButton.disabled = false;
+submitButton.textContent = "✅ Book Now";
 }
 
 function formatPayment(type) {
