@@ -1122,14 +1122,21 @@ async function bookGame(gameId, form, game) {
     // ignore precheck errors; server insert will still be attempted
   }
 
-  // Build insert payload
-  const payload = {
-    game_id: gameId,
-    position: position || null,
-    jersey_name: selfBooking ? null : jersey_name || null,
-    phone: selfBooking ? null : phone || null,
-  };
-  if (selectedTeam) payload.team_side = selectedTeam.toUpperCase(); // 'A' or 'B'
+// Build insert payload (self-book uses profile/auth values)
+const profileName  = user?.user_metadata?.jersey_name
+                  || user?.user_metadata?.full_name
+                  || null;
+const profilePhone = user?.phone                  // Supabase phone auth
+                  || user?.user_metadata?.phone   // if you store it in metadata
+                  || null;
+
+const payload = {
+  game_id: gameId,
+  position: position || null,
+  jersey_name: selfBooking ? (profileName || null) : (jersey_name || null),
+  phone:        selfBooking ? (profilePhone || null) : (phone || null),
+};
+if (selectedTeam) payload.team_side = selectedTeam.toUpperCase(); // 'A' or 'B'
 
   // Insert
   const { data: newBooking, error } = await supabase
