@@ -849,7 +849,8 @@ ${ (game.game_type === 'football' && game.position_selection && game.team_select
           <input name="phone" placeholder="Enter phone number" type="tel" required />
         `}
 
-          <div style="margin:8px 0;">
+${ (game.game_type === 'football' && game.team_selection) ? `
+  <div style="margin:8px 0;">
     <label style="font-weight:700;color:#702963;display:block;margin-bottom:6px">Pick your team</label>
     <select id="team-select-${game.id}" name="team_side" required style="width:100%;padding:8px;border:1px solid #e5e7eb;border-radius:6px">
       <option value="" selected disabled>— Select your team —</option>
@@ -857,6 +858,8 @@ ${ (game.game_type === 'football' && game.position_selection && game.team_select
       <option value="B">${game.team_b_name || 'Futbola B'}</option>
     </select>
   </div>
+` : `` }
+
         ${ (game.game_type === 'football' && game.position_selection) ? `
   <label style="font-weight:700;color:#702963;margin-top:8px">Position</label>
 <select name="position" id="pos-${game.id}" required>
@@ -1082,16 +1085,16 @@ async function bookGame(gameId, form, game) {
     }
   }
 
-  // Require team (from dropdown) if team selection is on
-  let selectedTeam = "";
-  if (game?.team_selection) {
-    selectedTeam = document.querySelector(`#team-select-${gameId}`)?.value || "";
-    if (!selectedTeam) {
-      alert("Please select your team.");
-      submitButton.disabled = false; submitButton.textContent = "✅ Book Now";
-      return;
-    }
+// Require team ONLY for football with team_selection
+let selectedTeam = "";
+if (game?.game_type === 'football' && game?.team_selection) {
+  selectedTeam = document.querySelector(`#team-select-${gameId}`)?.value || "";
+  if (!selectedTeam) {
+    alert("Please select your team.");
+    submitButton.disabled = false; submitButton.textContent = "✅ Book Now";
+    return;
   }
+}
 
   // Best-effort client-side cap check (team-aware; base position)
   try {
@@ -1104,7 +1107,7 @@ async function bookGame(gameId, form, game) {
         let q = supabase.from('game_bookings')
           .select('position, team_side')
           .eq('game_id', gameId);
-        if (game?.team_selection && selectedTeam) {
+        if (game?.game_type === 'football' && game?.team_selection && selectedTeam) {
           q = q.eq('team_side', selectedTeam.toUpperCase());
         }
         const { data: rows } = await q;
