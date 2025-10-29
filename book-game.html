@@ -1057,53 +1057,55 @@ async function bookGame(gameId, form, game) {
   submitButton.disabled = true;
   submitButton.textContent = "⏳ Booking...";
 
- // who is booking + any manual inputs
-const selfBooking = form.selfBooking?.checked;
-const jersey_name = form.jersey_name?.value?.trim();
-const phone       = form.phone?.value?.trim();
+  // who is booking + any manual inputs
+  const selfBooking = form.selfBooking?.checked;
+  const jersey_name = form.jersey_name?.value?.trim();
+  const phone       = form.phone?.value?.trim();
 
-// pull phone/name/avatar from profiles first so validation can see them
-let profilePhone  = user?.phone || user?.user_metadata?.phone || null;
-let profileName   = user?.user_metadata?.jersey_name || user?.user_metadata?.full_name || null;
-let profileAvatar = user?.user_metadata?.avatar_url || null;
+  // pull phone/name/avatar from profiles first so validation can see them
+  let profilePhone  = user?.phone || user?.user_metadata?.phone || null;
+  let profileName   = user?.user_metadata?.jersey_name || user?.user_metadata?.full_name || null;
+  let profileAvatar = user?.user_metadata?.avatar_url || null;
 
-if (user?.id) {
-  try {
-    const { data: prof } = await supabase
-      .from('profiles')
-      .select('jersey_name, phone, avatar_url')
-      .eq('id', user.id)
-      .single();
-    if (prof) {
-      profilePhone  = prof.phone       ?? profilePhone;
-      profileName   = prof.jersey_name ?? profileName;
-      profileAvatar = prof.avatar_url  ?? profileAvatar;
-    }
-  } catch (_) {}
-}
+  if (user?.id) {
+    try {
+      const { data: prof } = await supabase
+        .from('profiles')
+        .select('jersey_name, phone, avatar_url')
+        .eq('id', user.id)
+        .single();
+      if (prof) {
+        profilePhone  = prof.phone       ?? profilePhone;
+        profileName   = prof.jersey_name ?? profileName;
+        profileAvatar = prof.avatar_url  ?? profileAvatar;
+      }
+    } catch (_) {}
+  }
 
-// ✅ 1) Guest must provide name + phone
-if (!user && (!jersey_name || !phone)) {
-  alert("Please enter both name and phone number before booking.");
-  submitButton.disabled = false; submitButton.textContent = "✅ Book Now";
-  return;
-}
+  // ✅ 1) Guest must provide name + phone
+  if (!user && (!jersey_name || !phone)) {
+    alert("Please enter both name and phone number before booking.");
+    submitButton.disabled = false; 
+    submitButton.textContent = "✅ Book Now";
+    return;
+  }
 
-// ✅ 2) Logged-in booking for someone else must provide guest name + phone
-if (user && !selfBooking && (!jersey_name || !phone)) {
-  alert("Please enter guest name and phone number.");
-  submitButton.disabled = false; submitButton.textContent = "✅ Book Now";
-  return;
-}
+  // ✅ 2) Logged-in booking for someone else must provide guest name + phone
+  if (user && !selfBooking && (!jersey_name || !phone)) {
+    alert("Please enter guest name and phone number.");
+    submitButton.disabled = false; 
+    submitButton.textContent = "✅ Book Now";
+    return;
+  }
 
-// ✅ 3) Logged-in self-book: require a phone from profile OR typed field
-if (user && selfBooking && !profilePhone && !phone) {
-  alert("Your account has no phone number saved. Please enter your phone number before booking.");
-  submitButton.disabled = false; submitButton.textContent = "✅ Book Now";
-  return;
-}
-}
-
+  // ✅ 3) Logged-in self-book: require a phone from profile OR typed field
+  if (user && selfBooking && !profilePhone && !phone) {
+    alert("Your account has no phone number saved. Please enter your phone number before booking.");
+    submitButton.disabled = false; 
+    submitButton.textContent = "✅ Book Now";
+    return;
+  }
+  
   // Require position for football position-based games
   let position = null;
   if (game && game.game_type === 'football' && game.position_selection) {
