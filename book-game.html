@@ -1105,7 +1105,7 @@ async function bookGame(gameId, form, game) {
     submitButton.textContent = "✅ Book Now";
     return;
   }
-  
+
   // Require position for football position-based games
   let position = null;
   if (game && game.game_type === 'football' && game.position_selection) {
