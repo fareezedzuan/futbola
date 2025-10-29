@@ -1061,18 +1061,32 @@ async function bookGame(gameId, form, game) {
   const jersey_name = form.jersey_name?.value?.trim();
   const phone = form.phone?.value?.trim();
 
-  // Guests must provide name + phone
-  if (!user && (!jersey_name || !phone)) {
-    alert("Please enter both jersey name and phone number.");
-    submitButton.disabled = false; submitButton.textContent = "✅ Book Now";
+// ✅ 1. If guest, must provide jersey name + phone
+if (!user && (!jersey_name || !phone)) {
+  alert("Please enter both name and phone number before booking.");
+  submitButton.disabled = false;
+  submitButton.textContent = "✅ Book Now";
+  return;
+}
+
+// ✅ 2. If logged-in and booking for someone else, must fill guest info
+if (user && !selfBooking && (!jersey_name || !phone)) {
+  alert("Please enter guest name and phone number.");
+  submitButton.disabled = false;
+  submitButton.textContent = "✅ Book Now";
+  return;
+}
+
+// ✅ 3. If logged-in self-book but account has no phone, force fill phone manually
+if (user && selfBooking) {
+  const profilePhone = user?.phone || user?.user_metadata?.phone || null;
+  if (!profilePhone && !phone) {
+    alert("Your account has no phone number saved. Please enter your phone number before booking.");
+    submitButton.disabled = false;
+    submitButton.textContent = "✅ Book Now";
     return;
   }
-  // User booking someone else must provide guest info
-  if (user && !selfBooking && (!jersey_name || !phone)) {
-    alert("Please enter guest name and phone.");
-    submitButton.disabled = false; submitButton.textContent = "✅ Book Now";
-    return;
-  }
+}
 
   // Require position for football position-based games
   let position = null;
@@ -1146,13 +1160,18 @@ if (selfBooking && user?.id) {
 }
 
 // mirror stable: include ids + avatar for self-booking
+const effectivePhone =
+  (selfBooking && (profilePhone || phone)) ||
+  phone ||
+  null;
+
 const payload = selfBooking ? {
   game_id: gameId,
   user_id: user?.id || null,
   booked_by_user_id: user?.id || null,
   position: position || null,
-  jersey_name: profileName || null,
-  phone: profilePhone || null,      // ← now filled from profiles/auth
+  jersey_name: profileName || jersey_name || null,
+  phone: effectivePhone,        // <-- always has value now
   avatar_url: profileAvatar || null
 } : {
   game_id: gameId,
