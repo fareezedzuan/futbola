@@ -809,7 +809,14 @@ function buildPositionOptions(limits, counts) {
     const div = document.createElement("div");
     div.className = "game-card";
     // WhatsApp contact link (fallback to Futbola number if none)
-const supportLink = game.contact_link || game.wa_link || 'https://wa.me/60126210204';
+// WhatsApp contact link (sanitise + message)
+let supportLink = game.contact_link || game.wa_link || 'https://wa.me/60126210204';
+if (supportLink && !supportLink.startsWith('http')) {
+  const digits = supportLink.replace(/\D/g, '');
+  supportLink = 'https://wa.me/' + digits;
+}
+const msg = encodeURIComponent("Hi Futbola! I'm having trouble with booking or want to cancel my slot.");
+supportLink += `?text=${msg}`;
     div.innerHTML = `
       <div class="game-info">
         <p><strong>📛 Title:</strong> ${game.session_title || 'Untitled'}</p>
