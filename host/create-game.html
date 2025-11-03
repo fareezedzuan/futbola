@@ -570,11 +570,25 @@ for (let i = 0; i < slot.playersPerPos; i++) {
     function normalizeContactLink(method, raw){
       const v=(raw||'').trim();
       if(!v) return '';
-      if (method==='whatsapp'){
-        const num = v.replace(/[^\d+]/g,'');
-        const digits = num.startsWith('+') ? num.slice(1) : num;
-        return digits ? `https://wa.me/${digits}` : '';
-      }
+if (method === 'whatsapp') {
+  // 1) Full URLs → keep as-is
+  if (/^https?:\/\//i.test(v)) return v;
+
+  // 2) Known WA short-links without protocol → add https://
+  if (/^(wa\.link|wa\.me|chat\.whatsapp\.com)\//i.test(v)) return `https://${v}`;
+
+  // 3) Otherwise treat as phone number → build wa.me/<digits> with MY CC
+  const digitsOnly = v.replace(/\D/g, '');
+  if (!digitsOnly) return '';
+  let withCc = digitsOnly;
+  if (!withCc.startsWith('60')) {
+    withCc = withCc.startsWith('0') ? ('60' + withCc.slice(1)) : ('60' + withCc);
+  }
+  // require a reasonable length to avoid "wa.me/879117"
+  if (withCc.length < 10) return '';
+  return `https://wa.me/${withCc}`;
+}
+      
       if (method==='phone'){
         const num = v.replace(/[^\d+]/g,'');
         return num ? `tel:${num}` : '';
@@ -624,11 +638,19 @@ $('#submitGameButton').addEventListener('click', async ()=>{
   const isRecurring = isOn(recurSwitch);
 
   // Contact link normalization
-  const normalizedContact = normalizeContactLink(contactMethod, $('#contact_link').value);
-  if (!normalizedContact){
-    alert('Please provide a valid contact link/number for the selected contact method.');
+const normalizedContact = normalizeContactLink(contactMethod, $('#contact_link').value);
+if (!normalizedContact){
+  alert('Please provide a valid contact link/number for the selected contact method.');
+  return;
+}
+// block bad wa.me/<short> like wa.me/879117
+if (/^https?:\/\/wa\.me\/(\d+)$/i.test(normalizedContact)) {
+  const len = RegExp.$1.length;
+  if (len < 10) {
+    alert('WhatsApp phone looks too short. Please enter a full number (e.g. +60123456789) or a valid WA link.');
     return;
   }
+}
 
   // Build position_limits + options when needed
   let positionLimits = null;
