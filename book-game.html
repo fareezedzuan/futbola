@@ -174,6 +174,19 @@
       box-shadow: 0 3px 6px rgba(0,0,0,0.05);
     }
 
+    /* ---- Support / WhatsApp row ---- */
+.help-row{
+  display:flex; align-items:center; gap:8px;
+  margin:10px 0 6px; color:#334155; font-size:13px;
+}
+.wa-button{
+  display:inline-flex; align-items:center; justify-content:center;
+  width:34px; height:34px; border-radius:50%;
+  background:#25D366; color:#fff; text-decoration:none;
+  box-shadow:0 2px 4px rgba(0,0,0,.15);
+}
+.wa-button svg{ width:20px; height:20px; }
+
     /* ===== PITCH PREVIEW (upright) ===== */
 .pitch-wrap{
   position:relative;
@@ -795,6 +808,8 @@ function buildPositionOptions(limits, counts) {
     const isPast = startDateTime < new Date();
     const div = document.createElement("div");
     div.className = "game-card";
+    // WhatsApp contact link (fallback to Futbola number if none)
+const supportLink = game.contact_link || game.wa_link || 'https://wa.me/60126210204';
     div.innerHTML = `
       <div class="game-info">
         <p><strong>📛 Title:</strong> ${game.session_title || 'Untitled'}</p>
@@ -814,6 +829,15 @@ function buildPositionOptions(limits, counts) {
         <p><strong>💳 Payment:</strong> ${formatPayment(game.payment_type) || 'Manual'}</p>
         ${game.premium ? `<p style="color:goldenrod;">⭐ Premium</p>` : ""}
         <p class="availability">Slots: loading...</p>
+        <div class="help-row">
+  <span>Having trouble booking or want to cancel? Reach us:</span>
+  <a class="wa-button" href="${supportLink}" target="_blank" rel="noopener" aria-label="WhatsApp us">
+    <!-- WhatsApp SVG icon -->
+    <svg viewBox="0 0 32 32" fill="currentColor" aria-hidden="true">
+      <path d="M19.11 17.02c-.29-.14-1.71-.84-1.98-.94-.27-.1-.47-.14-.67.14-.19.29-.77.94-.95 1.13-.17.19-.35.21-.64.07-.29-.14-1.23-.45-2.34-1.44-.86-.76-1.44-1.7-1.61-1.99-.17-.29-.02-.45.13-.6.14-.14.29-.35.43-.52.14-.17.19-.29.29-.48.1-.19.05-.36-.02-.5-.07-.14-.67-1.62-.92-2.21-.24-.58-.49-.5-.67-.5h-.57c-.19 0-.5.07-.76.36-.26.29-.99.97-.99 2.36s1.02 2.74 1.16 2.93c.14.19 2.01 3.07 4.87 4.31.68.29 1.21.46 1.62.59.68.22 1.29.19 1.77.12.54-.08 1.71-.7 1.95-1.37.24-.67.24-1.24.17-1.36-.07-.12-.26-.19-.55-.34zM16.02 4C9.93 4 4.98 8.95 4.98 15.04c0 2.18.63 4.2 1.73 5.91L6 28l7.21-1.89c1.63.9 3.5 1.41 5.49 1.41 6.09 0 11.04-4.95 11.04-11.04S22.11 4 16.02 4zm0 20.06c-1.86 0-3.59-.55-5.03-1.5l-.36-.23-4.29 1.13 1.14-4.18-.24-.37a9.1 9.1 0 0 1-1.42-4.86C5.82 9.47 10.07 5.2 15.99 5.2c4.53 0 8.28 3.19 9.16 7.43.17.8.26 1.62.26 2.44 0 5.92-4.27 10.98-9.39 10.98z"/>
+    </svg>
+  </a>
+</div>
 
       ${ game.team_selection ? `
 ` : `` }
