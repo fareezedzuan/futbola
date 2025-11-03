@@ -1262,13 +1262,18 @@ try {
     .eq("id", gameId)
     .single();
 
-  if (gameDetails?.contact_link) {
-    const method = gameDetails.contact_method || "WhatsApp";
-    const confirmJoin = confirm(`✅ Booking successful!\n\nWould you like to join the ${method} group for updates?`);
-    if (confirmJoin) {
-      window.open(gameDetails.contact_link, "_blank");
-    }
-  }
+if (gameDetails?.contact_link) {
+  const method = gameDetails.contact_method || "group";
+  const link = (gameDetails.contact_link || "").trim();
+
+  // minimal fix: add protocol if missing for wa.me / wa.link
+  const url = /^https?:\/\//i.test(link)
+    ? link
+    : (/^(wa\.me|wa\.link)\//i.test(link) ? `https://${link}` : link);
+
+  const confirmJoin = confirm(`✅ Booking successful!\n\nWould you like to join the ${method} group for updates?`);
+  if (confirmJoin) window.open(url, "_blank");
+}
 } catch (e) {
   console.warn("Failed to fetch contact link:", e);
 }
