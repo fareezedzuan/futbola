@@ -1100,6 +1100,49 @@ async function bookGame(gameId, form, game) {
     return;
   }
 
+  // ✅ If logged-in self-book and no phone on file, ask once and save it
+if (user && selfBooking) {
+  // get phone from profiles first
+  let profilePhone = null;
+  try {
+    const { data: prof } = await supabase
+      .from("profiles")
+      .select("phone")
+      .eq("id", user.id)
+      .single();
+    profilePhone = prof?.phone || user.phone || user.user_metadata?.phone || null;
+  } catch (e) {
+    console.warn("Profile lookup failed", e);
+  }
+
+  if (!profilePhone) {
+    const typed = prompt("Please enter your phone number to continue booking:");
+    if (!typed) {
+      alert("Phone number is required to book.");
+      submitButton.disabled = false; submitButton.textContent = "✅ Book Now";
+      return;
+    }
+    const normalized = typed.replace(/\D/g, "");
+    if (normalized.length < 9) {
+      alert("That doesn't look like a valid phone number.");
+      submitButton.disabled = false; submitButton.textContent = "✅ Book Now";
+      return;
+    }
+    // save to profiles for future bookings
+    const { error: upErr } = await supabase
+      .from("profiles")
+      .update({ phone: normalized })
+      .eq("id", user.id);
+    if (upErr) {
+      alert("Couldn't save your phone. Please update it in your profile.");
+      submitButton.disabled = false; submitButton.textContent = "✅ Book Now";
+      return;
+    }
+    // use this number for the current booking too
+    form.phone && (form.phone.value = normalized); // optional: fill the field if visible
+  }
+}
+
   // Require position for football position-based games
   let position = null;
   if (game && game.game_type === 'football' && game.position_selection) {
