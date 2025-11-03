@@ -338,6 +338,39 @@ const MONTHS = [
   "July","August","September","October","November","December"
 ];
 
+// Normalize any WhatsApp value into a valid openable URL
+function normalizeWa(raw) {
+  if (!raw) return 'https://wa.me/60126210204';
+  raw = String(raw).trim();
+
+  // already absolute
+  if (/^https?:\/\//i.test(raw)) return raw;
+
+  // wa.me/message/<code> or message/<code>
+  const msgCode = raw.match(/(?:wa\.me\/message\/|^message\/)([A-Za-z0-9]+)/i);
+  if (msgCode) return `https://wa.me/message/${msgCode[1]}`;
+
+  // wa.link/<code>
+  const waLink = raw.match(/wa\.link\/?([A-Za-z0-9]+)/i);
+  if (waLink) return `https://wa.link/${waLink[1]}`;
+
+  // wa.me/<digits>
+  const waMeDigits = raw.match(/wa\.me\/(\d+)/i);
+  if (waMeDigits) return `https://wa.me/${waMeDigits[1]}`;
+
+  // bare number → normalise to Malaysia country code
+  const digits = raw.replace(/\D/g, '');
+  if (digits.length >= 8) {
+    const withCc =
+      digits.startsWith('60') ? digits :
+      digits.startsWith('0')  ? ('60' + digits.slice(1)) :
+                                ('60' + digits);
+    return `https://wa.me/${withCc}`;
+  }
+
+  return 'https://wa.me/60126210204';
+}
+
 function setMonthLabel(dateObj) {
   const el = document.getElementById("monthLabel");
   if (!el) return;
@@ -808,15 +841,14 @@ function buildPositionOptions(limits, counts) {
     const isPast = startDateTime < new Date();
     const div = document.createElement("div");
     div.className = "game-card";
-    // WhatsApp contact link (fallback to Futbola number if none)
-// WhatsApp contact link (sanitise + message)
-let supportLink = game.contact_link || game.wa_link || 'https://wa.me/60126210204';
-if (supportLink && !supportLink.startsWith('http')) {
-  const digits = supportLink.replace(/\D/g, '');
-  supportLink = 'https://wa.me/' + digits;
+
+// WhatsApp contact link (normalize + add text only for numeric wa.me)
+let supportLink = normalizeWa(game.contact_link || game.wa_link || '60126210204');
+if (/^https:\/\/wa\.me\/\d+$/i.test(supportLink)) {
+  const msg = encodeURIComponent("Hi Futbola! I'm having trouble with booking or want to cancel my slot.");
+  supportLink += `?text=${msg}`;
 }
-const msg = encodeURIComponent("Hi Futbola! I'm having trouble with booking or want to cancel my slot.");
-supportLink += `?text=${msg}`;
+
     div.innerHTML = `
       <div class="game-info">
         <p><strong>📛 Title:</strong> ${game.session_title || 'Untitled'}</p>
