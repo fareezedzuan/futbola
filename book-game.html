@@ -1263,28 +1263,23 @@ try {
     .single();
 
 if (gameDetails?.contact_link) {
-  const method = gameDetails.contact_method || "group";
-  const link = (gameDetails.contact_link || "").trim();
+  const method = gameDetails.contact_method || "WhatsApp";
+  let url = (gameDetails.contact_link || "").trim();
 
-  // minimal fix: add protocol if missing for wa.me / wa.link
-  const url = /^https?:\/\//i.test(link)
-    ? link
-    : (/^(wa\.me|wa\.link)\//i.test(link) ? `https://${link}` : link);
+  // ensure https:// for links without protocol
+  if (!/^https?:\/\//i.test(url)) url = "https://" + url;
 
-const confirmJoin = confirm(`✅ Booking successful!\n\nOpen the ${method} group now?`);
-if (confirmJoin) {
-  // Pre-open target immediately (reduces blocking)
-  const pre = window.open('', '_blank'); // may be null if blocked
-  const go = () => {
-    if (pre) {
-      pre.location.href = url;     // navigate the pre-opened tab
-    } else {
-      window.location.href = url;  // fallback: same-tab
-    }
-  };
-  // minimal delay to let async finish, then go
-  setTimeout(go, 0);
-}
+  // ✅ If it's a group invite link, switch to deep link (opens WA app directly)
+  const match = url.match(/^https?:\/\/chat\.whatsapp\.com\/([A-Za-z0-9]+)/i);
+  if (match) {
+    url = `whatsapp://chat?code=${match[1]}`;
+  }
+
+  const confirmJoin = confirm(`✅ Booking successful!\n\nOpen the ${method} group now?`);
+  if (confirmJoin) {
+    // Direct open — this will trigger WhatsApp app instantly
+    window.location.href = url;
+  }
 }
 } catch (e) {
   console.warn("Failed to fetch contact link:", e);
