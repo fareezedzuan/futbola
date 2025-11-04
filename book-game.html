@@ -1271,16 +1271,19 @@ if (gameDetails?.contact_link) {
     ? link
     : (/^(wa\.me|wa\.link)\//i.test(link) ? `https://${link}` : link);
 
-const confirmJoin = confirm(`✅ Booking successful!\n\nWould you like to join the ${method} group for updates?`);
+const confirmJoin = confirm(`✅ Booking successful!\n\nOpen the ${method} group now?`);
 if (confirmJoin) {
-  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-  if (isMobile) {
-    // Mobile browsers often block window.open() after async work — use same-tab nav
-    window.location.href = url;
-  } else {
-    // Desktop: new tab is fine
-    window.open(url, "_blank", "noopener");
-  }
+  // Pre-open target immediately (reduces blocking)
+  const pre = window.open('', '_blank'); // may be null if blocked
+  const go = () => {
+    if (pre) {
+      pre.location.href = url;     // navigate the pre-opened tab
+    } else {
+      window.location.href = url;  // fallback: same-tab
+    }
+  };
+  // minimal delay to let async finish, then go
+  setTimeout(go, 0);
 }
 }
 } catch (e) {
