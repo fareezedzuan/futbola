@@ -1233,7 +1233,27 @@ const payload = selfBooking ? {
 };
 
 if (selectedTeam) payload.team_side = selectedTeam.toUpperCase(); // 'A' or 'B'
+// ✅ Prevent same phone number booking twice for same game
+const finalPhone = payload.phone?.trim();
+if (finalPhone) {
+  try {
+    const { data: existing } = await supabase
+      .from("game_bookings")
+      .select("id")
+      .eq("game_id", gameId)
+      .eq("phone", finalPhone)
+      .limit(1);
 
+    if (existing && existing.length > 0) {
+      alert("This phone number has already been used to book this game.");
+      submitButton.disabled = false;
+      submitButton.textContent = "✅ Book Now";
+      return;
+    }
+  } catch (e) {
+    console.warn("Duplicate phone check failed:", e);
+  }
+}
   // Insert
   const { data: newBooking, error } = await supabase
     .from("game_bookings")
