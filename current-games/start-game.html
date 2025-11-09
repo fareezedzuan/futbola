@@ -406,7 +406,30 @@ const { data: sessionRow, error: sessionErr } = await supabase
 if (sessionErr) {
   console.error("Error fetching game_session_id:", sessionErr);
 } else {
-  const gameSessionId = sessionRow.id;
+  //const gameSessionId = sessionRow.id;
+  const gameSessionId = sessionRow?.id || null;
+  if (!gameSessionId) {
+  console.warn("No games_sessions row for game:", gameId, "→ loading players directly from game_bookings");
+  // Fallback: just load bookings for this game so team UI can still work
+  const { data: bookings } = await supabase
+    .from('game_bookings')
+    .select('id, user_id, jersey_name, profiles(avatar_url, jersey_name)')
+    .eq('game_id', gameId);
+
+  const safe = (s) => s || "Unnamed";
+  const players = (bookings || []).map(b => ({
+    id: b.id,
+    user_id: b.user_id || null,
+    name: safe(b.profiles?.jersey_name || b.jersey_name),
+    avatar_url: b.profiles?.avatar_url || null
+  }));
+
+  // hand back to the rest of your UI (use whatever your code expects)
+  allPlayers = players;
+  renderPlayersList(players); // ← if you have a function like this; otherwise call your existing render
+  return; // stop here, we’re done without a session
+}
+//new end here
 
   // Now check if matches exist for that game_session_id
   const { data: existingMatches, error: matchError } = await supabase
