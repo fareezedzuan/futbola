@@ -1214,6 +1214,37 @@ if (selfBooking && user?.id) {
   } catch (_) {}
 }
 
+// ✅ If logged-in self-book and no jersey name on file, ask once and save it
+if (user && selfBooking) {
+  if (!profileName || !profileName.trim()) {
+    const typedName = prompt("Please enter your jersey name (how it appears on the list):");
+    if (!typedName) {
+      alert("Name is required to book.");
+      submitButton.disabled = false;
+      submitButton.textContent = "✅ Book Now";
+      return;
+    }
+    const safeName = typedName.trim().slice(0, 30); // limit length a bit
+    try {
+      const { error: nameErr } = await supabase
+        .from("profiles")
+        .update({ jersey_name: safeName })
+        .eq("id", user.id);
+      if (nameErr) {
+        alert("Couldn't save your name. Please update it in your profile.");
+        submitButton.disabled = false;
+        submitButton.textContent = "✅ Book Now";
+        return;
+      }
+      profileName = safeName;
+      // optional: reflect in any visible field
+      if (form.jersey_name) form.jersey_name.value = safeName;
+    } catch (e) {
+      console.warn("Save jersey name failed:", e);
+    }
+  }
+}//new end
+
 // mirror stable: include ids + avatar for self-booking
 const payload = selfBooking ? {
   game_id: gameId,
