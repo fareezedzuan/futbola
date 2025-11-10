@@ -408,28 +408,11 @@ if (sessionErr) {
 } else {
   //const gameSessionId = sessionRow.id;
   const gameSessionId = sessionRow?.id || null;
-  if (!gameSessionId) {
-  console.warn("No games_sessions row for game:", gameId, "→ loading players directly from game_bookings");
-  // Fallback: just load bookings for this game so team UI can still work
-  const { data: bookings } = await supabase
-    .from('game_bookings')
-    .select('id, user_id, jersey_name, profiles(avatar_url, jersey_name)')
-    .eq('game_id', gameId);
-
-  const safe = (s) => s || "Unnamed";
-  const players = (bookings || []).map(b => ({
-    id: b.id,
-    user_id: b.user_id || null,
-    name: safe(b.profiles?.jersey_name || b.jersey_name),
-    avatar_url: b.profiles?.avatar_url || null
-  }));
-
-  // hand back to the rest of your UI (use whatever your code expects)
-  allPlayers = players;
-  renderPlayersList(players); // ← if you have a function like this; otherwise call your existing render
-  return; // stop here, we’re done without a session
+  
+if (!gameSessionId) {
+  alert("No session found. Re-select the game.");
+  return;
 }
-//new end here
 
   // Now check if matches exist for that game_session_id
   const { data: existingMatches, error: matchError } = await supabase
@@ -697,7 +680,7 @@ label.textContent = `Assign players to ${ordinal} team`;
           box.dataset.jersey = player.jersey || "";
 
 let html = `
-  <div>${player.name.slice(0, 15)}</div>
+    <div>${(player.name || "Unnamed").slice(0, 15)}</div>
   <div class="text-xs mt-1">🎽 ${player.jersey || '--'}</div>
   <button class="text-blue-500 underline text-xs mt-1" onclick="event.stopPropagation(); openJerseyPopup(${i}, ${activePlayers.indexOf(player)})">Set</button>
 `;
@@ -1465,11 +1448,36 @@ groupNames.forEach(name => {
   }
 
 
-document.getElementById("gameSelect").addEventListener("change", e => {
-  if (e.target.value) {
-    sessionStorage.setItem("gameId", e.target.value); // ✅ store for later use
-    fetchPlayers(e.target.value);
+document.getElementById("gameSelect").addEventListener("change", async e => {
+  const gameId = e.target.value;
+  if (!gameId) return;
+
+  sessionStorage.setItem("gameId", gameId); // ✅ store for later use
+
+  // 🧩 Ensure a games_sessions row exists for this game (minimal insert)
+  try {
+    const { data: existing } = await supabase
+      .from('games_sessions')
+      .select('id')
+      .eq('game_id', gameId)
+      .maybeSingle();
+
+    if (!existing) {
+      await supabase
+        .from('games_sessions')
+        .insert([{ game_id: gameId }])   // keep minimal to avoid type-casting issues
+        .select('id')
+        .single();
+      console.log('✅ Created games_sessions for', gameId);
+    } else {
+      console.log('✅ games_sessions exists:', existing.id);
+    }
+  } catch (err) {
+    console.error('Failed to ensure games_sessions:', err);
   }
+
+  // now proceed to load players/teams
+  fetchPlayers(gameId);
 });
 
     fetchGames();
