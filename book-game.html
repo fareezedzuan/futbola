@@ -354,16 +354,16 @@ const { data: games, error } = await supabase
 const gameIds = games.map(g => g.id);
 
 let bookingCountMap = {};
+
 if (gameIds.length) {
   const { data: counts, error } = await supabase
     .from("game_bookings")
-    .select("game_id, count:count(*)")
-    .in("game_id", gameIds)   // only these games
-    .group("game_id")
-    .limit(5000);             // safety, but not whole table
+    .select("game_id, count:count(*)", { head: false }) 
+    .in("game_id", gameIds)
+    .limit(5000);
 
   if (error) {
-    console.error("Error loading booking counts for calendar", error);
+    console.error("Error loading booking counts for calendar:", error);
   } else {
     (counts || []).forEach(row => {
       bookingCountMap[row.game_id] = row.count;
