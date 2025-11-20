@@ -364,7 +364,7 @@ const bookingCountMap = {};
 
 console.log("🧮 Booking Count Map:", bookingCountMap);
 console.log("📊 ---- GAME STATUS DEBUG ----");
-allGames.forEach(g => {
+games.forEach(g => {
   const filled = bookingCountMap[g.id] || 0;
   const max = g.max_players || 0;
 
