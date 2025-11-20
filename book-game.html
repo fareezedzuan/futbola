@@ -363,6 +363,25 @@ const bookingCountMap = {};
 });
 
 console.log("🧮 Booking Count Map:", bookingCountMap);
+console.log("📊 ---- GAME STATUS DEBUG ----");
+allGames.forEach(g => {
+  const filled = bookingCountMap[g.id] || 0;
+  const max = g.max_players || 0;
+
+  let status = "available";
+  if (max > 0) {
+    const ratio = filled / max;
+    if (ratio >= 1) status = "FULL";
+    else if (ratio >= 0.7) status = "LIMITED";
+    else status = "AVAILABLE";
+  }
+
+  console.log(
+    `📌 ${g.game_date} | ${g.start_time} | ${g.id}\n` +
+    `   Max: ${max}, Booked: ${filled}, Status: ${status}`
+  );
+});
+console.log("📊 ---- END DEBUG ----");
 
 if (error) {
   container.innerHTML = "<p>Error loading games</p>";
