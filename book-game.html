@@ -354,12 +354,16 @@ const { data: games, error } = await supabase
 const { data: allBookings } = await supabase
   .from("game_bookings")
   .select("id, game_id");
+  console.log("💬 All Bookings:", allBookings);
 
 // Build real booking counts
 const bookingCountMap = {};
 (allBookings || []).forEach(b => {
   bookingCountMap[b.game_id] = (bookingCountMap[b.game_id] || 0) + 1;
 });
+
+console.log("🧮 Booking Count Map:", bookingCountMap);
+console.log("📅 Games of the Day:", gameList);
 
 if (error) {
   container.innerHTML = "<p>Error loading games</p>";
