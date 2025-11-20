@@ -350,19 +350,31 @@ const { data: games, error } = await supabase
   .gte("game_date", start.toISOString().split("T")[0])
   .order("game_date", { ascending: true });
 
-// Fetch all bookings normally
-const { data: allBookings } = await supabase
-  .from("game_bookings")
-  .select("id, game_id");
-  console.log("💬 All Bookings:", allBookings);
+// ✅ Only count bookings for games actually shown in this calendar
+const gameIds = games.map(g => g.id);
 
-// Build real booking counts
-const bookingCountMap = {};
-(allBookings || []).forEach(b => {
-  bookingCountMap[b.game_id] = (bookingCountMap[b.game_id] || 0) + 1;
-});
+let bookingCountMap = {};
+if (gameIds.length) {
+  const { data: counts, error } = await supabase
+    .from("game_bookings")
+    .select("game_id, count:count(*)")
+    .in("game_id", gameIds)   // only these games
+    .group("game_id")
+    .limit(5000);             // safety, but not whole table
+
+  if (error) {
+    console.error("Error loading booking counts for calendar", error);
+  } else {
+    (counts || []).forEach(row => {
+      bookingCountMap[row.game_id] = row.count;
+    });
+  }
+}
 
 console.log("🧮 Booking Count Map:", bookingCountMap);
+
+// (optional) keep your GAME STATUS DEBUG here, but now it will use bookingCountMap
+
 console.log("📊 ---- GAME STATUS DEBUG ----");
 games.forEach(g => {
   const filled = bookingCountMap[g.id] || 0;
