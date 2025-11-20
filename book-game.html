@@ -350,12 +350,12 @@ const { data: games, error } = await supabase
   .gte("game_date", start.toISOString().split("T")[0])
   .order("game_date", { ascending: true });
 
-// Fetch bookings with correct count per game
+// Fetch all bookings normally
 const { data: allBookings } = await supabase
   .from("game_bookings")
-  .select("game_id", { count: "exact" });
+  .select("id, game_id");
 
-// Count properly
+// Build real booking counts
 const bookingCountMap = {};
 (allBookings || []).forEach(b => {
   bookingCountMap[b.game_id] = (bookingCountMap[b.game_id] || 0) + 1;
