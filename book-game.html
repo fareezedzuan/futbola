@@ -457,19 +457,22 @@ function renderCalendarGrid() {
 
     
     if (gameList.length) {
-      let totalSlots = 0;
-      let filledSlots = 0;
-
-      gameList.forEach(g => {
-        totalSlots += g.max_players || 0;
-        filledSlots += bookingCountMap[g.id] || 0;
-      });
-
-      const ratio = totalSlots === 0 ? 0 : filledSlots / totalSlots;
-
-      if (ratio >= 1) statusClass = "full";
-      else if (ratio >= 0.7) statusClass = "almost";
-      else statusClass = "available";
+      // If ANY game is full → day is red
+      if (gameList.some(g => (bookingCountMap[g.id] || 0) >= (g.max_players || 0))) {
+        statusClass = "full";
+      }
+      // Else if ANY game >= 70% → day is orange
+      else if (gameList.some(g => {
+        const filled = bookingCountMap[g.id] || 0;
+        const max = g.max_players || 0;
+        return max > 0 && (filled / max) >= 0.7;
+      })) {
+        statusClass = "almost";
+      }
+      // Otherwise → green
+      else {
+        statusClass = "available";
+      }
     }
 
     box.classList.add(statusClass);
