@@ -350,23 +350,22 @@ const { data: games, error } = await supabase
   .gte("game_date", start.toISOString().split("T")[0])
   .order("game_date", { ascending: true });
 
-// ✅ Only count bookings for games actually shown in this calendar
+// 🧮 Count bookings only for the games shown in this calendar
 const gameIds = games.map(g => g.id);
-
 let bookingCountMap = {};
 
 if (gameIds.length) {
-  const { data: counts, error } = await supabase
+  const { data: bookings, error } = await supabase
     .from("game_bookings")
-    .select("game_id, count:count(*)", { head: false }) 
-    .in("game_id", gameIds)
-    .limit(5000);
+    .select("id, game_id")
+    .in("game_id", gameIds)   // only these games
+    .limit(5000);             // avoid the default 1000-row cap
 
   if (error) {
-    console.error("Error loading booking counts for calendar:", error);
+    console.error("Error loading bookings for calendar:", error);
   } else {
-    (counts || []).forEach(row => {
-      bookingCountMap[row.game_id] = row.count;
+    (bookings || []).forEach(b => {
+      bookingCountMap[b.game_id] = (bookingCountMap[b.game_id] || 0) + 1;
     });
   }
 }
