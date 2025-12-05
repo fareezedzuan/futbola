@@ -1,5 +1,5 @@
 // player-profile.js
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.48.0/+esm';
 
 const supabase = createClient(
   'https://kdbqroxhypnadolcxxxc.supabase.co',
@@ -56,8 +56,18 @@ const supabase = createClient(
   loadPlayerStats(user.id);
 })();
 
-function getUser() {
-  return supabase.auth.getUser().then(({ data }) => data?.user ?? null);
+async function getUser() {
+  try {
+    const { data, error } = await supabase.auth.getUser();
+    if (error) {
+      console.warn("getUser error:", error);
+      return null;
+    }
+    return data?.user ?? null;
+  } catch (err) {
+    console.error("Supabase auth not ready on player-profile:", err);
+    return null;
+  }
 }
 
 async function loadProfile(id) {
