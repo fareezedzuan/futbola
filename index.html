@@ -359,7 +359,7 @@
 </footer>
 
 <script type="module">
-  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.48.0/+esm';
 
   const supabase = createClient(
     'https://kdbqroxhypnadolcxxxc.supabase.co',
@@ -377,7 +377,13 @@
     // console.error = noop;
   }
 
-  const { data: { user } } = await supabase.auth.getUser();
+let user = null;
+try {
+  const { data } = await supabase.auth.getUser();
+  user = data?.user ?? null;
+} catch (err) {
+  console.error("Supabase auth not available, showing logged-out homepage:", err);
+}
 
   const authWrapper = document.getElementById("authButtonWrapper");
   const teamWrapper = document.getElementById("teamButtons");
