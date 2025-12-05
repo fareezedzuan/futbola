@@ -104,7 +104,7 @@
 </div>
 
 <script type="module">
-  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.48.0/+esm';
 
   const supabase = createClient(
     'https://kdbqroxhypnadolcxxxc.supabase.co',
@@ -118,8 +118,14 @@
     }
   );
 
-  const { data: { user }, error } = await supabase.auth.getUser();
-
+  let user = null;
+  try {
+    const { data, error } = await supabase.auth.getUser();
+    if (error) console.error(error);
+    user = data?.user ?? null;
+  } catch (err) {
+    console.error("Auth not ready in profile-setup:", err);
+  }
   if (!user) {
     window.location.href = "/login.html";
   } else {
