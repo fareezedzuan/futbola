@@ -379,20 +379,7 @@
 
 let user = null;
 try {
-  let user = null;
-let session = null;
-
-try {
-  const { data: sessionData } = await supabase.auth.getSession();
-  session = sessionData?.session ?? null;
-} catch (e) {
-  console.warn("No session yet.");
-}
-
-if (session) {
   const { data } = await supabase.auth.getUser();
-  user = data?.user ?? null;
-}
   user = data?.user ?? null;
 } catch (err) {
   console.error("Supabase auth not available, showing logged-out homepage:", err);
