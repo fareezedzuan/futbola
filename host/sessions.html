@@ -201,7 +201,7 @@
 </a>
 
 <script type="module">
-  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.48.0/+esm';
 
   const supabase = createClient(
     'https://kdbqroxhypnadolcxxxc.supabase.co',
@@ -212,8 +212,14 @@
   let bookingMap = {};
   let user = null;
 
-  const { data: userData } = await supabase.auth.getUser();
-  user = userData.user;
+  try {
+    const { data, error } = await supabase.auth.getUser();
+    if (error) console.warn("getUser error:", error);
+    user = data?.user ?? null;
+  } catch (err) {
+    console.error("Supabase auth not ready on host dashboard:", err);
+    user = null;
+  }
 
   const monthLabel = document.getElementById("monthLabel");
   const calendarGrid = document.getElementById("calendarGrid");
