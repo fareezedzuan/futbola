@@ -99,8 +99,88 @@
     <p class="small-link">Don't have an account? <a href="#" id="signup-link">Sign up here</a></p>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-  <script src="js/supabaseClient.js"></script>
-  <script type="module" src="js/auth.js"></script>
+<script type="module">
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.48.0/+esm';
+
+  const supabase = createClient(
+    'https://kdbqroxhypnadolcxxxc.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkYnFyb3hoeXBuYWRvbGN4eHhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3MjkwNzYsImV4cCI6MjA1NzMwNTA3Nn0.c7_RVxoFdJNqQ62R3t1emH2Wf4dSsQaunHsHmbQxOBA'
+  );
+
+  const googleBtn   = document.getElementById('google-login');
+  const emailForm   = document.getElementById('email-login-form');
+  const signupLink  = document.getElementById('signup-link');
+
+  // 🔁 If already logged in, go straight to profile
+  try {
+    const { data } = await supabase.auth.getSession();
+    if (data?.session) {
+      window.location.href = '/player-profile.html';
+    }
+  } catch (err) {
+    console.warn('Session check failed:', err);
+  }
+
+  // 🔐 Google login
+  googleBtn.addEventListener('click', async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: 'https://www.futbola.my/profile-setup.html',
+      },
+    });
+    if (error) {
+      console.error(error);
+      alert('Google login failed: ' + error.message);
+    }
+  });
+
+  // 📧 Email/password login
+  emailForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email    = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+
+    if (!email || !password) {
+      alert('Please fill in both email and password.');
+      return;
+    }
+
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+    if (error) {
+      alert('Login failed: ' + error.message);
+      console.error(error);
+      return;
+    }
+
+    // success → go to profile setup / profile
+    window.location.href = '/profile-setup.html';
+  });
+
+  // 🆕 “Sign up here” → create account then go to profile setup
+  signupLink.addEventListener('click', async (e) => {
+    e.preventDefault();
+
+    const email    = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+
+    if (!email || !password) {
+      alert('To sign up, please enter email and password first.');
+      return;
+    }
+
+    const { data, error } = await supabase.auth.signUp({ email, password });
+
+    if (error) {
+      alert('Sign up failed: ' + error.message);
+      console.error(error);
+      return;
+    }
+
+    alert('Sign up successful! Check your email if verification is required.');
+    window.location.href = '/profile-setup.html';
+  });
+</script>
 </body>
 </html>
