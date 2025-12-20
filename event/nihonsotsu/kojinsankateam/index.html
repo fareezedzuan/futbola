@@ -282,6 +282,7 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const container = document.getElementById("gameContainer");
+const DEFAULT_AVATAR = '/images/default-avatar.png';
 
 let user = null;
 try {
@@ -376,7 +377,7 @@ if (gameIds.length) {
   }
 }
 
-console.log("🧮 Booking Count Map:", bookingCountMap);
+/*console.log("🧮 Booking Count Map:", bookingCountMap);
 
 // (optional) keep your GAME STATUS DEBUG here, but now it will use bookingCountMap
 
@@ -398,7 +399,7 @@ games.forEach(g => {
     `   Max: ${max}, Booked: ${filled}, Status: ${status}`
   );
 });
-console.log("📊 ---- END DEBUG ----");
+console.log("📊 ---- END DEBUG ----");*/
 
 if (error) {
   container.innerHTML = "<p>Error loading games</p>";
@@ -606,7 +607,7 @@ async function renderPitchForGame(game){
   (rows||[]).forEach(r=>{
     const key = r.position || 'SUB';
     const name = r.profiles?.jersey_name || r.jersey_name || 'Player';
-    const avatar = r.profiles?.avatar_url || 'images/default-avatar.png';
+    const avatar = r.profiles?.avatar_url || DEFAULT_AVATAR;
     (byPos[key] ||= []).push({ name, avatar, user_id: r.user_id });
   });
 
@@ -710,7 +711,7 @@ async function renderTeamPitch(game, teamSide){
   (rows||[]).forEach(r=>{
     const key = (r.position || 'SUB').toUpperCase();
     const name = r.profiles?.jersey_name || r.jersey_name || 'Player';
-    const avatar = r.profiles?.avatar_url || 'images/default-avatar.png';
+    const avatar = r.profiles?.avatar_url || DEFAULT_AVATAR;
     (byPos[key] ||= []).push({ name, avatar, user_id: r.user_id });
   });
 
@@ -778,7 +779,7 @@ function optimisticPlaceOnPitch(gameId, booking, hasTeams=false) {
   const wrap = document.getElementById(wrapId);
   if (!wrap) return;
 
-  const avatar = booking?.profiles?.avatar_url || 'images/default-avatar.png';
+  const avatar = booking?.profiles?.avatar_url || DEFAULT_AVATAR;
   const name   = booking?.profiles?.jersey_name || booking?.jersey_name || 'Player';
   const pos    = (booking?.position || '').toUpperCase();  // e.g., "CM", "CM1", "GK", "SUB"
 
