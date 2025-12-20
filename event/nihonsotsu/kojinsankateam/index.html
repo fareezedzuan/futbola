@@ -174,6 +174,10 @@
       box-shadow: 0 3px 6px rgba(0,0,0,0.05);
     }
 
+    #calendarGridWrapper {
+      display: none !important;
+    }
+
     /* ---- Support / WhatsApp row ---- */
 .help-row{
   display:flex; align-items:center; gap:8px;
@@ -263,7 +267,10 @@
 <h2>Nihon Sotsu Friendly League Cup</h2>
 <h2>Kojin Sanka FC</h2>
 <div id="logoutContainer" style="text-align: center; margin-bottom: 20px;"></div>
-
+<div id="calendarGridWrapper">
+  <div class="calendar-header" id="monthLabel"></div>
+  <div id="calendarGrid"></div>
+</div>
 
 <div id="gameContainer"></div>
 
@@ -281,6 +288,7 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const container = document.getElementById("gameContainer");
 const DEFAULT_AVATAR = '/images/default-avatar.png';
+const FIXED_GAME_ID = '0725d51b-1a61-46c3-825a-59993b8ef7e9';
 
 let user = null;
 try {
@@ -352,8 +360,8 @@ function setMonthLabel(dateObj) {
 const { data: games, error } = await supabase
   .from("games")
   .select("*")
-  .gte("game_date", start.toISOString().split("T")[0])
-  .order("game_date", { ascending: true });
+  .eq("id", FIXED_GAME_ID)
+  .limit(1);
 
 // 🧮 Count bookings only for the games shown in this calendar
 const gameIds = games.map(g => g.id);
@@ -419,7 +427,7 @@ games.forEach(g => {
   gameMap[date].push(g);
 });
 
-renderCalendarGrid();
+//renderCalendarGrid();
 
 function renderCalendarGrid() {
   calendarGrid.innerHTML = "";
@@ -841,9 +849,7 @@ function buildPositionOptions(limits, counts) {
 }
   container.innerHTML = "";
 
-  const filtered = selectedDate
-    ? datedGames.filter(g => g.game_date === selectedDate)
-    : datedGames.slice(0, 3);
+  const filtered = games; // always show the fixed game
 
   [...filtered, ...premiumGames].forEach(async (game) => {
     const startDateTime = new Date(`${game.game_date}T${game.start_time}`);
