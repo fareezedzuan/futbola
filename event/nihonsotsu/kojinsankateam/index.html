@@ -654,7 +654,7 @@ for (let i = 0; i < slot.playersPerPos; i++) {
   if (player && player.avatar) {
     const img = document.createElement('img');
     img.src = player.avatar;
-    img.onerror = () => { img.src = 'images/default-avatar.png'; };
+    img.onerror = () => { img.src = DEFAULT_AVATAR; };
     s.appendChild(img);
   } else {
     s.classList.add('empty');
@@ -812,7 +812,7 @@ function optimisticPlaceOnPitch(gameId, booking, hasTeams=false) {
   emptySlot.classList.remove('empty');
   const img = document.createElement('img');
   img.src = avatar;
-  img.onerror = () => { img.src = 'images/default-avatar.png'; };
+  img.onerror = () => { img.src = DEFAULT_AVATAR; };
   emptySlot.appendChild(img);
 
   // update/append the name (it sits in the .pv-item under the slot)
@@ -1068,11 +1068,11 @@ async function loadPlayers(gameId, gameDate) {
     //     <span>${label}</span>
     //   </a>`;}
     const label = b.profiles?.jersey_name || b.jersey_name || 'Player'; //new start
-    const avatarUrl = b.profiles?.avatar_url || b.avatar_url || 'images/default-avatar.png'; 
+    const avatarUrl = b.profiles?.avatar_url || b.avatar_url || DEFAULT_AVATAR; 
 
     if (b.user_id) {
       return `<a href="/player-public.html?id=${b.user_id}" class="player-avatar">
-        <img src="${avatarUrl}" onerror="this.onerror=null;this.src='images/default-avatar.png';" />
+        <img src="${avatarUrl}" onerror="this.onerror=null;this.src='/images/default-avatar.png';" />
         <span>${label}</span>
       </a>`; }//new end
     else {
