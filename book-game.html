@@ -354,6 +354,7 @@ const { data: games, error } = await supabase
   .from("games")
   .select("*")
   .gte("game_date", start.toISOString().split("T")[0])
+  .or("public.is.null,public.eq.yes")
   .order("game_date", { ascending: true });
 
 // 🧮 Count bookings only for the games shown in this calendar
