@@ -1160,11 +1160,15 @@ document.getElementById(`form-${game.id}`)?.addEventListener("submit", (e) => {
 
   const form = e.target;
 
-  // 🚫 BLOCK booking if ANY required info missing
-  const ok = validateKojinSankaForm(form, { requireNamePhone: true });
+  // ✅ Only require name/phone if:
+  // - user is NOT logged in, OR
+  // - user is booking as guest (selfBooking unchecked)
+  const isSelf = !!form.querySelector('input[name="selfBooking"]')?.checked;
+  const requireNamePhone = !user || !isSelf;
+
+  const ok = validateKojinSankaForm(form, { requireNamePhone });
   if (!ok) return;
 
-  // ✅ Only runs when ALL info complete
   bookGame(game.id, form, game);
 });
 
