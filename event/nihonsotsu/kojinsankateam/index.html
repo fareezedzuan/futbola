@@ -1157,7 +1157,15 @@ if (game.game_type === 'football' && game.position_selection) {
     // bind form submit
 document.getElementById(`form-${game.id}`)?.addEventListener("submit", (e) => {
   e.preventDefault();
-  bookGame(game.id, e.target, game);
+
+  const form = e.target;
+
+  // 🚫 BLOCK booking if ANY required info missing
+  const ok = validateKojinSankaForm(form, { requireNamePhone: true });
+  if (!ok) return;
+
+  // ✅ Only runs when ALL info complete
+  bookGame(game.id, form, game);
 });
 
     // load players (optional: hook up game logic)
@@ -1242,6 +1250,50 @@ async function loadPlayers(gameId, gameDate) {
 }
 
 console.log(user?.user_metadata?.avatar_url);
+
+function validateKojinSankaForm(form, { requireNamePhone = true } = {}) {
+  const missing = [];
+
+  const get = (name) => form.querySelector(`[name="${name}"]`);
+  const val = (name) => (get(name)?.value || "").trim();
+
+  // Always required for this event
+  if (!val("uni")) missing.push("University graduated");
+  if (!val("grad_year")) missing.push("Graduation year");
+  if (!val("football_level")) missing.push("Football level");
+  if (!val("stamina_level")) missing.push("Stamina level");
+  if (!val("dob")) missing.push("Date of birth");
+  if (!val("position")) missing.push("Position");
+
+  // Name + phone (for safety, enforce too unless you intentionally autofill)
+  if (requireNamePhone) {
+    if (!val("jersey_name")) missing.push("Name");
+    if (!val("phone")) missing.push("Phone number");
+  }
+
+  if (missing.length) {
+    alert("Please complete the following before booking:\n- " + missing.join("\n- "));
+
+    // focus the first missing field
+    const first = missing[0];
+    const map = {
+      "University graduated": "uni",
+      "Graduation year": "grad_year",
+      "Football level": "football_level",
+      "Stamina level": "stamina_level",
+      "Date of birth": "dob",
+      "Position": "position",
+      "Name": "jersey_name",
+      "Phone number": "phone"
+    };
+    const el = get(map[first]);
+    if (el) el.focus();
+
+    return false;
+  }
+
+  return true;
+}
 
 async function bookGame(gameId, form, game) {
   const submitButton = form.querySelector('button[type="submit"]');
