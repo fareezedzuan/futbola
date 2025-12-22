@@ -1189,7 +1189,7 @@ async function loadPlayers(gameId, gameDate) {
   // ✅ read from JSON column
   const uni = b.extra_info?.university_graduated || b.extra_info?.uni || '-';
   const gradYear = b.extra_info?.graduation_year || b.extra_info?.grad_year || '-';
-
+  const position = (b.position || 'SUB').toUpperCase();
   const metaText = `${uni} • ${gradYear}`;
 
   // link only if user_id exists
@@ -1206,6 +1206,7 @@ async function loadPlayers(gameId, gameDate) {
            onerror="this.onerror=null;this.src='${DEFAULT_AVATAR}';" />
       <div class="info">
         <div class="name">${label}</div>
+        <div class="meta"><strong>Pos</strong>: ${position}</div>
         <div class="meta"><strong>Uni</strong>: ${uni}</div>
         <div class="meta"><strong>Grad</strong>: ${gradYear}</div>
       </div>
