@@ -95,68 +95,6 @@
       overflow-wrap: break-word;
     }
 
-    /* ===== Player cards (Kojin Sanka) ===== */
-    .player-list {
-      margin-top: 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .player-card {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-      padding: 10px 12px;
-      border: 1px solid #eee;
-      border-radius: 10px;
-      background: #fff;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-      text-decoration: none;
-      color: inherit;
-    }
-
-    .player-card:hover {
-      border-color: #ff5a5f;
-    }
-
-    .player-card .avatar {
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      border: 2px solid #ff5a5f;
-      object-fit: cover;
-      flex: 0 0 44px;
-    }
-
-    .player-card .info {
-      display: flex;
-      flex-direction: column;
-      line-height: 1.2;
-      min-width: 0;
-    }
-
-    .player-card .name {
-      font-weight: 800;
-      color: #0f172a;
-      font-size: 14px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .player-card .meta {
-      font-size: 12px;
-      color: #475569;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .player-card .meta strong {
-      color: #702963;
-    }
-
     #calendarGrid {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
@@ -1181,37 +1119,39 @@ async function loadPlayers(gameId, gameDate) {
     return;
   }
   const count = bookings.length;
-
   const html = bookings.map(b => {
-  const label = b.profiles?.jersey_name || b.jersey_name || 'Player';
-  const avatarUrl = b.profiles?.avatar_url || b.avatar_url || DEFAULT_AVATAR;
+    const initial = (b.jersey_name || 'P')[0].toUpperCase();
+    //const label = b.jersey_name || 'Player';
+    // if (b.user_id && b.avatar_url) {
+    //   return `<a href="/player-public.html?id=${b.user_id}" class="player-avatar">
+    //     <img src="${b.avatar_url}" />
+    //     <span>${label}</span>
+    //   </a>`;}
+    const label = b.profiles?.jersey_name || b.jersey_name || 'Player'; //new start
+    const avatarUrl = b.profiles?.avatar_url || b.avatar_url || DEFAULT_AVATAR; 
 
-  // ✅ read from JSON column
-  const uni = b.extra_info?.university_graduated || b.extra_info?.uni || '-';
-  const gradYear = b.extra_info?.graduation_year || b.extra_info?.grad_year || '-';
-
-  const metaText = `${uni} • ${gradYear}`;
-
-  // link only if user_id exists
-  const wrapTagStart = b.user_id
-    ? `<a href="/player-public.html?id=${b.user_id}" class="player-card">`
-    : `<div class="player-card">`;
-
-  const wrapTagEnd = b.user_id ? `</a>` : `</div>`;
-
-  return `
-    ${wrapTagStart}
-      <img class="avatar"
-           src="${avatarUrl}"
-           onerror="this.onerror=null;this.src='${DEFAULT_AVATAR}';" />
-      <div class="info">
-        <div class="name">${label}</div>
-        <div class="meta"><strong>Uni</strong>: ${uni}</div>
-        <div class="meta"><strong>Grad</strong>: ${gradYear}</div>
-      </div>
-    ${wrapTagEnd}
-  `;
-}).join("");
+    if (b.user_id) {
+      return `<a href="/player-public.html?id=${b.user_id}" class="player-avatar">
+        <img src="${avatarUrl}" onerror="this.onerror=null;this.src='/images/default-avatar.png';" />
+        <span>${label}</span>
+      </a>`; }//new end
+    else {
+      return `<div class="player-avatar">
+        <div style="
+          width: 40px; height: 40px;
+          border-radius: 50%;
+          background-color: #702963;
+          color: white;
+          font-weight: bold;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin: auto;
+        ">${initial}</div>
+        <span>${label}</span>
+      </div>`;
+    }
+  }).join("");
 
   target.innerHTML = html;
 
