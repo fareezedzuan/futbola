@@ -169,6 +169,9 @@
   width: 90%;
   max-width: 600px;
   height: auto;
+  max-height: 80vh;              /* ✅ limits popup height */
+  overflow-y: auto;              /* ✅ scroll inside popup */
+  -webkit-overflow-scrolling: touch; /* ✅ smooth scroll on iPhone */
 }
 
 
@@ -1456,6 +1459,14 @@ async function startNextMatch(options = {}) {
   }, 100);
 }
 
+function lockBodyScroll() {
+  document.body.style.overflow = "hidden";
+}
+
+function unlockBodyScroll() {
+  document.body.style.overflow = "";
+}
+
 function triggerScorer(side) {
   const teamA = document.getElementById("teamAName").textContent;
   const teamB = document.getElementById("teamBName").textContent;
@@ -1493,12 +1504,15 @@ document.getElementById("playersB").innerHTML = playersBHTML;
 
   document.getElementById("overlay").style.display = "block";
   document.getElementById("scorerPopup").style.display = "block";
+  lockBodyScroll();
 }
 
 function closePopup() {
   document.getElementById("overlay").style.display = "none";
   document.getElementById("scorerPopup").style.display = "none";
+  unlockBodyScroll();
 }
+
 function addGoal(team, player, isOG = false) {
   // ⏱️ Use real elapsed time from stopwatch; fall back to old counter if needed
   const msElapsed = (typeof getElapsedMs === "function")
@@ -2111,6 +2125,7 @@ function promptScorerConfirm(team, player, isOG) {
 
   document.getElementById("confirmOverlay").style.display = "block";
   document.getElementById("confirmScorerPopup").style.display = "block";
+  lockBodyScroll();
 }
 
 function confirmScorerAdd() {
@@ -2124,6 +2139,7 @@ function cancelScorerConfirm() {
   pendingScorer = null;
   pendingTeam = null;
   pendingIsOG = false;
+  unlockBodyScroll();
 }
 
 function checkRoundCompletion() {
@@ -2643,6 +2659,7 @@ async function writeAndVerify(payload, tag) {
     console.error(`❌ ${tag} — verification block crashed:`, err);
   }
 }
+
 
 function promptAddGoalToMatch(matchIndex) {
   window.pendingEditMatchIndex = matchIndex;
