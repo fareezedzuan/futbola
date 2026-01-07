@@ -358,6 +358,12 @@
     let currentPlayerIndex = null;
     let currentTeamIndex = null;
     let groupAssignment = {};
+    // ✅ Nihon Sotsu tournament booking pools (3 teams booked separately)
+const BOOKING_GAME_IDS = [
+  "2dccae18-f0b3-4d29-b664-a53f12758349",
+  "5c401320-74a2-4f16-9bad-7a8fbe56531f",
+  "f19e4c24-9a9d-46c5-9560-cd708d22cd23"
+];
     const teamColors = ["Red", "White", "Green", "Orange", "Black", "Yellow", "Blue", "Turquoise"];
 
     async function fetchGames() {
@@ -385,17 +391,34 @@
   });
 }
 
-    async function fetchPlayers(gameId) {
-      const res = await fetch(`/api/get-bookings-v2?game_id=${gameId}`);
+async function fetchPlayers(gameId) {
+
+  // ✅ Load bookings from ALL tournament booking game IDs
+  const results = await Promise.all(
+    BOOKING_GAME_IDS.map(async (gid) => {
+      const res = await fetch(`/api/get-bookings-v2?game_id=${gid}`);
       const data = await res.json();
 
-      allPlayers = data.bookings.map(b => ({
+      return (data.bookings || []).map(b => ({
         name: b.jersey_name,
         jersey: "",
         user_id: b.user_id || null
       }));
+    })
+  );
 
-      activePlayers = [...allPlayers];
+  // ✅ Merge + deduplicate players
+  const seen = new Set();
+  allPlayers = results.flat().filter(p => {
+    const key = p.user_id
+      ? `u:${p.user_id}`
+      : `n:${(p.name || "").trim().toLowerCase()}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+
+  activePlayers = [...allPlayers];
 // 🔍 First get game_session_id from games_sessions
 const { data: sessionRow, error: sessionErr } = await supabase
   .from('games_sessions')
@@ -644,7 +667,10 @@ const groupNames = Array.from({ length: groupCount }, (_, i) => {
         Blue: "../images/blue.png",
         Turquoise: "../images/turquoise.png",
         Pink: "../images/pink.png",
-        Purple: "../images/purple.png"
+        Purple: "../images/purple.png",
+        ShibuyaBoys:"../images/ShibuyaBoys.png",
+        Bubaigawara:"../images/Bubaigawara.png",
+        Gotanda:"../images/Gotanda.png"
       };
       return logos[colorName] || "../images/default.png"; // fallback default logo if color not found
     }
