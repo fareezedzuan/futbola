@@ -52,7 +52,7 @@ const supabase = createClient(
   // ✅ Proceed as normal
   populateFields(profile);
   setupEditToggle(profile);
-  setupAvatarUpload(user.id);
+  setupAvatarUpload(user.id, profile);
   loadPlayerStats(user.id);
 })();
 
@@ -343,8 +343,10 @@ function setupEditToggle(profile) {
       };
       console.log("🧪 Final payload before save:", updated);
 
-      const merged = { ...profile, ...updated };
-      const { error } = await supabase.from('profiles').update(merged).eq('id', profile.id);
+    const { error } = await supabase
+      .from('profiles')
+      .update(updated)
+      .eq('id', profile.id);
       if (error) return alert("Save failed");
       Object.assign(profile, updated);
       populateFields(profile); // ✅ Add this
@@ -352,7 +354,7 @@ function setupEditToggle(profile) {
 const { data: stats, error: statError } = await supabase
   .from('player_stats')
   .select('sessions_joined, goals_scored, mvps_won, matches_won')
-  .eq('user_id', user.id)
+  .eq('user_id', profile.id)
   .single();
 
 if (stats) {
@@ -446,7 +448,7 @@ function getAgeRange(age) {
   return `${base}-${base + 4}`;
 }
 
-function setupAvatarUpload(userId) {
+function setupAvatarUpload(userId, profile) {
   const avatarInput = document.getElementById("avatarUpload");
   const avatarImg = document.getElementById("avatar");
   avatarInput.addEventListener("change", async (event) => {
@@ -459,7 +461,19 @@ function setupAvatarUpload(userId) {
     const { data } = supabase.storage.from("avatars").getPublicUrl(path);
     const url = data.publicUrl + '?t=' + Date.now();
     avatarImg.src = url;
-    await supabase.from("profiles").update({ avatar_url: url }).eq("id", userId);
+    
+    const { error: updateError } = await supabase
+  .from("profiles")
+  .update({ avatar_url: url })
+  .eq("id", userId);
+
+if (updateError) {
+  console.error("Avatar profile update failed:", updateError);
+  alert("Avatar uploaded, but profile image link was not saved.");
+  return;
+}
+
+profile.avatar_url = url;
   });
 }
 
