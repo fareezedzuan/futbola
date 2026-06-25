@@ -552,41 +552,65 @@ function distribute(n, minX, maxX){
 }
 // Use old CB spacing; widen LB/RB outwards.
 function buildPitchNodesFromLimits(limits){
-  const out=[]; const Y={F:26,M:50,D:74,GK:90};
-  const get=k=> (limits?.[k]|0);
-  const push=(prefix,slots,x1,x2,y)=>{
-    const xs=distribute(slots,x1,x2);
-    for(let i=0;i<slots;i++) out.push({ key:`${prefix}${slots>1?i+1:""}`, x:xs[i], y, playersPerPos:2 });
-  };
-  if(get('LW')) push('LW',1,16,32,Y.F);
-  if(get('ST')) push('ST',1,46,54,Y.F);
-  if(get('RW')) push('RW',1,68,84,Y.F);
-  if(get('DM')) push('DM',1,42,58,Y.M+4);
-  if(get('CM')){
-  const cmCount = Math.min(Math.ceil(get('CM')/2), 3);
-  push('CM', cmCount, 24,76,Y.M,2);      // was 28..72
-}
-  if(get('LB')) push('LB',1,8,20,Y.D);    // was (16,28)
-  if(get('CB')) push('CB', Math.min((get('CB')/2)|0,2), 36,64,Y.D);
-  if(get('RB')) push('RB',1,80,92,Y.D);   // was (72,84)
-  if(get('GK')) push('GK',1,46,54,Y.GK);
-  // show SUBs vertically outside top-right corner
-// show SUBs vertically outside top-right corner (with metadata)
-if (get('SUB')) {
-  const subCount = Math.min(get('SUB'), 3);
-  const yPositions = [20, 35, 50]; // vertical alignment
-  for (let i = 0; i < subCount; i++) {
-    out.push({
-      key: `SUB${i+1}`,
-      x: 96,
-      y: yPositions[i],
-      playersPerPos: 1,
-      isSub: true,
-      subIndex: i,     // which sub this node is (0..2)
-      subCount         // total rendered sub nodes
-    });
+  const out = [];
+  const Y = { F:26, M:50, D:74, GK:90 };
+  const get = k => (limits?.[k] | 0);
+
+  function distribute(n, minX, maxX){
+    if (n <= 1) return [(minX + maxX) / 2];
+    const step = (maxX - minX) / (n - 1);
+    return Array.from({ length:n }, (_,i) => minX + i * step);
   }
-}
+
+  function pushGroup(prefix, total, x1, x2, y, maxPerNode = 2, maxNodes = 99){
+    if (!total) return;
+
+    const nodeCount = Math.min(Math.ceil(total / maxPerNode), maxNodes);
+    const xs = distribute(nodeCount, x1, x2);
+
+    for (let i = 0; i < nodeCount; i++) {
+      const remaining = total - (i * maxPerNode);
+      const playersPerPos = Math.min(maxPerNode, remaining);
+
+      out.push({
+        key: `${prefix}${nodeCount > 1 ? i + 1 : ""}`,
+        x: xs[i],
+        y,
+        playersPerPos
+      });
+    }
+  }
+
+  pushGroup('LW', get('LW'), 16, 32, Y.F);
+  pushGroup('ST', get('ST'), 46, 54, Y.F);
+  pushGroup('RW', get('RW'), 68, 84, Y.F);
+
+  pushGroup('DM', get('DM'), 42, 58, Y.M + 4);
+  pushGroup('CM', get('CM'), 24, 76, Y.M, 2, 3);
+
+  pushGroup('LB', get('LB'), 8, 20, Y.D);
+  pushGroup('CB', get('CB'), 36, 64, Y.D, 2, 2);
+  pushGroup('RB', get('RB'), 80, 92, Y.D);
+
+  pushGroup('GK', get('GK'), 46, 54, Y.GK, 1, 1);
+
+  if (get('SUB')) {
+    const subCount = Math.min(get('SUB'), 3);
+    const yPositions = [20, 35, 50];
+
+    for (let i = 0; i < subCount; i++) {
+      out.push({
+        key: `SUB${i + 1}`,
+        x: 96,
+        y: yPositions[i],
+        playersPerPos: 1,
+        isSub: true,
+        subIndex: i,
+        subCount
+      });
+    }
+  }
+
   return out;
 }
 
