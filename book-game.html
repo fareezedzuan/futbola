@@ -595,8 +595,8 @@ function buildPitchNodesFromLimits(limits){
   pushGroup('GK', get('GK'), 46, 54, Y.GK, 1, 1);
 
   if (get('SUB')) {
-    const subCount = Math.min(get('SUB'), 3);
-    const yPositions = [20, 35, 50];
+    const subCount = Math.min(get('SUB'), 5);
+    const yPositions = [18, 30, 42, 54, 66];
 
     for (let i = 0; i < subCount; i++) {
       out.push({
