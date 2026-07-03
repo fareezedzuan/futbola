@@ -1111,7 +1111,6 @@ const [{ data: bookings, error: bookingError }, { data: game, error: gameError }
     return;
   }
   const count = bookings.length;
-  const html = bookings.map(b => {
  let html = "";
 
 if (game.team_selection) {
