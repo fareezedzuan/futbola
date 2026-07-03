@@ -851,6 +851,20 @@ function optimisticPlaceOnPitch(gameId, booking, hasTeams=false) {
   nm.textContent = name;
 }
 
+function getGameTeams(game) {
+  if (Array.isArray(game.team_names) && game.team_names.length) {
+    return game.team_names.map((t, index) => ({
+      id: String(t.id ?? index + 1),
+      name: t.name || `Team ${index + 1}`
+    }));
+  }
+
+  return [
+    { id: "A", name: game.team_a_name || "Team A" },
+    { id: "B", name: game.team_b_name || "Team B" }
+  ];
+}
+
 //renderGames(today); box.textContent = dayLabel;
 
 function renderGames(selectedDate = null) {
@@ -944,13 +958,14 @@ ${ (game.game_type === 'football' && game.position_selection && game.team_select
           <input name="phone" placeholder="Enter phone number" type="tel" required />
         `}
 
-${ (game.game_type === 'football' && game.team_selection) ? `
+${ game.team_selection ? `
   <div style="margin:8px 0;">
     <label style="font-weight:700;color:#702963;display:block;margin-bottom:6px">Pick your team</label>
     <select id="team-select-${game.id}" name="team_side" required style="width:100%;padding:8px;border:1px solid #e5e7eb;border-radius:6px">
       <option value="" selected disabled>— Select your team —</option>
-      <option value="A">${game.team_a_name || 'Futbola A'}</option>
-      <option value="B">${game.team_b_name || 'Futbola B'}</option>
+${getGameTeams(game).map(t => `
+  <option value="${t.id}">${t.name}</option>
+`).join('')}
     </select>
   </div>
 ` : `` }
@@ -1225,7 +1240,7 @@ if (user && selfBooking) {
 
 // Require team ONLY for football with team_selection
 let selectedTeam = "";
-if (game?.game_type === 'football' && game?.team_selection) {
+if (game?.team_selection) {
   selectedTeam = document.querySelector(`#team-select-${gameId}`)?.value || "";
   if (!selectedTeam) {
     alert("Please select your team.");
@@ -1245,7 +1260,7 @@ if (game?.game_type === 'football' && game?.team_selection) {
         let q = supabase.from('game_bookings')
           .select('position, team_side')
           .eq('game_id', gameId);
-        if (game?.game_type === 'football' && game?.team_selection && selectedTeam) {
+        if (game?.team_selection && selectedTeam) {
           q = q.eq('team_side', selectedTeam.toUpperCase());
         }
         const { data: rows } = await q;
@@ -1332,7 +1347,7 @@ const payload = selfBooking ? {
   phone: phone || null
 };
 
-if (selectedTeam) payload.team_side = selectedTeam.toUpperCase(); // 'A' or 'B'
+if (selectedTeam) payload.team_side = selectedTeam;
 // ✅ Prevent same phone number booking twice for same game
 const finalPhone = payload.phone?.trim();
 if (finalPhone) {
