@@ -509,10 +509,22 @@ const teamsInput = $('#teams');
     function updateTotals(){
       const total = cfg.positions.reduce((sum,p)=> sum + (p.positions * p.players), 0) + cfg.subs;
       totalPill.textContent = `Total Slots: ${total}`;
-      if (gameType==='football' && isOn(posSwitch)){
-        const mp = $('#max_players');
-        if (!mp.value || +mp.value < total) mp.value = total;
-      }
+const mp = $('#max_players');
+
+if (gameType === 'football' && isOn(posSwitch)) {
+
+  mp.value = total;
+  mp.readOnly = true;
+  mp.style.background = "#f3f4f6";
+  mp.style.cursor = "not-allowed";
+
+} else {
+
+  mp.readOnly = false;
+  mp.style.background = "";
+  mp.style.cursor = "";
+
+}
       renderPitchPreview();
     }
     function refreshVisibility(){
@@ -740,10 +752,7 @@ if (/^https?:\/\/wa\.me\/(\d+)$/i.test(normalizedContact)) {
       positions_config: cfg.positions
     };
 
-    // If caps > max_players, auto-bump
-    const capSum = Object.values(positionLimits).reduce((a,b)=>a+(b|0),0);
-    const mp = $('#max_players');
-    if (!mp.value || +mp.value < capSum) mp.value = capSum;
+
   }
 
   // Recurrence rule struct
