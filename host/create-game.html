@@ -159,19 +159,66 @@
         </div>
       </div>
 
-      <label for="play_style">Play Style / Notes</label>
-      <input id="play_style" placeholder="e.g. 5-a-side, 3 teams rotation" required />
+<div class="row">
+  <div>
+    <label for="play_style">Play Style / Notes</label>
+    <input id="play_style"
+           placeholder="e.g. Round Robin"
+           required />
+  </div>
 
-      <div class="row">
-        <div>
-          <label for="price">Price (RM)</label>
-          <input type="number" id="price" min="0" step="0.01" placeholder="e.g. 25.00" required />
-        </div>
-        <div>
-          <label for="max_players">Max Players</label>
-          <input type="number" id="max_players" min="1" max="200" required />
-        </div>
-      </div>
+  <div>
+    <label for="teams">Number of Teams</label>
+    <input
+      id="teams"
+      type="number"
+      min="1"
+      max="20"
+      value="2" />
+  </div>
+</div>
+
+<div class="row">
+  <div>
+    <label for="price">Price (RM)</label>
+    <input id="price"
+           type="number"
+           min="0"
+           step="0.01"
+           required />
+  </div>
+
+  <div>
+    <label for="max_players">Max Players</label>
+    <input id="max_players"
+           type="number"
+           min="1"
+           max="200"
+           required />
+  </div>
+</div>
+
+<div class="row">
+  <div>
+    <label for="minutes">Game Time (minutes)</label>
+    <input
+      id="minutes"
+      type="number"
+      min="15"
+      max="600"
+      value="90" />
+  </div>
+
+  <div>
+    <label for="courts">Courts</label>
+    <input
+      id="courts"
+      type="number"
+      min="1"
+      max="20"
+      value="1" />
+  </div>
+</div>
 
       <div class="divider"></div>
 
@@ -228,20 +275,11 @@
         </div>
       </div>
 
-      <!-- Team names -->
-      <div id="teamNamesCard" class="card" style="display:none">
-        <h4>Team Names</h4>
-        <div class="row">
-          <div>
-            <label for="team_a_name" style="color:#374151;font-weight:700">Team A</label>
-            <input id="team_a_name" placeholder="e.g. Futbola CF" />
-          </div>
-          <div>
-            <label for="team_b_name" style="color:#374151;font-weight:700">Team B</label>
-            <input id="team_b_name" placeholder="e.g. Visitors" />
-          </div>
-        </div>
-      </div>
+<!-- Team names -->
+<div id="teamNamesCard" class="card" style="display:none">
+  <h4>Team Names</h4>
+  <div id="teamNamesContainer"></div>
+</div>
 
       <!-- Payment segmented -->
       <div class="card">
@@ -359,6 +397,8 @@
     const teamSwitch = $('#teamSwitch'); const posSwitch = $('#posSwitch');
     const publicSwitch = $('#publicSwitch'); const recurSwitch = $('#recurringSwitch');
     const teamCard = $('#teamNamesCard'); const posCard = $('#positionCard'); const recurCard = $('#recurringCard');
+    const teamNamesContainer = $('#teamNamesContainer');
+const teamsInput = $('#teams');
 
     const weekdaySeg = $('#weekdaySeg'); const recurrences = $('#recurrences');
     const paymentSeg = $('#paymentSeg'); const contactSeg = $('#contactSeg');
@@ -402,6 +442,7 @@
     toggleSwitch(teamSwitch, false);
     toggleSwitch(posSwitch, false);
     toggleSwitch(recurSwitch, false);
+    teamsInput.addEventListener("input", renderTeamInputs);
     [teamSwitch, posSwitch, publicSwitch, recurSwitch].forEach(sw=>{
       sw.addEventListener('click', ()=>{ toggleSwitch(sw, !isOn(sw)); refreshVisibility(); updateTotals(); });
     });
@@ -476,11 +517,45 @@
     }
     function refreshVisibility(){
       teamCard.style.display = isOn(teamSwitch) ? '' : 'none';
+      renderTeamInputs();
       const showPos = (gameType==='football' && isOn(posSwitch));
       posCard.style.display = showPos ? '' : 'none';
       recurCard.style.display = isOn(recurSwitch) ? '' : 'none';
       renderPitchPreview();
     }
+
+    function renderTeamInputs(){
+
+  teamNamesContainer.innerHTML = "";
+
+  if(!isOn(teamSwitch))
+      return;
+
+  const total = parseInt(teamsInput.value) || 2;
+
+  for(let i=1;i<=total;i++){
+
+      const div = document.createElement("div");
+
+      div.style.marginBottom = "12px";
+
+      div.innerHTML = `
+          <label style="color:#374151;font-weight:700">
+              Team ${i}
+          </label>
+
+          <input
+              class="team-name"
+              data-team="${i}"
+              placeholder="Team ${i}"
+              value="Team ${i}">
+      `;
+
+      teamNamesContainer.appendChild(div);
+
+  }
+
+}
 
     // Subs +/- control
     (function renderSubsControl(){
@@ -674,6 +749,17 @@ if (/^https?:\/\/wa\.me\/(\d+)$/i.test(normalizedContact)) {
   // Recurrence rule struct
   const recurrenceRule = buildRecurrenceRule(isRecurring, selectedDays, $('#recurrences'));
 
+  const teamNames =
+[...document.querySelectorAll(".team-name")]
+
+.map((e,index)=>({
+
+    id:index+1,
+
+    name:e.value || `Team ${index+1}`
+
+}));
+
   const data = {
     // existing columns (kept)
     host_id: user.id,
@@ -695,16 +781,17 @@ if (/^https?:\/\/wa\.me\/(\d+)$/i.test(normalizedContact)) {
 
     // legacy fields you were already sending (keep for now)
     player_format: (gType === 'football' ? '11' : '5'),
-    teams: teamSel ? 2 : 1,
-    courts: 1,
-    minutes: 90,
+teams: parseInt($("#teams").value),
+courts: parseInt($("#courts").value),
+minutes: parseInt($("#minutes").value),
 
     // NEW columns you just added
     game_type: gType,
     team_selection: teamSel,
     position_selection: posSel,
-    team_a_name: $('#team_a_name')?.value || 'Team A',
-    team_b_name: $('#team_b_name')?.value || 'Team B',
+team_names: teamNames,
+team_a_name: teamNames[0]?.name || "Team A",
+team_b_name: teamNames[1]?.name || "Team B",
     position_limits: positionLimits,      // jsonb or null
     recurrence_rule: recurrenceRule,      // jsonb or null
     options                                // jsonb or null
