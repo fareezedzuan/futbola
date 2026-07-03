@@ -928,12 +928,11 @@ const supportLink = "https://wa.me/60126210204?text=" +
 ` : `` }
 
 ${ (game.game_type === 'football' && game.position_selection && game.team_selection) ? `
-  <h4 style="margin:8px 0 4px;color:#0f172a;font-weight:800;">${game.team_a_name || 'Futbola A'} Lineup</h4>
-  <div id="pitch-${game.id}-A" class="pitch-wrap" aria-label="Pitch A"></div>
-  <h4 style="margin:12px 0 4px;color:#0f172a;font-weight:800;">${game.team_b_name || 'Futbola B'} Lineup</h4>
-  <div id="pitch-${game.id}-B" class="pitch-wrap" aria-label="Pitch B"></div>
-` : (game.game_type === 'football' && game.position_selection) ? `
-  <div id="pitch-${game.id}" class="pitch-wrap" aria-label="Pitch"></div>
+  ${getGameTeams(game).map(t => `
+    <h4 style="margin:12px 0 4px;color:#0f172a;font-weight:800;">${t.name} Lineup</h4>
+    <div id="pitch-${game.id}-${t.id}" class="pitch-wrap" aria-label="Pitch ${t.name}"></div>
+  `).join('')}
+`
 ` : `` }
 
       </div>
@@ -1036,12 +1035,13 @@ if (game.game_type === 'football' && game.position_selection) {
   }
 
   // render pitches (two when team selection is on)
-  if (game.team_selection) {
-    await renderTeamPitch(game, 'A');
-    await renderTeamPitch(game, 'B');
-  } else {
-    await renderPitchForGame(game);
+if (game.team_selection) {
+  for (const team of getGameTeams(game)) {
+    await renderTeamPitch(game, team.id);
   }
+} else {
+  await renderPitchForGame(game);
+}
 }
 
 // -- render pitch view (single or split by team) --
@@ -1423,12 +1423,13 @@ if (gameDetails?.contact_link) {
 // Refresh players + pitches
 loadPlayers(gameId);
 if (game?.game_type === 'football' && game.position_selection) {
-  if (game.team_selection) {
-    await renderTeamPitch(game, 'A');
-    await renderTeamPitch(game, 'B');
-  } else {
-    await renderPitchForGame(game);
+if (game.team_selection) {
+  for (const team of getGameTeams(game)) {
+    await renderTeamPitch(game, team.id);
   }
+} else {
+  await renderPitchForGame(game);
+}
 }
 
 form.reset();
