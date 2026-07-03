@@ -546,7 +546,7 @@ const teamsInput = $('#teams');
 
           <input
               class="team-name"
-              data-team="${i}"
+              data-team="${String.fromCharCode(64 + i)}"
               placeholder="Team ${i}"
               value="Team ${i}">
       `;
@@ -754,7 +754,7 @@ if (/^https?:\/\/wa\.me\/(\d+)$/i.test(normalizedContact)) {
 
 .map((e,index)=>({
 
-    id:index+1,
+    id:String.fromCharCode(65 + index),
 
     name:e.value || `Team ${index+1}`
 
