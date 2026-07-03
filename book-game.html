@@ -929,10 +929,16 @@ const supportLink = "https://wa.me/60126210204?text=" +
 
 ${ (game.game_type === 'football' && game.position_selection && game.team_selection) ? `
   ${getGameTeams(game).map(t => `
-    <h4 style="margin:12px 0 4px;color:#0f172a;font-weight:800;">${t.name} Lineup</h4>
-    <div id="pitch-${game.id}-${t.id}" class="pitch-wrap" aria-label="Pitch ${t.name}"></div>
+    <h4 style="margin:12px 0 4px;color:#0f172a;font-weight:800;">
+      ${t.name} Lineup
+    </h4>
+    <div id="pitch-${game.id}-${t.id}"
+         class="pitch-wrap"
+         aria-label="Pitch ${t.name}">
+    </div>
   `).join('')}
-`
+` : (game.game_type === 'football' && game.position_selection) ? `
+  <div id="pitch-${game.id}" class="pitch-wrap" aria-label="Pitch"></div>
 ` : `` }
 
       </div>
