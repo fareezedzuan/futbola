@@ -1389,8 +1389,20 @@ if (finalPhone) {
     return;
   }
 
+const optimisticBooking = {
+  ...newBooking,
+  profiles: {
+    avatar_url: profileAvatar || null,
+    jersey_name: profileName || newBooking.jersey_name || "Player"
+  }
+};
+
   // Optimistic paint on pitch (A/B if enabled)
-  try { optimisticPlaceOnPitch(gameId, newBooking, !!game.team_selection); } catch {}
+try {
+  optimisticPlaceOnPitch(gameId, optimisticBooking, !!game.team_selection);
+} catch (e) {
+  console.warn("Optimistic pitch update failed:", e);
+}
 
 // ✅ Booking success + optional WhatsApp group prompt
 alert("Booking successful!");
