@@ -1093,11 +1093,18 @@ async function loadPlayers(gameId, gameDate) {
   const target = document.getElementById("players-" + gameId);
   const isPastGame = new Date(gameDate) < todayDate;
 
-  const [{ data: bookings, error: bookingError }, { data: game, error: gameError }] = await Promise.all([
-    //supabase.from("game_bookings").select("*").eq("game_id", gameId),
-    supabase.from("game_bookings").select(`*,profiles (jersey_name, avatar_url)`).eq("game_id", gameId), //new
-    supabase.from("games").select("max_players").eq("id", gameId).single()
-  ]);
+const [{ data: bookings, error: bookingError }, { data: game, error: gameError }] = await Promise.all([
+  supabase
+    .from("game_bookings")
+    .select(`*, profiles (jersey_name, avatar_url)`)
+    .eq("game_id", gameId),
+
+  supabase
+    .from("games")
+    .select("max_players, team_selection, team_names, team_a_name, team_b_name")
+    .eq("id", gameId)
+    .single()
+]);
 
   if (bookingError || gameError || !bookings || !game) {
     target.innerHTML = "<p>Failed to load players</p>";
@@ -1105,39 +1112,67 @@ async function loadPlayers(gameId, gameDate) {
   }
   const count = bookings.length;
   const html = bookings.map(b => {
+ let html = "";
+
+if (game.team_selection) {
+  const teams = getGameTeams(game);
+
+  html = teams.map(team => {
+    const teamBookings = bookings.filter(b => b.team_side === team.id);
+
+    const playersHtml = teamBookings.map(b => {
+      const initial = (b.jersey_name || 'P')[0].toUpperCase();
+      const label = b.profiles?.jersey_name || b.jersey_name || 'Player';
+      const avatarUrl = b.profiles?.avatar_url || b.avatar_url || 'images/default-avatar.png';
+
+      if (b.user_id) {
+        return `<a href="/player-public.html?id=${b.user_id}" class="player-avatar">
+          <img src="${avatarUrl}" onerror="this.onerror=null;this.src='images/default-avatar.png';" />
+          <span>${label}</span>
+        </a>`;
+      }
+
+      return `<div class="player-avatar">
+        <div style="
+          width:40px;height:40px;border-radius:50%;
+          background-color:#702963;color:white;font-weight:bold;
+          display:flex;align-items:center;justify-content:center;margin:auto;
+        ">${initial}</div>
+        <span>${label}</span>
+      </div>`;
+    }).join("");
+
+    return `
+      <div style="margin-top:14px;">
+        <h4 style="margin:6px 0;color:#702963;">${team.name}</h4>
+        <div>${playersHtml || `<span style="font-size:12px;color:#999;">No players yet</span>`}</div>
+      </div>
+    `;
+  }).join("");
+
+} else {
+  html = bookings.map(b => {
     const initial = (b.jersey_name || 'P')[0].toUpperCase();
-    //const label = b.jersey_name || 'Player';
-    // if (b.user_id && b.avatar_url) {
-    //   return `<a href="/player-public.html?id=${b.user_id}" class="player-avatar">
-    //     <img src="${b.avatar_url}" />
-    //     <span>${label}</span>
-    //   </a>`;}
-    const label = b.profiles?.jersey_name || b.jersey_name || 'Player'; //new start
-    const avatarUrl = b.profiles?.avatar_url || b.avatar_url || 'images/default-avatar.png'; 
+    const label = b.profiles?.jersey_name || b.jersey_name || 'Player';
+    const avatarUrl = b.profiles?.avatar_url || b.avatar_url || 'images/default-avatar.png';
 
     if (b.user_id) {
       return `<a href="/player-public.html?id=${b.user_id}" class="player-avatar">
         <img src="${avatarUrl}" onerror="this.onerror=null;this.src='images/default-avatar.png';" />
         <span>${label}</span>
-      </a>`; }//new end
-    else {
-      return `<div class="player-avatar">
-        <div style="
-          width: 40px; height: 40px;
-          border-radius: 50%;
-          background-color: #702963;
-          color: white;
-          font-weight: bold;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          margin: auto;
-        ">${initial}</div>
-        <span>${label}</span>
-      </div>`;
+      </a>`;
     }
-  }).join("");
 
+    return `<div class="player-avatar">
+      <div style="
+        width:40px;height:40px;border-radius:50%;
+        background-color:#702963;color:white;font-weight:bold;
+        display:flex;align-items:center;justify-content:center;margin:auto;
+      ">${initial}</div>
+      <span>${label}</span>
+    </div>`;
+  }).join("");
+}
   target.innerHTML = html;
 
   const parentCard = target.closest(".game-card");
