@@ -29,7 +29,7 @@ async function handler(req, res) {
       // .from("bookings") 
       // .select("id, name, phone, status")
       .from("game_bookings")
-      .select("id, user_id, jersey_name, phone, avatar_url, booked_by_user_id")
+      .select("id, user_id, jersey_name, phone, avatar_url, booked_by_user_id, team_side")
       .eq("game_id", gameId);
 
     if (error) throw error;
