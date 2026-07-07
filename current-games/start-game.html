@@ -417,6 +417,16 @@ if (gameInfoError) {
 }
 window.currentGameInfo = gameInfo;
 
+const bookingTeamMap = {};
+
+data.bookings.forEach(b => {
+  if (b.team_side) {
+    bookingTeamMap[b.jersey_name] = b.team_side;
+  }
+});
+
+window.bookingTeamMap = bookingTeamMap;
+
 // 🔍 First get game_session_id from games_sessions
 const { data: sessionRow, error: sessionErr } = await supabase
   .from('games_sessions')
@@ -733,9 +743,20 @@ box.innerHTML = html;
           
 
           // ✅ Re-apply selection
-          if (previousSelections[i] && previousSelections[i].includes(player.name)) {
-            box.classList.add("selected");
-          }
+// Keep manual selections when rebuilding
+if (previousSelections[i] && previousSelections[i].includes(player.name)) {
+    box.classList.add("selected");
+}
+
+// Initial auto-selection from booking
+else if (window.bookingTeamMap) {
+
+    const expectedTeamId = String.fromCharCode(65 + i); // A,B,C,D...
+
+    if (window.bookingTeamMap[player.name] === expectedTeamId) {
+        box.classList.add("selected");
+    }
+}
 
           box.onclick = () => box.classList.toggle("selected");
           grid.appendChild(box);
