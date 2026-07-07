@@ -460,14 +460,15 @@ if (matchError) {
 }
 }
 
-      document.getElementById("teamInputs").innerHTML = "";
-      document.getElementById("playerAssignment").innerHTML = "";
+document.getElementById("teamInputs").innerHTML = "";
+document.getElementById("playerAssignment").innerHTML = "";
 
-      if (gameInfo?.team_selection && Array.isArray(gameInfo.team_names)) {
-          document.getElementById("teamCount").value = gameInfo.teams;
-      } else {
-          document.getElementById("teamCount").value = "";
-      }
+if (gameInfo?.team_selection && Array.isArray(gameInfo.team_names)) {
+    document.getElementById("teamCount").value = gameInfo.teams;
+    generateTeamInputs();   // <-- ADD THIS
+} else {
+    document.getElementById("teamCount").value = "";
+}
 
 
 // 🧠 Load saved session config
