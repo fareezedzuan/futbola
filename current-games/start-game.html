@@ -396,6 +396,27 @@
       }));
 
       activePlayers = [...allPlayers];
+// ===============================
+// Load game configuration
+// ===============================
+const { data: gameInfo, error: gameInfoError } = await supabase
+  .from("games")
+  .select(`
+    teams,
+    minutes,
+    courts,
+    play_style,
+    team_selection,
+    team_names
+  `)
+  .eq("id", gameId)
+  .single();
+
+if (gameInfoError) {
+  console.error("Failed loading game info:", gameInfoError);
+}
+window.currentGameInfo = gameInfo;
+
 // 🔍 First get game_session_id from games_sessions
 const { data: sessionRow, error: sessionErr } = await supabase
   .from('games_sessions')
@@ -439,10 +460,14 @@ if (matchError) {
 }
 }
 
-      // Clear team assignment UI state
-      document.getElementById("teamCount").value = ""; // reset team count
-      document.getElementById("teamInputs").innerHTML = ""; // clear team names
-      document.getElementById("playerAssignment").innerHTML = ""; // clear grids
+      document.getElementById("teamInputs").innerHTML = "";
+      document.getElementById("playerAssignment").innerHTML = "";
+
+      if (gameInfo?.team_selection && Array.isArray(gameInfo.team_names)) {
+          document.getElementById("teamCount").value = gameInfo.teams;
+      } else {
+          document.getElementById("teamCount").value = "";
+      }
 
 
 // 🧠 Load saved session config
@@ -593,7 +618,15 @@ allTeams.forEach(team => {
         const input = document.createElement("input");
         input.type = "text";
         input.id = `team${i}`;
-        input.value = teamColors[i] || `Team ${String.fromCharCode(65 + i)}`;
+        const savedTeam =
+    window.currentGameInfo?.team_names?.find(
+        t => t.id === String.fromCharCode(65 + i)
+    );
+
+input.value =
+    savedTeam?.name ||
+    teamColors[i] ||
+    `Team ${String.fromCharCode(65 + i)}`;
         const wrapper = document.createElement("div");
 wrapper.style.marginTop = "10px";
 
