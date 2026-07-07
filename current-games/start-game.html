@@ -705,7 +705,8 @@ const groupNames = Array.from({ length: groupCount }, (_, i) => {
 
       const teamCount = parseInt(document.getElementById("teamCount").value);
       if (!teamCount || activePlayers.length === 0) return;
-
+console.log("bookingTeamMap", window.bookingTeamMap);
+console.log("activePlayers", activePlayers);
       for (let i = 0; i < teamCount; i++) {
         const label = document.createElement("label");
         const teamInput = document.getElementById(`team${i}`);
@@ -722,6 +723,10 @@ label.textContent = `Assign players to ${ordinal} team`;
           box.className = "player-box";
           box.dataset.name = player.name;
           box.dataset.jersey = player.jersey || "";
+console.log(
+  player.name,
+  window.bookingTeamMap?.[player.name]
+);
 
 let html = `
     <div>${(player.name || "Unnamed").slice(0, 15)}</div>
