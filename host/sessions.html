@@ -342,10 +342,10 @@ async function loadPlayers(gameId, containerEl) {
         📞
     </div>
 
-    <div class="emoji-action emoji-remove"
-        onclick="event.stopPropagation(); removePlayer('${b.id}', this)">
-        ❌
-    </div>
+<div class="emoji-action emoji-remove"
+    onclick="event.stopPropagation(); manageBooking('${b.id}')">
+    ✏️
+</div>
 
     <div class="emoji-action emoji-paid"
         onclick="event.stopPropagation(); togglePaid(this); hideEmojiActions(this.closest('.player-avatar'));">
@@ -404,10 +404,10 @@ ${playersHtml || `<span style="font-size:12px;color:#999;">No players yet</span>
         📞
     </div>
 
-    <div class="emoji-action emoji-remove"
-        onclick="event.stopPropagation(); removePlayer('${b.id}', this)">
-        ❌
-    </div>
+<div class="emoji-action emoji-remove"
+    onclick="event.stopPropagation(); manageBooking('${b.id}')">
+    ✏️
+</div>
 
     <div class="emoji-action emoji-paid"
         onclick="event.stopPropagation(); togglePaid(this); hideEmojiActions(this.closest('.player-avatar'));">
@@ -837,6 +837,20 @@ async function fetchAndRender() {
 
   await fetchGamesAndBookings();           // ← FIXED this line
   renderCalendar(currentMonth, currentYear);  // refresh calendar UI
+}
+
+async function manageBooking(bookingId) {
+
+  // For now just redirect to the future page.
+  // Later this page will allow:
+  // - Change Name
+  // - Change Phone
+  // - Change Team
+  // - Change Position
+  // - Remove Booking
+
+  window.location.href = `/manage-booking.html?id=${bookingId}`;
+
 }
 
 async function removePlayer(bookingId, el) {
