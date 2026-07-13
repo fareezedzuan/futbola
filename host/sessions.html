@@ -264,62 +264,179 @@
 
     renderCalendar(currentMonth, currentYear);
     }
+function getGameTeams(game) {
+    if (Array.isArray(game.team_names) && game.team_names.length) {
+        return game.team_names.map((t, index) => ({
+            id: String(t.id || String.fromCharCode(65 + index)),
+            name: t.name || `Team ${index + 1}`
+        }));
+    }
 
-    async function loadPlayers(gameId, containerEl) {
-        const target = containerEl.querySelector(".player-list");
+    return [
+        { id: "A", name: game.team_a_name || "Team A" },
+        { id: "B", name: game.team_b_name || "Team B" }
+    ];
+}
 
-        const [{ data: bookings }, { data: game }] = await Promise.all([
-            supabase
+async function loadPlayers(gameId, containerEl) {
+    const target = containerEl.querySelector(".player-list");
+
+    const [{ data: bookings }, { data: game }] = await Promise.all([
+        supabase
             .from("game_bookings")
-            .select("*, profiles (jersey_name, avatar_url)")
+            .select("*, profiles(jersey_name, avatar_url)")
             .eq("game_id", gameId),
-            supabase
+
+        supabase
             .from("games")
-            .select("max_players")
+            .select(`
+                max_players,
+                team_selection,
+                team_names,
+                team_a_name,
+                team_b_name
+            `)
             .eq("id", gameId)
             .single()
-        ]);
-        console.log(`🧍 Loaded ${bookings.length} players for ${gameId}`, bookings);
+    ]);
 
-        if (!bookings || !game) {
-        console.warn("⚠️ Missing data:", { bookings, game });
-        target.innerHTML = "<p style='text-align:center; color:#999;'>Failed to load players</p>";
+    console.log(`🧍 Loaded ${bookings?.length || 0} players for ${gameId}`, bookings);
+
+    if (!bookings || !game) {
+        target.innerHTML = "<p style='text-align:center;color:#999;'>Failed to load players</p>";
         return;
-        }
+    }
 
-        const html = bookings.map(b => {
-            const label = b.profiles?.jersey_name || b.jersey_name || 'Player';
-            const avatar = b.profiles?.avatar_url || b.avatar_url || '/images/default-avatar.png';
-            const isPaid = b.paid;
+    let html = "";
+
+    if (game.team_selection) {
+
+        const teams = getGameTeams(game);
+
+        html = teams.map(team => {
+
+            const teamBookings = bookings.filter(b => b.team_side === team.id);
+            const paidCount = teamBookings.filter(b => b.paid).length;
+
+            const playersHtml = teamBookings.map(b => {
+
+                const label = b.profiles?.jersey_name || b.jersey_name || "Player";
+                const avatar = b.profiles?.avatar_url || b.avatar_url || "/images/default-avatar.png";
+
+                return `
+<div style="margin-bottom:8px;" class="player-avatar ${b.paid ? "paid" : ""}" data-booking-id="${b.id}" onclick="toggleEmojiActions(this)">
+
+    <div class="phone-popover"
+        data-orig="${b.phone || "No phone"}"
+        onclick="copyPhone(this)">
+        ${b.phone || "No phone"}
+    </div>
+
+    <img src="${avatar}"
+        onerror="this.src='/images/default-avatar.png'">
+
+    <span>${label}</span>
+
+    <div class="emoji-action emoji-wa"
+        onclick="event.stopPropagation(); ${b.phone ? `openWa('${b.phone}')` : `alert('No phone number available')`}">
+        📞
+    </div>
+
+    <div class="emoji-action emoji-remove"
+        onclick="event.stopPropagation(); removePlayer('${b.id}', this)">
+        ❌
+    </div>
+
+    <div class="emoji-action emoji-paid"
+        onclick="event.stopPropagation(); togglePaid(this); hideEmojiActions(this.closest('.player-avatar'));">
+        💰
+    </div>
+
+    <div class="emoji-action emoji-profile"
+        onclick="event.stopPropagation(); ${b.user_id ? `window.open('/player-public.html?id=${b.user_id}','_blank')` : `alert('No profile available')`}">
+        👤
+    </div>
+
+</div>
+`;
+            }).join("");
 
             return `
-<div class="player-avatar ${isPaid ? 'paid' : ''}" data-booking-id="${b.id}" onclick="toggleEmojiActions(this)">
-    <div class="phone-popover" data-orig="${b.phone ? b.phone : 'No phone'}" onclick="copyPhone(this)">${b.phone ? b.phone : 'No phone'}</div>
-    <img src="${avatar}" onerror="this.src='/images/default-avatar.png'" />
-                <span>${label}</span>
-                <div class="emoji-action emoji-wa" title="WhatsApp"
-  onclick="event.stopPropagation(); ${b.phone ? `openWa('${b.phone}')` : `alert('No phone number available')`}">📞</div>
-                <div class="emoji-action emoji-remove" title="Remove Player" onclick="event.stopPropagation(); removePlayer('${b.id}', this)">❌</div>
-                <div class="emoji-action emoji-paid"
-     title="Toggle Paid"
-     onclick="event.stopPropagation(); togglePaid(this); hideEmojiActions(this.closest('.player-avatar'));">💰</div>
-                <div class="emoji-action emoji-profile" title="Profile"
-  onclick="event.stopPropagation(); ${b.user_id ? `window.open('/player-public.html?id=${b.user_id}', '_blank')` : `alert('No profile available')`}">👤</div>
-            </div>
-            `;
+<div style="margin-top:18px;">
+
+<h4 style="margin-bottom:8px;color:#702963;">
+${team.name}
+<span style="font-size:13px;color:#666;">
+(${teamBookings.length} players • ${paidCount} paid)
+</span>
+</h4>
+
+${playersHtml || `<span style="font-size:12px;color:#999;">No players yet</span>`}
+
+</div>
+`;
+
         }).join("");
 
-        target.innerHTML = html;
+    } else {
 
-        const count = bookings.length;
-        const max = game.max_players;
-        const statusEl = containerEl.querySelector(".session-header");
-        if (count >= max) {
-            statusEl.innerHTML += ` <span style="color:gray;">❌ FULL (${count}/${max})</span>`;
-        } else {
-            statusEl.innerHTML += ` <span style="color:#4caf50;">✅ ${count}/${max} joined</span>`;
-        }
-        }
+        html = bookings.map(b => {
+
+            const label = b.profiles?.jersey_name || b.jersey_name || "Player";
+            const avatar = b.profiles?.avatar_url || b.avatar_url || "/images/default-avatar.png";
+
+            return `
+<div style="margin-bottom:8px;" class="player-avatar ${b.paid ? "paid" : ""}" data-booking-id="${b.id}" onclick="toggleEmojiActions(this)">
+
+    <div class="phone-popover"
+        data-orig="${b.phone || "No phone"}"
+        onclick="copyPhone(this)">
+        ${b.phone || "No phone"}
+    </div>
+
+    <img src="${avatar}"
+        onerror="this.src='/images/default-avatar.png'">
+
+    <span>${label}</span>
+
+    <div class="emoji-action emoji-wa"
+        onclick="event.stopPropagation(); ${b.phone ? `openWa('${b.phone}')` : `alert('No phone number available')`}">
+        📞
+    </div>
+
+    <div class="emoji-action emoji-remove"
+        onclick="event.stopPropagation(); removePlayer('${b.id}', this)">
+        ❌
+    </div>
+
+    <div class="emoji-action emoji-paid"
+        onclick="event.stopPropagation(); togglePaid(this); hideEmojiActions(this.closest('.player-avatar'));">
+        💰
+    </div>
+
+    <div class="emoji-action emoji-profile"
+        onclick="event.stopPropagation(); ${b.user_id ? `window.open('/player-public.html?id=${b.user_id}','_blank')` : `alert('No profile available')`}">
+        👤
+    </div>
+
+</div>
+`;
+        }).join("");
+
+    }
+
+    target.innerHTML = html;
+
+    const count = bookings.length;
+    const max = game.max_players;
+    const statusEl = containerEl.querySelector(".session-header");
+
+    if (count >= max) {
+        statusEl.innerHTML += ` <span style="color:gray;">❌ FULL (${count}/${max})</span>`;
+    } else {
+        statusEl.innerHTML += ` <span style="color:#4caf50;">✅ ${count}/${max} joined</span>`;
+    }
+}
 
   function renderCalendar(month, year) {
     calendarGrid.innerHTML = "";
