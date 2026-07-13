@@ -621,32 +621,11 @@ ${playersHtml || `<span style="font-size:12px;color:#999;">No players yet</span>
         header.innerText = (isVisible ? '▶️' : '🔽') + ' ' + header.innerText.slice(2);
     });
 
-    const editBtn = card.querySelector(".edit-btn");
-        editBtn.addEventListener("click", () => {
-        const viewBlock = card.querySelector(".session-info:not(.edit-only)");
-        const editBlock = card.querySelector(".session-info.edit-only");
-        const saveBtn = document.createElement("button");
-        const cancelBtn = document.createElement("button");
+const editBtn = card.querySelector(".edit-btn");
 
-        // Hide view, show edit
-        viewBlock.style.display = "none";
-        editBlock.style.display = "block";
-
-        // Remove "Edit" button
-        editBtn.style.display = "none";
-
-        // Add Save/Cancel
-        saveBtn.textContent = "💾 Save";
-        saveBtn.className = "save-btn";
-        cancelBtn.textContent = "❌ Cancel";
-        cancelBtn.className = "cancel-btn";
-        card.querySelector(".button-bar").appendChild(saveBtn);
-        card.querySelector(".button-bar").appendChild(cancelBtn);
-
-        // Hook Save/Cancel actions
-        saveBtn.onclick = () => saveSession(game.id, card);
-        cancelBtn.onclick = () => location.reload();
-    });
+editBtn.addEventListener("click", () => {
+  window.location.href = `/host/edit-game.html?id=${game.id}`;
+});
 
     sessionContainer.appendChild(card);
     // 👇 Fetch session_id for this game
