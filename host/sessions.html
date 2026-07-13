@@ -553,11 +553,56 @@ ${playersHtml || `<span style="font-size:12px;color:#999;">No players yet</span>
 <div class="player-list">
     <p style="text-align:center; color:#999;">Players will appear here</p>
 </div>
-    <div class="add-player-form" style="display: none; margin-top: 10px;">
-        <input type="text" placeholder="Jersey Name" class="jersey-input" />
-        <input type="text" placeholder="Phone (60123456789)" class="phone-input" />
-        <button class="confirm-add-btn">Add</button>
-    </div>
+    <div class="add-player-form" style="display:none;margin-top:12px;padding:12px;background:#f8f8f8;border-radius:8px;">
+
+  <input
+    type="text"
+    placeholder="Jersey Name"
+    class="jersey-input"
+    style="width:100%;padding:9px;margin-bottom:8px;"
+  />
+
+  <input
+    type="text"
+    placeholder="Phone Number"
+    class="phone-input"
+    style="width:100%;padding:9px;margin-bottom:8px;"
+  />
+
+  ${game.team_selection ? `
+    <select
+      class="team-input"
+      style="width:100%;padding:9px;margin-bottom:8px;"
+    >
+      <option value="">— Select Team —</option>
+
+      ${getGameTeams(game).map(team => `
+        <option value="${team.id}">${team.name}</option>
+      `).join("")}
+    </select>
+  ` : ""}
+
+  ${game.game_type === "football" && game.position_selection ? `
+    <select
+      class="position-input"
+      style="width:100%;padding:9px;margin-bottom:8px;"
+    >
+      <option value="">— Select Position —</option>
+
+      ${Object.entries(game.position_limits || {})
+        .filter(([position, limit]) =>
+          position !== "Any" && Number(limit) > 0
+        )
+        .map(([position]) => `
+          <option value="${position}">${position}</option>
+        `)
+        .join("")}
+    </select>
+  ` : ""}
+
+  <button class="confirm-add-btn">✅ Add Player</button>
+</div>
+
         <div class="button-bar">
             <button class="add-btn">+ Add Player</button>
             <button class="edit-btn">Edit Session</button>
@@ -640,7 +685,7 @@ const resultBtn = card.querySelector(".public-result-btn");
     const confirmBtn = card.querySelector(".confirm-add-btn");
 
     addBtn.addEventListener("click", () => toggleAddForm(card));
-    confirmBtn.addEventListener("click", () => addPlayer(game.id, card));
+    confirmBtn.addEventListener("click", () => addPlayer(game, card));
     sessionContainer.appendChild(card);
     await loadPlayers(game.id, card); // ✅ Now works without error
   }
@@ -863,41 +908,84 @@ async function removePlayer(bookingId, el) {
   }
 }
 
-async function addPlayer(gameId, card) {
+async function addPlayer(game, card) {
   const jerseyInput = card.querySelector(".jersey-input");
   const phoneInput = card.querySelector(".phone-input");
+  const teamInput = card.querySelector(".team-input");
+  const positionInput = card.querySelector(".position-input");
   const form = card.querySelector(".add-player-form");
-  const name = jerseyInput.value.trim();
-  const phone = phoneInput.value.trim();
+  const confirmButton = card.querySelector(".confirm-add-btn");
+
+  const name = jerseyInput?.value.trim() || "";
+  const phone = phoneInput?.value.trim() || "";
+  const teamSide = teamInput?.value || null;
+  const position = positionInput?.value || null;
 
   if (!name) {
-    alert("Please enter a jersey name");
+    alert("Please enter a jersey name.");
     return;
   }
 
-  const { error } = await supabase.from("game_bookings").insert({
-    game_id: gameId,
+  if (game.team_selection && !teamSide) {
+    alert("Please select a team.");
+    return;
+  }
+
+  if (
+    game.game_type === "football" &&
+    game.position_selection &&
+    !position
+  ) {
+    alert("Please select a position.");
+    return;
+  }
+
+  confirmButton.disabled = true;
+  confirmButton.textContent = "⏳ Adding...";
+
+  const payload = {
+    game_id: game.id,
     jersey_name: name,
-    phone
-  });
+    phone: phone || null,
+    team_side: game.team_selection ? teamSide : null,
+    position:
+      game.game_type === "football" && game.position_selection
+        ? position
+        : null,
+    booked_by_user_id: user?.id || null,
+    paid: false
+  };
+
+  const { error } = await supabase
+    .from("game_bookings")
+    .insert(payload);
 
   if (error) {
     console.error("❌ Failed to add player:", error);
-    alert("Error adding player.");
-  } else {
-    console.log("✅ Player added.");
+    alert("Error adding player: " + error.message);
 
-    // ✅ Clear inputs
-    jerseyInput.value = "";
-    phoneInput.value = "";
-
-    // ✅ Hide the form
-    if (form) form.style.display = "none";
-
-    // ✅ Reload players
-    await loadPlayers(gameId, card);
-    fetchAndRender(); // Optional: if you want to re-render whole page
+    confirmButton.disabled = false;
+    confirmButton.textContent = "✅ Add Player";
+    return;
   }
+
+  jerseyInput.value = "";
+  phoneInput.value = "";
+
+  if (teamInput) {
+    teamInput.value = "";
+  }
+
+  if (positionInput) {
+    positionInput.value = "";
+  }
+
+  form.style.display = "none";
+
+  confirmButton.disabled = false;
+  confirmButton.textContent = "✅ Add Player";
+
+  await loadPlayers(game.id, card);
 }
 
 function toggleAddForm(card) {
