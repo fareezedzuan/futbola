@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Manage Booking - Futbola</title>
+  <link rel="icon" href="../images/futbola-favicon.ico" type="image/x-icon">
+
+  <style>
+    :root {
+      --purple: #702963;
+      --red: #ff0000;
+      --orange: #ff5a5f;
+      --green: #4caf50;
+      --border: #d1d5db;
+      --muted: #64748b;
+      --danger: #b91c1c;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background-image: url('/images/backgroundOrangeGradient.jpg');
+      background-size: cover;
+      background-attachment: fixed;
+      margin: 0;
+      padding: 20px;
+      color: #1f2937;
+    }
+
+    h1, h2, h3 {
+      color: var(--purple);
+      margin-top: 0;
+    }
+
+    .page-wrap {
+      max-width: 680px;
+      margin: 0 auto;
+    }
+
+    .top-link {
+      display: inline-block;
+      margin-bottom: 14px;
+      color: var(--purple);
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    .card {
+      background: #fff;
+      border-top: 5px solid var(--orange);
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,.12);
+      padding: 22px;
+      margin-bottom: 18px;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 7px;
+      font-size: 14px;
+    }
+
+    .summary-grid p {
+      margin: 0;
+    }
+
+    .player-head {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .avatar {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid var(--orange);
+      background: #f3f4f6;
+    }
+
+    .avatar-fallback {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: var(--purple);
+      color: white;
+      font-weight: 800;
+      font-size: 24px;
+      border: 3px solid var(--orange);
+    }
+
+    .field {
+      margin-bottom: 15px;
+    }
+
+    .field label {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--purple);
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .field input,
+    .field select {
+      width: 100%;
+      padding: 11px 12px;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      font-size: 15px;
+      background: white;
+    }
+
+    .field input:focus,
+    .field select:focus {
+      outline: 2px solid rgba(112, 41, 99, .18);
+      border-color: var(--purple);
+    }
+
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      margin: 5px 0 16px;
+    }
+
+    .checkbox-row input {
+      width: 18px;
+      height: 18px;
+    }
+
+    .note {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 6px;
+    }
+
+    .actions {
+      display: grid;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px 14px;
+      border: none;
+      border-radius: 7px;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .save-btn {
+      background: var(--purple);
+      color: white;
+    }
+
+    .remove-btn {
+      background: var(--danger);
+      color: white;
+    }
+
+    .cancel-btn {
+      background: #e5e7eb;
+      color: #111827;
+    }
+
+    button:disabled {
+      opacity: .6;
+      cursor: not-allowed;
+    }
+
+    .status {
+      display: none;
+      padding: 11px 12px;
+      border-radius: 7px;
+      margin-bottom: 14px;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .status.success {
+      display: block;
+      background: #dcfce7;
+      color: #166534;
+      border: 1px solid #86efac;
+    }
+
+    .status.error {
+      display: block;
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #fca5a5;
+    }
+
+    .loading {
+      text-align: center;
+      color: var(--muted);
+      padding: 30px 10px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @media (min-width: 560px) {
+      .summary-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .actions {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .save-btn {
+        grid-column: 1 / -1;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page-wrap">
+    <a class="top-link" href="/host/sessions.html">← Back to Host Sessions</a>
+
+    <div class="card">
+      <h2>✏️ Manage Booking</h2>
+      <div id="statusBox" class="status"></div>
+      <div id="loadingBox" class="loading">Loading booking...</div>
+
+      <div id="content" class="hidden">
+        <div id="sessionSummary" class="summary-grid"></div>
+      </div>
+    </div>
+
+    <div id="formCard" class="card hidden">
+      <div class="player-head">
+        <img id="avatarImg" class="avatar hidden" alt="Player avatar" />
+        <div id="avatarFallback" class="avatar-fallback">P</div>
+        <div>
+          <h3 id="playerHeading" style="margin-bottom:4px;">Player</h3>
+          <div id="paymentLabel" style="font-size:13px;color:#64748b;"></div>
+        </div>
+      </div>
+
+      <form id="manageForm">
+        <div class="field">
+          <label for="jerseyName">👤 Jersey Name</label>
+          <input id="jerseyName" name="jersey_name" maxlength="40" required />
+        </div>
+
+        <div class="field">
+          <label for="phone">📞 Phone Number</label>
+          <input id="phone" name="phone" type="tel" maxlength="25" />
+        </div>
+
+        <div id="teamField" class="field hidden">
+          <label for="teamSide">👕 Team</label>
+          <select id="teamSide" name="team_side"></select>
+        </div>
+
+        <div id="positionField" class="field hidden">
+          <label for="position">⚽ Position</label>
+          <select id="position" name="position"></select>
+          <div class="note">Full positions are disabled. Your current booking is excluded from the count.</div>
+        </div>
+
+        <div class="checkbox-row">
+          <input id="paid" name="paid" type="checkbox" />
+          <label for="paid"><strong>💰 Paid</strong></label>
+        </div>
+
+        <div class="actions">
+          <button id="saveBtn" class="save-btn" type="submit">💾 Save Changes</button>
+          <button id="removeBtn" class="remove-btn" type="button">🗑 Remove Booking</button>
+          <button id="cancelBtn" class="cancel-btn" type="button">❌ Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.48.0/+esm';
+
+    const SUPABASE_URL = 'https://kdbqroxhypnadolcxxxc.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkYnFyb3hoeXBuYWRvbGN4eHhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3MjkwNzYsImV4cCI6MjA1NzMwNTA3Nn0.c7_RVxoFdJNqQ62R3t1emH2Wf4dSsQaunHsHmbQxOBA';
+
+    const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    const params = new URLSearchParams(window.location.search);
+    const bookingId = params.get('id');
+
+    const statusBox = document.getElementById('statusBox');
+    const loadingBox = document.getElementById('loadingBox');
+    const content = document.getElementById('content');
+    const formCard = document.getElementById('formCard');
+    const summary = document.getElementById('sessionSummary');
+
+    const form = document.getElementById('manageForm');
+    const jerseyNameInput = document.getElementById('jerseyName');
+    const phoneInput = document.getElementById('phone');
+    const teamField = document.getElementById('teamField');
+    const teamSelect = document.getElementById('teamSide');
+    const positionField = document.getElementById('positionField');
+    const positionSelect = document.getElementById('position');
+    const paidInput = document.getElementById('paid');
+
+    const avatarImg = document.getElementById('avatarImg');
+    const avatarFallback = document.getElementById('avatarFallback');
+    const playerHeading = document.getElementById('playerHeading');
+    const paymentLabel = document.getElementById('paymentLabel');
+
+    const saveBtn = document.getElementById('saveBtn');
+    const removeBtn = document.getElementById('removeBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+
+    let booking = null;
+    let game = null;
+
+    function showStatus(message, type = 'error') {
+      statusBox.className = `status ${type}`;
+      statusBox.textContent = message;
+    }
+
+    function clearStatus() {
+      statusBox.className = 'status';
+      statusBox.textContent = '';
+    }
+
+    function getGameTeams(gameRow) {
+      if (Array.isArray(gameRow.team_names) && gameRow.team_names.length) {
+        return gameRow.team_names.map((t, index) => ({
+          id: String(t.id || String.fromCharCode(65 + index)),
+          name: t.name || `Team ${index + 1}`
+        }));
+      }
+
+      return [
+        { id: 'A', name: gameRow.team_a_name || 'Team A' },
+        { id: 'B', name: gameRow.team_b_name || 'Team B' }
+      ];
+    }
+
+    function positionList(gameRow) {
+      const all = ['GK','CB','LB','RB','DM','CM','LW','RW','ST','SUB'];
+      const limits = gameRow.position_limits;
+
+      if (!limits || typeof limits !== 'object') {
+        return all;
+      }
+
+      return all.filter(pos => Number(limits[pos] || 0) > 0);
+    }
+
+    function renderSummary() {
+      summary.innerHTML = `
+        <p><strong>📛 Session:</strong><br>${game.session_title || 'Untitled'}</p>
+        <p><strong>📍 Venue:</strong><br>${game.venue || '-'}</p>
+        <p><strong>📅 Date:</strong><br>${game.game_date || '-'}</p>
+        <p><strong>🕒 Time:</strong><br>${game.start_time || '-'} – ${game.end_time || '-'}</p>
+      `;
+    }
+
+    function renderAvatar() {
+      const name = booking.jersey_name || 'Player';
+      const avatar = booking.avatar_url || booking.profiles?.avatar_url || '';
+
+      playerHeading.textContent = name;
+      avatarFallback.textContent = name.charAt(0).toUpperCase() || 'P';
+
+      if (avatar) {
+        avatarImg.src = avatar;
+        avatarImg.onerror = () => {
+          avatarImg.classList.add('hidden');
+          avatarFallback.classList.remove('hidden');
+        };
+        avatarImg.classList.remove('hidden');
+        avatarFallback.classList.add('hidden');
+      } else {
+        avatarImg.classList.add('hidden');
+        avatarFallback.classList.remove('hidden');
+      }
+
+      paymentLabel.textContent = booking.paid ? 'Paid' : 'Not paid';
+      paymentLabel.style.color = booking.paid ? '#166534' : '#991b1b';
+    }
+
+    function renderTeamSelect() {
+      if (!game.team_selection) {
+        teamField.classList.add('hidden');
+        teamSelect.required = false;
+        teamSelect.innerHTML = '';
+        return;
+      }
+
+      const teams = getGameTeams(game);
+      teamSelect.innerHTML =
+        `<option value="">— Select team —</option>` +
+        teams.map(team => `
+          <option value="${team.id}" ${booking.team_side === team.id ? 'selected' : ''}>
+            ${team.name}
+          </option>
+        `).join('');
+
+      teamField.classList.remove('hidden');
+      teamSelect.required = true;
+    }
+
+    async function renderPositionSelect(selectedTeam = '') {
+      const usesPosition =
+        game.position_selection &&
+        game.game_type === 'football';
+
+      if (!usesPosition) {
+        positionField.classList.add('hidden');
+        positionSelect.required = false;
+        positionSelect.innerHTML = '';
+        return;
+      }
+
+      let query = supabase
+        .from('game_bookings')
+        .select('position, team_side')
+        .eq('game_id', game.id)
+        .neq('id', bookingId);
+
+      if (game.team_selection && selectedTeam) {
+        query = query.eq('team_side', selectedTeam);
+      }
+
+      const { data: rows, error } = await query;
+
+      if (error) {
+        console.error('Failed loading position counts:', error);
+      }
+
+      const counts = {};
+      (rows || []).forEach(row => {
+        const key = (row.position || 'SUB').toUpperCase().replace(/[0-9]+$/, '');
+        counts[key] = (counts[key] || 0) + 1;
+      });
+
+      const options = positionList(game);
+      const limits = game.position_limits || {};
+      const currentPosition = (booking.position || '').toUpperCase().replace(/[0-9]+$/, '');
+
+      positionSelect.innerHTML =
+        `<option value="">— Select position —</option>` +
+        options.map(pos => {
+          const cap = Number(limits[pos] || 0);
+          const taken = Number(counts[pos] || 0);
+          const full = cap > 0 && taken >= cap;
+          const selected = currentPosition === pos;
+          const disabled = full && !selected ? 'disabled' : '';
+          const label = cap > 0 ? `${pos} (${taken}/${cap})` : pos;
+
+          return `<option value="${pos}" ${selected ? 'selected' : ''} ${disabled}>${label}</option>`;
+        }).join('');
+
+      positionField.classList.remove('hidden');
+      positionSelect.required = true;
+    }
+
+    async function loadBooking() {
+      clearStatus();
+
+      if (!bookingId) {
+        loadingBox.textContent = 'Missing booking id.';
+        showStatus('No booking id was provided in the URL.');
+        return;
+      }
+
+      const { data: bookingRow, error: bookingError } = await supabase
+        .from('game_bookings')
+        .select('id, game_id, user_id, jersey_name, phone, avatar_url, paid, position, team_side, profiles(avatar_url, jersey_name)')
+        .eq('id', bookingId)
+        .single();
+
+      if (bookingError || !bookingRow) {
+        console.error('Booking load failed:', bookingError);
+        loadingBox.textContent = 'Booking not found.';
+        showStatus(bookingError?.message || 'Booking not found.');
+        return;
+      }
+
+      booking = bookingRow;
+
+      const { data: gameRow, error: gameError } = await supabase
+        .from('games')
+        .select(`
+          id,
+          session_title,
+          venue,
+          game_date,
+          start_time,
+          end_time,
+          game_type,
+          team_selection,
+          team_names,
+          team_a_name,
+          team_b_name,
+          position_selection,
+          position_limits
+        `)
+        .eq('id', booking.game_id)
+        .single();
+
+      if (gameError || !gameRow) {
+        console.error('Game load failed:', gameError);
+        loadingBox.textContent = 'Session not found.';
+        showStatus(gameError?.message || 'Associated session not found.');
+        return;
+      }
+
+      game = gameRow;
+
+      renderSummary();
+      renderAvatar();
+
+      jerseyNameInput.value = booking.jersey_name || booking.profiles?.jersey_name || '';
+      phoneInput.value = booking.phone || '';
+      paidInput.checked = !!booking.paid;
+
+      renderTeamSelect();
+      await renderPositionSelect(booking.team_side || '');
+
+      loadingBox.classList.add('hidden');
+      content.classList.remove('hidden');
+      formCard.classList.remove('hidden');
+    }
+
+    teamSelect.addEventListener('change', async () => {
+      await renderPositionSelect(teamSelect.value);
+    });
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      clearStatus();
+
+      const jerseyName = jerseyNameInput.value.trim();
+      const phone = phoneInput.value.trim();
+      const teamSide = game.team_selection ? teamSelect.value : null;
+      const position =
+        game.position_selection && game.game_type === 'football'
+          ? positionSelect.value
+          : null;
+
+      if (!jerseyName) {
+        showStatus('Jersey name is required.');
+        return;
+      }
+
+      if (game.team_selection && !teamSide) {
+        showStatus('Please select a team.');
+        return;
+      }
+
+      if (game.position_selection && game.game_type === 'football' && !position) {
+        showStatus('Please select a position.');
+        return;
+      }
+
+      saveBtn.disabled = true;
+      saveBtn.textContent = '⏳ Saving...';
+
+      const { error } = await supabase
+        .from('game_bookings')
+        .update({
+          jersey_name: jerseyName,
+          phone: phone || null,
+          team_side: teamSide,
+          position,
+          paid: paidInput.checked
+        })
+        .eq('id', bookingId);
+
+      saveBtn.disabled = false;
+      saveBtn.textContent = '💾 Save Changes';
+
+      if (error) {
+        console.error('Update failed:', error);
+        showStatus(`Failed to update booking: ${error.message}`);
+        return;
+      }
+
+      showStatus('Booking updated successfully.', 'success');
+
+      setTimeout(() => {
+        window.location.href = '/host/sessions.html';
+      }, 700);
+    });
+
+    removeBtn.addEventListener('click', async () => {
+      const playerName = jerseyNameInput.value.trim() || 'this player';
+      const confirmed = confirm(`Remove the booking for ${playerName}?`);
+
+      if (!confirmed) return;
+
+      clearStatus();
+      removeBtn.disabled = true;
+      removeBtn.textContent = '⏳ Removing...';
+
+      const { error } = await supabase
+        .from('game_bookings')
+        .delete()
+        .eq('id', bookingId);
+
+      removeBtn.disabled = false;
+      removeBtn.textContent = '🗑 Remove Booking';
+
+      if (error) {
+        console.error('Delete failed:', error);
+        showStatus(`Failed to remove booking: ${error.message}`);
+        return;
+      }
+
+      showStatus('Booking removed successfully.', 'success');
+
+      setTimeout(() => {
+        window.location.href = '/host/sessions.html';
+      }, 700);
+    });
+
+    cancelBtn.addEventListener('click', () => {
+      window.location.href = '/host/sessions.html';
+    });
+
+    await loadBooking();
+  </script>
+</body>
+</html>
