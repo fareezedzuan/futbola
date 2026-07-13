@@ -406,7 +406,7 @@
     const teamNamesContainer = $('#teamNamesContainer');
 const teamsInput = $('#teams');
 
-    const weekdaySeg = $('#weekdaySeg'); const recurrences = $('#recurrences');
+    //const weekdaySeg = $('#weekdaySeg'); const recurrences = $('#recurrences');
     const paymentSeg = $('#paymentSeg'); const contactSeg = $('#contactSeg');
     const contactLink = $('#contact_link'); const contactHint = $('#contactHint');
     const posRowsEl = $('#posRows'); const totalPill = $('#totalSlotsPill'); const maxPlayers = $('#max_players');
@@ -414,7 +414,7 @@ const teamsInput = $('#teams');
     let gameType = 'futsal';
     let paymentType = 'pay_on_court';
     let contactMethod = 'whatsapp';
-    const selectedDays = new Set();
+    //const selectedDays = new Set();
 
     const PRESET = [
       { key:'GK', label:'GK', positions:1, players:2 },
@@ -453,24 +453,7 @@ const teamsInput = $('#teams');
       sw.addEventListener('click', ()=>{ toggleSwitch(sw, !isOn(sw)); refreshVisibility(); updateTotals(); });
     });
 
-    // Weekdays segmented build
-    (function initWeekdays(){
-      const days = ['S','M','T','W','T','F','S'];
-      weekdaySeg.innerHTML='';
-      days.forEach((d,i)=>{
-        const btn=document.createElement('button');
-        btn.type='button'; btn.textContent=d; btn.style.padding='8px'; btn.style.border='0'; btn.style.cursor='pointer';
-        btn.style.background='#fff'; btn.style.color='#334155';
-        btn.addEventListener('click', ()=>{
-          if(selectedDays.has(i)) selectedDays.delete(i); else selectedDays.add(i);
-          $$('#weekdaySeg button').forEach((b,idx)=>{
-            b.style.background = selectedDays.has(idx)? '#dcfce7':'#fff';
-            b.style.color = selectedDays.has(idx)? '#065f46':'#334155';
-          });
-        });
-        weekdaySeg.appendChild(btn);
-      });
-    })();
+
 
     // Position rows
     function renderPosRows(){
