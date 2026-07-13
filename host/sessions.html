@@ -839,18 +839,8 @@ async function fetchAndRender() {
   renderCalendar(currentMonth, currentYear);  // refresh calendar UI
 }
 
-async function manageBooking(bookingId) {
-
-  // For now just redirect to the future page.
-  // Later this page will allow:
-  // - Change Name
-  // - Change Phone
-  // - Change Team
-  // - Change Position
-  // - Remove Booking
-
-  window.location.href = `/host/manage-booking.html?id=${bookingId}`;
-
+function manageBooking(bookingId) {
+    window.location.href = `/host/manage-booking.html?id=${bookingId}`;
 }
 
 async function removePlayer(bookingId, el) {
