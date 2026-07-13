@@ -259,21 +259,27 @@
         <div class="switch" id="recurringSwitch" role="switch" aria-checked="false"></div>
       </div>
 
-      <!-- Recurring details -->
-      <div id="recurringCard" class="card" style="display:none">
-        <h4>Recurring (Weekly)</h4>
-        <div class="row">
-          <div>
-            <label style="color:#374151;font-weight:700">Repeat on</label>
-            <div id="weekdaySeg" class="seg" style="margin-top:6px; display:grid; grid-template-columns:repeat(7,1fr)"></div>
-          </div>
-          <div>
-            <label style="color:#374151;font-weight:700">Occurrences</label>
-            <input type="number" id="recurrences" min="1" max="52" value="8"/>
-            <p class="hint">How many weeks?</p>
-          </div>
-        </div>
-      </div>
+<!-- Recurring details -->
+<div id="recurringCard" class="card" style="display:none">
+
+    <h4>Repeat Weekly</h4>
+
+    <label>Number of Sessions</label>
+
+    <input
+        type="number"
+        id="recurrences"
+        min="2"
+        max="12"
+        value="4"
+    >
+
+    <p class="hint">
+        Includes the selected session.
+        Example: 4 sessions = this week + next 3 weeks.
+    </p>
+
+</div>
 
 <!-- Team names -->
 <div id="teamNamesCard" class="card" style="display:none">
@@ -709,11 +715,25 @@ function buildPositionLimitsFromConfig(cfg){
 }
 
 // Derive weekdays array (0..6) and occurrences for recurrence_rule
-function buildRecurrenceRule(isRecurring, selectedDaysSet, occurrencesInput){
-  if (!isRecurring) return null;
-  const weekdays = Array.from(selectedDaysSet.values()).sort(); // [0..6]
-  const occurrences = Math.max(1, Math.min(52, (parseInt(occurrencesInput.value,10) || 1)));
-  return { weekdays, occurrences };
+function buildRecurrenceRule(isRecurring, input){
+
+    if (!isRecurring) return null;
+
+    return {
+        frequency: "weekly",
+        occurrences: parseInt(input.value) || 4
+    };
+
+}
+
+function addWeeks(dateString, weeks){
+
+    const d = new Date(dateString);
+
+    d.setDate(d.getDate() + weeks * 7);
+
+    return d.toISOString().split("T")[0];
+
 }
 
 // ====== Submit: now sends ALL new columns too ======
@@ -756,7 +776,11 @@ if (/^https?:\/\/wa\.me\/(\d+)$/i.test(normalizedContact)) {
   }
 
   // Recurrence rule struct
-  const recurrenceRule = buildRecurrenceRule(isRecurring, selectedDays, $('#recurrences'));
+const recurrenceRule =
+buildRecurrenceRule(
+    isRecurring,
+    $("#recurrences")
+);
 
   const teamNames =
 [...document.querySelectorAll(".team-name")]
@@ -806,13 +830,60 @@ team_b_name: teamNames[1]?.name || "Team B",
     options                                // jsonb or null
   };
 
-  try{
-    const { error } = await supabase.from("games").insert([data]);
-    if (!error) alert("Game created successfully!");
-    else alert("Insert failed: " + error.message);
-  }catch(err){
+try {
+
+    let games = [data];
+
+    if (isRecurring) {
+
+        games = [];
+
+        const totalSessions = recurrenceRule.occurrences;
+
+        for (let i = 0; i < totalSessions; i++) {
+
+            games.push({
+
+                ...data,
+
+                game_date: addWeeks(data.game_date, i),
+
+                recurrence_rule: {
+                    frequency: "weekly",
+                    occurrences: totalSessions,
+                    occurrence_number: i + 1
+                }
+
+            });
+
+        }
+
+    }
+
+    const { error } = await supabase
+        .from("games")
+        .insert(games);
+
+    if (error) {
+
+        alert("Insert failed: " + error.message);
+
+    } else {
+
+        alert(
+            isRecurring
+                ? `${games.length} sessions created successfully!`
+                : "Game created successfully!"
+        );
+
+    }
+
+} catch (err) {
+
     alert("Error: " + err.message);
-  }
+
+}
+
 });
   </script>
 </body>
