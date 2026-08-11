@@ -585,14 +585,18 @@ function buildPitchNodesFromLimits(limits){
   pushGroup('ST', get('ST'), 46, 54, Y.F);
   pushGroup('RW', get('RW'), 66, 82, Y.F);
 
-  pushGroup('DM', get('DM'), 45, 55, Y.M + 13, 1, 1);
-  pushGroup('CM', get('CM'), 30, 68, Y.M, 1, 3);
-  pushGroup('CB', get('CB'), 38, 65, Y.D, 1, 2);
+// Midfield
+pushGroup('DM', get('DM'), 50, 50, Y.M + 13, 2, 1);
+pushGroup('CM', get('CM'), 31, 69, Y.M, 2, 2);
 
-  pushGroup('LB', get('LB'), 8, 20, Y.D);
-  pushGroup('RB', get('RB'), 80, 92, Y.D);
+// Defence
+pushGroup('CB', get('CB'), 40, 60, Y.D, 2, 2);
 
-  pushGroup('GK', get('GK'), 46, 54, Y.GK, 1, 1);
+pushGroup('LB', get('LB'), 8, 20, Y.D);
+pushGroup('RB', get('RB'), 80, 92, Y.D);
+
+// Goalkeeper
+pushGroup('GK', get('GK'), 50, 50, Y.GK, 2, 1);
 
   if (get('SUB')) {
     const subCount = Math.min(get('SUB'), 5);
