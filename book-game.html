@@ -585,27 +585,44 @@ function buildPitchNodesFromLimits(limits){
   pushGroup('ST', get('ST'), 46, 54, Y.F);
   pushGroup('RW', get('RW'), 66, 82, Y.F);
 
-// Midfield
+// ===== Adaptive central layout =====
+
 const cmSingle = get('CM') <= 2;
 const cbSingle = get('CB') <= 2;
+const dmSingle = get('DM') <= 2;
+const gkSingle = get('GK') <= 2;
 
-// When CM/CB only have one visual node, spread the central spine vertically.
-// When there are two nodes (CM1/CM2 or CB1/CB2), keep the current layout.
-const cmY = cmSingle ? 46 : Y.M;
-const dmY = (cmSingle || cbSingle) ? 63 : Y.M + 13;
-const cbY = cbSingle ? 80 : Y.D;
+// CM
+if (cmSingle) {
+  pushGroup('CM', get('CM'), 42, 42, 49, 2, 1);
+} else {
+  pushGroup('CM', get('CM'), 31, 69, 50, 2, 2);
+}
 
-pushGroup('CM', get('CM'), 31, 69, cmY, 2, 2);
-pushGroup('DM', get('DM'), 50, 50, dmY, 2, 1);
+// DM
+if (dmSingle) {
+  pushGroup('DM', get('DM'), 58, 58, 62, 2, 1);
+} else {
+  pushGroup('DM', get('DM'), 50, 50, 63, 2, 1);
+}
 
-// Defence
-pushGroup('CB', get('CB'), 40, 60, cbY, 2, 2);
+// CB
+if (cbSingle) {
+  pushGroup('CB', get('CB'), 42, 42, 75, 2, 1);
+} else {
+  pushGroup('CB', get('CB'), 40, 60, 74, 2, 2);
+}
 
+// Fullbacks stay unchanged
 pushGroup('LB', get('LB'), 8, 20, Y.D);
 pushGroup('RB', get('RB'), 80, 92, Y.D);
 
-// Goalkeeper
-pushGroup('GK', get('GK'), 50, 50, Y.GK, 2, 1);
+// GK
+if (gkSingle) {
+  pushGroup('GK', get('GK'), 58, 58, 90, 2, 1);
+} else {
+  pushGroup('GK', get('GK'), 50, 50, Y.GK, 2, 1);
+}
 
   if (get('SUB')) {
     const subCount = Math.min(get('SUB'), 5);
