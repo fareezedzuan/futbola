@@ -592,26 +592,25 @@ const cbSingle = get('CB') <= 2;
 const dmSingle = get('DM') <= 2;
 const gkSingle = get('GK') <= 2;
 
-// CM - always split left/right if there are 2 players
-if (get('CM') === 1) {
-  pushGroup('CM', 1, 35, 35, 50, 1, 1);
+// CM
+if (get('CM') <= 2) {
+  // one CM position -> LEFT of central DM
+  pushGroup('CM', get('CM'), 36, 36, 50, 2, 1);
 } else {
+  // two CM positions -> left + right
   pushGroup('CM', get('CM'), 34, 66, 50, 2, 2);
 }
 
 // DM
 pushGroup('DM', get('DM'), 50, 50, 63, 2, 1);
 
-// CB - always split left/right if there are 2 players
-
-if (get('CB') === 1) {
-
-  pushGroup('CB', 1, 50, 50, 75, 1, 1);
-
+// CB
+if (get('CB') <= 2) {
+  // one CB position -> RIGHT of central DM
+  pushGroup('CB', get('CB'), 64, 64, 75, 2, 1);
 } else {
-
+  // two CB positions -> left + right
   pushGroup('CB', get('CB'), 38, 62, 75, 2, 2);
-
 }
 
 // Fullbacks stay unchanged
