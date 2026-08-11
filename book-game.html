@@ -586,11 +586,20 @@ function buildPitchNodesFromLimits(limits){
   pushGroup('RW', get('RW'), 66, 82, Y.F);
 
 // Midfield
-pushGroup('DM', get('DM'), 50, 50, Y.M + 13, 2, 1);
-pushGroup('CM', get('CM'), 31, 69, Y.M, 2, 2);
+const cmSingle = get('CM') <= 2;
+const cbSingle = get('CB') <= 2;
+
+// When CM/CB only have one visual node, spread the central spine vertically.
+// When there are two nodes (CM1/CM2 or CB1/CB2), keep the current layout.
+const cmY = cmSingle ? 46 : Y.M;
+const dmY = (cmSingle || cbSingle) ? 63 : Y.M + 13;
+const cbY = cbSingle ? 80 : Y.D;
+
+pushGroup('CM', get('CM'), 31, 69, cmY, 2, 2);
+pushGroup('DM', get('DM'), 50, 50, dmY, 2, 1);
 
 // Defence
-pushGroup('CB', get('CB'), 40, 60, Y.D, 2, 2);
+pushGroup('CB', get('CB'), 40, 60, cbY, 2, 2);
 
 pushGroup('LB', get('LB'), 8, 20, Y.D);
 pushGroup('RB', get('RB'), 80, 92, Y.D);
