@@ -600,11 +600,7 @@ if (get('CM') === 1) {
 }
 
 // DM
-if (dmSingle) {
-  pushGroup('DM', get('DM'), 58, 58, 62, 2, 1);
-} else {
-  pushGroup('DM', get('DM'), 50, 50, 63, 2, 1);
-}
+pushGroup('DM', get('DM'), 50, 50, 63, 2, 1);
 
 // CB - always split left/right if there are 2 players
 
@@ -623,11 +619,7 @@ pushGroup('LB', get('LB'), 8, 20, Y.D);
 pushGroup('RB', get('RB'), 80, 92, Y.D);
 
 // GK
-if (gkSingle) {
-  pushGroup('GK', get('GK'), 58, 58, 90, 2, 1);
-} else {
-  pushGroup('GK', get('GK'), 50, 50, Y.GK, 2, 1);
-}
+pushGroup('GK', get('GK'), 50, 50, 90, 2, 1);
 
   if (get('SUB')) {
     const subCount = Math.min(get('SUB'), 5);
