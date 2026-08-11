@@ -592,24 +592,73 @@ const cbSingle = get('CB') <= 2;
 const dmSingle = get('DM') <= 2;
 const gkSingle = get('GK') <= 2;
 
-// CM
-if (get('CM') <= 2) {
-  // one CM position -> LEFT of central DM
-  pushGroup('CM', get('CM'), 36, 36, 50, 2, 1);
+// ===== CM =====
+if (get('CM') === 1) {
+
+  // One CM: central-ish
+  out.push({
+    key: 'CM',
+    x: 36,
+    y: 50,
+    playersPerPos: 1
+  });
+
+} else if (get('CM') === 2) {
+
+  // Two CM players: separate LEFT + RIGHT positions
+  out.push({
+    key: 'CM',
+    x: 36,
+    y: 50,
+    playersPerPos: 1
+  });
+
+  out.push({
+    key: 'CM',
+    x: 64,
+    y: 50,
+    playersPerPos: 1
+  });
+
 } else {
-  // two CM positions -> left + right
+
+  // CM = 3/4: two groups, max 2 players each
   pushGroup('CM', get('CM'), 34, 66, 50, 2, 2);
 }
 
 // DM
 pushGroup('DM', get('DM'), 50, 50, 63, 2, 1);
 
-// CB
-if (get('CB') <= 2) {
-  // one CB position -> RIGHT of central DM
-  pushGroup('CB', get('CB'), 64, 64, 75, 2, 1);
+// ===== CB =====
+if (get('CB') === 1) {
+
+  out.push({
+    key: 'CB',
+    x: 50,
+    y: 75,
+    playersPerPos: 1
+  });
+
+} else if (get('CB') === 2) {
+
+  // Two CB players: separate LEFT + RIGHT positions
+  out.push({
+    key: 'CB',
+    x: 40,
+    y: 75,
+    playersPerPos: 1
+  });
+
+  out.push({
+    key: 'CB',
+    x: 60,
+    y: 75,
+    playersPerPos: 1
+  });
+
 } else {
-  // two CB positions -> left + right
+
+  // CB = 3/4: two groups, max 2 players each
   pushGroup('CB', get('CB'), 38, 62, 75, 2, 2);
 }
 
