@@ -66,6 +66,18 @@
       flex-shrink:0;
     }
 
+    /* Compensate for source images with extra empty space */
+
+img[src*="FUT.png"],
+
+img[src*="CFC.png"],
+
+img[src*="KLC.jpeg"] {
+
+  transform:scale(1.25);
+
+}
+
     .form-pill {
       width:25px;
       height:25px;
