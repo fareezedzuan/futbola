@@ -525,7 +525,16 @@ function eventRow(e) {
 function mediaButtons(m) {
   const b=[];
   if(m.highlights)b.push(`<a href="${m.highlights}" target="_blank" class="text-sm font-bold text-purple-700">🎬 Highlights</a>`);
-  if(m.youtube)b.push(`<a href="${m.youtube}" target="_blank" class="text-sm font-bold text-purple-700">▶ Full Match</a>`);
+  if(m.youtube)b.push(`
+  <a href="${m.youtube}" target="_blank"
+     class="text-sm font-bold text-purple-700 hover:text-red-600 flex items-center gap-1">
+    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="#FF0000" aria-hidden="true">
+      <path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8z"/>
+      <path d="M9.6 15.6V8.4L15.8 12z" fill="white"/>
+    </svg>
+    Full Match
+  </a>
+`);
   if(m.veo)b.push(`<a href="${m.veo}" target="_blank" class="text-sm font-bold text-purple-700">📹 Veo</a>`);
   if(m.gallery)b.push(`<a href="${m.gallery}" target="_blank" class="text-sm font-bold text-purple-700">📸 Gallery</a>`);
   return b.length ? `<div class="flex flex-wrap gap-3 pt-2 border-t border-gray-200">${b.join("")}</div>` : "";
