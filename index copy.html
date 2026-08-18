@@ -101,32 +101,24 @@
             futbola is your all-in-one futsal community platform.
         </p>
 
-<!-- Dynamic Login Newly Added -->
-<div id="heroButtons"
-  class="flex flex-col sm:flex-row flex-wrap justify-center items-center gap-4 mt-6">
+        <!-- Dynamic Login Newly Added -->
+        <div id="heroButtons" class="flex flex-col sm:flex-row flex-wrap justify-center items-center gap-4 mt-6">
+          <a href="/book-game.html"
+            class="hero-btn bg-gradient-to-r from-purple-500 via-orange-500 to-pink-500 border-2 border-purple-600 text-white transform transition hover:scale-105 duration-200 shadow-lg">
+            🎮 Book Game
+          </a>
 
-  <a href="/book-game.html"
-    class="hero-btn bg-gradient-to-r from-purple-500 via-orange-500 to-pink-500 border-2 border-purple-600 text-white transform transition hover:scale-105 duration-200 shadow-lg">
-    🎮 Book Game
-  </a>
+          <a id="hostDashboardBtn" href="/host/dashboard.html" style="display:none;"
+            class="hero-btn bg-gradient-to-r from-pink-500 to-purple-500 border-2 border-red-700 text-white transform transition hover:scale-105 duration-200 shadow-lg">
+            🧰 Host Dashboard
+          </a>
+          <div id="teamButtons" class="flex flex-col sm:flex-row gap-4 items-center"></div>
 
-  <a href="/tournament.html"
-    class="hero-btn bg-gradient-to-r from-purple-500 to-pink-500 border-2 border-purple-600 text-white transform transition hover:scale-105 duration-200 shadow-lg">
-    🏆 Tournament
-  </a>
+          <div id="authButtonWrapper" class="flex flex-col sm:flex-row gap-4 items-center "></div>
+        </div>
 
-  <a id="hostDashboardBtn"
-    href="/host/dashboard.html"
-    style="display:none;"
-    class="hero-btn bg-gradient-to-r from-pink-500 to-purple-500 border-2 border-red-700 text-white transform transition hover:scale-105 duration-200 shadow-lg">
-    🧰 Host Dashboard
-  </a>
 
-  <div id="authButtonWrapper"
-    class="flex flex-col sm:flex-row gap-4 items-center">
-  </div>
-
-</div>
+    </div>
 </header>
 
 
@@ -394,6 +386,7 @@ try {
 }
 
   const authWrapper = document.getElementById("authButtonWrapper");
+  const teamWrapper = document.getElementById("teamButtons");
 
   if (user) {
     const { data: profile } = await supabase
@@ -419,14 +412,44 @@ try {
       }
     }
 
-} else {
-  authWrapper.innerHTML = `
-    <a href="/login.html"
-      class="hero-btn bg-red-500 border-2 border-red-700 text-white rounded-lg font-semibold transform transition hover:scale-105 duration-200 shadow-lg">
-      🔑 Login
-    </a>
-  `;
-}
+    // ✅ Team button
+    let memberships = [];
+    try {
+      const { data, error } = await supabase
+        .from('team_members')
+        .select('team_id')
+        .eq('player_id', user.id);
+
+      if (!error) {
+        memberships = data;
+      }
+    } catch (e) {
+      // Silently ignore or console.warn if debugging:
+      // console.warn('Team lookup failed:', e);
+    }
+
+    const inTeam = memberships && memberships.length > 0;
+teamWrapper.innerHTML = `
+  <a href="/tournament.html"
+    class="hero-btn bg-gradient-to-r from-purple-500 to-pink-500 border-2 border-purple-600 text-white transform transition hover:scale-105 duration-200 shadow-lg">
+    🏆 Tournament
+  </a>
+`;
+
+  } else {
+    authWrapper.innerHTML = `
+      <a href="/login.html"
+        class="hero-btn bg-red-500 border-2 border-red-700 text-white rounded-lg font-semibold transform transition hover:scale-105 duration-200 shadow-lg">
+        🔑 Login
+      </a>
+    `;
+    teamWrapper.innerHTML = `
+      <a href="/login.html"
+        class="hero-btn bg-yellow-500 border-2 border-yellow-700 text-white rounded-lg font-semibold transform transition hover:scale-105 duration-200 shadow-lg">
+        👉 Login for Team
+      </a>
+    `;
+  }
 
 
 </script>
