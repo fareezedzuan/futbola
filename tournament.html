@@ -186,8 +186,8 @@ img[src*="KLC.jpeg"] {
 
         <div class="rounded-2xl border border-white border-opacity-20 bg-white bg-opacity-10 px-5 py-4 min-w-64">
           <div class="text-xs uppercase tracking-wider text-gray-300 font-bold">League status</div>
-          <div class="text-2xl font-black mt-1">Matchweek 1 complete</div>
-          <div class="text-sm text-gray-300 mt-1">Next matches · 21 August 2026</div>
+          <div id="leagueStatus" class="text-2xl font-black mt-1">Loading league...</div>
+          <div id="nextMatchInfo" class="text-sm text-gray-300 mt-1">Loading fixtures...</div>
         </div>
       </div>
     </div>
@@ -214,8 +214,8 @@ img[src*="KLC.jpeg"] {
         <div class="flex items-end justify-between gap-4">
           <div>
             <div class="section-kicker">LATEST RESULTS</div>
-            <h2 class="text-2xl md:text-3xl font-black mt-1">Matchweek 1</h2>
-            <p class="text-sm text-gray-500">14 August 2026</p>
+            <h2 id="latestWeekTitle" class="text-2xl md:text-3xl font-black mt-1">Latest Matchweek</h2>
+            <p id="latestWeekDate" class="text-sm text-gray-500"></p>
           </div>
           <a href="#matches" class="font-bold text-sm text-purple-700 hover:text-orange-600">All matches →</a>
         </div>
@@ -225,8 +225,8 @@ img[src*="KLC.jpeg"] {
 
       <div class="panel p-5 md:p-6">
         <div class="section-kicker">NEXT UP</div>
-        <h2 class="text-2xl md:text-3xl font-black mt-1">Matchweek 2</h2>
-        <p class="text-sm text-gray-500">21 August 2026</p>
+        <h2 id="nextWeekTitle" class="text-2xl md:text-3xl font-black mt-1">Next Matchweek</h2>
+        <p id="nextWeekDate" class="text-sm text-gray-500"></p>
         <div class="orange-line mt-4 mb-5"></div>
         <div id="nextFixtures" class="space-y-3"></div>
       </div>
@@ -239,7 +239,7 @@ img[src*="KLC.jpeg"] {
           <div class="section-kicker">STANDINGS</div>
           <h2 class="text-2xl md:text-3xl font-black mt-1">League Table</h2>
         </div>
-        <div class="text-xs text-gray-500 font-semibold">After Matchweek 1</div>
+        <div id="tableStatus" class="text-xs text-gray-500 font-semibold">Loading standings...</div>
       </div>
 
       <div class="overflow-x-auto">
@@ -307,14 +307,12 @@ img[src*="KLC.jpeg"] {
 
         <div class="panel p-5">
           <div class="text-xs uppercase tracking-wider text-gray-500 font-black">Yellow Cards</div>
-          <div class="text-5xl font-black mt-5">0</div>
-          <p class="text-sm text-gray-500 mt-2">No disciplinary events entered yet.</p>
+          <div id="yellowCards" class="mt-5"></div>
         </div>
 
         <div class="panel p-5">
           <div class="text-xs uppercase tracking-wider text-gray-500 font-black">Red Cards</div>
-          <div class="text-5xl font-black mt-5">0</div>
-          <p class="text-sm text-gray-500 mt-2">No disciplinary events entered yet.</p>
+          <div id="redCards" class="mt-5"></div>
         </div>
       </div>
     </section>
@@ -343,470 +341,297 @@ img[src*="KLC.jpeg"] {
     </div>
   </footer>
 
-<script>
-  // ------------------------------------------------------------
-  // STATIC DATA FOR SEASON 2
-  // Later this object can be replaced by Supabase queries.
-  // ------------------------------------------------------------
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.48.0/+esm';
 
-  const teams = {
-    FCF: { name: "Futbola CF", short: "FCF", logo: "./images/FUT.png" },
-    HHC: { name: "Happy Hour SC", short: "HHC", logo: "./images/HHC.jpeg" },
-    GOB: { name: "Tepen GOB", short: "GOB", logo: "./images/GOB.jpeg" },
-    FCA: { name: "FC Alpha Vet", short: "FCA", logo: "./images/FCA.jpeg" },
-    CFC: { name: "Cybersouth FC", short: "CFC", logo: "./images/CFC.png" },
-    KLC: { name: "KL Classico FC", short: "KLC", logo: "./images/KLC.jpeg" }
-  };
+const supabase = createClient(
+  'https://kdbqroxhypnadolcxxxc.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkYnFyb3hoeXBuYWRvbGN4eHhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3MjkwNzYsImV4cCI6MjA1NzMwNTA3Nn0.c7_RVxoFdJNqQ62R3t1emH2Wf4dSsQaunHsHmbQxOBA'
+);
 
-  const schedule = [
-    {
-      week: 1,
-      date: "14 August 2026",
-      matches: [
-        {
-          id: "mw1-hhc-fcf",
-          home: "HHC", away: "FCF", time: "8:10 PM",
-          homeScore: 2, awayScore: 2,
-          events: [
-            { type:"goal", team:"FCF", player:"Qadri", assist:"Ejad", highlight:"#"},
-            { type:"goal", team:"FCF", player:"Ed", assist:null, highlight:"#"},
-            { type:"goal", team:"HHC", player:"Amri Yahya", assist:null, highlight:"#"},
-            { type:"goal", team:"HHC", player:"Lockman Hakim", assist:"Noey", highlight:"#"}
-          ],
-          highlights:"#",
-          gallery:"#"
-        },
-        {
-          id: "mw1-cfc-klc",
-          home: "CFC", away: "KLC", time: "9:30 PM",
-          homeScore: 1, awayScore: 0,
-          events: [
-            { type:"goal", team:"CFC", player:"Apek", assist:"Ari", highlight:"#"}
-          ],
-          highlights:"#",
-          gallery:"#"
-        },
-        {
-          id: "mw1-fca-gob",
-          home: "FCA", away: "GOB", time: "10:50 PM",
-          homeScore: 2, awayScore: 2,
-          events: [
-            { type:"goal", team:"FCA", player:"Amin", assist:"Zuber", highlight:"#"},
-            { type:"goal", team:"FCA", player:"Rafi", assist:"Raf", highlight:"#"},
-            { type:"goal", team:"GOB", player:"Chaz", assist:"Izwan", highlight:"#"},
-            { type:"goal", team:"GOB", player:"Chaz", assist:"Azahari", highlight:"#"}
-          ],
-          highlights:"#",
-          gallery:"#"
-        }
-      ]
-    },
+const COMPETITION = 'futbola-svl';
+const SEASON = 2;
 
-    { week:2, date:"21 August 2026", matches:[
-      {id:"mw2-fca-klc", home:"FCA", away:"KLC", time:"8:10 PM"},
-      {id:"mw2-gob-fcf", home:"GOB", away:"FCF", time:"9:30 PM"},
-      {id:"mw2-cfc-hhc", home:"CFC", away:"HHC", time:"10:50 PM"}
-    ]},
+const teams = {
+  FCF: { name:"Futbola CF", short:"FCF", logo:"./images/FUT.png" },
+  HHC: { name:"Happy Hour SC", short:"HHC", logo:"./images/HHC.jpeg" },
+  GOB: { name:"Tepen GOB", short:"GOB", logo:"./images/GOB.jpeg" },
+  FCA: { name:"FC Alpha Vet", short:"FCA", logo:"./images/FCA.jpeg" },
+  CFC: { name:"Cybersouth FC", short:"CFC", logo:"./images/CFC.png" },
+  KLC: { name:"KL Classico FC", short:"KLC", logo:"./images/KLC.jpeg" }
+};
 
-    { week:3, date:"4 September 2026", matches:[
-      {id:"mw3-gob-cfc", home:"GOB", away:"CFC", time:"8:10 PM"},
-      {id:"mw3-fca-fcf", home:"FCA", away:"FCF", time:"9:30 PM"},
-      {id:"mw3-klc-hhc", home:"KLC", away:"HHC", time:"10:50 PM"}
-    ]},
+let schedule = [];
 
-    { week:4, date:"11 September 2026", matches:[
-      {id:"mw4-klc-gob", home:"KLC", away:"GOB", time:"8:10 PM"},
-      {id:"mw4-fca-hhc", home:"FCA", away:"HHC", time:"9:30 PM"},
-      {id:"mw4-fcf-cfc", home:"FCF", away:"CFC", time:"10:50 PM"}
-    ]},
+const teamUrl = code => `/team.html?team=${encodeURIComponent(code)}`;
+const matchUrl = id => `/match.html?id=${encodeURIComponent(id)}`;
+const playerUrl = (name, team) => `/league-player.html?player=${encodeURIComponent(name)}&team=${encodeURIComponent(team)}`;
 
-    { week:5, date:"18 September 2026", matches:[
-      {id:"mw5-fcf-klc", home:"FCF", away:"KLC", time:"8:10 PM"},
-      {id:"mw5-hhc-gob", home:"HHC", away:"GOB", time:"9:30 PM"},
-      {id:"mw5-fca-cfc", home:"FCA", away:"CFC", time:"10:50 PM"}
-    ]},
+const logo = (code, cls="team-logo") =>
+  `<img src="${teams[code]?.logo || ''}" alt="${teams[code]?.name || code}" class="${cls}">`;
 
-    { week:6, date:"25 September 2026", matches:[
-      {id:"mw6-fcf-hhc", home:"FCF", away:"HHC", time:"8:10 PM"},
-      {id:"mw6-klc-cfc", home:"KLC", away:"CFC", time:"9:30 PM"},
-      {id:"mw6-gob-fca", home:"GOB", away:"FCA", time:"10:50 PM"}
-    ]},
+const playerLink = (name, team) =>
+  `<a class="player-link font-bold" href="${playerUrl(name, team)}">${name}</a>`;
 
-    { week:7, date:"2 October 2026", matches:[
-      {id:"mw7-hhc-cfc", home:"HHC", away:"CFC", time:"8:10 PM"},
-      {id:"mw7-klc-fca", home:"KLC", away:"FCA", time:"9:30 PM"},
-      {id:"mw7-fcf-gob", home:"FCF", away:"GOB", time:"10:50 PM"}
-    ]},
+function formatDate(v) {
+  if (!v) return "";
+  return new Intl.DateTimeFormat("en-GB",{day:"numeric",month:"long",year:"numeric",timeZone:"UTC"})
+    .format(new Date(v+"T00:00:00Z"));
+}
 
-    { week:8, date:"9 October 2026", matches:[
-      {id:"mw8-cfc-gob", home:"CFC", away:"GOB", time:"8:10 PM"},
-      {id:"mw8-fcf-fca", home:"FCF", away:"FCA", time:"9:30 PM"},
-      {id:"mw8-hhc-klc", home:"HHC", away:"KLC", time:"10:50 PM"}
-    ]},
+function formatTime(v) {
+  if (!v) return "";
+  const [h,m] = v.split(":").map(Number);
+  const d = new Date(2000,0,1,h,m);
+  return new Intl.DateTimeFormat("en-MY",{hour:"numeric",minute:"2-digit",hour12:true}).format(d);
+}
 
-    { week:9, date:"16 October 2026", matches:[
-      {id:"mw9-hhc-fca", home:"HHC", away:"FCA", time:"8:10 PM"},
-      {id:"mw9-cfc-fcf", home:"CFC", away:"FCF", time:"9:30 PM"},
-      {id:"mw9-gob-klc", home:"GOB", away:"KLC", time:"10:50 PM"}
-    ]},
+function minuteText(e) {
+  if (e.minute == null) return "";
+  return Number(e.added_time || 0) > 0 ? `${e.minute}+${e.added_time}'` : `${e.minute}'`;
+}
 
-    { week:10, date:"23 October 2026", matches:[
-      {id:"mw10-cfc-fca", home:"CFC", away:"FCA", time:"8:10 PM"},
-      {id:"mw10-gob-hhc", home:"GOB", away:"HHC", time:"9:30 PM"},
-      {id:"mw10-klc-fcf", home:"KLC", away:"FCF", time:"10:50 PM"}
-    ]}
-  ];
+async function loadData() {
+  const {data: matches, error: matchErr} = await supabase
+    .from("league_matches")
+    .select("*")
+    .eq("competition_slug", COMPETITION)
+    .eq("season", SEASON)
+    .order("matchweek")
+    .order("start_time");
+  if (matchErr) throw matchErr;
 
-  // Future pages. These links can exist before the pages are built.
-  const teamUrl = code => `/team.html?team=${encodeURIComponent(code)}`;
-  const matchUrl = id => `/match.html?id=${encodeURIComponent(id)}`;
-  const playerUrl = (name, team) =>
-    `/league-player.html?player=${encodeURIComponent(name)}&team=${encodeURIComponent(team)}`;
+  const ids = (matches || []).map(x => x.id);
 
-  const logo = (code, cls="team-logo") =>
-    `<img src="${teams[code].logo}" alt="${teams[code].name}" class="${cls}">`;
-
-  const teamNameLink = code =>
-    `<a class="team-link font-bold" href="${teamUrl(code)}">${teams[code].name}</a>`;
-
-  const playerLink = (name, team) =>
-    `<a class="player-link font-bold" href="${playerUrl(name, team)}">${name}</a>`;
-
-  function latestResultCard(match) {
-    return `
-      <a href="${matchUrl(match.id)}" class="match-card block border border-gray-200 rounded-xl p-4 bg-white">
-        <div class="text-center text-xs text-gray-400 font-bold mb-3">${match.time} · FT</div>
-
-        <div class="flex items-center justify-between gap-2">
-          <div class="flex flex-col items-center text-center flex-1 min-w-0">
-            ${logo(match.home)}
-            <div class="font-bold text-sm mt-2 truncate w-full">${teams[match.home].short}</div>
-          </div>
-
-          <div class="text-2xl font-black whitespace-nowrap">${match.homeScore} - ${match.awayScore}</div>
-
-          <div class="flex flex-col items-center text-center flex-1 min-w-0">
-            ${logo(match.away)}
-            <div class="font-bold text-sm mt-2 truncate w-full">${teams[match.away].short}</div>
-          </div>
-        </div>
-      </a>
-    `;
+  let events = [];
+  if (ids.length) {
+    const {data, error} = await supabase.from("match_events").select("*").in("match_id", ids).order("sort_order");
+    if (error) throw error;
+    events = data || [];
   }
 
-  function nextFixtureRow(match) {
-    return `
-      <a href="${matchUrl(match.id)}" class="match-card block border border-gray-200 rounded-xl p-3 bg-white">
-        <div class="flex items-center justify-between gap-2">
-          <div class="flex items-center gap-2 min-w-0">
-            ${logo(match.home)}
-            <span class="font-bold text-sm">${teams[match.home].short}</span>
-          </div>
-
-          <div class="text-center px-2">
-            <div class="font-black text-sm">${match.time}</div>
-            <div class="text-xs text-gray-400">vs</div>
-          </div>
-
-          <div class="flex items-center justify-end gap-2 min-w-0">
-            <span class="font-bold text-sm">${teams[match.away].short}</span>
-            ${logo(match.away)}
-          </div>
-        </div>
-      </a>
-    `;
+  let media = [];
+  if (ids.length) {
+    const {data, error} = await supabase.from("match_media").select("*").in("match_id", ids).order("sort_order");
+    if (!error) media = data || [];
   }
 
-  function calculateStandings() {
-    const s = {};
-
-    Object.keys(teams).forEach(code => {
-      s[code] = {
-        code, p:0, w:0, d:0, l:0,
-        gf:0, ga:0, gd:0, pts:0, form:[]
-      };
-    });
-
-    schedule.forEach(week => {
-      week.matches.forEach(m => {
-        if (typeof m.homeScore !== "number" || typeof m.awayScore !== "number") return;
-
-        const home = s[m.home];
-        const away = s[m.away];
-
-        home.p++; away.p++;
-        home.gf += m.homeScore; home.ga += m.awayScore;
-        away.gf += m.awayScore; away.ga += m.homeScore;
-
-        if (m.homeScore > m.awayScore) {
-          home.w++; away.l++;
-          home.pts += 3;
-          home.form.push("W"); away.form.push("L");
-        } else if (m.homeScore < m.awayScore) {
-          away.w++; home.l++;
-          away.pts += 3;
-          away.form.push("W"); home.form.push("L");
-        } else {
-          home.d++; away.d++;
-          home.pts++; away.pts++;
-          home.form.push("D"); away.form.push("D");
-        }
-      });
-    });
-
-    Object.values(s).forEach(t => t.gd = t.gf - t.ga);
-
-    return Object.values(s).sort((a,b) =>
-      b.pts - a.pts ||
-      b.gd - a.gd ||
-      b.gf - a.gf ||
-      teams[a.code].name.localeCompare(teams[b.code].name)
-    );
-  }
-
-  function renderStandings() {
-    document.getElementById("standingsBody").innerHTML =
-      calculateStandings().map((t, i) => {
-        const form = t.form.length
-          ? t.form.slice(-5).map(f =>
-              `<span class="form-pill ${f==="W"?"form-w":f==="D"?"form-d":"form-l"}">${f}</span>`
-            ).join(" ")
-          : `<span class="form-pill form-na">–</span>`;
-
-        return `
-          <tr class="border-b border-gray-100 hover:bg-orange-50">
-            <td class="py-4 font-black">${i + 1}</td>
-            <td class="py-3">
-              <a href="${teamUrl(t.code)}" class="flex items-center gap-3 group">
-                ${logo(t.code, "table-logo")}
-                <div>
-                  <div class="font-bold group-hover:text-orange-600">${teams[t.code].name}</div>
-                  <div class="text-xs text-gray-400">${t.code}</div>
-                </div>
-              </a>
-            </td>
-            <td class="text-center">${t.p}</td>
-            <td class="text-center">${t.w}</td>
-            <td class="text-center">${t.d}</td>
-            <td class="text-center">${t.l}</td>
-            <td class="text-center">${t.gf}</td>
-            <td class="text-center">${t.ga}</td>
-            <td class="text-center">${t.gd > 0 ? "+" : ""}${t.gd}</td>
-            <td class="text-center font-black text-lg">${t.pts}</td>
-            <td class="text-center whitespace-nowrap">${form}</td>
-          </tr>
-        `;
-      }).join("");
-  }
-
-  function goalEventRow(event) {
-    const assistText = event.assist
-      ? `Assist: ${playerLink(event.assist, event.team)}`
-      : `No assist`;
-
-    return `
-      <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
-        <span>⚽</span>
-        ${playerLink(event.player, event.team)}
-        <span class="text-gray-400">· ${teams[event.team].short}</span>
-        <span class="text-gray-400">· ${assistText}</span>
-        <a href="${event.highlight || "#"}"
-           class="ml-auto text-purple-700 font-bold hover:text-orange-600"
-           onclick="event.stopPropagation()">
-           ▶ Goal
-        </a>
-      </div>
-    `;
-  }
-
-  function matchCard(match) {
-    const played = typeof match.homeScore === "number";
-    const eventHtml = played && match.events?.length
-      ? `
-        <div class="border-t border-gray-100 bg-gray-50 px-4 py-3 space-y-2">
-          ${match.events.map(goalEventRow).join("")}
-          <div class="flex flex-wrap gap-3 pt-2 border-t border-gray-200">
-            <a href="${match.highlights || "#"}"
-               class="text-sm font-bold text-purple-700 hover:text-orange-600">
-               🎬 Match highlights
-            </a>
-            <a href="${match.gallery || "#"}"
-               class="text-sm font-bold text-purple-700 hover:text-orange-600">
-               📸 Gallery
-            </a>
-          </div>
-        </div>
-      `
-      : "";
-
-    return `
-      <div class="match-card border border-gray-200 rounded-xl overflow-hidden bg-white">
-        <a href="${matchUrl(match.id)}" class="block p-4 md:p-5">
-          <div class="grid grid-cols-3 items-center gap-3">
-            <div class="flex items-center justify-end gap-3 text-right min-w-0">
-              <div class="min-w-0">
-                <div class="font-black truncate">${teams[match.home].name}</div>
-                <div class="text-xs text-gray-400">${match.home}</div>
-              </div>
-              ${logo(match.home)}
-            </div>
-
-            <div class="text-center">
-              ${
-                played
-                ? `<div class="text-2xl md:text-3xl font-black">${match.homeScore} - ${match.awayScore}</div>
-                   <div class="text-xs text-gray-400 mt-1">FT</div>`
-                : `<div class="text-sm md:text-base font-black">${match.time}</div>
-                   <div class="text-xs text-gray-400 mt-1">Upcoming</div>`
-              }
-            </div>
-
-            <div class="flex items-center gap-3 min-w-0">
-              ${logo(match.away)}
-              <div class="min-w-0">
-                <div class="font-black truncate">${teams[match.away].name}</div>
-                <div class="text-xs text-gray-400">${match.away}</div>
-              </div>
-            </div>
-          </div>
-        </a>
-        ${eventHtml}
-      </div>
-    `;
-  }
-
-  function renderMatchweeks(filter="all") {
-    const weeks = filter === "all"
-      ? schedule
-      : schedule.filter(w => String(w.week) === String(filter));
-
-    document.getElementById("matchweeks").innerHTML =
-      weeks.map(w => `
-        <section class="panel p-4 md:p-6">
-          <div class="flex items-center justify-between gap-4 mb-4">
-            <div>
-              <button
-                class="section-kicker hover:text-purple-700"
-                onclick="document.getElementById('weekFilter').value='${w.week}'; renderMatchweeks('${w.week}');">
-                MATCHWEEK ${w.week}
-              </button>
-              <div class="text-xl md:text-2xl font-black mt-1">${w.date}</div>
-            </div>
-            <div class="text-xs font-semibold text-gray-400">
-              ${w.week === 1 ? "Completed" : "Scheduled"}
-            </div>
-          </div>
-
-          <div class="space-y-3">
-            ${w.matches.map(matchCard).join("")}
-          </div>
-        </section>
-      `).join("");
-  }
-
-  function buildPlayerStats() {
-    const goals = {};
-    const assists = {};
-
-    schedule.forEach(w => {
-      w.matches.forEach(m => {
-        (m.events || []).forEach(e => {
-          if (e.type !== "goal") return;
-
-          const gk = `${e.player}|${e.team}`;
-          goals[gk] = (goals[gk] || 0) + 1;
-
-          if (e.assist) {
-            const ak = `${e.assist}|${e.team}`;
-            assists[ak] = (assists[ak] || 0) + 1;
-          }
-        });
-      });
-    });
-
-    const makeArray = obj =>
-      Object.entries(obj)
-        .map(([key, value]) => {
-          const [player, team] = key.split("|");
-          return { player, team, value };
-        })
-        .sort((a,b) => b.value - a.value || a.player.localeCompare(b.player));
-
-    return {
-      goals: makeArray(goals),
-      assists: makeArray(assists)
-    };
-  }
-
-  function leaderRows(items) {
-    return items.slice(0,5).map((x, i) => `
-      <div class="flex items-center gap-3">
-        <div class="text-2xl font-black text-gray-300 w-7">${i + 1}</div>
-        ${logo(x.team)}
-        <div class="flex-1 min-w-0">
-          <div class="truncate">${playerLink(x.player, x.team)}</div>
-          <a href="${teamUrl(x.team)}" class="text-xs text-gray-400 hover:text-orange-600">
-            ${teams[x.team].name}
-          </a>
-        </div>
-        <div class="text-2xl font-black">${x.value}</div>
-      </div>
-    `).join("");
-  }
-
-  function renderStats() {
-    const stats = buildPlayerStats();
-    document.getElementById("topScorers").innerHTML = leaderRows(stats.goals);
-    document.getElementById("topAssists").innerHTML = leaderRows(stats.assists);
-  }
-
-  function renderClubGrid() {
-    document.getElementById("clubGrid").innerHTML =
-      Object.entries(teams).map(([code, team]) => `
-        <a href="${teamUrl(code)}" class="club-card border border-gray-200 rounded-xl p-4 bg-white flex items-center gap-4">
-          ${logo(code, "team-logo-lg")}
-          <div class="flex-1 min-w-0">
-            <div class="font-black text-lg">${team.name}</div>
-            <div class="text-sm text-gray-400">${team.short}</div>
-          </div>
-          <span class="text-2xl text-gray-300">→</span>
-        </a>
-      `).join("");
-  }
-
-  // Populate Matchweek selector
-  const weekFilter = document.getElementById("weekFilter");
-
-  schedule.forEach(w => {
-    const option = document.createElement("option");
-    option.value = w.week;
-    option.textContent = `MW${w.week} · ${w.date}`;
-    weekFilter.appendChild(option);
-  });
-
-  weekFilter.addEventListener("change", e => {
-    renderMatchweeks(e.target.value);
-  });
-
-  // Tab selected appearance
-  document.querySelectorAll(".nav-link").forEach(link => {
-    link.addEventListener("click", () => {
-      document.querySelectorAll(".nav-link").forEach(x => x.classList.remove("active"));
-      link.classList.add("active");
+  const eventsByMatch = {};
+  events.forEach(e => {
+    (eventsByMatch[e.match_id] ||= []).push({
+      type:e.event_type, team:e.team_code, player:e.player_name,
+      assist:e.assist_player_name, minute:e.minute, added_time:e.added_time || 0,
+      highlight:e.video_url || null
     });
   });
 
-  // Render
-  document.getElementById("latestResults").innerHTML =
-    schedule[0].matches.map(latestResultCard).join("");
+  const mediaByMatch = {};
+  media.forEach(m => (mediaByMatch[m.match_id] ||= []).push(m));
 
-  document.getElementById("nextFixtures").innerHTML =
-    schedule[1].matches.map(nextFixtureRow).join("");
+  const weeks = new Map();
+  (matches || []).forEach(r => {
+    if (!weeks.has(r.matchweek)) {
+      weeks.set(r.matchweek,{week:r.matchweek,date:formatDate(r.match_date),matches:[]});
+    }
 
-  renderStandings();
-  renderMatchweeks();
-  renderStats();
-  renderClubGrid();
+    const mm = mediaByMatch[r.id] || [];
+    const getMedia = type => mm.find(x => x.media_type === type)?.url || null;
+
+    weeks.get(r.matchweek).matches.push({
+      id:r.id,
+      home:r.home_team_code,
+      away:r.away_team_code,
+      time:formatTime(r.start_time),
+      homeScore:r.home_score,
+      awayScore:r.away_score,
+      status:r.status,
+      mvpPlayer:r.mvp_player_name,
+      mvpTeam:r.mvp_team_code,
+      events:eventsByMatch[r.id] || [],
+      youtube:getMedia("youtube_full"),
+      veo:getMedia("veo_full"),
+      highlights:getMedia("highlights"),
+      gallery:getMedia("gallery")
+    });
+  });
+
+  schedule = [...weeks.values()].sort((a,b)=>a.week-b.week);
+}
+
+function latestResultCard(m) {
+  return `<a href="${matchUrl(m.id)}" class="match-card block border border-gray-200 rounded-xl p-4 bg-white">
+    <div class="text-center text-xs text-gray-400 font-bold mb-3">${m.time} · FT</div>
+    <div class="flex items-center justify-between gap-2">
+      <div class="flex flex-col items-center text-center flex-1 min-w-0">${logo(m.home)}<div class="font-bold text-sm mt-2">${m.home}</div></div>
+      <div class="text-2xl font-black">${m.homeScore} - ${m.awayScore}</div>
+      <div class="flex flex-col items-center text-center flex-1 min-w-0">${logo(m.away)}<div class="font-bold text-sm mt-2">${m.away}</div></div>
+    </div>
+    ${m.mvpPlayer ? `<div class="text-center text-xs font-bold text-orange-600 mt-3">⭐ MVP · ${m.mvpPlayer} (${m.mvpTeam})</div>` : ""}
+  </a>`;
+}
+
+function nextFixtureRow(m) {
+  return `<a href="${matchUrl(m.id)}" class="match-card block border border-gray-200 rounded-xl p-3 bg-white">
+    <div class="flex items-center justify-between gap-2">
+      <div class="flex items-center gap-2">${logo(m.home)}<span class="font-bold text-sm">${m.home}</span></div>
+      <div class="text-center"><div class="font-black text-sm">${m.time}</div><div class="text-xs text-gray-400">vs</div></div>
+      <div class="flex items-center gap-2"><span class="font-bold text-sm">${m.away}</span>${logo(m.away)}</div>
+    </div>
+  </a>`;
+}
+
+function calculateStandings() {
+  const s = {};
+  Object.keys(teams).forEach(code => s[code]={code,p:0,w:0,d:0,l:0,gf:0,ga:0,gd:0,pts:0,form:[]});
+
+  schedule.forEach(w => w.matches.forEach(m => {
+    if (m.status !== "finished" || typeof m.homeScore !== "number" || typeof m.awayScore !== "number") return;
+    const h=s[m.home], a=s[m.away];
+    h.p++; a.p++; h.gf+=m.homeScore; h.ga+=m.awayScore; a.gf+=m.awayScore; a.ga+=m.homeScore;
+    if (m.homeScore>m.awayScore){h.w++;a.l++;h.pts+=3;h.form.push("W");a.form.push("L");}
+    else if(m.homeScore<m.awayScore){a.w++;h.l++;a.pts+=3;a.form.push("W");h.form.push("L");}
+    else{h.d++;a.d++;h.pts++;a.pts++;h.form.push("D");a.form.push("D");}
+  }));
+
+  Object.values(s).forEach(x=>x.gd=x.gf-x.ga);
+  return Object.values(s).sort((a,b)=>b.pts-a.pts || b.gd-a.gd || b.gf-a.gf || teams[a.code].name.localeCompare(teams[b.code].name));
+}
+
+function renderStandings() {
+  document.getElementById("standingsBody").innerHTML = calculateStandings().map((t,i)=>{
+    const form = t.form.length ? t.form.slice(-5).map(f=>`<span class="form-pill ${f==="W"?"form-w":f==="D"?"form-d":"form-l"}">${f}</span>`).join(" ") : `<span class="form-pill form-na">–</span>`;
+    return `<tr class="border-b border-gray-100 hover:bg-orange-50">
+      <td class="py-4 font-black">${i+1}</td>
+      <td class="py-3"><a href="${teamUrl(t.code)}" class="flex items-center gap-3 group">${logo(t.code,"table-logo")}<div><div class="font-bold group-hover:text-orange-600">${teams[t.code].name}</div><div class="text-xs text-gray-400">${t.code}</div></div></a></td>
+      <td class="text-center">${t.p}</td><td class="text-center">${t.w}</td><td class="text-center">${t.d}</td><td class="text-center">${t.l}</td>
+      <td class="text-center">${t.gf}</td><td class="text-center">${t.ga}</td><td class="text-center">${t.gd>0?"+":""}${t.gd}</td>
+      <td class="text-center font-black text-lg">${t.pts}</td><td class="text-center whitespace-nowrap">${form}</td>
+    </tr>`;
+  }).join("");
+}
+
+function eventRow(e) {
+  const icon = e.type==="yellow_card" ? "🟨" : e.type==="red_card" ? "🟥" : e.type==="penalty_miss" ? "❌" : "⚽";
+  const isGoal = ["goal","own_goal","penalty_goal"].includes(e.type);
+  const assist = isGoal ? (e.assist ? ` · Assist: ${playerLink(e.assist,e.team)}` : " · No assist") : "";
+  const video = isGoal && e.highlight ? `<a href="${e.highlight}" target="_blank" rel="noopener" class="ml-auto text-purple-700 font-bold hover:text-orange-600">▶ Goal</a>` : "";
+  return `<div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
+    <span>${icon}</span>${minuteText(e)?`<span class="font-black">${minuteText(e)}</span>`:""}${playerLink(e.player,e.team)}
+    <span class="text-gray-400">· ${e.team}${assist}</span>${video}
+  </div>`;
+}
+
+function mediaButtons(m) {
+  const b=[];
+  if(m.highlights)b.push(`<a href="${m.highlights}" target="_blank" class="text-sm font-bold text-purple-700">🎬 Highlights</a>`);
+  if(m.youtube)b.push(`<a href="${m.youtube}" target="_blank" class="text-sm font-bold text-purple-700">▶ Full Match</a>`);
+  if(m.veo)b.push(`<a href="${m.veo}" target="_blank" class="text-sm font-bold text-purple-700">📹 Veo</a>`);
+  if(m.gallery)b.push(`<a href="${m.gallery}" target="_blank" class="text-sm font-bold text-purple-700">📸 Gallery</a>`);
+  return b.length ? `<div class="flex flex-wrap gap-3 pt-2 border-t border-gray-200">${b.join("")}</div>` : "";
+}
+
+function matchCard(m) {
+  const played = m.status==="finished";
+  const details = (m.events.length || m.mvpPlayer || m.highlights || m.youtube || m.veo || m.gallery) ? `<div class="border-t bg-gray-50 px-4 py-3 space-y-2">
+    ${m.events.map(eventRow).join("")}
+    ${m.mvpPlayer?`<div class="text-sm font-bold text-orange-600">⭐ MVP · ${m.mvpPlayer} (${m.mvpTeam})</div>`:""}
+    ${mediaButtons(m)}
+  </div>` : "";
+  return `<div class="match-card border border-gray-200 rounded-xl overflow-hidden bg-white">
+    <a href="${matchUrl(m.id)}" class="block p-4 md:p-5">
+      <div class="grid grid-cols-3 items-center gap-3">
+        <div class="flex items-center justify-end gap-3 text-right"><div><div class="font-black">${teams[m.home].name}</div><div class="text-xs text-gray-400">${m.home}</div></div>${logo(m.home)}</div>
+        <div class="text-center">${played?`<div class="text-2xl md:text-3xl font-black">${m.homeScore} - ${m.awayScore}</div><div class="text-xs text-gray-400 mt-1">FT</div>`:`<div class="font-black">${m.time}</div><div class="text-xs text-gray-400 mt-1">Upcoming</div>`}</div>
+        <div class="flex items-center gap-3">${logo(m.away)}<div><div class="font-black">${teams[m.away].name}</div><div class="text-xs text-gray-400">${m.away}</div></div></div>
+      </div>
+    </a>${details}
+  </div>`;
+}
+
+function renderMatchweeks(filter="all") {
+  const weeks = filter==="all" ? schedule : schedule.filter(w=>String(w.week)===String(filter));
+  document.getElementById("matchweeks").innerHTML = weeks.map(w=>`<section class="panel p-4 md:p-6">
+    <div class="flex items-center justify-between gap-4 mb-4">
+      <div><div class="section-kicker">MATCHWEEK ${w.week}</div><div class="text-xl md:text-2xl font-black mt-1">${w.date}</div></div>
+      <div class="text-xs font-semibold text-gray-400">${w.matches.every(m=>m.status==="finished")?"Completed":"Scheduled"}</div>
+    </div>
+    <div class="space-y-3">${w.matches.map(matchCard).join("")}</div>
+  </section>`).join("");
+}
+
+function renderStats() {
+  const goals={}, assists={}, all=[];
+  schedule.forEach(w=>w.matches.forEach(m=>(m.events||[]).forEach(e=>{
+    all.push(e);
+    if(!["goal","own_goal","penalty_goal"].includes(e.type))return;
+    goals[`${e.player}|${e.team}`]=(goals[`${e.player}|${e.team}`]||0)+1;
+    if(e.assist)assists[`${e.assist}|${e.team}`]=(assists[`${e.assist}|${e.team}`]||0)+1;
+  })));
+
+  const arr = obj => Object.entries(obj).map(([k,value])=>{const [player,team]=k.split("|");return{player,team,value}}).sort((a,b)=>b.value-a.value || a.player.localeCompare(b.player));
+  const rows = items => items.length ? items.slice(0,5).map((x,i)=>`<div class="flex items-center gap-3"><div class="text-2xl font-black text-gray-300 w-7">${i+1}</div>${logo(x.team)}<div class="flex-1"><div>${playerLink(x.player,x.team)}</div><div class="text-xs text-gray-400">${teams[x.team].name}</div></div><div class="text-2xl font-black">${x.value}</div></div>`).join("") : `<p class="text-sm text-gray-500">No data yet.</p>`;
+
+  document.getElementById("topScorers").innerHTML=rows(arr(goals));
+  document.getElementById("topAssists").innerHTML=rows(arr(assists));
+
+  const cards=(items,icon)=>items.length?items.map(e=>`<div class="text-sm mb-2">${icon} <b>${e.player}</b> <span class="text-gray-400">${e.team}${minuteText(e)?" · "+minuteText(e):""}</span></div>`).join(""):`<div class="text-5xl font-black">0</div><p class="text-sm text-gray-500 mt-2">No disciplinary events entered yet.</p>`;
+  document.getElementById("yellowCards").innerHTML=cards(all.filter(e=>e.type==="yellow_card"),"🟨");
+  document.getElementById("redCards").innerHTML=cards(all.filter(e=>e.type==="red_card"),"🟥");
+}
+
+function renderClubGrid() {
+  document.getElementById("clubGrid").innerHTML=Object.entries(teams).map(([code,t])=>`<a href="${teamUrl(code)}" class="club-card border rounded-xl p-4 bg-white flex items-center gap-4">${logo(code,"team-logo-lg")}<div class="flex-1"><div class="font-black text-lg">${t.name}</div><div class="text-sm text-gray-400">${code}</div></div><span class="text-2xl text-gray-300">→</span></a>`).join("");
+}
+
+function setupFilter() {
+  const f=document.getElementById("weekFilter");
+  schedule.forEach(w=>{const o=document.createElement("option");o.value=w.week;o.textContent=`MW${w.week} · ${w.date}`;f.appendChild(o)});
+  f.addEventListener("change",e=>renderMatchweeks(e.target.value));
+}
+
+function renderOverview() {
+  const latest=[...schedule].filter(w=>w.matches.some(m=>m.status==="finished")).at(-1);
+  const next=schedule.find(w=>w.matches.some(m=>m.status==="scheduled"));
+
+  document.getElementById("leagueStatus").textContent=latest?`Matchweek ${latest.week} complete`:"Season scheduled";
+  document.getElementById("nextMatchInfo").textContent=next?`Next matches · ${next.date}`:"No upcoming fixtures";
+  document.getElementById("tableStatus").textContent=latest?`After Matchweek ${latest.week}`:"Season not started";
+
+  if(latest){
+    document.getElementById("latestWeekTitle").textContent=`Matchweek ${latest.week}`;
+    document.getElementById("latestWeekDate").textContent=latest.date;
+    document.getElementById("latestResults").innerHTML=latest.matches.filter(m=>m.status==="finished").map(latestResultCard).join("");
+  }
+
+  if(next){
+    document.getElementById("nextWeekTitle").textContent=`Matchweek ${next.week}`;
+    document.getElementById("nextWeekDate").textContent=next.date;
+    document.getElementById("nextFixtures").innerHTML=next.matches.filter(m=>m.status==="scheduled").map(nextFixtureRow).join("");
+  }
+}
+
+document.querySelectorAll(".nav-link").forEach(link=>link.addEventListener("click",()=>{
+  document.querySelectorAll(".nav-link").forEach(x=>x.classList.remove("active"));
+  link.classList.add("active");
+}));
+
+async function init(){
+  try{
+    await loadData();
+    if(!schedule.length)throw new Error("No league matches found");
+    renderOverview();
+    renderStandings();
+    renderMatchweeks();
+    renderStats();
+    renderClubGrid();
+    setupFilter();
+  }catch(err){
+    console.error(err);
+    document.getElementById("leagueStatus").textContent="Unable to load league";
+    document.getElementById("matchweeks").innerHTML=`<div class="panel p-6 text-red-600 font-bold">Could not load tournament data from Supabase.</div>`;
+  }
+}
+init();
 </script>
 
 </body>
