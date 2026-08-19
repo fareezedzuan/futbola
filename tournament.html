@@ -1099,9 +1099,68 @@ function renderStats() {
   document.getElementById("topScorers").innerHTML=rows(arr(goals));
   document.getElementById("topAssists").innerHTML=rows(arr(assists));
 
-  const cards=(items,icon)=>items.length?items.map(e=>`<div class="text-sm mb-2">${icon} <b>${e.player}</b> <span class="text-gray-400">${e.team}${minuteText(e)?" · "+minuteText(e):""}</span></div>`).join(""):`<div class="text-5xl font-black">0</div><p class="text-sm text-gray-500 mt-2">No disciplinary events entered yet.</p>`;
-  document.getElementById("yellowCards").innerHTML=cards(all.filter(e=>e.type==="yellow_card"),"🟨");
-  document.getElementById("redCards").innerHTML=cards(all.filter(e=>e.type==="red_card"),"🟥");
+const cardLeaders = type => {
+  const counts = {};
+
+  all
+    .filter(e => e.type === type)
+    .forEach(e => {
+      const key = `${e.player}|${e.team}`;
+      counts[key] = (counts[key] || 0) + 1;
+    });
+
+  return Object.entries(counts)
+    .map(([key, value]) => {
+      const [player, team] = key.split("|");
+      return { player, team, value };
+    })
+    .sort((a,b) =>
+      b.value - a.value ||
+      a.player.localeCompare(b.player)
+    );
+};
+
+const cardRows = (items, icon) => {
+  if (!items.length) {
+    return `
+      <div class="text-5xl font-black">0</div>
+      <p class="text-sm text-gray-500 mt-2">
+        No disciplinary events entered yet.
+      </p>
+    `;
+  }
+
+  return items.map((x, i) => `
+    <div class="flex items-center gap-3 mb-4">
+
+      <div class="text-2xl font-black text-gray-300 w-7">
+        ${i + 1}
+      </div>
+
+      ${logo(x.team)}
+
+      <div class="flex-1">
+        <div>
+          ${playerLink(x.player, x.team)}
+        </div>
+        <div class="text-xs text-gray-400">
+          ${teams[x.team].name}
+        </div>
+      </div>
+
+      <div class="text-2xl font-black">
+        ${x.value}
+      </div>
+
+    </div>
+  `).join("");
+};
+
+document.getElementById("yellowCards").innerHTML =
+  cardRows(cardLeaders("yellow_card"), "🟨");
+
+document.getElementById("redCards").innerHTML =
+  cardRows(cardLeaders("red_card"), "🟥");
 }
 
 function renderClubGrid() {
