@@ -469,6 +469,19 @@ if (!playerError) {
     });
   });
 
+  Object.values(eventsByMatch).forEach(matchEvents => {
+  matchEvents.sort((a, b) => {
+    const aMinute = Number(a.minute ?? 999);
+    const bMinute = Number(b.minute ?? 999);
+
+    if (aMinute !== bMinute) {
+      return aMinute - bMinute;
+    }
+
+    return Number(a.added_time || 0) - Number(b.added_time || 0);
+  });
+});
+
   const mediaByMatch = {};
   media.forEach(m => (mediaByMatch[m.match_id] ||= []).push(m));
 
