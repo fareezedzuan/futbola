@@ -1257,6 +1257,29 @@ function renderClubGrid() {
   document.getElementById("clubGrid").innerHTML=Object.entries(teams).map(([code,t])=>`<a href="${teamUrl(code)}" class="club-card border rounded-xl p-4 bg-white flex items-center gap-4">${logo(code,"team-logo-lg")}<div class="flex-1"><div class="font-black text-lg">${t.name}</div><div class="text-sm text-gray-400">${code}</div></div><span class="text-2xl text-gray-300">→</span></a>`).join("");
 }
 
+function playerPhoto(player) {
+  const photoPath =
+    `./images/player-headshots/FSV-S2/${player.team_code}/${player.id}.jpeg`;
+
+  return `
+    <img
+      src="${photoPath}"
+      alt="${player.jersey_name}"
+      class="w-12 h-12 rounded-xl object-cover bg-gray-100"
+      onerror="
+        this.style.display='none';
+        this.nextElementSibling.style.display='flex';
+      "
+    >
+
+    <div
+      style="display:none"
+      class="w-12 h-12 rounded-xl bg-gray-100 border border-gray-200 items-center justify-center text-gray-400 text-xl">
+      👤
+    </div>
+  `;
+}
+
 function setupFilter() {
   const f = document.getElementById("weekFilter");
 
