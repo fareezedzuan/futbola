@@ -651,10 +651,9 @@ function matchCard(m) {
 
         <div class="flex items-center justify-end gap-3 text-right">
           <div>
-            <div class="font-black">
-   ${teams[m.home].name}
+<div class="font-black text-lg md:text-xl">
+  ${m.home}
 </div>
-            <div class="text-xs text-gray-400">${m.home}</div>
           </div>
           ${logo(m.home)}
         </div>
@@ -674,10 +673,10 @@ function matchCard(m) {
         <div class="flex items-center gap-3">
           ${logo(m.away)}
           <div>
-            <div class="font-black">
-  ${teams[m.away].name}
+<div class="font-black text-lg md:text-xl">
+  ${m.away}
 </div>
-            <div class="text-xs text-gray-400">${m.away}</div>
+
           </div>
         </div>
 
