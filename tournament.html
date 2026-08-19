@@ -1199,10 +1199,66 @@ function renderStats() {
   })));
 
   const arr = obj => Object.entries(obj).map(([k,value])=>{const [player,team]=k.split("|");return{player,team,value}}).sort((a,b)=>b.value-a.value || a.player.localeCompare(b.player));
-  const rows = items => items.length ? items.slice(0,5).map((x,i)=>`<div class="flex items-center gap-3"><div class="text-2xl font-black text-gray-300 w-7">${i+1}</div>${logo(x.team)}<div class="flex-1"><div>${playerLink(x.player,x.team)}</div><div class="text-xs text-gray-400">${teams[x.team].name}</div></div><div class="text-2xl font-black">${x.value}</div></div>`).join("") : `<p class="text-sm text-gray-500">No data yet.</p>`;
+  const rows = (items, listId) => {
+  if (!items.length) {
+    return `<p class="text-sm text-gray-500">No data yet.</p>`;
+  }
 
-  document.getElementById("topScorers").innerHTML=rows(arr(goals));
-  document.getElementById("topAssists").innerHTML=rows(arr(assists));
+  const makeRow = (x, i) => `
+    <div class="flex items-center gap-3">
+      <div class="text-2xl font-black text-gray-300 w-7">
+        ${i + 1}
+      </div>
+
+      ${logo(x.team)}
+
+      <div class="flex-1">
+        <div>
+          ${playerLink(x.player, x.team)}
+        </div>
+        <div class="text-xs text-gray-400">
+          ${teams[x.team].name}
+        </div>
+      </div>
+
+      <div class="text-2xl font-black">
+        ${x.value}
+      </div>
+    </div>
+  `;
+
+  const topFive = items.slice(0, 5);
+  const rest = items.slice(5);
+
+  return `
+    <div class="space-y-4">
+      ${topFive.map(makeRow).join("")}
+
+      ${
+        rest.length
+          ? `
+            <div id="${listId}-extra" class="hidden space-y-4">
+              ${rest.map((x, i) => makeRow(x, i + 5)).join("")}
+            </div>
+
+            <button
+              id="${listId}-toggle"
+              onclick="toggleStatList('${listId}')"
+              class="w-full pt-3 border-t border-gray-100 text-sm font-black text-purple-700 hover:text-orange-600">
+              View all ↓
+            </button>
+          `
+          : ""
+      }
+    </div>
+  `;
+};
+
+document.getElementById("topScorers").innerHTML =
+  rows(arr(goals), "scorers");
+
+document.getElementById("topAssists").innerHTML =
+  rows(arr(assists), "assists");
 
 const cardLeaders = type => {
   const counts = {};
@@ -1225,7 +1281,7 @@ const cardLeaders = type => {
     );
 };
 
-const cardRows = (items, icon) => {
+const cardRows = (items, listId) => {
   if (!items.length) {
     return `
       <div class="text-5xl font-black">0</div>
@@ -1235,8 +1291,8 @@ const cardRows = (items, icon) => {
     `;
   }
 
-  return items.map((x, i) => `
-    <div class="flex items-center gap-3 mb-4">
+  const makeRow = (x, i) => `
+    <div class="flex items-center gap-3">
 
       <div class="text-2xl font-black text-gray-300 w-7">
         ${i + 1}
@@ -1248,6 +1304,7 @@ const cardRows = (items, icon) => {
         <div>
           ${playerLink(x.player, x.team)}
         </div>
+
         <div class="text-xs text-gray-400">
           ${teams[x.team].name}
         </div>
@@ -1258,14 +1315,42 @@ const cardRows = (items, icon) => {
       </div>
 
     </div>
-  `).join("");
+  `;
+
+  const topFive = items.slice(0, 5);
+  const rest = items.slice(5);
+
+  return `
+    <div class="space-y-4">
+
+      ${topFive.map(makeRow).join("")}
+
+      ${
+        rest.length
+          ? `
+            <div id="${listId}-extra" class="hidden space-y-4">
+              ${rest.map((x, i) => makeRow(x, i + 5)).join("")}
+            </div>
+
+            <button
+              id="${listId}-toggle"
+              onclick="toggleStatList('${listId}')"
+              class="w-full pt-3 border-t border-gray-100 text-sm font-black text-purple-700 hover:text-orange-600">
+              View all ↓
+            </button>
+          `
+          : ""
+      }
+
+    </div>
+  `;
 };
 
 document.getElementById("yellowCards").innerHTML =
-  cardRows(cardLeaders("yellow_card"), "🟨");
+  cardRows(cardLeaders("yellow_card"), "yellow");
 
 document.getElementById("redCards").innerHTML =
-  cardRows(cardLeaders("red_card"), "🟥");
+  cardRows(cardLeaders("red_card"), "red");
 }
 
 function renderClubGrid() {
@@ -1334,6 +1419,25 @@ function setupFilter() {
     renderMatchweeks(e.target.value);
   });
 }
+
+function toggleStatList(listId) {
+  const extra = document.getElementById(`${listId}-extra`);
+  const button = document.getElementById(`${listId}-toggle`);
+
+  if (!extra || !button) return;
+
+  const isHidden = extra.classList.contains("hidden");
+
+  if (isHidden) {
+    extra.classList.remove("hidden");
+    button.textContent = "Show less ↑";
+  } else {
+    extra.classList.add("hidden");
+    button.textContent = "View all ↓";
+  }
+}
+
+window.toggleStatList = toggleStatList;
 
 function renderOverview() {
   const latest=[...schedule].filter(w=>w.matches.some(m=>m.status==="finished")).at(-1);
