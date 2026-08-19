@@ -638,35 +638,44 @@ function eventRow(e, m) {
   const isGoal = ["goal", "own_goal", "penalty_goal"].includes(e.type);
 
   const assist = isGoal && e.assist
-    ? `<span class="text-gray-400 ml-2">🥾 ${playerLink(e.assist, e.team)}</span>`
+    ? `<div class="text-gray-400 font-semibold text-sm mt-1">
+         ${playerLink(e.assist, e.team)}
+       </div>`
     : "";
 
   const video = isGoal && e.highlight
     ? `<a href="${e.highlight}"
           target="_blank"
           rel="noopener"
-          class="text-purple-700 font-bold hover:text-orange-600 ml-3 whitespace-nowrap">
+          onclick="event.stopPropagation()"
+          class="text-purple-700 font-bold hover:text-orange-600 whitespace-nowrap">
          ▶ Goal
        </a>`
     : "";
 
+  // HOME TEAM — left aligned
   if (isHome) {
     return `
-      <div class="grid grid-cols-2 border-b border-gray-100 py-3 min-h-14">
+      <div class="grid grid-cols-2 border-b border-gray-100 py-4 min-h-20">
 
-        <div class="flex items-center gap-2">
-          <span class="font-black w-14">
+        <div class="flex items-center gap-3">
+
+          <span class="font-black w-14 flex-shrink-0">
             ${minuteText(e)}
           </span>
 
-          <span>${icon}</span>
+          <span class="flex-shrink-0">${icon}</span>
 
-          <div class="flex flex-wrap items-center">
-            ${playerLink(e.player, e.team)}
+          <div class="min-w-0">
+            <div class="font-black">
+              ${playerLink(e.player, e.team)}
+            </div>
+
             ${assist}
           </div>
 
           ${video}
+
         </div>
 
         <div></div>
@@ -675,23 +684,27 @@ function eventRow(e, m) {
     `;
   }
 
+  // AWAY TEAM — right aligned
   return `
-    <div class="grid grid-cols-2 border-b border-gray-100 py-3 min-h-14">
+    <div class="grid grid-cols-2 border-b border-gray-100 py-4 min-h-20">
 
       <div></div>
 
-      <div class="flex items-center justify-end gap-2 text-right">
+      <div class="flex items-center justify-end gap-3 text-right">
 
         ${video}
 
-        <div class="flex flex-wrap items-center justify-end">
+        <div class="min-w-0">
+          <div class="font-black">
+            ${playerLink(e.player, e.team)}
+          </div>
+
           ${assist}
-          ${playerLink(e.player, e.team)}
         </div>
 
-        <span>${icon}</span>
+        <span class="flex-shrink-0">${icon}</span>
 
-        <span class="font-black w-14 text-right">
+        <span class="font-black w-14 flex-shrink-0 text-right">
           ${minuteText(e)}
         </span>
 
