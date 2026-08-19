@@ -153,9 +153,6 @@ img[src*="KLC.jpeg"] {
   color:#ea580c;
 }
 
-.team-link:hover img {
-  transform:scale(1.08);
-}
 
     @media (max-width:640px) {
       .team-logo { width:38px; height:38px; }
@@ -481,41 +478,61 @@ async function loadData() {
 }
 
 function latestResultCard(m) {
-  return `<a href="#matches" onclick="selectMatch('${m.id}')" class="match-card block border border-gray-200 rounded-xl p-4 bg-white">
-    <div class="text-center text-xs text-gray-400 font-bold mb-3">${m.time} · FT</div>
-    <div class="flex items-center justify-between gap-2">
-      <div class="flex flex-col items-center text-center flex-1 min-w-0">${logo(m.home)}<div class="text-sm mt-2">
-  ${teamLink(m.home, m.home)}
-</div></div>
-      <div class="text-2xl font-black">${m.homeScore} - ${m.awayScore}</div>
-      <div class="flex flex-col items-center text-center flex-1 min-w-0">${logo(m.away)}<div class="text-sm mt-2">
-  ${teamLink(m.home, m.home)}
-</div></div>
-    </div>
-  </a>`;
+  return `
+    <button
+      onclick="selectMatch('${m.id}')"
+      class="match-card block w-full border border-gray-200 rounded-xl p-4 bg-white">
+
+      <div class="text-center text-xs text-gray-400 font-bold mb-3">
+        ${m.time} · FT
+      </div>
+
+      <div class="flex items-center justify-between gap-2">
+
+        <div class="flex flex-col items-center text-center flex-1 min-w-0">
+          ${logo(m.home)}
+          <div class="font-bold text-sm mt-2">${m.home}</div>
+        </div>
+
+        <div class="text-2xl font-black">
+          ${m.homeScore} - ${m.awayScore}
+        </div>
+
+        <div class="flex flex-col items-center text-center flex-1 min-w-0">
+          ${logo(m.away)}
+          <div class="font-bold text-sm mt-2">${m.away}</div>
+        </div>
+
+      </div>
+    </button>
+  `;
 }
 
 function nextFixtureRow(m) {
   return `
-    <a href="#matches" onclick="selectMatch('${m.id}')"
-       class="match-card block border border-gray-200 rounded-xl p-3 bg-white">
+    <button
+      onclick="selectMatch('${m.id}')"
+      class="match-card block w-full border border-gray-200 rounded-xl p-3 bg-white">
+
       <div class="flex items-center justify-between gap-2">
+
         <div class="flex items-center gap-2">
           ${logo(m.home)}
-          <span class="text-sm">${teamLink(m.home, m.home)}</span>
+          <span class="font-bold text-sm">${m.home}</span>
         </div>
 
-        <div class="text-center">
+        <div class="text-center flex-shrink-0">
           <div class="font-black text-sm">${m.time}</div>
           <div class="text-xs text-gray-400">vs</div>
         </div>
 
-        <div class="flex items-center gap-2">
-          <span class="text-sm">${teamLink(m.away, m.away)}</span>
+        <div class="flex items-center justify-end gap-2">
+          <span class="font-bold text-sm">${m.away}</span>
           ${logo(m.away)}
         </div>
+
       </div>
-    </a>
+    </button>
   `;
 }
 
@@ -591,7 +608,7 @@ function matchCard(m) {
         <div class="flex items-center justify-end gap-3 text-right">
           <div>
             <div class="font-black">
-  ${teamLink(m.home)}
+   ${teams[m.home].name}
 </div>
             <div class="text-xs text-gray-400">${m.home}</div>
           </div>
@@ -614,7 +631,7 @@ function matchCard(m) {
           ${logo(m.away)}
           <div>
             <div class="font-black">
-  ${teamLink(m.away)}
+  ${teams[m.away].name}
 </div>
             <div class="text-xs text-gray-400">${m.away}</div>
           </div>
