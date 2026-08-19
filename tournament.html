@@ -472,13 +472,27 @@ function latestResultCard(m) {
 }
 
 function nextFixtureRow(m) {
-  return `<a href="${matchUrl(m.id)}" class="match-card block border border-gray-200 rounded-xl p-3 bg-white">
-    <div class="flex items-center justify-between gap-2">
-      <div class="flex items-center gap-2">${logo(m.home)}<span class="font-bold text-sm">${m.home}</span></div>
-      <div class="text-center"><div class="font-black text-sm">${m.time}</div><div class="text-xs text-gray-400">vs</div></div>
-      <div class="flex items-center gap-2"><span class="font-bold text-sm">${m.away}</span>${logo(m.away)}</div>
-    </div>
-  </a>`;
+  return `
+    <a href="#matches" onclick="selectMatch('${m.id}')"
+       class="match-card block border border-gray-200 rounded-xl p-3 bg-white">
+      <div class="flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2">
+          ${logo(m.home)}
+          <span class="font-bold text-sm">${m.home}</span>
+        </div>
+
+        <div class="text-center">
+          <div class="font-black text-sm">${m.time}</div>
+          <div class="text-xs text-gray-400">vs</div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <span class="font-bold text-sm">${m.away}</span>
+          ${logo(m.away)}
+        </div>
+      </div>
+    </a>
+  `;
 }
 
 function calculateStandings() {
