@@ -446,6 +446,20 @@ if (ids.length) {
   if (!error) teamStats = data || [];
 }
 
+let seasonPlayers = [];
+
+const { data: playerData, error: playerError } = await supabase
+  .from("season_players")
+  .select("*")
+  .eq("competition_slug", COMPETITION)
+  .eq("season", SEASON)
+  .eq("active", true)
+  .order("jersey_name");
+
+if (!playerError) {
+  seasonPlayers = playerData || [];
+}
+
   const eventsByMatch = {};
   events.forEach(e => {
     (eventsByMatch[e.match_id] ||= []).push({
@@ -462,6 +476,12 @@ if (ids.length) {
 
 teamStats.forEach(s => {
   (statsByMatch[s.match_id] ||= {})[s.team_code] = s;
+});
+
+const playersByTeam = {};
+
+seasonPlayers.forEach(p => {
+  (playersByTeam[p.team_code] ||= []).push(p);
 });
 
   const weeks = new Map();
@@ -485,6 +505,10 @@ teamStats.forEach(s => {
       mvpTeam:r.mvp_team_code,
       events:eventsByMatch[r.id] || [],
       stats: statsByMatch[r.id] || {},
+      players: {
+  home: playersByTeam[r.home_team_code] || [],
+  away: playersByTeam[r.away_team_code] || []
+},
       youtube:getMedia("youtube_full"),
       veo:getMedia("veo_full"),
       highlights:getMedia("highlights"),
@@ -493,6 +517,8 @@ teamStats.forEach(s => {
   });
 
   schedule = [...weeks.values()].sort((a,b)=>a.week-b.week);
+
+
 }
 
 function latestResultCard(m) {
@@ -728,6 +754,194 @@ function renderMatchStats(m) {
   `;
 }
 
+function playerPhoto(player) {
+  if (player.photo_url) {
+    return `
+      <img
+        src="${player.photo_url}"
+        alt="${player.jersey_name}"
+        class="w-12 h-12 rounded-xl object-cover bg-gray-100"
+      >
+    `;
+  }
+
+  return `
+    <div class="w-12 h-12 rounded-xl bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-400 text-xl">
+      👤
+    </div>
+  `;
+}
+
+function renderLineups(m) {
+  const home = m.players?.home || [];
+  const away = m.players?.away || [];
+
+  const max = Math.max(home.length, away.length);
+
+  let rows = "";
+
+  for (let i = 0; i < max; i++) {
+    const h = home[i];
+    const a = away[i];
+
+    rows += `
+      <div class="grid grid-cols-2 border-b border-gray-100 last:border-0">
+
+        <!-- HOME PLAYER -->
+        <div class="flex items-center gap-3 p-3 min-h-20">
+          ${
+            h
+              ? `
+                ${playerPhoto(h)}
+
+                <div class="min-w-0">
+                  <div class="font-black">
+                    ${h.jersey_name}
+                  </div>
+
+                  <div class="text-xs text-gray-400">
+                    Age ${h.season_age ?? "–"}
+                  </div>
+                </div>
+              `
+              : ""
+          }
+        </div>
+
+
+        <!-- AWAY PLAYER -->
+        <div class="flex items-center justify-end gap-3 p-3 min-h-20 text-right border-l border-gray-100">
+          ${
+            a
+              ? `
+                <div class="min-w-0">
+                  <div class="font-black">
+                    ${a.jersey_name}
+                  </div>
+
+                  <div class="text-xs text-gray-400">
+                    Age ${a.season_age ?? "–"}
+                  </div>
+                </div>
+
+                ${playerPhoto(a)}
+              `
+              : ""
+          }
+        </div>
+
+      </div>
+    `;
+  }
+
+  return `
+    <div>
+
+      <div class="grid grid-cols-2 border-b border-gray-200 pb-3 mb-1">
+        <div class="font-black">
+          ${teams[m.home].name}
+        </div>
+
+        <div class="font-black text-right">
+          ${teams[m.away].name}
+        </div>
+      </div>
+
+      ${rows}
+
+    </div>
+  `;
+}
+
+function renderMatchStats(m) {
+  const home = m.stats?.[m.home];
+  const away = m.stats?.[m.away];
+
+  if (!home || !away) {
+    return `
+      <p class="text-sm text-gray-500">
+        Match statistics not available.
+      </p>
+    `;
+  }
+
+  const yellow = team =>
+    m.events.filter(e =>
+      e.team === team &&
+      e.type === "yellow_card"
+    ).length;
+
+  const red = team =>
+    m.events.filter(e =>
+      e.team === team &&
+      e.type === "red_card"
+    ).length;
+
+
+  const rows = [
+    ["Goals", m.homeScore, m.awayScore],
+    ["Possession", `${home.possession_percent}%`, `${away.possession_percent}%`],
+    ["Shots", home.shots, away.shots],
+    ["Shots on Target", home.shots_on_target, away.shots_on_target],
+    ["Corners", home.corners, away.corners],
+    ["Fouls", home.fouls, away.fouls],
+    ["Free Kicks", home.free_kicks, away.free_kicks],
+    ["Passes Completed", home.passes_completed, away.passes_completed],
+    ["Possession Minutes", home.possession_minutes, away.possession_minutes],
+    ["Possession Won", home.possession_won, away.possession_won],
+    ["Penalties", home.penalties, away.penalties],
+    ["Yellow Cards", yellow(m.home), yellow(m.away)],
+    ["Red Cards", red(m.home), red(m.away)]
+  ];
+
+  return `
+    <div>
+
+      <div class="grid grid-cols-3 items-center mb-3">
+
+        <div class="text-center">
+          ${logo(m.home)}
+          <div class="font-black text-sm mt-1">${m.home}</div>
+        </div>
+
+        <div class="text-center font-black">
+          TEAM STATS
+        </div>
+
+        <div class="text-center">
+          ${logo(m.away)}
+          <div class="font-black text-sm mt-1">${m.away}</div>
+        </div>
+
+      </div>
+
+
+      <div class="divide-y divide-gray-100">
+
+        ${rows.map(([label, homeValue, awayValue]) => `
+          <div class="grid grid-cols-3 items-center py-3">
+
+            <div class="text-center text-lg font-black">
+              ${homeValue ?? "–"}
+            </div>
+
+            <div class="text-center text-sm text-gray-500 font-semibold">
+              ${label}
+            </div>
+
+            <div class="text-center text-lg font-black">
+              ${awayValue ?? "–"}
+            </div>
+
+          </div>
+        `).join("")}
+
+      </div>
+
+    </div>
+  `;
+}
+
 function selectMatch(matchId) {
   let selected = null;
 
@@ -806,19 +1020,37 @@ function selectMatch(matchId) {
       ${
         played
           ? `
-            <div class="border-t mt-6 pt-4 space-y-3">
-              ${selected.events.map(eventRow).join("")}
+            <div class="border-t mt-6">
 
-              ${
-                selected.mvpPlayer
-                  ? `<div class="font-bold text-orange-600 pt-2">
-                       ⭐ MVP · ${selected.mvpPlayer} (${selected.mvpTeam})
-                     </div>`
-                  : ""
-              }
+              <div class="grid grid-cols-3 border-b border-gray-200">
 
-              ${mediaButtons(selected)}
-              ${renderMatchStats(selected)}
+                <button
+                  onclick="showMatchTab('${selected.id}', 'details')"
+                  id="match-tab-details"
+                  class="match-detail-tab py-4 font-black text-sm border-b-2 border-gray-900">
+                  DETAILS
+                </button>
+
+                <button
+                  onclick="showMatchTab('${selected.id}', 'lineups')"
+                  id="match-tab-lineups"
+                  class="match-detail-tab py-4 font-black text-sm text-gray-500">
+                  LINEUPS
+                </button>
+
+                <button
+                  onclick="showMatchTab('${selected.id}', 'stats')"
+                  id="match-tab-stats"
+                  class="match-detail-tab py-4 font-black text-sm text-gray-500">
+                  STATS
+                </button>
+
+              </div>
+
+              <div id="matchTabContent" class="pt-5">
+                ${renderMatchDetails(selected)}
+              </div>
+
             </div>
           `
           : ""
@@ -833,6 +1065,81 @@ function selectMatch(matchId) {
 }
 
 window.selectMatch = selectMatch;
+
+function renderMatchDetails(m) {
+  return `
+    <div class="space-y-3">
+
+      ${m.events.map(eventRow).join("")}
+
+      ${
+        m.mvpPlayer
+          ? `
+            <div class="font-bold text-orange-600 pt-2">
+              ⭐ MVP · ${m.mvpPlayer} (${m.mvpTeam})
+            </div>
+          `
+          : ""
+      }
+
+      ${mediaButtons(m)}
+
+    </div>
+  `;
+}
+
+function showMatchTab(matchId, tab) {
+  let selected = null;
+
+  for (const week of schedule) {
+    const found = week.matches.find(m => m.id === matchId);
+
+    if (found) {
+      selected = found;
+      break;
+    }
+  }
+
+  if (!selected) return;
+
+
+  document.querySelectorAll(".match-detail-tab").forEach(btn => {
+    btn.classList.remove(
+      "border-b-2",
+      "border-gray-900",
+      "text-gray-900"
+    );
+
+    btn.classList.add("text-gray-500");
+  });
+
+
+  const active = document.getElementById(`match-tab-${tab}`);
+
+  active.classList.remove("text-gray-500");
+  active.classList.add(
+    "border-b-2",
+    "border-gray-900",
+    "text-gray-900"
+  );
+
+
+  const content = document.getElementById("matchTabContent");
+
+  if (tab === "lineups") {
+    content.innerHTML = renderLineups(selected);
+  }
+
+  else if (tab === "stats") {
+    content.innerHTML = renderMatchStats(selected);
+  }
+
+  else {
+    content.innerHTML = renderMatchDetails(selected);
+  }
+}
+
+window.showMatchTab = showMatchTab;
 
 function renderMatchweeks(filter="all") {
   const weeks = filter==="all" ? schedule : schedule.filter(w=>String(w.week)===String(filter));
