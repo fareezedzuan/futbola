@@ -286,6 +286,7 @@ img[src*="KLC.jpeg"] {
       </div>
 
       <div id="matchweeks" class="space-y-6"></div>
+      <div id="selectedMatchDetails" class="mt-6"></div>
     </section>
 
     <!-- Stats -->
@@ -460,14 +461,13 @@ async function loadData() {
 }
 
 function latestResultCard(m) {
-  return `<a href="${matchUrl(m.id)}" class="match-card block border border-gray-200 rounded-xl p-4 bg-white">
+  return `<a href="#matches" onclick="selectMatch('${m.id}')" class="match-card block border border-gray-200 rounded-xl p-4 bg-white">
     <div class="text-center text-xs text-gray-400 font-bold mb-3">${m.time} · FT</div>
     <div class="flex items-center justify-between gap-2">
       <div class="flex flex-col items-center text-center flex-1 min-w-0">${logo(m.home)}<div class="font-bold text-sm mt-2">${m.home}</div></div>
       <div class="text-2xl font-black">${m.homeScore} - ${m.awayScore}</div>
       <div class="flex flex-col items-center text-center flex-1 min-w-0">${logo(m.away)}<div class="font-bold text-sm mt-2">${m.away}</div></div>
     </div>
-    ${m.mvpPlayer ? `<div class="text-center text-xs font-bold text-orange-600 mt-3">⭐ MVP · ${m.mvpPlayer} (${m.mvpTeam})</div>` : ""}
   </a>`;
 }
 
@@ -541,22 +541,136 @@ function mediaButtons(m) {
 }
 
 function matchCard(m) {
-  const played = m.status==="finished";
-  const details = (m.events.length || m.mvpPlayer || m.highlights || m.youtube || m.veo || m.gallery) ? `<div class="border-t bg-gray-50 px-4 py-3 space-y-2">
-    ${m.events.map(eventRow).join("")}
-    ${m.mvpPlayer?`<div class="text-sm font-bold text-orange-600">⭐ MVP · ${m.mvpPlayer} (${m.mvpTeam})</div>`:""}
-    ${mediaButtons(m)}
-  </div>` : "";
-  return `<div class="match-card border border-gray-200 rounded-xl overflow-hidden bg-white">
-    <a href="${matchUrl(m.id)}" class="block p-4 md:p-5">
+  const played = m.status === "finished";
+
+  return `
+    <button
+      onclick="selectMatch('${m.id}')"
+      class="match-card block w-full border border-gray-200 rounded-xl bg-white p-4 md:p-5 text-left">
+
       <div class="grid grid-cols-3 items-center gap-3">
-        <div class="flex items-center justify-end gap-3 text-right"><div><div class="font-black">${teams[m.home].name}</div><div class="text-xs text-gray-400">${m.home}</div></div>${logo(m.home)}</div>
-        <div class="text-center">${played?`<div class="text-2xl md:text-3xl font-black">${m.homeScore} - ${m.awayScore}</div><div class="text-xs text-gray-400 mt-1">FT</div>`:`<div class="font-black">${m.time}</div><div class="text-xs text-gray-400 mt-1">Upcoming</div>`}</div>
-        <div class="flex items-center gap-3">${logo(m.away)}<div><div class="font-black">${teams[m.away].name}</div><div class="text-xs text-gray-400">${m.away}</div></div></div>
+
+        <div class="flex items-center justify-end gap-3 text-right">
+          <div>
+            <div class="font-black">${teams[m.home].name}</div>
+            <div class="text-xs text-gray-400">${m.home}</div>
+          </div>
+          ${logo(m.home)}
+        </div>
+
+        <div class="text-center">
+          ${
+            played
+              ? `<div class="text-2xl md:text-3xl font-black">
+                   ${m.homeScore} - ${m.awayScore}
+                 </div>
+                 <div class="text-xs text-gray-400 mt-1">FT</div>`
+              : `<div class="font-black">${m.time}</div>
+                 <div class="text-xs text-gray-400 mt-1">Upcoming</div>`
+          }
+        </div>
+
+        <div class="flex items-center gap-3">
+          ${logo(m.away)}
+          <div>
+            <div class="font-black">${teams[m.away].name}</div>
+            <div class="text-xs text-gray-400">${m.away}</div>
+          </div>
+        </div>
+
       </div>
-    </a>${details}
-  </div>`;
+    </button>
+  `;
 }
+
+function selectMatch(matchId) {
+  let selected = null;
+
+  for (const week of schedule) {
+    const found = week.matches.find(m => m.id === matchId);
+
+    if (found) {
+      selected = found;
+      break;
+    }
+  }
+
+  if (!selected) return;
+
+  // Move dropdown to that matchweek
+  const week = schedule.find(w =>
+    w.matches.some(m => m.id === matchId)
+  );
+
+  if (week) {
+    document.getElementById("weekFilter").value = week.week;
+    renderMatchweeks(week.week);
+  }
+
+  const played = selected.status === "finished";
+
+  document.getElementById("selectedMatchDetails").innerHTML = `
+    <section class="panel p-5 md:p-6">
+
+      <div class="section-kicker">MATCH DETAILS</div>
+
+      <div class="grid grid-cols-3 items-center gap-3 mt-5">
+
+        <div class="text-center">
+          ${logo(selected.home, "team-logo-lg")}
+          <div class="font-black mt-2">${teams[selected.home].name}</div>
+          <div class="text-xs text-gray-400">${selected.home}</div>
+        </div>
+
+        <div class="text-center">
+          ${
+            played
+              ? `<div class="text-4xl font-black">
+                   ${selected.homeScore} - ${selected.awayScore}
+                 </div>
+                 <div class="text-xs text-gray-400 mt-1">FT</div>`
+              : `<div class="text-xl font-black">${selected.time}</div>
+                 <div class="text-xs text-gray-400 mt-1">Upcoming</div>`
+          }
+        </div>
+
+        <div class="text-center">
+          ${logo(selected.away, "team-logo-lg")}
+          <div class="font-black mt-2">${teams[selected.away].name}</div>
+          <div class="text-xs text-gray-400">${selected.away}</div>
+        </div>
+
+      </div>
+
+      ${
+        played
+          ? `
+            <div class="border-t mt-6 pt-4 space-y-3">
+              ${selected.events.map(eventRow).join("")}
+
+              ${
+                selected.mvpPlayer
+                  ? `<div class="font-bold text-orange-600 pt-2">
+                       ⭐ MVP · ${selected.mvpPlayer} (${selected.mvpTeam})
+                     </div>`
+                  : ""
+              }
+
+              ${mediaButtons(selected)}
+            </div>
+          `
+          : ""
+      }
+
+    </section>
+  `;
+
+  document
+    .getElementById("selectedMatchDetails")
+    .scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+window.selectMatch = selectMatch;
 
 function renderMatchweeks(filter="all") {
   const weeks = filter==="all" ? schedule : schedule.filter(w=>String(w.week)===String(filter));
@@ -594,9 +708,41 @@ function renderClubGrid() {
 }
 
 function setupFilter() {
-  const f=document.getElementById("weekFilter");
-  schedule.forEach(w=>{const o=document.createElement("option");o.value=w.week;o.textContent=`MW${w.week} · ${w.date}`;f.appendChild(o)});
-  f.addEventListener("change",e=>renderMatchweeks(e.target.value));
+  const f = document.getElementById("weekFilter");
+
+  // Clear existing options
+  f.innerHTML = "";
+
+  // MW1 → MW10
+  schedule.forEach(w => {
+    const o = document.createElement("option");
+    o.value = w.week;
+    o.textContent = `MW${w.week} · ${w.date}`;
+    f.appendChild(o);
+  });
+
+  // All Matches always LAST
+  const all = document.createElement("option");
+  all.value = "all";
+  all.textContent = "All Matches";
+  f.appendChild(all);
+
+  // Find latest completed matchweek
+  const latestCompleted = [...schedule]
+    .filter(w => w.matches.some(m => m.status === "finished"))
+    .at(-1);
+
+  if (latestCompleted) {
+    f.value = latestCompleted.week;
+    renderMatchweeks(latestCompleted.week);
+  } else if (schedule.length) {
+    f.value = schedule[0].week;
+    renderMatchweeks(schedule[0].week);
+  }
+
+  f.addEventListener("change", e => {
+    renderMatchweeks(e.target.value);
+  });
 }
 
 function renderOverview() {
@@ -631,7 +777,6 @@ async function init(){
     if(!schedule.length)throw new Error("No league matches found");
     renderOverview();
     renderStandings();
-    renderMatchweeks();
     renderStats();
     renderClubGrid();
     setupFilter();
