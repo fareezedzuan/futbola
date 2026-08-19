@@ -921,23 +921,21 @@ function renderMatchStats(m) {
   return `
     <div>
 
-      <div class="grid grid-cols-3 items-center mb-3">
+<div class="grid grid-cols-3 items-center mb-4">
 
-        <div class="text-center">
-          ${logo(m.home)}
-          <div class="font-black text-sm mt-1">${m.home}</div>
-        </div>
+  <div class="text-center font-black text-lg">
+    ${m.home}
+  </div>
 
-        <div class="text-center font-black">
-          TEAM STATS
-        </div>
+  <div class="text-center font-black">
+    TEAM STATS
+  </div>
 
-        <div class="text-center">
-          ${logo(m.away)}
-          <div class="font-black text-sm mt-1">${m.away}</div>
-        </div>
+  <div class="text-center font-black text-lg">
+    ${m.away}
+  </div>
 
-      </div>
+</div>
 
 
       <div class="divide-y divide-gray-100">
