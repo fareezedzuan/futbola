@@ -778,24 +778,6 @@ function matchCard(m) {
   `;
 }
 
-function playerPhoto(player) {
-  if (player.photo_url) {
-    return `
-      <img
-        src="${player.photo_url}"
-        alt="${player.jersey_name}"
-        class="w-12 h-12 rounded-xl object-cover bg-gray-100"
-      >
-    `;
-  }
-
-  return `
-    <div class="w-12 h-12 rounded-xl bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-400 text-xl">
-      👤
-    </div>
-  `;
-}
-
 function renderLineups(m) {
   const home = m.players?.home || [];
   const away = m.players?.away || [];
@@ -1262,20 +1244,22 @@ function playerPhoto(player) {
     `./images/player-headshots/FSV-S2/${player.team_code}/${player.id}.jpeg`;
 
   return `
-    <img
-      src="${photoPath}"
-      alt="${player.jersey_name}"
-      class="w-12 h-12 rounded-xl object-cover bg-gray-100"
-      onerror="
-        this.style.display='none';
-        this.nextElementSibling.style.display='flex';
-      "
-    >
+    <div class="w-12 h-12 flex-shrink-0">
+      <img
+        src="${photoPath}"
+        alt="${player.jersey_name}"
+        class="w-12 h-12 rounded-xl object-cover bg-gray-100"
+        onerror="
+          this.style.display='none';
+          this.nextElementSibling.style.display='flex';
+        "
+      >
 
-    <div
-      style="display:none"
-      class="w-12 h-12 rounded-xl bg-gray-100 border border-gray-200 items-center justify-center text-gray-400 text-xl">
-      👤
+      <div
+        style="display:none"
+        class="w-12 h-12 rounded-xl bg-gray-100 border border-gray-200 items-center justify-center text-gray-400 text-xl">
+        👤
+      </div>
     </div>
   `;
 }
