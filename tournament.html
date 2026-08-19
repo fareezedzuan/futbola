@@ -623,15 +623,79 @@ function renderStandings() {
   }).join("");
 }
 
-function eventRow(e) {
-  const icon = e.type==="yellow_card" ? "🟨" : e.type==="red_card" ? "🟥" : e.type==="penalty_miss" ? "❌" : "⚽";
-  const isGoal = ["goal","own_goal","penalty_goal"].includes(e.type);
-  const assist = isGoal ? (e.assist ? ` · Assist: ${playerLink(e.assist,e.team)}` : " · No assist") : "";
-  const video = isGoal && e.highlight ? `<a href="${e.highlight}" target="_blank" rel="noopener" class="ml-auto text-purple-700 font-bold hover:text-orange-600">▶ Goal</a>` : "";
-  return `<div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
-    <span>${icon}</span>${minuteText(e)?`<span class="font-black">${minuteText(e)}</span>`:""}${playerLink(e.player,e.team)}
-    <span class="text-gray-400">· ${e.team}${assist}</span>${video}
-  </div>`;
+function eventRow(e, m) {
+  const isHome = e.team === m.home;
+
+  const icon =
+    e.type === "yellow_card" ? "🟨" :
+    e.type === "red_card" ? "🟥" :
+    e.type === "penalty_miss" ? "❌" :
+    "⚽";
+
+  const isGoal = ["goal", "own_goal", "penalty_goal"].includes(e.type);
+
+  const assist = isGoal && e.assist
+    ? `<span class="text-gray-400 ml-2">🥾 ${playerLink(e.assist, e.team)}</span>`
+    : "";
+
+  const video = isGoal && e.highlight
+    ? `<a href="${e.highlight}"
+          target="_blank"
+          rel="noopener"
+          class="text-purple-700 font-bold hover:text-orange-600 ml-3 whitespace-nowrap">
+         ▶ Goal
+       </a>`
+    : "";
+
+  if (isHome) {
+    return `
+      <div class="grid grid-cols-2 border-b border-gray-100 py-3 min-h-14">
+
+        <div class="flex items-center gap-2">
+          <span class="font-black w-14">
+            ${minuteText(e)}
+          </span>
+
+          <span>${icon}</span>
+
+          <div class="flex flex-wrap items-center">
+            ${playerLink(e.player, e.team)}
+            ${assist}
+          </div>
+
+          ${video}
+        </div>
+
+        <div></div>
+
+      </div>
+    `;
+  }
+
+  return `
+    <div class="grid grid-cols-2 border-b border-gray-100 py-3 min-h-14">
+
+      <div></div>
+
+      <div class="flex items-center justify-end gap-2 text-right">
+
+        ${video}
+
+        <div class="flex flex-wrap items-center justify-end">
+          ${assist}
+          ${playerLink(e.player, e.team)}
+        </div>
+
+        <span>${icon}</span>
+
+        <span class="font-black w-14 text-right">
+          ${minuteText(e)}
+        </span>
+
+      </div>
+
+    </div>
+  `;
 }
 
 function mediaButtons(m) {
@@ -1014,7 +1078,7 @@ function renderMatchDetails(m) {
   return `
     <div class="space-y-3">
 
-      ${m.events.map(eventRow).join("")}
+      ${m.events.map(e => eventRow(e, m)).join("")}
 
       ${
         m.mvpPlayer
