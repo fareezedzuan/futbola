@@ -631,9 +631,17 @@ function selectMatch(matchId) {
       <div class="grid grid-cols-3 items-center gap-3 mt-5">
 
         <div class="text-center">
-          ${logo(selected.home, "team-logo-lg")}
-          <div class="font-black mt-2">${teams[selected.home].name}</div>
-          <div class="text-xs text-gray-400">${selected.home}</div>
+          <a href="${teamUrl(selected.home)}"
+            class="inline-flex flex-col items-center team-link">
+
+            <div class="w-20 h-20 flex items-center justify-center">
+              ${logo(selected.home, "team-logo-lg")}
+            </div>
+
+            <div class="font-black mt-2">${teams[selected.home].name}</div>
+            <div class="text-xs text-gray-400">${selected.home}</div>
+
+          </a>
         </div>
 
         <div class="text-center">
@@ -649,9 +657,17 @@ function selectMatch(matchId) {
         </div>
 
         <div class="text-center">
-          ${logo(selected.away, "team-logo-lg")}
-          <div class="font-black mt-2">${teams[selected.away].name}</div>
-          <div class="text-xs text-gray-400">${selected.away}</div>
+          <a href="${teamUrl(selected.away)}"
+            class="inline-flex flex-col items-center team-link">
+
+            <div class="w-20 h-20 flex items-center justify-center">
+              ${logo(selected.away, "team-logo-lg")}
+            </div>
+
+            <div class="font-black mt-2">${teams[selected.away].name}</div>
+            <div class="text-xs text-gray-400">${selected.away}</div>
+
+          </a>
         </div>
 
       </div>
