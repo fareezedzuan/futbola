@@ -496,11 +496,16 @@ if (!playerError) {
 
   const eventsByMatch = {};
   events.forEach(e => {
-    (eventsByMatch[e.match_id] ||= []).push({
-      type:e.event_type, team:e.team_code, player:e.player_name,
-      assist:e.assist_player_name, minute:e.minute, added_time:e.added_time || 0,
-      highlight:e.video_url || null
-    });
+(eventsByMatch[e.match_id] ||= []).push({
+  type:e.event_type,
+  team:e.team_code,
+  player:e.player_name,
+  assist:e.assist_player_name,
+  minute:e.minute,
+  added_time:e.added_time || 0,
+  highlight:e.video_url || null,
+  countsForStats:e.counts_for_stats !== false
+});
   });
 
   Object.values(eventsByMatch).forEach(matchEvents => {
@@ -1191,12 +1196,22 @@ function renderMatchweeks(filter="all") {
 
 function renderStats() {
   const goals={}, assists={}, all=[];
-  schedule.forEach(w=>w.matches.forEach(m=>(m.events||[]).forEach(e=>{
-    all.push(e);
-    if(!["goal","own_goal","penalty_goal"].includes(e.type))return;
-    goals[`${e.player}|${e.team}`]=(goals[`${e.player}|${e.team}`]||0)+1;
-    if(e.assist)assists[`${e.assist}|${e.team}`]=(assists[`${e.assist}|${e.team}`]||0)+1;
-  })));
+schedule.forEach(w=>w.matches.forEach(m=>(m.events||[]).forEach(e=>{
+  all.push(e);
+
+  // Ignore voided events from official player statistics
+  if (e.countsForStats === false) return;
+
+  if(!["goal","own_goal","penalty_goal"].includes(e.type)) return;
+
+  goals[`${e.player}|${e.team}`] =
+    (goals[`${e.player}|${e.team}`] || 0) + 1;
+
+  if(e.assist) {
+    assists[`${e.assist}|${e.team}`] =
+      (assists[`${e.assist}|${e.team}`] || 0) + 1;
+  }
+})));
 
   const arr = obj => Object.entries(obj).map(([k,value])=>{const [player,team]=k.split("|");return{player,team,value}}).sort((a,b)=>b.value-a.value || a.player.localeCompare(b.player));
   const rows = (items, listId) => {
