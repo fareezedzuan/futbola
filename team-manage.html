@@ -82,9 +82,52 @@
       </section>
 
       <section id="matchweekPanel" class="panel p-5 md:p-6 hidden">
-        <div class="section-kicker">WEEKLY REGISTRATION</div><h3 class="text-2xl font-black mt-1">Matchweek Squad</h3>
-        <p class="text-sm text-gray-500 mt-2">Next step: select the matchweek, tick players from the season pool, then save the weekly squad into match_players.</p>
-        <div class="mt-6 p-5 rounded-xl bg-gray-50 border border-gray-200 text-sm text-gray-500">Authorization is working if you can see this panel.</div>
+        <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+          <div>
+            <div class="section-kicker">WEEKLY REGISTRATION</div>
+            <h3 class="text-2xl font-black mt-1">Matchweek Squad</h3>
+            <p class="text-sm text-gray-500 mt-1">Select the match, tick the players available for that week, then save.</p>
+          </div>
+          <div class="w-full md:w-auto">
+            <label for="manageMatchSelect" class="block text-xs uppercase tracking-wider text-gray-500 font-black mb-2">Matchweek</label>
+            <select id="manageMatchSelect" class="field md:min-w-64">
+              <option value="">Select matchweek</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="matchweekInfo" class="hidden mt-6 p-4 rounded-xl bg-gray-50 border border-gray-200"></div>
+
+        <div id="matchweekSquadArea" class="hidden mt-6">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <div>
+              <div class="font-black">Select players</div>
+              <div class="text-sm text-gray-500">Players are grouped GK → DF → MF → FW.</div>
+            </div>
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="selectAllMatchPlayers()" class="px-3 py-2 rounded-lg border border-gray-300 bg-white text-sm font-black">Select all</button>
+              <button type="button" onclick="clearAllMatchPlayers()" class="px-3 py-2 rounded-lg border border-gray-300 bg-white text-sm font-black">Clear</button>
+            </div>
+          </div>
+
+          <div id="matchweekPlayerList" class="space-y-6"></div>
+
+          <div class="sticky bottom-3 mt-6">
+            <div class="panel p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-orange-200">
+              <div>
+                <div id="selectedCount" class="text-xl font-black">0 selected</div>
+                <div id="saveMessage" class="text-sm text-gray-500 mt-1"></div>
+              </div>
+              <button id="saveSquadButton" type="button" onclick="saveMatchweekSquad()" class="px-5 py-3 rounded-xl bg-gray-900 text-white font-black hover:bg-black">
+                Save Matchweek Squad
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div id="noMatchSelected" class="mt-6 p-5 rounded-xl bg-gray-50 border border-gray-200 text-sm text-gray-500">
+          Choose a matchweek to manage its squad.
+        </div>
       </section>
     </section>
   </main>
@@ -104,6 +147,10 @@ const teams = {
 };
 const params = new URLSearchParams(window.location.search);
 const TEAM = (params.get('team') || 'FUT').toUpperCase();
+
+let seasonPlayers = [];
+let teamMatches = [];
+let currentMatchId = null;
 
 const loadingState = document.getElementById('loadingState');
 const loginState = document.getElementById('loginState');
@@ -133,14 +180,238 @@ async function getTeamAccess(userId){
 }
 
 async function loadAuthorizedPlayerList(){
-  const {data,error}=await supabase.from('season_players').select('id,jersey_name,season_age,position_group,active').eq('competition_slug',COMPETITION).eq('season',SEASON).eq('team_code',TEAM).eq('active',true).order('jersey_name');
+  const {data,error}=await supabase
+    .from('season_players')
+    .select('id, full_name, jersey_name, season_age, position_group, active, team_code')
+    .eq('competition_slug',COMPETITION)
+    .eq('season',SEASON)
+    .eq('team_code',TEAM)
+    .eq('active',true)
+    .order('jersey_name');
+
   if(error) throw error;
-  const players=data||[];
-  const order={GK:1,DF:2,MF:3,FW:4,OTH:5};
-  players.sort((a,b)=>{ const pa=order[a.position_group||'OTH']||99; const pb=order[b.position_group||'OTH']||99; return pa!==pb?pa-pb:(a.jersey_name||'').localeCompare(b.jersey_name||''); });
-  document.getElementById('playerCount').textContent=`${players.length} active players`;
-  document.getElementById('playerList').innerHTML=players.length?players.map(p=>`<div class="py-4 flex items-center justify-between gap-4"><div><div class="font-black">${p.jersey_name}</div><div class="text-sm text-gray-500">Age ${p.season_age??'—'} · ${p.position_group||'OTH'}</div></div><div class="text-xs font-black text-gray-400">${p.position_group||'OTH'}</div></div>`).join(''):`<div class="py-4 text-gray-500">No active players found.</div>`;
+
+  seasonPlayers=data||[];
+  const positionOrder={GK:1,DF:2,MF:3,FW:4,OTH:5};
+
+  seasonPlayers.sort((a,b)=>{
+    const pa=positionOrder[a.position_group||'OTH']||99;
+    const pb=positionOrder[b.position_group||'OTH']||99;
+    if(pa!==pb)return pa-pb;
+    return (a.jersey_name||'').localeCompare(b.jersey_name||'');
+  });
+
+  document.getElementById('playerCount').textContent=`${seasonPlayers.length} active players`;
+
+  document.getElementById('playerList').innerHTML=seasonPlayers.length
+    ? seasonPlayers.map(p=>`
+        <div class="py-4 flex items-center justify-between gap-4">
+          <div>
+            <div class="font-black">${p.jersey_name}</div>
+            <div class="text-sm text-gray-500">Age ${p.season_age??'—'} · ${p.position_group||'OTH'}</div>
+          </div>
+          <div class="text-xs font-black text-gray-400">${p.position_group||'OTH'}</div>
+        </div>
+      `).join('')
+    : `<div class="py-4 text-gray-500">No active players found.</div>`;
 }
+
+async function loadTeamMatches(){
+  const {data,error}=await supabase
+    .from('league_matches')
+    .select('id, matchweek, match_date, start_time, home_team_code, away_team_code, status')
+    .eq('competition_slug',COMPETITION)
+    .eq('season',SEASON)
+    .or(`home_team_code.eq.${TEAM},away_team_code.eq.${TEAM}`)
+    .order('matchweek');
+
+  if(error) throw error;
+
+  teamMatches=data||[];
+
+  const select=document.getElementById('manageMatchSelect');
+  select.innerHTML='<option value="">Select matchweek</option>';
+
+  teamMatches.forEach(match=>{
+    const opponent=match.home_team_code===TEAM?match.away_team_code:match.home_team_code;
+    const option=document.createElement('option');
+    option.value=match.id;
+    option.textContent=`MW${match.matchweek} · ${TEAM} vs ${opponent}`;
+    select.appendChild(option);
+  });
+}
+
+function playerCheckboxRow(player,checked){
+  return `
+    <label class="flex items-center gap-3 p-3 rounded-xl border border-gray-200 bg-white hover:border-orange-300 cursor-pointer">
+      <input type="checkbox"
+             class="match-player-checkbox w-5 h-5"
+             value="${player.id}"
+             ${checked?'checked':''}
+             onchange="updateSelectedCount()">
+
+      <div class="flex-1 min-w-0">
+        <div class="font-black">${player.jersey_name}</div>
+        <div class="text-xs text-gray-500">Age ${player.season_age??'—'} · ${player.position_group||'OTH'}</div>
+      </div>
+    </label>
+  `;
+}
+
+function renderMatchPlayerGroups(selectedIds=new Set()){
+  const groups=[['GK','Goalkeepers'],['DF','Defenders'],['MF','Midfielders'],['FW','Forwards'],['OTH','Others']];
+
+  document.getElementById('matchweekPlayerList').innerHTML=groups.map(([code,title])=>{
+    const players=seasonPlayers.filter(p=>(p.position_group||'OTH')===code);
+    if(!players.length)return '';
+
+    return `
+      <section>
+        <div class="flex items-center justify-between mb-3">
+          <div>
+            <div class="section-kicker">${code}</div>
+            <div class="text-lg font-black">${title}</div>
+          </div>
+          <div class="text-sm text-gray-400 font-bold">${players.length}</div>
+        </div>
+
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          ${players.map(p=>playerCheckboxRow(p,selectedIds.has(p.id))).join('')}
+        </div>
+      </section>
+    `;
+  }).join('');
+
+  updateSelectedCount();
+}
+
+async function loadMatchweekSquad(matchId){
+  currentMatchId=matchId||null;
+
+  const noMatch=document.getElementById('noMatchSelected');
+  const area=document.getElementById('matchweekSquadArea');
+  const info=document.getElementById('matchweekInfo');
+  const msg=document.getElementById('saveMessage');
+
+  msg.textContent='';
+
+  if(!currentMatchId){
+    noMatch.classList.remove('hidden');
+    area.classList.add('hidden');
+    info.classList.add('hidden');
+    return;
+  }
+
+  const match=teamMatches.find(m=>m.id===currentMatchId);
+  if(!match)return;
+
+  const opponent=match.home_team_code===TEAM?match.away_team_code:match.home_team_code;
+
+  info.classList.remove('hidden');
+  info.innerHTML=`
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+      <div>
+        <div class="font-black text-lg">MW${match.matchweek} · ${TEAM} vs ${opponent}</div>
+        <div class="text-sm text-gray-500">
+          ${match.match_date||''}${match.start_time?` · ${match.start_time.slice(0,5)}`:''}
+        </div>
+      </div>
+      <div class="text-xs font-black uppercase tracking-wider text-gray-400">${match.status||'scheduled'}</div>
+    </div>
+  `;
+
+  const {data,error}=await supabase
+    .from('match_players')
+    .select('player_id')
+    .eq('match_id',currentMatchId)
+    .eq('team_code',TEAM);
+
+  if(error){
+    console.error(error);
+    msg.className='text-sm text-red-600 font-bold mt-1';
+    msg.textContent=error.message;
+    return;
+  }
+
+  const selectedIds=new Set((data||[]).map(row=>row.player_id).filter(Boolean));
+  renderMatchPlayerGroups(selectedIds);
+
+  noMatch.classList.add('hidden');
+  area.classList.remove('hidden');
+}
+
+function updateSelectedCount(){
+  const checked=document.querySelectorAll('.match-player-checkbox:checked').length;
+  document.getElementById('selectedCount').textContent=`${checked} selected`;
+}
+window.updateSelectedCount=updateSelectedCount;
+
+function selectAllMatchPlayers(){
+  document.querySelectorAll('.match-player-checkbox').forEach(cb=>cb.checked=true);
+  updateSelectedCount();
+}
+window.selectAllMatchPlayers=selectAllMatchPlayers;
+
+function clearAllMatchPlayers(){
+  document.querySelectorAll('.match-player-checkbox').forEach(cb=>cb.checked=false);
+  updateSelectedCount();
+}
+window.clearAllMatchPlayers=clearAllMatchPlayers;
+
+async function saveMatchweekSquad(){
+  if(!currentMatchId)return;
+
+  const button=document.getElementById('saveSquadButton');
+  const msg=document.getElementById('saveMessage');
+
+  const selectedIds=Array.from(document.querySelectorAll('.match-player-checkbox:checked')).map(cb=>cb.value);
+  const selectedPlayers=selectedIds.map(id=>seasonPlayers.find(p=>p.id===id)).filter(Boolean);
+
+  button.disabled=true;
+  button.textContent='Saving...';
+  msg.textContent='';
+
+  try{
+    const {error:deleteError}=await supabase
+      .from('match_players')
+      .delete()
+      .eq('match_id',currentMatchId)
+      .eq('team_code',TEAM);
+
+    if(deleteError)throw deleteError;
+
+    if(selectedPlayers.length){
+      const rows=selectedPlayers.map((player,index)=>({
+        match_id:currentMatchId,
+        team_code:TEAM,
+        player_id:player.id,
+        player_name:player.jersey_name,
+        sort_order:index+1
+      }));
+
+      const {error:insertError}=await supabase.from('match_players').insert(rows);
+      if(insertError)throw insertError;
+    }
+
+    msg.className='text-sm text-green-600 font-bold mt-1';
+    msg.textContent=`Saved ${selectedPlayers.length} players.`;
+    await loadMatchweekSquad(currentMatchId);
+
+  }catch(err){
+    console.error(err);
+    msg.className='text-sm text-red-600 font-bold mt-1';
+    msg.textContent=err.message||String(err);
+
+  }finally{
+    button.disabled=false;
+    button.textContent='Save Matchweek Squad';
+  }
+}
+window.saveMatchweekSquad=saveMatchweekSquad;
+
+document.getElementById('manageMatchSelect').addEventListener('change',e=>{
+  loadMatchweekSquad(e.target.value);
+});
 
 async function refreshAuthState(){
   hideAllStates(); loadingState.classList.remove('hidden');
@@ -152,6 +423,7 @@ async function refreshAuthState(){
     hideAllStates(); authorizedState.classList.remove('hidden');
     document.getElementById('authSummary').textContent=`${session.user.email||'Signed-in account'} · ${access.role}`;
     await loadAuthorizedPlayerList();
+    await loadTeamMatches();
   }catch(err){ console.error(err); hideAllStates(); loginState.classList.remove('hidden'); const msg=document.getElementById('loginMessage'); msg.classList.remove('hidden'); msg.className='text-sm mt-4 text-red-600 font-bold'; msg.textContent=err.message||String(err); }
 }
 
@@ -172,11 +444,34 @@ async function signOutUser(){ await supabase.auth.signOut(); await refreshAuthSt
 window.signOutUser=signOutUser;
 
 function showTab(tab){
-  const playersTab=document.getElementById('playersTab'), matchweekTab=document.getElementById('matchweekTab'), playersPanel=document.getElementById('playersPanel'), matchweekPanel=document.getElementById('matchweekPanel');
-  const active=['bg-gray-900','text-white'], inactive=['bg-white','border','border-gray-300','text-gray-700'];
+  const playersTab=document.getElementById('playersTab');
+  const matchweekTab=document.getElementById('matchweekTab');
+  const playersPanel=document.getElementById('playersPanel');
+  const matchweekPanel=document.getElementById('matchweekPanel');
+
+  const active=['bg-gray-900','text-white'];
+  const inactive=['bg-white','border','border-gray-300','text-gray-700'];
+
   [playersTab,matchweekTab].forEach(btn=>btn.classList.remove(...active,...inactive));
-  if(tab==='matchweek'){ matchweekTab.classList.add(...active); playersTab.classList.add(...inactive); playersPanel.classList.add('hidden'); matchweekPanel.classList.remove('hidden'); }
-  else { playersTab.classList.add(...active); matchweekTab.classList.add(...inactive); matchweekPanel.classList.add('hidden'); playersPanel.classList.remove('hidden'); }
+
+  if(tab==='matchweek'){
+    matchweekTab.classList.add(...active);
+    playersTab.classList.add(...inactive);
+    playersPanel.classList.add('hidden');
+    matchweekPanel.classList.remove('hidden');
+
+    const select=document.getElementById('manageMatchSelect');
+
+    if(!select.value && teamMatches.length){
+      select.value=teamMatches[0].id;
+      loadMatchweekSquad(teamMatches[0].id);
+    }
+  }else{
+    playersTab.classList.add(...active);
+    matchweekTab.classList.add(...inactive);
+    matchweekPanel.classList.add('hidden');
+    playersPanel.classList.remove('hidden');
+  }
 }
 window.showTab=showTab;
 
