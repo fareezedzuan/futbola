@@ -180,7 +180,8 @@ const supabase = createClient(
 
 const COMPETITION = 'futbola-svl';
 const SEASON = 2;
-const TEAM = 'FUT';
+const params = new URLSearchParams(window.location.search);
+const TEAM = params.get('team') || 'FUT';
 let teamMatches = [];
 
 const groups = [
