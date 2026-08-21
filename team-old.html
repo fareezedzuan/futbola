@@ -154,14 +154,6 @@
     <div id="squadSections" class="space-y-10">
       <div class="panel p-6 text-gray-500 font-semibold">Loading Futbola CF players...</div>
     </div>
-
-    <section id="teamStaffSection" class="mt-12 hidden">
-      <div class="section-kicker">TEAM STAFF</div>
-      <h2 class="text-3xl font-black mt-1">Team Staff</h2>
-      <div class="orange-line mt-5 mb-5"></div>
-      <div id="teamStaffGrid" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-    </section>
-
     <div id="matchweekSection" class="hidden"></div>
   </main>
 
@@ -233,16 +225,7 @@ function playerCard(player) {
     <article class="player-card bg-white border border-gray-200 rounded-2xl overflow-hidden">
       ${playerPhoto(player)}
       <div class="p-4">
-        <div class="flex items-start justify-between gap-2">
-          <div class="text-xl font-black leading-tight">${player.jersey_name}</div>
-          ${
-            player.is_captain
-              ? `<span class="px-2 py-1 rounded-full bg-gray-900 text-white text-xs font-black">C</span>`
-              : player.is_vice_captain
-                ? `<span class="px-2 py-1 rounded-full bg-gray-200 text-gray-700 text-xs font-black">VC</span>`
-                : ''
-          }
-        </div>
+        <div class="text-xl font-black leading-tight">${player.jersey_name}</div>
 <div class="mt-1 text-sm text-gray-500">
   ${player.season_age != null ? `Age ${player.season_age}` : 'Age —'}
   · ${player.position_group || 'OTH'}
@@ -296,52 +279,10 @@ function renderSquad(players) {
     `${players.length} players · ${counts.GK} GK · ${counts.DF} DF · ${counts.MF} MF · ${counts.FW} FW`;
 }
 
-
-function staffCard(person, role) {
-  return `
-    <div class="panel p-5 flex items-center gap-4">
-      <div class="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center text-2xl flex-shrink-0">
-        👤
-      </div>
-
-      <div class="min-w-0">
-        <div class="text-xs uppercase tracking-wider text-orange-600 font-black">
-          ${role}
-        </div>
-        <div class="text-xl font-black mt-1">
-          ${person.jersey_name || person.full_name}
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-function renderTeamStaff(people) {
-  const cards = [];
-
-  people.forEach(person => {
-    if (person.is_manager) cards.push(staffCard(person, 'Manager'));
-    if (person.is_coach) cards.push(staffCard(person, 'Coach'));
-    if (person.is_staff) cards.push(staffCard(person, 'Supporting Staff'));
-  });
-
-  const section = document.getElementById('teamStaffSection');
-  const grid = document.getElementById('teamStaffGrid');
-
-  if (!cards.length) {
-    section.classList.add('hidden');
-    grid.innerHTML = '';
-    return;
-  }
-
-  grid.innerHTML = cards.join('');
-  section.classList.remove('hidden');
-}
-
 async function loadSquad() {
   const { data, error } = await supabase
     .from('season_players')
-    .select('id, full_name, jersey_name, season_age, team_code, position_group, active, is_player, is_manager, is_coach, is_staff, is_captain, is_vice_captain')
+    .select('id, full_name, jersey_name, season_age, team_code, position_group, active')
     .eq('competition_slug', COMPETITION)
     .eq('season', SEASON)
     .eq('team_code', TEAM)
@@ -349,12 +290,7 @@ async function loadSquad() {
     .order('jersey_name');
 
   if (error) throw error;
-
-  const people = data || [];
-  const players = people.filter(p => p.is_player !== false);
-
-  renderSquad(players);
-  renderTeamStaff(people);
+  renderSquad(data || []);
 }
 
 async function loadTeamMatches() {
@@ -469,7 +405,6 @@ function renderMatchweekPlayers(match, players) {
       : match.home_team_code;
 
   document.getElementById('squadSections').classList.add('hidden');
-  document.getElementById('teamStaffSection').classList.add('hidden');
 
   const section = document.getElementById('matchweekSection');
   section.classList.remove('hidden');
@@ -514,10 +449,6 @@ function showTeamView(view) {
     document
       .getElementById('matchweekSection')
       .classList.add('hidden');
-
-    if (document.getElementById('teamStaffGrid').children.length) {
-      document.getElementById('teamStaffSection').classList.remove('hidden');
-    }
 
     document.getElementById('matchweekSelect').value = '';
   }
