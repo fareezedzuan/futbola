@@ -76,7 +76,16 @@
       <section id="playersPanel" class="panel p-5 md:p-6">
         <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
           <div><div class="section-kicker">SEASON PLAYER POOL</div><h3 class="text-2xl font-black mt-1">Registered Players</h3><p class="text-sm text-gray-500 mt-1">Editing controls come next. This page is currently confirming login and team authorization.</p></div>
-          <div id="playerCount" class="text-sm font-bold text-gray-500"></div>
+          <div class="flex items-center gap-3">
+            <div id="playerCount" class="text-sm font-bold text-gray-500"></div>
+
+            <button
+              type="button"
+              onclick="openAddPersonModal()"
+              class="px-4 py-2 rounded-xl bg-gray-900 text-white text-sm font-black">
+              + Add
+            </button>
+          </div>
         </div>
         <div id="playerList" class="mt-6 divide-y divide-gray-100"><div class="py-4 text-gray-500">Loading players...</div></div>
       </section>
@@ -130,6 +139,134 @@
         </div>
       </section>
     </section>
+    <!-- Add / Edit person modal -->
+    <div id="personModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 px-4">
+      <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-screen overflow-y-auto">
+        <div class="p-5 md:p-6 border-b border-gray-200 flex items-center justify-between gap-4">
+          <div>
+            <div class="section-kicker">TEAM PERSON</div>
+            <h3 id="personModalTitle" class="text-2xl font-black mt-1">Add Player</h3>
+          </div>
+
+          <button
+            type="button"
+            onclick="closePersonModal()"
+            class="text-2xl text-gray-400 hover:text-gray-900">
+            ×
+          </button>
+        </div>
+
+        <form id="personForm" class="p-5 md:p-6 space-y-5">
+          <input type="hidden" id="personId">
+
+          <div>
+            <label for="personFullName" class="block text-sm font-bold mb-2">Full name</label>
+            <input id="personFullName" class="field" required>
+          </div>
+
+          <div>
+            <label for="personJerseyName" class="block text-sm font-bold mb-2">Short name</label>
+            <input id="personJerseyName" class="field" required>
+          </div>
+
+          <div>
+            <label for="personDobOrIc" class="block text-sm font-bold mb-2">
+              DOB or first 6 IC digits
+            </label>
+            <input
+              id="personDobOrIc"
+              class="field"
+              placeholder="e.g. 1991-03-15 or 910315"
+              inputmode="numeric">
+            <div class="text-xs text-gray-400 mt-2">
+              First 6 IC digits are treated as YYMMDD.
+            </div>
+          </div>
+
+          <div>
+            <div class="text-sm font-bold mb-2">Roles</div>
+
+            <div class="grid sm:grid-cols-2 gap-3">
+              <label class="flex items-center gap-3 p-3 rounded-xl border border-gray-200">
+                <input id="rolePlayer" type="checkbox" class="w-5 h-5">
+                <span class="font-bold">Player</span>
+              </label>
+
+              <label class="flex items-center gap-3 p-3 rounded-xl border border-gray-200">
+                <input id="roleManager" type="checkbox" class="w-5 h-5">
+                <span class="font-bold">Manager</span>
+              </label>
+
+              <label class="flex items-center gap-3 p-3 rounded-xl border border-gray-200">
+                <input id="roleCoach" type="checkbox" class="w-5 h-5">
+                <span class="font-bold">Coach</span>
+              </label>
+
+              <label class="flex items-center gap-3 p-3 rounded-xl border border-gray-200">
+                <input id="roleStaff" type="checkbox" class="w-5 h-5">
+                <span class="font-bold">Supporting Staff</span>
+              </label>
+            </div>
+          </div>
+
+          <div id="positionField">
+            <label for="personPosition" class="block text-sm font-bold mb-2">Position</label>
+            <select id="personPosition" class="field">
+              <option value="">Select position</option>
+              <option value="GK">GK</option>
+              <option value="DF">DF</option>
+              <option value="MF">MF</option>
+              <option value="FW">FW</option>
+            </select>
+          </div>
+
+          <div>
+            <div class="text-sm font-bold mb-2">Leadership</div>
+
+            <div class="grid sm:grid-cols-2 gap-3">
+              <label class="flex items-center gap-3 p-3 rounded-xl border border-gray-200">
+                <input id="isCaptain" type="checkbox" class="w-5 h-5">
+                <span class="font-bold">Captain</span>
+              </label>
+
+              <label class="flex items-center gap-3 p-3 rounded-xl border border-gray-200">
+                <input id="isViceCaptain" type="checkbox" class="w-5 h-5">
+                <span class="font-bold">Vice Captain</span>
+              </label>
+            </div>
+          </div>
+
+          <div id="personFormMessage" class="text-sm hidden"></div>
+
+          <div class="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3 pt-2">
+            <button
+              id="deactivateButton"
+              type="button"
+              onclick="deactivatePerson()"
+              class="hidden px-4 py-3 rounded-xl border border-red-300 text-red-600 font-black">
+              Deactivate
+            </button>
+
+            <div class="flex gap-3 sm:ml-auto">
+              <button
+                type="button"
+                onclick="closePersonModal()"
+                class="px-4 py-3 rounded-xl border border-gray-300 bg-white font-black">
+                Cancel
+              </button>
+
+              <button
+                id="savePersonButton"
+                type="submit"
+                class="px-5 py-3 rounded-xl bg-gray-900 text-white font-black hover:bg-black">
+                Save
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
   </main>
 
 <script type="module">
@@ -182,7 +319,7 @@ async function getTeamAccess(userId){
 async function loadAuthorizedPlayerList(){
   const {data,error}=await supabase
     .from('season_players')
-    .select('id, full_name, jersey_name, season_age, position_group, active, team_code')
+    .select('id, full_name, jersey_name, season_age, date_of_birth, position_group, active, team_code, is_player, is_manager, is_coach, is_staff, is_captain, is_vice_captain')
     .eq('competition_slug',COMPETITION)
     .eq('season',SEASON)
     .eq('team_code',TEAM)
@@ -204,15 +341,33 @@ async function loadAuthorizedPlayerList(){
   document.getElementById('playerCount').textContent=`${seasonPlayers.length} active players`;
 
   document.getElementById('playerList').innerHTML=seasonPlayers.length
-    ? seasonPlayers.map(p=>`
-        <div class="py-4 flex items-center justify-between gap-4">
-          <div>
-            <div class="font-black">${p.jersey_name}</div>
-            <div class="text-sm text-gray-500">Age ${p.season_age??'—'} · ${p.position_group||'OTH'}</div>
+    ? seasonPlayers.map(p=>{
+        const roles=[];
+        if(p.is_player) roles.push(p.position_group || 'Player');
+        if(p.is_manager) roles.push('Manager');
+        if(p.is_coach) roles.push('Coach');
+        if(p.is_staff) roles.push('Staff');
+        if(p.is_captain) roles.push('Captain');
+        if(p.is_vice_captain) roles.push('Vice Captain');
+
+        return `
+          <div class="py-4 flex items-center justify-between gap-4">
+            <div class="min-w-0">
+              <div class="font-black">${p.jersey_name}</div>
+              <div class="text-sm text-gray-500">
+                Age ${p.season_age??'—'}${roles.length ? ` · ${roles.join(' · ')}` : ''}
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onclick="openEditPersonModal('${p.id}')"
+              class="px-3 py-2 rounded-lg border border-gray-300 bg-white text-sm font-black">
+              Edit
+            </button>
           </div>
-          <div class="text-xs font-black text-gray-400">${p.position_group||'OTH'}</div>
-        </div>
-      `).join('')
+        `;
+      }).join('')
     : `<div class="py-4 text-gray-500">No active players found.</div>`;
 }
 
@@ -412,6 +567,227 @@ window.saveMatchweekSquad=saveMatchweekSquad;
 document.getElementById('manageMatchSelect').addEventListener('change',e=>{
   loadMatchweekSquad(e.target.value);
 });
+
+
+function parseDobOrIc(value){
+  const raw=(value||'').trim();
+  if(!raw) return {dateOfBirth:null, seasonAge:null};
+
+  if(/^\d{4}-\d{2}-\d{2}$/.test(raw)){
+    const year=Number(raw.slice(0,4));
+    return {
+      dateOfBirth:raw,
+      seasonAge:SEASON === 2 ? 2026-year : null
+    };
+  }
+
+  if(/^\d{6}$/.test(raw)){
+    const yy=Number(raw.slice(0,2));
+    const mm=raw.slice(2,4);
+    const dd=raw.slice(4,6);
+
+    const year=yy<=26 ? 2000+yy : 1900+yy;
+
+    return {
+      dateOfBirth:`${year}-${mm}-${dd}`,
+      seasonAge:2026-year
+    };
+  }
+
+  throw new Error('Use YYYY-MM-DD or first 6 IC digits (YYMMDD).');
+}
+
+function updatePositionVisibility(){
+  const isPlayer=document.getElementById('rolePlayer').checked;
+  const field=document.getElementById('positionField');
+
+  if(isPlayer){
+    field.classList.remove('hidden');
+  }else{
+    field.classList.add('hidden');
+    document.getElementById('personPosition').value='';
+  }
+}
+
+document.getElementById('rolePlayer').addEventListener('change',updatePositionVisibility);
+
+function openAddPersonModal(){
+  document.getElementById('personModalTitle').textContent='Add Team Person';
+  document.getElementById('personId').value='';
+  document.getElementById('personFullName').value='';
+  document.getElementById('personJerseyName').value='';
+  document.getElementById('personDobOrIc').value='';
+  document.getElementById('rolePlayer').checked=true;
+  document.getElementById('roleManager').checked=false;
+  document.getElementById('roleCoach').checked=false;
+  document.getElementById('roleStaff').checked=false;
+  document.getElementById('personPosition').value='';
+  document.getElementById('isCaptain').checked=false;
+  document.getElementById('isViceCaptain').checked=false;
+  document.getElementById('deactivateButton').classList.add('hidden');
+
+  const msg=document.getElementById('personFormMessage');
+  msg.classList.add('hidden');
+  msg.textContent='';
+
+  updatePositionVisibility();
+
+  const modal=document.getElementById('personModal');
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+}
+window.openAddPersonModal=openAddPersonModal;
+
+function openEditPersonModal(id){
+  const person=seasonPlayers.find(p=>p.id===id);
+  if(!person) return;
+
+  document.getElementById('personModalTitle').textContent='Edit Team Person';
+  document.getElementById('personId').value=person.id;
+  document.getElementById('personFullName').value=person.full_name || '';
+  document.getElementById('personJerseyName').value=person.jersey_name || '';
+  document.getElementById('personDobOrIc').value=person.date_of_birth || '';
+  document.getElementById('rolePlayer').checked=!!person.is_player;
+  document.getElementById('roleManager').checked=!!person.is_manager;
+  document.getElementById('roleCoach').checked=!!person.is_coach;
+  document.getElementById('roleStaff').checked=!!person.is_staff;
+  document.getElementById('personPosition').value=person.position_group || '';
+  document.getElementById('isCaptain').checked=!!person.is_captain;
+  document.getElementById('isViceCaptain').checked=!!person.is_vice_captain;
+  document.getElementById('deactivateButton').classList.remove('hidden');
+
+  const msg=document.getElementById('personFormMessage');
+  msg.classList.add('hidden');
+  msg.textContent='';
+
+  updatePositionVisibility();
+
+  const modal=document.getElementById('personModal');
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+}
+window.openEditPersonModal=openEditPersonModal;
+
+function closePersonModal(){
+  const modal=document.getElementById('personModal');
+  modal.classList.add('hidden');
+  modal.classList.remove('flex');
+}
+window.closePersonModal=closePersonModal;
+
+document.getElementById('personForm').addEventListener('submit',async e=>{
+  e.preventDefault();
+
+  const id=document.getElementById('personId').value || null;
+  const fullName=document.getElementById('personFullName').value.trim();
+  const jerseyName=document.getElementById('personJerseyName').value.trim();
+  const dobInput=document.getElementById('personDobOrIc').value.trim();
+  const isPlayer=document.getElementById('rolePlayer').checked;
+  const position=document.getElementById('personPosition').value || null;
+
+  const button=document.getElementById('savePersonButton');
+  const msg=document.getElementById('personFormMessage');
+
+  if(!fullName || !jerseyName){
+    msg.classList.remove('hidden');
+    msg.className='text-sm text-red-600 font-bold';
+    msg.textContent='Full name and short name are required.';
+    return;
+  }
+
+  if(isPlayer && !position){
+    msg.classList.remove('hidden');
+    msg.className='text-sm text-red-600 font-bold';
+    msg.textContent='Select a position for a player.';
+    return;
+  }
+
+  button.disabled=true;
+  button.textContent='Saving...';
+
+  try{
+    const {dateOfBirth,seasonAge}=parseDobOrIc(dobInput);
+
+    const payload={
+      competition_slug:COMPETITION,
+      season:SEASON,
+      team_code:TEAM,
+      full_name:fullName,
+      jersey_name:jerseyName,
+      date_of_birth:dateOfBirth,
+      season_age:seasonAge,
+      position_group:isPlayer ? position : null,
+      is_player:isPlayer,
+      is_manager:document.getElementById('roleManager').checked,
+      is_coach:document.getElementById('roleCoach').checked,
+      is_staff:document.getElementById('roleStaff').checked,
+      is_captain:document.getElementById('isCaptain').checked,
+      is_vice_captain:document.getElementById('isViceCaptain').checked,
+      active:true
+    };
+
+    let error;
+
+    if(id){
+      ({error}=await supabase
+        .from('season_players')
+        .update(payload)
+        .eq('id',id));
+    }else{
+      ({error}=await supabase
+        .from('season_players')
+        .insert(payload));
+    }
+
+    if(error) throw error;
+
+    msg.classList.remove('hidden');
+    msg.className='text-sm text-green-600 font-bold';
+    msg.textContent=id ? 'Updated.' : 'Added.';
+
+    await loadAuthorizedPlayerList();
+    await loadMatchweekSquad(currentMatchId);
+
+    setTimeout(closePersonModal,500);
+
+  }catch(err){
+    console.error(err);
+    msg.classList.remove('hidden');
+    msg.className='text-sm text-red-600 font-bold';
+    msg.textContent=err.message || String(err);
+
+  }finally{
+    button.disabled=false;
+    button.textContent='Save';
+  }
+});
+
+async function deactivatePerson(){
+  const id=document.getElementById('personId').value;
+  if(!id) return;
+
+  const msg=document.getElementById('personFormMessage');
+
+  const ok=confirm('Deactivate this person from the current season squad?');
+  if(!ok) return;
+
+  const {error}=await supabase
+    .from('season_players')
+    .update({active:false})
+    .eq('id',id);
+
+  if(error){
+    msg.classList.remove('hidden');
+    msg.className='text-sm text-red-600 font-bold';
+    msg.textContent=error.message;
+    return;
+  }
+
+  await loadAuthorizedPlayerList();
+  await loadMatchweekSquad(currentMatchId);
+  closePersonModal();
+}
+window.deactivatePerson=deactivatePerson;
 
 async function refreshAuthState(){
   hideAllStates(); loadingState.classList.remove('hidden');
