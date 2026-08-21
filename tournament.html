@@ -855,8 +855,28 @@ function matchCard(m) {
 }
 
 function renderLineups(m) {
-  const home = m.players?.home || [];
-  const away = m.players?.away || [];
+const positionOrder = {
+  GK: 1,
+  DF: 2,
+  MF: 3,
+  FW: 4,
+  OTH: 5
+};
+
+const sortByPosition = players =>
+  [...players].sort((a, b) => {
+    const posA = positionOrder[a.position_group || "OTH"] || 99;
+    const posB = positionOrder[b.position_group || "OTH"] || 99;
+
+    if (posA !== posB) {
+      return posA - posB;
+    }
+
+    return (a.jersey_name || "").localeCompare(b.jersey_name || "");
+  });
+
+const home = sortByPosition(m.players?.home || []);
+const away = sortByPosition(m.players?.away || []);
 
   const max = Math.max(home.length, away.length);
 
