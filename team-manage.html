@@ -338,7 +338,12 @@ async function loadAuthorizedPlayerList(){
     return (a.jersey_name||'').localeCompare(b.jersey_name||'');
   });
 
-  document.getElementById('playerCount').textContent=`${seasonPlayers.length} active players`;
+const activePlayerCount = seasonPlayers.filter(
+  p => p.is_player !== false
+).length;
+
+document.getElementById('playerCount').textContent =
+  `${activePlayerCount} active players`;
 
   document.getElementById('playerList').innerHTML=seasonPlayers.length
     ? seasonPlayers.map(p=>{
