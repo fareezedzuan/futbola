@@ -124,6 +124,23 @@
       <div class="orange-line mt-5"></div>
     </section>
 
+<div class="flex flex-wrap items-center gap-3 mb-6">
+
+  <button
+    id="viewSquadBtn"
+    onclick="showTeamView('squad')"
+    class="px-4 py-2 rounded-full bg-gray-900 text-white font-bold text-sm">
+    Season Squad
+  </button>
+
+  <select
+    id="matchweekSelect"
+    class="bg-white border border-gray-300 rounded-full px-4 py-2 text-sm font-bold">
+    <option value="">Select Matchweek</option>
+  </select>
+
+</div>
+
     <nav class="mb-8 overflow-x-auto">
       <div class="flex gap-2 whitespace-nowrap">
         <a href="#GK" class="px-4 py-2 rounded-full bg-white border border-gray-200 font-bold text-sm hover:border-orange-300">Goalkeepers</a>
@@ -137,6 +154,7 @@
     <div id="squadSections" class="space-y-10">
       <div class="panel p-6 text-gray-500 font-semibold">Loading Futbola CF players...</div>
     </div>
+    <div id="matchweekSection" class="hidden"></div>
   </main>
 
   <footer class="brand-bg border-t border-orange-100 mt-12">
@@ -163,6 +181,7 @@ const supabase = createClient(
 const COMPETITION = 'futbola-svl';
 const SEASON = 2;
 const TEAM = 'FUT';
+let teamMatches = [];
 
 const groups = [
   { code:'GK', title:'Goalkeepers' },
@@ -206,9 +225,10 @@ function playerCard(player) {
       ${playerPhoto(player)}
       <div class="p-4">
         <div class="text-xl font-black leading-tight">${player.jersey_name}</div>
-        <div class="mt-1 text-sm text-gray-500">
-          ${player.season_age != null ? `Age ${player.season_age}` : 'Age —'}
-        </div>
+<div class="mt-1 text-sm text-gray-500">
+  ${player.season_age != null ? `Age ${player.season_age}` : 'Age —'}
+  · ${player.position_group || 'OTH'}
+</div>
       </div>
     </article>
   `;
@@ -272,9 +292,174 @@ async function loadSquad() {
   renderSquad(data || []);
 }
 
+async function loadTeamMatches() {
+  const { data, error } = await supabase
+    .from('league_matches')
+    .select('*')
+    .eq('competition_slug', COMPETITION)
+    .eq('season', SEASON)
+    .or(`home_team_code.eq.${TEAM},away_team_code.eq.${TEAM}`)
+    .order('matchweek');
+
+  if (error) throw error;
+
+  teamMatches = data || [];
+}
+
+function setupMatchweekSelect() {
+  const select = document.getElementById('matchweekSelect');
+
+  select.innerHTML = `
+    <option value="">Select Matchweek</option>
+  `;
+
+  teamMatches.forEach(match => {
+    const opponent =
+      match.home_team_code === TEAM
+        ? match.away_team_code
+        : match.home_team_code;
+
+    const option = document.createElement('option');
+
+    option.value = match.id;
+    option.textContent = `MW${match.matchweek} · ${opponent}`;
+
+    select.appendChild(option);
+  });
+
+  select.addEventListener('change', e => {
+    if (!e.target.value) {
+      showTeamView('squad');
+      return;
+    }
+
+    showMatchweekLineup(e.target.value);
+  });
+}
+
+async function showMatchweekLineup(matchId) {
+  const match = teamMatches.find(m => m.id === matchId);
+
+  if (!match) return;
+
+  const { data, error } = await supabase
+    .from('match_players')
+    .select(`
+      player_id,
+      sort_order
+    `)
+    .eq('match_id', matchId)
+    .eq('team_code', TEAM)
+    .order('sort_order');
+
+  if (error) {
+    console.error(error);
+    return;
+  }
+
+  const playerIds = (data || [])
+    .map(row => row.player_id)
+    .filter(Boolean);
+
+  let players = [];
+
+  if (playerIds.length) {
+    const { data: playerData, error: playerError } = await supabase
+      .from('season_players')
+      .select('id, full_name, jersey_name, season_age, team_code, position_group')
+      .in('id', playerIds);
+
+    if (playerError) {
+      console.error(playerError);
+      return;
+    }
+
+    players = playerData || [];
+  }
+
+  renderMatchweekPlayers(match, players);
+}
+
+function renderMatchweekPlayers(match, players) {
+  const positionOrder = {
+    GK: 1,
+    DF: 2,
+    MF: 3,
+    FW: 4,
+    OTH: 5
+  };
+
+  players.sort((a, b) => {
+    const pa = positionOrder[a.position_group || 'OTH'] || 99;
+    const pb = positionOrder[b.position_group || 'OTH'] || 99;
+
+    if (pa !== pb) return pa - pb;
+
+    return a.jersey_name.localeCompare(b.jersey_name);
+  });
+
+  const opponent =
+    match.home_team_code === TEAM
+      ? match.away_team_code
+      : match.home_team_code;
+
+  document.getElementById('squadSections').classList.add('hidden');
+
+  const section = document.getElementById('matchweekSection');
+  section.classList.remove('hidden');
+
+  section.innerHTML = `
+    <div class="mb-6">
+      <div class="section-kicker">
+        MATCHWEEK ${match.matchweek}
+      </div>
+
+      <h2 class="text-3xl font-black mt-1">
+        ${TEAM} vs ${opponent}
+      </h2>
+
+      <div class="text-sm text-gray-500 mt-1">
+        ${players.length} selected players
+      </div>
+    </div>
+
+    ${
+      players.length
+        ? `
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-5">
+            ${players.map(playerCard).join('')}
+          </div>
+        `
+        : `
+          <div class="panel p-6 text-gray-500">
+            Matchweek squad not registered yet.
+          </div>
+        `
+    }
+  `;
+}
+
+function showTeamView(view) {
+  if (view === 'squad') {
+    document
+      .getElementById('squadSections')
+      .classList.remove('hidden');
+
+    document
+      .getElementById('matchweekSection')
+      .classList.add('hidden');
+
+    document.getElementById('matchweekSelect').value = '';
+  }
+}
+
+window.showTeamView = showTeamView;
+
 async function init() {
   try {
     await loadSquad();
+await loadTeamMatches();
+setupMatchweekSelect();
   } catch (err) {
     console.error(err);
     document.getElementById('squadSummary').textContent = 'Unable to load squad';
