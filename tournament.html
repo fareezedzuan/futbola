@@ -481,6 +481,19 @@ if (ids.length) {
 }
 
 let seasonPlayers = [];
+let matchPlayers = [];
+
+if (ids.length) {
+  const { data, error } = await supabase
+    .from("match_players")
+    .select("*")
+    .in("match_id", ids)
+    .order("sort_order");
+
+  if (!error) {
+    matchPlayers = data || [];
+  }
+}
 
 const { data: playerData, error: playerError } = await supabase
   .from("season_players")
@@ -536,6 +549,24 @@ seasonPlayers.forEach(p => {
   (playersByTeam[p.team_code] ||= []).push(p);
 });
 
+const seasonPlayerById = {};
+
+seasonPlayers.forEach(p => {
+  seasonPlayerById[p.id] = p;
+});
+
+
+const matchPlayersByMatch = {};
+
+matchPlayers.forEach(mp => {
+  const player = seasonPlayerById[mp.player_id];
+
+  if (!player) return;
+
+  (matchPlayersByMatch[mp.match_id] ||= {});
+  (matchPlayersByMatch[mp.match_id][mp.team_code] ||= []).push(player);
+});
+
   const weeks = new Map();
   (matches || []).forEach(r => {
     if (!weeks.has(r.matchweek)) {
@@ -557,9 +588,16 @@ seasonPlayers.forEach(p => {
       mvpTeam:r.mvp_team_code,
       events:eventsByMatch[r.id] || [],
       stats: statsByMatch[r.id] || {},
-      players: {
-  home: playersByTeam[r.home_team_code] || [],
-  away: playersByTeam[r.away_team_code] || []
+players: {
+  home:
+    matchPlayersByMatch[r.id]?.[r.home_team_code]
+    || playersByTeam[r.home_team_code]
+    || [],
+
+  away:
+    matchPlayersByMatch[r.id]?.[r.away_team_code]
+    || playersByTeam[r.away_team_code]
+    || []
 },
       youtube:getMedia("youtube_full"),
       veo:getMedia("veo_full"),
@@ -839,13 +877,13 @@ function renderLineups(m) {
                 ${playerPhoto(h)}
 
                 <div class="min-w-0">
-                  <div class="font-black">
-                    ${h.jersey_name}
-                  </div>
+<div class="font-black">
+  ${h.jersey_name}
+</div>
 
-                  <div class="text-xs text-gray-400">
-                    Age ${h.season_age ?? "–"}
-                  </div>
+<div class="text-xs text-gray-400">
+  Age ${h.season_age ?? "–"} · ${h.position_group || "OTH"}
+</div>
                 </div>
               `
               : ""
@@ -859,13 +897,13 @@ function renderLineups(m) {
             a
               ? `
                 <div class="min-w-0">
-                  <div class="font-black">
-                    ${a.jersey_name}
-                  </div>
+<div class="font-black">
+  ${a.jersey_name}
+</div>
 
-                  <div class="text-xs text-gray-400">
-                    Age ${a.season_age ?? "–"}
-                  </div>
+<div class="text-xs text-gray-400">
+  Age ${a.season_age ?? "–"} · ${a.position_group || "OTH"}
+</div>
                 </div>
 
                 ${playerPhoto(a)}
