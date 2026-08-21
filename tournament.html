@@ -1373,26 +1373,29 @@ function renderClubGrid() {
 }
 
 function playerPhoto(player) {
-  const photoPath =
-    `./images/player-headshots/FSV-S2/${player.team_code}/${player.id}.jpeg`;
+  const basePath =
+    `./images/player-headshots/FSV-S2/${player.team_code}/${player.id}`;
 
   return `
-    <div class="w-12 h-12 flex-shrink-0">
-      <img
-        src="${photoPath}"
-        alt="${player.jersey_name}"
-        class="w-12 h-12 rounded-xl object-cover bg-gray-100"
-        onerror="
-          this.style.display='none';
-          this.nextElementSibling.style.display='flex';
-        "
-      >
+    <img
+      src="${basePath}.jpeg"
+      alt="${player.jersey_name}"
+      class="w-12 h-12 rounded-xl object-cover bg-gray-100"
+      onerror="
+        if (!this.dataset.triedJpg) {
+          this.dataset.triedJpg = '1';
+          this.src = '${basePath}.jpg';
+        } else {
+          this.style.display = 'none';
+          this.nextElementSibling.style.display = 'flex';
+        }
+      "
+    >
 
-      <div
-        style="display:none"
-        class="w-12 h-12 rounded-xl bg-gray-100 border border-gray-200 items-center justify-center text-gray-400 text-xl">
-        👤
-      </div>
+    <div
+      style="display:none"
+      class="w-12 h-12 rounded-xl bg-gray-100 border border-gray-200 items-center justify-center text-gray-400 text-xl">
+      👤
     </div>
   `;
 }
