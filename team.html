@@ -88,12 +88,12 @@
       <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-7">
         <div class="flex items-center gap-5">
           <div class="w-28 h-28 md:w-32 md:h-32 flex items-center justify-center flex-shrink-0">
-            <img src="../images/FUT.png" alt="Futbola CF" class="team-logo-main">
+            <img id="teamLogo" src="" alt="" class="team-logo-main">
           </div>
           <div>
             <div class="uppercase tracking-widest text-sm font-bold text-orange-300">FSVL Season 2 · 2026</div>
-            <h1 class="text-4xl md:text-5xl font-black mt-1">Futbola CF</h1>
-            <div class="text-gray-300 mt-2">FUT · Semi Veteran League</div>
+            <h1 id="teamName" class="text-4xl md:text-5xl font-black mt-1"></h1>
+            <div id="teamSubtitle" class="text-gray-300 mt-2"></div>
           </div>
         </div>
 
@@ -102,7 +102,7 @@
              class="px-4 py-3 rounded-xl bg-white bg-opacity-10 border border-white border-opacity-20 font-black text-sm hover:bg-opacity-20">
             ← Tournament
           </a>
-          <a href="./team-manage.html?team=FUT"
+          <a id="manageTeamLink" href="#"
              class="px-4 py-3 rounded-xl bg-white text-gray-900 font-black text-sm hover:bg-orange-50">
             Manage Team
           </a>
@@ -117,7 +117,7 @@
         <div>
           <div class="section-kicker">FIRST TEAM</div>
           <h2 class="text-3xl md:text-4xl font-black mt-1">Squad</h2>
-          <p class="text-sm text-gray-500 mt-2">Futbola CF registered players for FSVL Season 2.</p>
+          <p id="squadDescription" class="text-sm text-gray-500 mt-2"></p>
         </div>
         <div id="squadSummary" class="text-sm font-bold text-gray-500">Loading squad...</div>
       </div>
@@ -174,7 +174,7 @@
       <div class="flex items-center">
         <img src="../images/futbolaLogoOnly.png" width="40" height="40" alt="futbola logo" class="mr-2">
         <div>
-          <div class="font-black">Futbola CF</div>
+          <div id="footerTeamName" class="font-black"></div>
           <div class="text-sm text-gray-500">FSVL Season 2 · 2026</div>
         </div>
       </div>
@@ -194,6 +194,19 @@ const COMPETITION = 'futbola-svl';
 const SEASON = 2;
 const params = new URLSearchParams(window.location.search);
 const TEAM = params.get('team') || 'FUT';
+const teams = {
+  FUT: { name:'Futbola CF', logo:'../images/FUT.png' },
+  HHC: { name:'Happy Hour SC', logo:'../images/HHC.jpeg' },
+  GOB: { name:'Tepen GOB', logo:'../images/GOB.jpeg' },
+  FCA: { name:'FC Alpha Vet', logo:'../images/FCA.jpeg' },
+  CFC: { name:'Cybersouth FC', logo:'../images/CFC.png' },
+  KLC: { name:'KL Classico FC', logo:'../images/KLC.jpeg' }
+};
+
+const team = teams[TEAM] || {
+  name: TEAM,
+  logo: ''
+};
 let teamMatches = [];
 
 const groups = [
@@ -527,23 +540,54 @@ function showTeamView(view) {
   }
 }
 
+function renderTeamHeader() {
+  document.title = `${team.name} · FSVL Season 2`;
+
+  document.getElementById('manageTeamLink').href =
+    `./team-manage.html?team=${encodeURIComponent(TEAM)}`;
+
+  const logo = document.getElementById('teamLogo');
+  logo.src = team.logo;
+  logo.alt = team.name;
+
+  document.getElementById('teamName').textContent = team.name;
+
+  document.getElementById('teamSubtitle').textContent =
+    `${TEAM} · Semi Veteran League`;
+
+  document.getElementById('squadDescription').textContent =
+    `${team.name} registered players for FSVL Season 2`;
+
+  document.getElementById('footerTeamName').textContent =
+    team.name;
+}
+
 window.showTeamView = showTeamView;
 
 async function init() {
   try {
+    renderTeamHeader();
+
     await loadSquad();
-await loadTeamMatches();
-setupMatchweekSelect();
+    await loadTeamMatches();
+    setupMatchweekSelect();
+
   } catch (err) {
     console.error(err);
-    document.getElementById('squadSummary').textContent = 'Unable to load squad';
+
+    document.getElementById('squadSummary').textContent =
+      'Unable to load squad';
+
     document.getElementById('squadSections').innerHTML = `
       <div class="panel p-6 text-red-600 font-bold">
-        Could not load Futbola CF squad from Supabase.
+        Could not load team squad from Supabase.
       </div>
     `;
   }
 }
+
+init();
+
 
 init();
 </script>
