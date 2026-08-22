@@ -218,7 +218,20 @@ const groups = [
 ];
 
 function playerPhoto(player) {
-  const base = `../images/player-headshots/FSV-S2/${player.team_code}/${player.id}`;
+  if (player.photo_url) {
+    return `
+      <div class="relative overflow-hidden bg-gray-100">
+        <img
+          src="${player.photo_url}"
+          alt="${player.jersey_name}"
+          class="player-photo"
+        >
+      </div>
+    `;
+  }
+
+  const base =
+    `./images/player-headshots/FSV-S2/${player.team_code}/${player.id}`;
 
   return `
     <div class="relative overflow-hidden bg-gray-100">
@@ -236,6 +249,7 @@ function playerPhoto(player) {
           }
         "
       >
+
       <div
         style="display:none; aspect-ratio:4/5;"
         class="w-full items-center justify-center bg-gray-100 text-gray-300 text-6xl">
