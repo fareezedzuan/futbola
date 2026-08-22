@@ -354,6 +354,42 @@ async function getTeamAccess(userId){
   return data;
 }
 
+
+function managePersonPhoto(person){
+  if(person.photo_url){
+    return `
+      <img
+        src="${person.photo_url}"
+        alt="${person.jersey_name}"
+        class="w-12 h-12 rounded-xl object-cover bg-gray-100 flex-shrink-0">
+    `;
+  }
+
+  const base=`./images/player-headshots/FSV-S2/${person.team_code}/${person.id}`;
+
+  return `
+    <img
+      src="${base}.jpeg"
+      alt="${person.jersey_name}"
+      class="w-12 h-12 rounded-xl object-cover bg-gray-100 flex-shrink-0"
+      onerror="
+        if(!this.dataset.triedJpg){
+          this.dataset.triedJpg='1';
+          this.src='${base}.jpg';
+        }else{
+          this.style.display='none';
+          this.nextElementSibling.style.display='flex';
+        }
+      "
+    >
+    <div
+      style="display:none"
+      class="w-12 h-12 rounded-xl bg-gray-100 border border-gray-200 items-center justify-center text-xl text-gray-300 flex-shrink-0">
+      👤
+    </div>
+  `;
+}
+
 async function loadAuthorizedPlayerList(){
   const {data,error}=await supabase
     .from('season_players')
@@ -396,11 +432,7 @@ document.getElementById('playerCount').textContent =
         return `
           <div class="py-4 flex items-center justify-between gap-4">
             <div class="flex items-center gap-3 min-w-0">
-              ${
-                p.photo_url
-                  ? `<img src="${p.photo_url}" alt="${p.jersey_name}" class="w-12 h-12 rounded-xl object-cover bg-gray-100 flex-shrink-0">`
-                  : `<div class="w-12 h-12 rounded-xl bg-gray-100 border border-gray-200 flex items-center justify-center text-xl text-gray-300 flex-shrink-0">👤</div>`
-              }
+              ${managePersonPhoto(p)}
 
               <div class="min-w-0">
                 <div class="font-black">${p.jersey_name}</div>
@@ -630,6 +662,7 @@ function resetPhotoField(){
   const placeholder=document.getElementById('personPhotoPlaceholder');
   const removeBtn=document.getElementById('removePhotoButton');
 
+  preview.onerror=null;
   preview.src='';
   preview.classList.add('hidden');
   placeholder.classList.remove('hidden');
@@ -638,6 +671,7 @@ function resetPhotoField(){
 
 function showPhotoPreview(url,removable=false){
   const preview=document.getElementById('personPhotoPreview');
+  preview.onerror=null;
   const placeholder=document.getElementById('personPhotoPlaceholder');
   const removeBtn=document.getElementById('removePhotoButton');
 
@@ -858,9 +892,34 @@ function openEditPersonModal(id){
         currentPhotoUrl.slice(idx + marker.length)
       );
     }
-  }
 
-  showPhotoPreview(currentPhotoUrl,!!currentPhotoUrl);
+    showPhotoPreview(currentPhotoUrl,true);
+
+  }else{
+    const base=`./images/player-headshots/FSV-S2/${person.team_code}/${person.id}`;
+    const preview=document.getElementById('personPhotoPreview');
+    const placeholder=document.getElementById('personPhotoPlaceholder');
+    const removeBtn=document.getElementById('removePhotoButton');
+
+    preview.classList.remove('hidden');
+    placeholder.classList.add('hidden');
+    removeBtn.classList.add('hidden');
+
+    preview.dataset.triedJpg='0';
+    preview.src=`${base}.jpeg`;
+
+    preview.onerror=()=>{
+      if(preview.dataset.triedJpg==='0'){
+        preview.dataset.triedJpg='1';
+        preview.src=`${base}.jpg`;
+      }else{
+        preview.onerror=null;
+        preview.src='';
+        preview.classList.add('hidden');
+        placeholder.classList.remove('hidden');
+      }
+    };
+  }
 
   const msg=document.getElementById('personFormMessage');
   msg.classList.add('hidden');
