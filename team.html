@@ -231,7 +231,7 @@ function playerPhoto(player) {
   }
 
   const base =
-    `./images/player-headshots/FSV-S2/${player.team_code}/${player.id}`;
+  `../images/player-headshots/FSV-S2/${player.team_code}/${player.id}`;
 
   return `
     <div class="relative overflow-hidden bg-gray-100">
@@ -372,7 +372,7 @@ function renderTeamStaff(people) {
 async function loadSquad() {
   const { data, error } = await supabase
     .from('season_players')
-    .select('id, full_name, jersey_name, season_age, team_code, position_group, active, is_player, is_manager, is_coach, is_staff, is_captain, is_vice_captain')
+    .select('id, full_name, jersey_name, season_age, team_code, photo_url, position_group, active, is_player, is_manager, is_coach, is_staff, is_captain, is_vice_captain')
     .eq('competition_slug', COMPETITION)
     .eq('season', SEASON)
     .eq('team_code', TEAM)
@@ -462,7 +462,7 @@ async function showMatchweekLineup(matchId) {
   if (playerIds.length) {
     const { data: playerData, error: playerError } = await supabase
       .from('season_players')
-      .select('id, full_name, jersey_name, season_age, team_code, position_group')
+      .select('id, full_name, jersey_name, season_age, team_code, photo_url, position_group')
       .in('id', playerIds);
 
     if (playerError) {
@@ -602,8 +602,6 @@ async function init() {
 
 init();
 
-
-init();
 </script>
 </body>
 </html>
