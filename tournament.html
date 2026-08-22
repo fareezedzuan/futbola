@@ -1431,6 +1431,29 @@ function renderClubGrid() {
 }
 
 function playerPhoto(player) {
+
+  // 1. Supabase Storage photo uploaded by team manager
+  if (player.photo_url) {
+    return `
+      <img
+        src="${player.photo_url}"
+        alt="${player.jersey_name}"
+        class="w-12 h-12 rounded-xl object-cover bg-gray-100"
+        onerror="
+          this.style.display = 'none';
+          this.nextElementSibling.style.display = 'flex';
+        "
+      >
+
+      <div
+        style="display:none"
+        class="w-12 h-12 rounded-xl bg-gray-100 border border-gray-200 items-center justify-center text-gray-400 text-xl">
+        👤
+      </div>
+    `;
+  }
+
+  // 2. Old manually stored website image
   const basePath =
     `./images/player-headshots/FSV-S2/${player.team_code}/${player.id}`;
 
