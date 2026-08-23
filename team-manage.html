@@ -1090,7 +1090,21 @@ document.getElementById('personForm').addEventListener('submit',async e=>{
   button.textContent='Saving...';
 
   try{
-    const {dateOfBirth,seasonAge}=parseDobOrIc(dobInput);
+    let dateOfBirth = null;
+    let seasonAge = null;
+
+    if(dobInput){
+      const parsed = parseDobOrIc(dobInput);
+      dateOfBirth = parsed.dateOfBirth;
+      seasonAge = parsed.seasonAge;
+    }else if(id){
+      // Editing existing player with blank DOB field:
+      // preserve whatever DOB/age is already stored.
+      const existingPerson = seasonPlayers.find(p => p.id === id);
+
+      dateOfBirth = existingPerson?.date_of_birth ?? null;
+      seasonAge = existingPerson?.season_age ?? null;
+    }
 
     const payload={
       competition_slug:COMPETITION,
