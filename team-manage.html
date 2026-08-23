@@ -829,12 +829,15 @@ async function uploadPlayerPhoto(playerId){
     file.type === 'image/webp' ? 'webp' :
     'jpg';
 
-  const path=`${TEAM}/${playerId}.${extension}`;
+  // Use a unique object path for every upload. Reusing the same URL can
+  // leave the browser/Supabase CDN showing the previous cached image.
+  const path=`${TEAM}/${playerId}-${Date.now()}.${extension}`;
+  const previousPhotoPath=currentPhotoPath;
 
   const {error:uploadError}=await supabase.storage
     .from('player-headshots')
     .upload(path,file,{
-      upsert:true,
+      upsert:false,
       contentType:file.type,
       cacheControl:'3600'
     });
@@ -847,6 +850,16 @@ async function uploadPlayerPhoto(playerId){
 
   currentPhotoUrl=data.publicUrl;
   currentPhotoPath=path;
+
+  // Best-effort cleanup of the old uploaded object after the new upload
+  // succeeds. Failure here should not block saving the new photo URL.
+  if(previousPhotoPath && previousPhotoPath !== path){
+    const {error:cleanupError}=await supabase.storage
+      .from('player-headshots')
+      .remove([previousPhotoPath]);
+
+    if(cleanupError) console.warn('Could not remove previous photo:',cleanupError);
+  }
 
   return currentPhotoUrl;
 }

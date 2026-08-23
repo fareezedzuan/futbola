@@ -89,6 +89,21 @@
           </div>
         </div>
         <div id="playerList" class="mt-6 divide-y divide-gray-100"><div class="py-4 text-gray-500">Loading players...</div></div>
+
+        <div id="inactivePlayersSection" class="hidden mt-8 pt-6 border-t border-gray-200">
+          <div class="flex items-end justify-between gap-4 mb-3">
+            <div>
+              <div class="section-kicker">INACTIVE</div>
+              <h4 class="text-xl font-black mt-1">Inactive Players</h4>
+              <p class="text-sm text-gray-500 mt-1">
+                Deactivated players stay in historical match records and can be restored here.
+              </p>
+            </div>
+            <div id="inactivePlayerCount" class="text-sm font-bold text-gray-400"></div>
+          </div>
+
+          <div id="inactivePlayerList" class="divide-y divide-gray-100"></div>
+        </div>
       </section>
 
       <section id="matchweekPanel" class="panel p-5 md:p-6 hidden">
@@ -322,6 +337,7 @@ const params = new URLSearchParams(window.location.search);
 const TEAM = (params.get('team') || 'FUT').toUpperCase();
 
 let seasonPlayers = [];
+let inactivePlayers = [];
 let teamMatches = [];
 let currentMatchId = null;
 let currentPhotoUrl = null;
@@ -453,6 +469,95 @@ document.getElementById('playerCount').textContent =
       }).join('')
     : `<div class="py-4 text-gray-500">No active players found.</div>`;
 }
+
+
+async function loadInactivePlayerList(){
+  const {data,error}=await supabase
+    .from('season_players')
+    .select('id, full_name, jersey_name, season_age, date_of_birth, photo_url, position_group, active, team_code, is_player, is_manager, is_coach, is_staff, is_captain, is_vice_captain')
+    .eq('competition_slug',COMPETITION)
+    .eq('season',SEASON)
+    .eq('team_code',TEAM)
+    .eq('active',false)
+    .order('jersey_name');
+
+  if(error) throw error;
+
+  inactivePlayers=data||[];
+
+  const section=document.getElementById('inactivePlayersSection');
+  const list=document.getElementById('inactivePlayerList');
+  const count=document.getElementById('inactivePlayerCount');
+
+  if(!inactivePlayers.length){
+    section.classList.add('hidden');
+    list.innerHTML='';
+    count.textContent='';
+    return;
+  }
+
+  count.textContent=`${inactivePlayers.length} inactive`;
+  section.classList.remove('hidden');
+
+  list.innerHTML=inactivePlayers.map(p=>{
+    const roles=[];
+    if(p.is_player) roles.push(p.position_group || 'Player');
+    if(p.is_manager) roles.push('Manager');
+    if(p.is_coach) roles.push('Coach');
+    if(p.is_staff) roles.push('Staff');
+    if(p.is_captain) roles.push('Captain');
+    if(p.is_vice_captain) roles.push('Vice Captain');
+
+    return `
+      <div class="py-4 flex items-center justify-between gap-4 opacity-75">
+        <div class="flex items-center gap-3 min-w-0">
+          ${managePersonPhoto(p)}
+
+          <div class="min-w-0">
+            <div class="font-black">${p.jersey_name}</div>
+            <div class="text-sm text-gray-500">
+              Age ${p.season_age??'—'}${roles.length ? ` · ${roles.join(' · ')}` : ''}
+            </div>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onclick="reactivatePerson('${p.id}')"
+          class="px-3 py-2 rounded-lg border border-green-300 bg-white text-green-700 text-sm font-black">
+          Reactivate
+        </button>
+      </div>
+    `;
+  }).join('');
+}
+
+async function reactivatePerson(id){
+  const person=inactivePlayers.find(p=>p.id===id);
+  if(!person) return;
+
+  const ok=confirm(`Reactivate ${person.jersey_name || person.full_name}?`);
+  if(!ok) return;
+
+  const {error}=await supabase
+    .from('season_players')
+    .update({active:true})
+    .eq('id',id);
+
+  if(error){
+    console.error(error);
+    alert(error.message || String(error));
+    return;
+  }
+
+  await loadAuthorizedPlayerList();
+  await loadInactivePlayerList();
+
+  if(currentMatchId){
+    await loadMatchweekSquad(currentMatchId);
+  }
+}
+window.reactivatePerson=reactivatePerson;
 
 async function loadTeamMatches(){
   const {data,error}=await supabase
@@ -781,6 +886,7 @@ async function removeStoredPhoto(){
     msg.textContent='Photo removed.';
 
     await loadAuthorizedPlayerList();
+    await loadInactivePlayerList();
 
   }catch(err){
     console.error(err);
@@ -1029,7 +1135,11 @@ document.getElementById('personForm').addEventListener('submit',async e=>{
     msg.textContent=id ? 'Updated.' : 'Added.';
 
     await loadAuthorizedPlayerList();
-    await loadMatchweekSquad(currentMatchId);
+    await loadInactivePlayerList();
+
+    if(currentMatchId){
+      await loadMatchweekSquad(currentMatchId);
+    }
 
     setTimeout(closePersonModal,500);
 
@@ -1067,7 +1177,12 @@ async function deactivatePerson(){
   }
 
   await loadAuthorizedPlayerList();
-  await loadMatchweekSquad(currentMatchId);
+  await loadInactivePlayerList();
+
+  if(currentMatchId){
+    await loadMatchweekSquad(currentMatchId);
+  }
+
   closePersonModal();
 }
 window.deactivatePerson=deactivatePerson;
@@ -1082,6 +1197,7 @@ async function refreshAuthState(){
     hideAllStates(); authorizedState.classList.remove('hidden');
     document.getElementById('authSummary').textContent=`${session.user.email||'Signed-in account'} · ${access.role}`;
     await loadAuthorizedPlayerList();
+    await loadInactivePlayerList();
     await loadTeamMatches();
   }catch(err){ console.error(err); hideAllStates(); loginState.classList.remove('hidden'); const msg=document.getElementById('loginMessage'); msg.classList.remove('hidden'); msg.className='text-sm mt-4 text-red-600 font-bold'; msg.textContent=err.message||String(err); }
 }
