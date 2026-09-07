@@ -600,7 +600,10 @@ players: {
     || []
 },
       youtube:getMedia("youtube_full"),
-      veo:getMedia("veo_full"),
+      veo:mm
+  .filter(x => x.media_type === "veo_full")
+  .sort((a,b) => (a.sort_order || 0) - (b.sort_order || 0))
+  .map(x => x.url),
       highlights:getMedia("highlights"),
       gallery:getMedia("gallery")
     });
@@ -803,7 +806,18 @@ function mediaButtons(m) {
     Full Match
   </a>
 `);
-  if(m.veo)b.push(`<a href="${m.veo}" target="_blank" class="text-sm font-bold text-purple-700">📹 Veo</a>`);
+  if(m.veo?.length){
+  m.veo.forEach((url, index) => {
+    const label = m.veo.length > 1
+      ? `📹 Veo ${index + 1}`
+      : `📹 Veo`;
+
+    b.push(
+      `<a href="${url}" target="_blank"
+          class="text-sm font-bold text-purple-700">${label}</a>`
+    );
+  });
+}
   if(m.gallery)b.push(`<a href="${m.gallery}" target="_blank" class="text-sm font-bold text-purple-700">📸 Gallery</a>`);
   return b.length ? `<div class="flex flex-wrap gap-3 pt-2 border-t border-gray-200">${b.join("")}</div>` : "";
 }
