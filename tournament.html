@@ -1274,7 +1274,7 @@ schedule.forEach(w=>w.matches.forEach(m=>(m.events||[]).forEach(e=>{
   // Ignore voided events from official player statistics
   if (e.countsForStats === false) return;
 
-  if(!["goal","own_goal","penalty_goal"].includes(e.type)) return;
+  if(!["goal","penalty_goal"].includes(e.type)) return;
 
   goals[`${e.player}|${e.team}`] =
     (goals[`${e.player}|${e.team}`] || 0) + 1;
