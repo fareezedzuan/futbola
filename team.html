@@ -208,6 +208,13 @@ const team = teams[TEAM] || {
   logo: ''
 };
 let teamMatches = [];
+let currentUser = null;
+let isAdmin = false;
+let verificationMode = false;
+let currentMatch = null;
+let currentPlayers = [];
+let currentVerifications = [];
+let privateVerificationDetails = new Map();
 
 const groups = [
   { code:'GK', title:'Goalkeepers' },
@@ -259,6 +266,60 @@ function playerPhoto(player) {
   `;
 }
 
+function formatDob(value) {
+  if (!value) return 'DOB unavailable';
+  const d = new Date(`${value}T00:00:00`);
+  return d.toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
+}
+
+function isPlayerVerified(playerId) {
+  return currentVerifications.some(v => v.player_id === playerId);
+}
+
+function verificationBadge(player) {
+  if (!isPlayerVerified(player.id)) return '';
+  return `
+    <div class="mt-3 inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-green-100 text-green-800 text-xs font-black">
+      ✓ Verified
+    </div>
+  `;
+}
+
+function adminVerificationPanel(player) {
+  if (!isAdmin || !verificationMode) return '';
+
+  const detail = privateVerificationDetails.get(player.id);
+  const verified = isPlayerVerified(player.id);
+
+  if (!detail) {
+    return `
+      <div class="mt-4 pt-4 border-t border-gray-200 text-xs text-gray-500">
+        Verification details unavailable.
+      </div>
+    `;
+  }
+
+  return `
+    <div class="mt-4 pt-4 border-t border-gray-200">
+      <div class="text-xs font-black tracking-wider text-gray-400">REGISTERED DETAILS</div>
+      <div class="mt-2 text-sm font-bold text-gray-900">${detail.full_name || '—'}</div>
+      <div class="mt-1 text-xs text-gray-500">DOB: ${formatDob(detail.date_of_birth)}</div>
+      <div class="text-xs text-gray-500">Season age: ${detail.season_age ?? '—'}</div>
+
+      ${verified
+        ? `<button onclick="removePlayerVerification('${player.id}')"
+             class="mt-3 w-full px-3 py-2 rounded-lg border border-red-200 text-red-700 bg-red-50 font-black text-xs hover:bg-red-100">
+             Undo verification
+           </button>`
+        : `<button onclick="verifyPlayer('${player.id}')"
+             class="mt-3 w-full px-3 py-2 rounded-lg bg-green-600 text-white font-black text-xs hover:bg-green-700">
+             ✓ Verify Player
+           </button>`
+      }
+    </div>
+  `;
+}
+
 function playerCard(player) {
   return `
     <article class="player-card bg-white border border-gray-200 rounded-2xl overflow-hidden">
@@ -278,6 +339,8 @@ function playerCard(player) {
   ${player.season_age != null ? `Age ${player.season_age}` : 'Age —'}
   · ${player.position_group || 'OTH'}
 </div>
+        ${verificationBadge(player)}
+        ${adminVerificationPanel(player)}
       </div>
     </article>
   `;
@@ -433,10 +496,119 @@ function setupMatchweekSelect() {
   });
 }
 
+async function loadCurrentUser() {
+  const { data: { user } } = await supabase.auth.getUser();
+  currentUser = user || null;
+  isAdmin = false;
+
+  if (!currentUser) return;
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('category_role')
+    .eq('id', currentUser.id)
+    .maybeSingle();
+
+  if (error) {
+    console.error('Could not check admin role:', error);
+    return;
+  }
+
+  isAdmin = Array.isArray(data?.category_role) && data.category_role.includes('Admin');
+}
+
+async function loadVerifications(matchId) {
+  const { data, error } = await supabase
+    .from('matchweek_player_verifications')
+    .select('player_id, verified_at')
+    .eq('match_id', matchId)
+    .eq('team_code', TEAM);
+
+  if (error) {
+    console.error('Could not load verification status:', error);
+    currentVerifications = [];
+    return;
+  }
+
+  currentVerifications = data || [];
+}
+
+async function loadPrivateVerificationDetails(matchId) {
+  privateVerificationDetails = new Map();
+  if (!isAdmin || !verificationMode) return;
+
+  const { data, error } = await supabase.rpc(
+    'get_fsvl_player_verification_details',
+    { p_match_id: matchId, p_team_code: TEAM }
+  );
+
+  if (error) {
+    console.error('Could not load private verification details:', error);
+    return;
+  }
+
+  (data || []).forEach(row => privateVerificationDetails.set(row.player_id, row));
+}
+
+async function refreshCurrentMatchweek() {
+  if (!currentMatch) return;
+  await loadVerifications(currentMatch.id);
+  await loadPrivateVerificationDetails(currentMatch.id);
+  renderMatchweekPlayers(currentMatch, currentPlayers);
+}
+
+async function toggleVerificationMode() {
+  if (!isAdmin || !currentMatch) return;
+  verificationMode = !verificationMode;
+  await loadPrivateVerificationDetails(currentMatch.id);
+  renderMatchweekPlayers(currentMatch, currentPlayers);
+}
+
+async function verifyPlayer(playerId) {
+  if (!isAdmin || !currentUser || !currentMatch) return;
+
+  const { error } = await supabase
+    .from('matchweek_player_verifications')
+    .insert({
+      match_id: currentMatch.id,
+      team_code: TEAM,
+      player_id: playerId,
+      verified_by: currentUser.id
+    });
+
+  if (error) {
+    if (error.code !== '23505') alert(`Could not verify player: ${error.message}`);
+  }
+
+  await refreshCurrentMatchweek();
+}
+
+async function removePlayerVerification(playerId) {
+  if (!isAdmin || !currentMatch) return;
+  if (!confirm('Remove this player verification for this matchweek?')) return;
+
+  const { error } = await supabase
+    .from('matchweek_player_verifications')
+    .delete()
+    .eq('match_id', currentMatch.id)
+    .eq('team_code', TEAM)
+    .eq('player_id', playerId);
+
+  if (error) {
+    alert(`Could not remove verification: ${error.message}`);
+    return;
+  }
+
+  await refreshCurrentMatchweek();
+}
+
 async function showMatchweekLineup(matchId) {
   const match = teamMatches.find(m => m.id === matchId);
 
   if (!match) return;
+
+  currentMatch = match;
+  verificationMode = false;
 
   const { data, error } = await supabase
     .from('match_players')
@@ -473,6 +645,9 @@ async function showMatchweekLineup(matchId) {
     players = playerData || [];
   }
 
+  currentPlayers = players;
+  await loadVerifications(matchId);
+  privateVerificationDetails = new Map();
   renderMatchweekPlayers(match, players);
 }
 
@@ -516,8 +691,15 @@ function renderMatchweekPlayers(match, players) {
       </h2>
 
       <div class="text-sm text-gray-500 mt-1">
-        ${players.length} selected players
+        ${players.length} selected players · ${currentVerifications.length}/${players.length} verified
       </div>
+
+      ${isAdmin ? `
+        <button onclick="toggleVerificationMode()"
+          class="mt-4 px-4 py-2 rounded-xl ${verificationMode ? 'bg-gray-200 text-gray-900' : 'bg-gray-900 text-white'} font-black text-sm">
+          ${verificationMode ? 'Close Verification' : 'Verify Players'}
+        </button>
+      ` : ''}
     </div>
 
     ${
@@ -551,6 +733,11 @@ function showTeamView(view) {
     }
 
     document.getElementById('matchweekSelect').value = '';
+    currentMatch = null;
+    currentPlayers = [];
+    currentVerifications = [];
+    privateVerificationDetails = new Map();
+    verificationMode = false;
   }
 }
 
@@ -577,11 +764,15 @@ function renderTeamHeader() {
 }
 
 window.showTeamView = showTeamView;
+window.toggleVerificationMode = toggleVerificationMode;
+window.verifyPlayer = verifyPlayer;
+window.removePlayerVerification = removePlayerVerification;
 
 async function init() {
   try {
     renderTeamHeader();
 
+    await loadCurrentUser();
     await loadSquad();
     await loadTeamMatches();
     setupMatchweekSelect();
