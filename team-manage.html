@@ -32,7 +32,7 @@
       <div class="flex items-center gap-5">
         <div class="w-24 h-24 flex items-center justify-center flex-shrink-0"><img id="teamLogo" src="./images/FUT.png" alt="Team logo" class="team-logo-main"></div>
         <div>
-          <div class="uppercase tracking-widest text-sm font-bold text-orange-300">FSVL Season 2 · Team Management</div>
+          <div class="uppercase tracking-widest text-sm font-bold text-orange-300" id="leagueBanner">FSVL Season 2 · Team Management</div>
           <h1 id="teamName" class="text-3xl md:text-4xl font-black mt-1">Futbola CF</h1>
           <div id="teamCodeLine" class="text-gray-300 mt-1">FUT · Authorized access only</div>
         </div>
@@ -327,13 +327,30 @@ const supabase = createClient(
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkYnFyb3hoeXBuYWRvbGN4eHhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3MjkwNzYsImV4cCI6MjA1NzMwNTA3Nn0.c7_RVxoFdJNqQ62R3t1emH2Wf4dSsQaunHsHmbQxOBA'
 );
 
-const COMPETITION = 'futbola-svl';
-const SEASON = 2;
-const teams = {
-  FUT:{name:'Futbola CF',logo:'./images/FUT.png'}, HHC:{name:'Happy Hour SC',logo:'./images/HHC.jpeg'}, GOB:{name:'Tepen GOB',logo:'./images/GOB.jpeg'}, FCA:{name:'FC Alpha Vet',logo:'./images/FCA.jpeg'}, CFC:{name:'Cybersouth FC',logo:'./images/CFC.png'}, KLC:{name:'KL Classico FC',logo:'./images/KLC.jpeg'}
-};
 const params = new URLSearchParams(window.location.search);
-const TEAM = (params.get('team') || 'FUT').toUpperCase();
+const IS_MASTERS = params.get('league') === 'futbola-masters';
+const COMPETITION = IS_MASTERS ? 'futbola-masters' : 'futbola-svl';
+const SEASON = IS_MASTERS ? 1 : 2;
+const LEAGUE_LABEL = IS_MASTERS ? 'Futbola Masters League 40+ · Season 1' : 'FSVL Season 2';
+const LEAGUE_YEAR = IS_MASTERS ? '2026–2027' : '2026';
+const TEAM = (params.get('team') || (IS_MASTERS ? 'FCA' : 'FUT')).toUpperCase();
+const teams = IS_MASTERS ? {
+  GOF: {name:'GOB x Futbola',logo:'./assets/teams/fml40/gof.jpeg'},
+  VFC: {name:'Vecaro FC',logo:'./assets/teams/fml40/vfc.jpeg'},
+  HHC: {name:'Happy Hour SC',logo:'./assets/teams/fml40/hhc.jpeg'},
+  FCA: {name:'FC Alpha Vet GR',logo:'./assets/teams/fml40/fca.jpeg'},
+  LTV: {name:'Loyal Troopers FC',logo:'./assets/teams/fml40/ltv.jpeg'}
+} : {
+  FUT: {name:'Futbola CF',logo:'./assets/teams/fsvl/FUT.png'},
+  HHC: {name:'Happy Hour SC',logo:'./assets/teams/fsvl/hhc.jpeg'},
+  GOB: {name:'Tepen GOB',logo:'./assets/teams/fsvl/GOB.jpeg'},
+  FCA: {name:'FC Alpha Vet',logo:'./assets/teams/fsvl/fca.jpeg'},
+  CFC: {name:'Cybersouth FC',logo:'./assets/teams/fsvl/CFC.png'},
+  KLC: {name:'KL Classico FC',logo:'./assets/teams/fsvl/KLC.jpeg'}
+};
+const tournamentUrl = `./tournament.html?league=${encodeURIComponent(COMPETITION)}&season=${SEASON}`;
+const teamPageUrl = `./team.html?team=${encodeURIComponent(TEAM)}&league=${encodeURIComponent(COMPETITION)}&season=${SEASON}`;
+const managePageUrl = `./team-manage.html?team=${encodeURIComponent(TEAM)}&league=${encodeURIComponent(COMPETITION)}&season=${SEASON}`;
 
 let seasonPlayers = [];
 let inactivePlayers = [];
@@ -351,11 +368,13 @@ function hideAllStates(){ [loadingState,loginState,deniedState,authorizedState].
 
 function setupTeamHeader(){
   const team = teams[TEAM] || {name:TEAM,logo:'./images/futbolaLogoOnly.png'};
-  document.title = `Manage ${team.name} · FSVL Season 2`;
+  document.title = `Manage ${team.name} · ${LEAGUE_LABEL}`;
+  document.getElementById("leagueBanner").textContent = `${LEAGUE_LABEL} · Team Management`;
+  document.querySelectorAll('a[href="./tournament.html"]').forEach(el => el.href = tournamentUrl);
   document.getElementById('teamName').textContent = team.name;
   document.getElementById('teamCodeLine').textContent = `${TEAM} · Authorized access only`;
   document.getElementById('teamLogo').src = team.logo;
-  const publicUrl = `./team.html?team=${encodeURIComponent(TEAM)}`;
+  const publicUrl = teamPageUrl;
   document.getElementById('publicTeamLink').href = publicUrl;
   document.getElementById('deniedPublicLink').href = publicUrl;
   document.getElementById('authorizedPublicLink').href = publicUrl;
@@ -380,7 +399,7 @@ function managePersonPhoto(person){
     `;
   }
 
-  const base=`./images/player-headshots/FSV-S2/${person.team_code}/${person.id}`;
+  const base=`./images/player-headshots/${IS_MASTERS ? "FML40-S1" : "FSV-S2"}/${person.team_code}/${person.id}`;
 
   return `
     <img
@@ -830,7 +849,7 @@ async function uploadPlayerPhoto(playerId){
 
   // Use a unique object path for every upload. Reusing the same URL can
   // leave the browser/Supabase CDN showing the previous cached image.
-  const path=`${TEAM}/${playerId}-${Date.now()}.${extension}`;
+  const path=`${COMPETITION}/season-${SEASON}/${TEAM}/${playerId}-${Date.now()}.${extension}`;
   const previousPhotoPath=currentPhotoPath;
 
   const {error:uploadError}=await supabase.storage
@@ -917,7 +936,7 @@ function parseDobOrIc(value){
     const year=Number(raw.slice(0,4));
     return {
       dateOfBirth:raw,
-      seasonAge:SEASON === 2 ? 2026-year : null
+      seasonAge:2026-year
     };
   }
 
@@ -1014,7 +1033,7 @@ function openEditPersonModal(id){
     showPhotoPreview(currentPhotoUrl,true);
 
   }else{
-    const base=`./images/player-headshots/FSV-S2/${person.team_code}/${person.id}`;
+    const base=`./images/player-headshots/${IS_MASTERS ? "FML40-S1" : "FSV-S2"}/${person.team_code}/${person.id}`;
     const preview=document.getElementById('personPhotoPreview');
     const placeholder=document.getElementById('personPhotoPlaceholder');
     const removeBtn=document.getElementById('removePhotoButton');

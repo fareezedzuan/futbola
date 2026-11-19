@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Futbola CF · FSVL Season 2</title>
-  <link rel="icon" href="../images/futbola-favicon.ico" type="image/x-icon">
+  <link rel="icon" href="./images/futbola-favicon.ico" type="image/x-icon">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
   <style>
     html { scroll-behavior:smooth; }
@@ -12,7 +12,7 @@
     .brand-bg {
       background-image:
         linear-gradient(110deg, rgba(255,255,255,.97), rgba(255,247,237,.94)),
-        url('../images/backgroundOrangeGradient.jpg');
+        url('./images/backgroundOrangeGradient.jpg');
       background-size:cover;
       background-position:center;
     }
@@ -73,12 +73,12 @@
   <nav class="brand-bg border-b border-orange-100">
     <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
       <a href="/" class="flex items-center">
-        <img src="../images/futbolaLogoOnly.png" width="42" height="42" alt="futbola logo" class="mr-2">
+        <img src="./images/futbolaLogoOnly.png" width="42" height="42" alt="futbola logo" class="mr-2">
         <span class="text-xl font-bold">futbola</span>
       </a>
       <div class="flex items-center gap-3 text-sm font-semibold">
-        <a href="../tournament.html" class="hover:text-orange-600">Tournament</a>
-        <a href="../book-game.html" class="hover:text-orange-600">Book Game</a>
+        <a href="./tournament.html" class="hover:text-orange-600">Tournament</a>
+        <a href="./book-game.html" class="hover:text-orange-600">Book Game</a>
       </div>
     </div>
   </nav>
@@ -91,14 +91,14 @@
             <img id="teamLogo" src="" alt="" class="team-logo-main">
           </div>
           <div>
-            <div class="uppercase tracking-widest text-sm font-bold text-orange-300">FSVL Season 2 · 2026</div>
+            <div class="uppercase tracking-widest text-sm font-bold text-orange-300" id="leagueBanner" id="footerLeagueBanner">FSVL Season 2 · 2026</div>
             <h1 id="teamName" class="text-4xl md:text-5xl font-black mt-1"></h1>
             <div id="teamSubtitle" class="text-gray-300 mt-2"></div>
           </div>
         </div>
 
         <div class="flex flex-wrap gap-3">
-          <a href="../tournament.html"
+          <a href="./tournament.html"
              class="px-4 py-3 rounded-xl bg-white bg-opacity-10 border border-white border-opacity-20 font-black text-sm hover:bg-opacity-20">
             ← Tournament
           </a>
@@ -172,13 +172,13 @@
   <footer class="brand-bg border-t border-orange-100 mt-12">
     <div class="max-w-7xl mx-auto px-4 py-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
       <div class="flex items-center">
-        <img src="../images/futbolaLogoOnly.png" width="40" height="40" alt="futbola logo" class="mr-2">
+        <img src="./images/futbolaLogoOnly.png" width="40" height="40" alt="futbola logo" class="mr-2">
         <div>
           <div id="footerTeamName" class="font-black"></div>
           <div class="text-sm text-gray-500">FSVL Season 2 · 2026</div>
         </div>
       </div>
-      <a href="../tournament.html" class="text-sm font-bold hover:text-orange-600">← Back to tournament</a>
+      <a href="./tournament.html" class="text-sm font-bold hover:text-orange-600">← Back to tournament</a>
     </div>
   </footer>
 
@@ -190,18 +190,30 @@ const supabase = createClient(
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkYnFyb3hoeXBuYWRvbGN4eHhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3MjkwNzYsImV4cCI6MjA1NzMwNTA3Nn0.c7_RVxoFdJNqQ62R3t1emH2Wf4dSsQaunHsHmbQxOBA'
 );
 
-const COMPETITION = 'futbola-svl';
-const SEASON = 2;
 const params = new URLSearchParams(window.location.search);
-const TEAM = params.get('team') || 'FUT';
-const teams = {
-  FUT: { name:'Futbola CF', logo:'../images/FUT.png' },
-  HHC: { name:'Happy Hour SC', logo:'../images/HHC.jpeg' },
-  GOB: { name:'Tepen GOB', logo:'../images/GOB.jpeg' },
-  FCA: { name:'FC Alpha Vet', logo:'../images/FCA.jpeg' },
-  CFC: { name:'Cybersouth FC', logo:'../images/CFC.png' },
-  KLC: { name:'KL Classico FC', logo:'../images/KLC.jpeg' }
+const IS_MASTERS = params.get('league') === 'futbola-masters';
+const COMPETITION = IS_MASTERS ? 'futbola-masters' : 'futbola-svl';
+const SEASON = IS_MASTERS ? 1 : 2;
+const LEAGUE_LABEL = IS_MASTERS ? 'Futbola Masters League 40+ · Season 1' : 'FSVL Season 2';
+const LEAGUE_YEAR = IS_MASTERS ? '2026–2027' : '2026';
+const TEAM = (params.get('team') || (IS_MASTERS ? 'FCA' : 'FUT')).toUpperCase();
+const teams = IS_MASTERS ? {
+  GOF: {name:'GOB x Futbola',logo:'./assets/teams/fml40/gof.jpeg'},
+  VFC: {name:'Vecaro FC',logo:'./assets/teams/fml40/vfc.jpeg'},
+  HHC: {name:'Happy Hour SC',logo:'./assets/teams/fml40/hhc.jpeg'},
+  FCA: {name:'FC Alpha Vet GR',logo:'./assets/teams/fml40/fca.jpeg'},
+  LTV: {name:'Loyal Troopers FC',logo:'./assets/teams/fml40/ltv.jpeg'}
+} : {
+  FUT: {name:'Futbola CF',logo:'./assets/teams/fsvl/FUT.png'},
+  HHC: {name:'Happy Hour SC',logo:'./assets/teams/fsvl/hhc.jpeg'},
+  GOB: {name:'Tepen GOB',logo:'./assets/teams/fsvl/GOB.jpeg'},
+  FCA: {name:'FC Alpha Vet',logo:'./assets/teams/fsvl/fca.jpeg'},
+  CFC: {name:'Cybersouth FC',logo:'./assets/teams/fsvl/CFC.png'},
+  KLC: {name:'KL Classico FC',logo:'./assets/teams/fsvl/KLC.jpeg'}
 };
+const tournamentUrl = `./tournament.html?league=${encodeURIComponent(COMPETITION)}&season=${SEASON}`;
+const teamPageUrl = `./team.html?team=${encodeURIComponent(TEAM)}&league=${encodeURIComponent(COMPETITION)}&season=${SEASON}`;
+const managePageUrl = `./team-manage.html?team=${encodeURIComponent(TEAM)}&league=${encodeURIComponent(COMPETITION)}&season=${SEASON}`;
 
 const team = teams[TEAM] || {
   name: TEAM,
@@ -238,7 +250,7 @@ function playerPhoto(player) {
   }
 
   const base =
-  `../images/player-headshots/FSV-S2/${player.team_code}/${player.id}`;
+  `./images/player-headshots/FSV-S2/${player.team_code}/${player.id}`;
 
   return `
     <div class="relative overflow-hidden bg-gray-100">
@@ -535,7 +547,7 @@ async function loadVerifications(matchId) {
 
 async function loadPrivateVerificationDetails(matchId) {
   privateVerificationDetails = new Map();
-  if (!isAdmin || !verificationMode) return;
+  if (!isAdmin || !verificationMode || IS_MASTERS) return;
 
   const { data, error } = await supabase.rpc(
     'get_fsvl_player_verification_details',
@@ -558,14 +570,14 @@ async function refreshCurrentMatchweek() {
 }
 
 async function toggleVerificationMode() {
-  if (!isAdmin || !currentMatch) return;
+  if (!isAdmin || !currentMatch || IS_MASTERS) return;
   verificationMode = !verificationMode;
   await loadPrivateVerificationDetails(currentMatch.id);
   renderMatchweekPlayers(currentMatch, currentPlayers);
 }
 
 async function verifyPlayer(playerId) {
-  if (!isAdmin || !currentUser || !currentMatch) return;
+  if (!isAdmin || !currentUser || !currentMatch || IS_MASTERS) return;
 
   const { error } = await supabase
     .from('matchweek_player_verifications')
@@ -584,7 +596,7 @@ async function verifyPlayer(playerId) {
 }
 
 async function removePlayerVerification(playerId) {
-  if (!isAdmin || !currentMatch) return;
+  if (!isAdmin || !currentMatch || IS_MASTERS) return;
   if (!confirm('Remove this player verification for this matchweek?')) return;
 
   const { error } = await supabase
@@ -694,7 +706,7 @@ function renderMatchweekPlayers(match, players) {
         ${players.length} selected players · ${currentVerifications.length}/${players.length} verified
       </div>
 
-      ${isAdmin ? `
+      ${isAdmin && !IS_MASTERS ? `
         <button onclick="toggleVerificationMode()"
           class="mt-4 px-4 py-2 rounded-xl ${verificationMode ? 'bg-gray-200 text-gray-900' : 'bg-gray-900 text-white'} font-black text-sm">
           ${verificationMode ? 'Close Verification' : 'Verify Players'}
@@ -742,10 +754,11 @@ function showTeamView(view) {
 }
 
 function renderTeamHeader() {
-  document.title = `${team.name} · FSVL Season 2`;
-
-  document.getElementById('manageTeamLink').href =
-    `./team-manage.html?team=${encodeURIComponent(TEAM)}`;
+  document.title = `${team.name} · ${LEAGUE_LABEL}`;
+  document.getElementById('leagueBanner').textContent = `${LEAGUE_LABEL} · ${LEAGUE_YEAR}`;
+  document.getElementById('footerLeagueBanner').textContent = `${LEAGUE_LABEL} · ${LEAGUE_YEAR}`;
+  document.getElementById('manageTeamLink').href = managePageUrl;
+  document.querySelectorAll('a[href="./tournament.html"]').forEach(el => el.href = tournamentUrl);
 
   const logo = document.getElementById('teamLogo');
   logo.src = team.logo;
@@ -754,10 +767,10 @@ function renderTeamHeader() {
   document.getElementById('teamName').textContent = team.name;
 
   document.getElementById('teamSubtitle').textContent =
-    `${TEAM} · Semi Veteran League`;
+    `${TEAM} · ${IS_MASTERS ? "Masters 40+" : "Semi Veteran League"}`;
 
   document.getElementById('squadDescription').textContent =
-    `${team.name} registered players for FSVL Season 2`;
+    `${team.name} registered players for ${LEAGUE_LABEL}`;
 
   document.getElementById('footerTeamName').textContent =
     team.name;
