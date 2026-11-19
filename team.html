@@ -196,7 +196,7 @@ const COMPETITION = IS_MASTERS ? 'futbola-masters' : 'futbola-svl';
 const SEASON = IS_MASTERS ? 1 : 2;
 const LEAGUE_LABEL = IS_MASTERS ? 'Futbola Masters League 40+ · Season 1' : 'FSVL Season 2';
 const LEAGUE_YEAR = IS_MASTERS ? '2026–2027' : '2026';
-const TEAM = (params.get('team') || (IS_MASTERS ? 'FCA' : 'FUT')).toUpperCase();
+const TEAM = (params.get('team') || (IS_MASTERS ? 'FCA' : 'FUT')).toUpperCase() === 'GOB' && IS_MASTERS ? 'GOF' : (params.get('team') || (IS_MASTERS ? 'FCA' : 'FUT')).toUpperCase();
 const teams = IS_MASTERS ? {
   GOF: {name:'GOB x Futbola',logo:'./assets/teams/fml40/gof.jpeg'},
   VFC: {name:'Vecaro FC',logo:'./assets/teams/fml40/vfc.jpeg'},
@@ -206,10 +206,10 @@ const teams = IS_MASTERS ? {
 } : {
   FUT: {name:'Futbola CF',logo:'./assets/teams/fsvl/FUT.png'},
   HHC: {name:'Happy Hour SC',logo:'./assets/teams/fsvl/hhc.jpeg'},
-  GOB: {name:'Tepen GOB',logo:'./assets/teams/fsvl/gob.jpeg'},
+  GOB: {name:'Tepen GOB',logo:'./assets/teams/fsvl/GOB.jpeg'},
   FCA: {name:'FC Alpha Vet',logo:'./assets/teams/fsvl/fca.jpeg'},
-  CFC: {name:'Cybersouth FC',logo:'./assets/teams/fsvl/cfc.png'},
-  KLC: {name:'KL Classico FC',logo:'./assets/teams/fsvl/klc.jpeg'}
+  CFC: {name:'Cybersouth FC',logo:'./assets/teams/fsvl/CFC.png'},
+  KLC: {name:'KL Classico FC',logo:'./assets/teams/fsvl/KLC.jpeg'}
 };
 const tournamentUrl = `./tournament.html?league=${encodeURIComponent(COMPETITION)}&season=${SEASON}`;
 const teamPageUrl = `./team.html?team=${encodeURIComponent(TEAM)}&league=${encodeURIComponent(COMPETITION)}&season=${SEASON}`;
@@ -250,7 +250,7 @@ function playerPhoto(player) {
   }
 
   const base =
-  `./images/player-headshots/FSV-S2/${player.team_code}/${player.id}`;
+  `./images/player-headshots/${IS_MASTERS ? "FML40-S1" : "FSV-S2"}/${player.team_code}/${player.id}`;
 
   return `
     <div class="relative overflow-hidden bg-gray-100">
