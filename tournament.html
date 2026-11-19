@@ -403,26 +403,23 @@ const COMPETITION = isMasters ? 'futbola-masters' : 'futbola-svl';
 const SEASON = isMasters ? 1 : 2;
 
 const teams = isMasters ? {
-  FCA: { name:'FC Alpha Vet GR', short:'FCA', logo:'./images/fml40/fca.jpeg' },
-  GOB: { name:'GOB x Futbola', short:'GOB', logo:'./images/fml40/gof.jpeg' },
-  GOF: { name:'GOB x Futbola', short:'GOF', logo:'./images/fml40/gof.jpeg' },
-  HHC: { name:'Happy Hour SC', short:'HHC', logo:'./images/fml40/hhc.jpeg' },
-  LTV: { name:'Loyal Troopers FC', short:'LTV', logo:'./images/fml40/ltv.jpeg' },
-  VFC: { name:'Vecaro FC', short:'VFC', logo:'./images/fml40/vfc.jpeg' }
+  FCA: { name:'FC Alpha Vet GR', short:'FCA', logo:'./assets/teams/fml40/fca.jpeg' },
+  GOF: { name:'GOB x Futbola', short:'GOF', logo:'./assets/teams/fml40/gof.jpeg' },
+  HHC: { name:'Happy Hour SC', short:'HHC', logo:'./assets/teams/fml40/hhc.jpeg' },
+  LTV: { name:'Loyal Troopers FC', short:'LTV', logo:'./assets/teams/fml40/ltv.jpeg' },
+  VFC: { name:'Vecaro FC', short:'VFC', logo:'./assets/teams/fml40/vfc.jpeg' }
 } : {
-  FUT: { name:'Futbola CF', short:'FUT', logo:'./images/fsvl/FUT.png' },
-  HHC: { name:'Happy Hour SC', short:'HHC', logo:'./images/fsvl/HHC.jpeg' },
-  GOB: { name:'Tepen GOB', short:'GOB', logo:'./images/fsvl/GOB.jpeg' },
-  FCA: { name:'FC Alpha Vet', short:'FCA', logo:'./images/fsvl/FCA.jpeg' },
-  CFC: { name:'Cybersouth FC', short:'CFC', logo:'./images/fsvl/CFC.png' },
-  KLC: { name:'KL Classico FC', short:'KLC', logo:'./images/fsvl/KLC.jpeg' }
+  FUT: { name:'Futbola CF', short:'FUT', logo:'./assets/teams/fsvl/FUT.png' },
+  HHC: { name:'Happy Hour SC', short:'HHC', logo:'./assets/teams/fsvl/hhc.jpeg' },
+  GOB: { name:'Tepen GOB', short:'GOB', logo:'./assets/teams/fsvl/GOB.jpeg' },
+  FCA: { name:'FC Alpha Vet', short:'FCA', logo:'./assets/teams/fsvl/fca.jpeg' },
+  CFC: { name:'Cybersouth FC', short:'CFC', logo:'./assets/teams/fsvl/CFC.png' },
+  KLC: { name:'KL Classico FC', short:'KLC', logo:'./assets/teams/fsvl/KLC.jpeg' }
 };
-// GOF is an alternate code, not an additional participating team.
-if (isMasters) delete teams.GOF;
 
 function ensureTeam(code) {
   if (!code || teams[code]) return;
-  const aliases = { GOF:'GOB' };
+  const aliases = { GOB:'GOF' };
   if (isMasters && aliases[code] && teams[aliases[code]]) {
     teams[code] = { ...teams[aliases[code]], short:code };
   } else {
@@ -1480,7 +1477,7 @@ document.getElementById("redCards").innerHTML =
 }
 
 function renderClubGrid() {
-  document.getElementById("clubGrid").innerHTML=Object.entries(teams).filter(([code])=>!isMasters || code!=="GOF").map(([code,t])=>`<a href="${teamUrl(code)}" class="club-card border rounded-xl p-4 bg-white flex items-center gap-4">${logo(code,"team-logo-lg")}<div class="flex-1"><div class="font-black text-lg">${t.name}</div><div class="text-sm text-gray-400">${code}</div></div><span class="text-2xl text-gray-300">→</span></a>`).join("");
+  document.getElementById("clubGrid").innerHTML=Object.entries(teams).filter(([code])=>!isMasters || code!=="GOB").map(([code,t])=>`<a href="${teamUrl(code)}" class="club-card border rounded-xl p-4 bg-white flex items-center gap-4">${logo(code,"team-logo-lg")}<div class="flex-1"><div class="font-black text-lg">${t.name}</div><div class="text-sm text-gray-400">${code}</div></div><span class="text-2xl text-gray-300">→</span></a>`).join("");
 }
 
 function playerPhoto(player) {
