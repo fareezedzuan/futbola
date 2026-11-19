@@ -214,14 +214,14 @@ img[src*="KLC.jpeg"] {
     <div class="max-w-7xl mx-auto px-4 py-10 md:py-14">
       <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8">
         <div>
-          <div class="uppercase tracking-widest text-sm font-bold text-orange-300">Futbola SVL</div>
-          <h1 class="text-4xl md:text-6xl font-black leading-tight mt-2">
+          <div class="uppercase tracking-widest text-sm font-bold text-orange-300" id="heroKicker">Futbola SVL</div>
+          <h1 id="heroTitle" class="text-4xl md:text-6xl font-black leading-tight mt-2">
             Semi Veteran League
           </h1>
-          <div class="text-2xl md:text-3xl font-black mt-2 futbola-gradient">
+          <div id="heroSeason" class="text-2xl md:text-3xl font-black mt-2 futbola-gradient">
             Season 2 · 2026
           </div>
-          <p class="text-gray-300 mt-4 max-w-2xl">
+          <p id="heroFormat" class="text-gray-300 mt-4 max-w-2xl">
             6 teams · Double round-robin · 10 matchweeks · 30 matches
           </p>
         </div>
@@ -366,7 +366,7 @@ img[src*="KLC.jpeg"] {
     <!-- Clubs -->
     <section id="clubs" class="panel p-5 md:p-6 scroll-mt-24">
       <div class="section-kicker">CLUBS</div>
-      <h2 class="text-2xl md:text-3xl font-black mt-1">Season 2 Teams</h2>
+      <h2 id="clubsHeading" class="text-2xl md:text-3xl font-black mt-1">Season 2 Teams</h2>
       <p class="text-gray-500 text-sm mt-2">Tap a team to open its team page.</p>
 
       <div id="clubGrid" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6"></div>
@@ -379,8 +379,8 @@ img[src*="KLC.jpeg"] {
       <div class="flex items-center">
         <img src="./images/futbolaLogoOnly.png" width="40" height="40" alt="futbola logo" class="mr-2">
         <div>
-          <div class="font-black">Futbola Semi Veteran League</div>
-          <div class="text-sm text-gray-500">Season 2 · 2026</div>
+          <div id="footerLeague" class="font-black">Futbola Semi Veteran League</div>
+          <div id="footerSeason" class="text-sm text-gray-500">Season 2 · 2026</div>
         </div>
       </div>
       <a href="/" class="text-sm font-bold hover:text-orange-600">← Back to futbola.my</a>
@@ -395,17 +395,55 @@ const supabase = createClient(
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkYnFyb3hoeXBuYWRvbGN4eHhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3MjkwNzYsImV4cCI6MjA1NzMwNTA3Nn0.c7_RVxoFdJNqQ62R3t1emH2Wf4dSsQaunHsHmbQxOBA'
 );
 
-const COMPETITION = 'futbola-svl';
-const SEASON = 2;
+// The selection page links here with ?league=...&season=...
+const params = new URLSearchParams(window.location.search);
+const requestedLeague = params.get('league');
+const isMasters = requestedLeague === 'futbola-masters';
+const COMPETITION = isMasters ? 'futbola-masters' : 'futbola-svl';
+const SEASON = isMasters ? 1 : 2;
 
-const teams = {
-  FUT: { name:"Futbola CF", short:"FUT", logo:"./images/FUT.png" },
-  HHC: { name:"Happy Hour SC", short:"HHC", logo:"./images/HHC.jpeg" },
-  GOB: { name:"Tepen GOB", short:"GOB", logo:"./images/GOB.jpeg" },
-  FCA: { name:"FC Alpha Vet", short:"FCA", logo:"./images/FCA.jpeg" },
-  CFC: { name:"Cybersouth FC", short:"CFC", logo:"./images/CFC.png" },
-  KLC: { name:"KL Classico FC", short:"KLC", logo:"./images/KLC.jpeg" }
+const teams = isMasters ? {
+  FCA: { name:'FC Alpha Vet GR', short:'FCA', logo:'./images/fml40/fca.jpeg' },
+  GOB: { name:'GOB x Futbola', short:'GOB', logo:'./images/fml40/gof.jpeg' },
+  GOF: { name:'GOB x Futbola', short:'GOF', logo:'./images/fml40/gof.jpeg' },
+  HHC: { name:'Happy Hour SC', short:'HHC', logo:'./images/fml40/hhc.jpeg' },
+  LTV: { name:'Loyal Troopers FC', short:'LTV', logo:'./images/fml40/ltv.jpeg' },
+  VFC: { name:'Vecaro FC', short:'VFC', logo:'./images/fml40/vfc.jpeg' }
+} : {
+  FUT: { name:'Futbola CF', short:'FUT', logo:'./images/fsvl/FUT.png' },
+  HHC: { name:'Happy Hour SC', short:'HHC', logo:'./images/fsvl/HHC.jpeg' },
+  GOB: { name:'Tepen GOB', short:'GOB', logo:'./images/fsvl/GOB.jpeg' },
+  FCA: { name:'FC Alpha Vet', short:'FCA', logo:'./images/fsvl/FCA.jpeg' },
+  CFC: { name:'Cybersouth FC', short:'CFC', logo:'./images/fsvl/CFC.png' },
+  KLC: { name:'KL Classico FC', short:'KLC', logo:'./images/fsvl/KLC.jpeg' }
 };
+// GOF is an alternate code, not an additional participating team.
+if (isMasters) delete teams.GOF;
+
+function ensureTeam(code) {
+  if (!code || teams[code]) return;
+  const aliases = { GOF:'GOB' };
+  if (isMasters && aliases[code] && teams[aliases[code]]) {
+    teams[code] = { ...teams[aliases[code]], short:code };
+  } else {
+    teams[code] = { name:code, short:code, logo:'' };
+  }
+}
+
+function applyLeagueBranding() {
+  const name = isMasters ? 'Masters League 40+' : 'Semi Veteran League';
+  const subtitle = isMasters ? 'Season 1 · 2026' : 'Season 2 · 2026';
+  document.title = `Futbola ${name} — ${subtitle}`;
+  document.getElementById('heroKicker').textContent = isMasters ? 'Futbola Masters' : 'Futbola SVL';
+  document.getElementById('heroTitle').textContent = name;
+  document.getElementById('heroSeason').textContent = subtitle;
+  document.getElementById('heroFormat').textContent = isMasters
+    ? '5 teams · Double round-robin · 10 matchweeks · 20 matches'
+    : '6 teams · Double round-robin · 10 matchweeks · 30 matches';
+  document.getElementById('clubsHeading').textContent = isMasters ? 'Masters League Teams' : 'Season 2 Teams';
+  document.getElementById('footerLeague').textContent = `Futbola ${name}`;
+  document.getElementById('footerSeason').textContent = subtitle;
+}
 
 let schedule = [];
 
@@ -454,6 +492,7 @@ async function loadData() {
     .order("start_time");
   if (matchErr) throw matchErr;
 
+  (matches || []).forEach(x => { ensureTeam(x.home_team_code); ensureTeam(x.away_team_code); });
   const ids = (matches || []).map(x => x.id);
 
   let events = [];
@@ -675,7 +714,7 @@ function nextFixtureRow(m) {
 
 function calculateStandings() {
   const s = {};
-  Object.keys(teams).forEach(code => s[code]={code,p:0,w:0,d:0,l:0,gf:0,ga:0,gd:0,pts:0,form:[]});
+  Object.keys(teams).filter(code => !(isMasters && code === "GOB" && teams.GOF)).forEach(code => s[code]={code,p:0,w:0,d:0,l:0,gf:0,ga:0,gd:0,pts:0,form:[]});
 
   schedule.forEach(w => w.matches.forEach(m => {
     if (m.status !== "finished" || typeof m.homeScore !== "number" || typeof m.awayScore !== "number") return;
@@ -1441,7 +1480,7 @@ document.getElementById("redCards").innerHTML =
 }
 
 function renderClubGrid() {
-  document.getElementById("clubGrid").innerHTML=Object.entries(teams).map(([code,t])=>`<a href="${teamUrl(code)}" class="club-card border rounded-xl p-4 bg-white flex items-center gap-4">${logo(code,"team-logo-lg")}<div class="flex-1"><div class="font-black text-lg">${t.name}</div><div class="text-sm text-gray-400">${code}</div></div><span class="text-2xl text-gray-300">→</span></a>`).join("");
+  document.getElementById("clubGrid").innerHTML=Object.entries(teams).filter(([code])=>!isMasters || code!=="GOF").map(([code,t])=>`<a href="${teamUrl(code)}" class="club-card border rounded-xl p-4 bg-white flex items-center gap-4">${logo(code,"team-logo-lg")}<div class="flex-1"><div class="font-black text-lg">${t.name}</div><div class="text-sm text-gray-400">${code}</div></div><span class="text-2xl text-gray-300">→</span></a>`).join("");
 }
 
 function playerPhoto(player) {
@@ -1469,7 +1508,7 @@ function playerPhoto(player) {
 
   // 2. Old manually stored website image
   const basePath =
-    `./images/player-headshots/FSV-S2/${player.team_code}/${player.id}`;
+    `./images/player-headshots/${isMasters ? "FML40-S1" : "FSV-S2"}/${player.team_code}/${player.id}`;
 
   return `
     <img
@@ -1579,9 +1618,19 @@ document.querySelectorAll(".nav-link").forEach(link=>link.addEventListener("clic
 }));
 
 async function init(){
+  applyLeagueBranding();
   try{
     await loadData();
-    if(!schedule.length)throw new Error("No league matches found");
+    if (!schedule.length) {
+      document.getElementById('leagueStatus').textContent = 'Season scheduled';
+      document.getElementById('nextMatchInfo').textContent = 'Fixtures coming soon';
+      document.getElementById('tableStatus').textContent = 'No matches recorded yet';
+      document.getElementById('latestResults').innerHTML = '<p class="text-gray-500 text-sm">No results yet.</p>';
+      document.getElementById('nextFixtures').innerHTML = '<p class="text-gray-500 text-sm">Fixtures coming soon.</p>';
+      document.getElementById('matchweeks').innerHTML = '<div class="panel p-6 text-gray-500">No fixtures have been published for this league yet.</div>';
+      renderStandings(); renderStats(); renderClubGrid();
+      return;
+    }
     renderOverview();
     renderStandings();
     renderStats();
