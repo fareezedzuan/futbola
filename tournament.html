@@ -444,9 +444,10 @@ function applyLeagueBranding() {
 
 let schedule = [];
 
-const teamUrl = code => `/team.html?team=${encodeURIComponent(code)}`;
-const matchUrl = id => `/match.html?id=${encodeURIComponent(id)}`;
-const playerUrl = (name, team) => `/league-player.html?player=${encodeURIComponent(name)}&team=${encodeURIComponent(team)}`;
+const leagueQuery = `league=${encodeURIComponent(COMPETITION)}&season=${encodeURIComponent(SEASON)}`;
+const teamUrl = code => `/team.html?team=${encodeURIComponent(isMasters && code === 'GOB' ? 'GOF' : code)}&${leagueQuery}`;
+const matchUrl = id => `/match.html?id=${encodeURIComponent(id)}&${leagueQuery}`;
+const playerUrl = (name, team) => `/league-player.html?player=${encodeURIComponent(name)}&team=${encodeURIComponent(team)}&${leagueQuery}`;
 
 const logo = (code, cls="team-logo") =>
   `<img src="${teams[code]?.logo || ''}" alt="${teams[code]?.name || code}" class="${cls}">`;
