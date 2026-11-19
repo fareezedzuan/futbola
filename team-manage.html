@@ -69,6 +69,8 @@
         </div>
       </div>
 
+      <div id="managedTeamsPanel" class="panel p-4 md:p-5 mb-6 hidden"><label for="managedTeamSelect" class="block text-xs uppercase tracking-wider text-gray-500 font-black mb-2">Your authorized teams & leagues</label><select id="managedTeamSelect" class="field"></select><p class="text-xs text-gray-500 mt-2">One Futbola login can manage multiple teams. Each league retains its own players and matchweek squads.</p></div>
+
       <div class="flex gap-2 mb-6">
         <button id="playersTab" onclick="showTab('players')" class="px-4 py-2 rounded-full bg-gray-900 text-white font-black text-sm">Season Players</button>
         <button id="matchweekTab" onclick="showTab('matchweek')" class="px-4 py-2 rounded-full bg-white border border-gray-300 text-gray-700 font-black text-sm">Matchweek Squad</button>
@@ -76,7 +78,7 @@
 
       <section id="playersPanel" class="panel p-5 md:p-6">
         <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
-          <div><div class="section-kicker">SEASON PLAYER POOL</div><h3 class="text-2xl font-black mt-1">Registered Players</h3><p class="text-sm text-gray-500 mt-1">Editing controls come next. This page is currently confirming login and team authorization.</p></div>
+          <div><div class="section-kicker">SEASON PLAYER POOL</div><h3 class="text-2xl font-black mt-1">Registered Players</h3><p class="text-sm text-gray-500 mt-1">Add or edit registered players and staff for this league and season.</p></div>
           <div class="flex items-center gap-3">
             <div id="playerCount" class="text-sm font-bold text-gray-500"></div>
 
@@ -333,7 +335,7 @@ const COMPETITION = IS_MASTERS ? 'futbola-masters' : 'futbola-svl';
 const SEASON = IS_MASTERS ? 1 : 2;
 const LEAGUE_LABEL = IS_MASTERS ? 'Futbola Masters League 40+ · Season 1' : 'FSVL Season 2';
 const LEAGUE_YEAR = IS_MASTERS ? '2026–2027' : '2026';
-const TEAM = (params.get('team') || (IS_MASTERS ? 'FCA' : 'FUT')).toUpperCase();
+const TEAM = (params.get('team') || (IS_MASTERS ? 'FCA' : 'FUT')).toUpperCase() === 'GOB' && IS_MASTERS ? 'GOF' : (params.get('team') || (IS_MASTERS ? 'FCA' : 'FUT')).toUpperCase();
 const teams = IS_MASTERS ? {
   GOF: {name:'GOB x Futbola',logo:'./assets/teams/fml40/gof.jpeg'},
   VFC: {name:'Vecaro FC',logo:'./assets/teams/fml40/vfc.jpeg'},
@@ -381,6 +383,35 @@ function setupTeamHeader(){
 }
 
 async function getCurrentSession(){ const {data,error}=await supabase.auth.getSession(); if(error) throw error; return data.session; }
+
+const MANAGED_TEAM_LABELS = {
+  'futbola-svl': {FUT:'Futbola CF', HHC:'Happy Hour SC', FCA:'FC Alpha Vet', GOB:'Tepen GOB', CFC:'Cybersouth FC', KLC:'KL Classico FC'},
+  'futbola-masters': {GOF:'GOB x Futbola', HHC:'Happy Hour SC', FCA:'FC Alpha Vet GR', VFC:'Vecaro FC', LTV:'Loyal Troopers FC'}
+};
+
+async function loadManagedTeams(userId){
+  const {data,error}=await supabase.from('team_managers')
+    .select('team_code,competition_slug,season,role')
+    .eq('user_id',userId).eq('active',true);
+  if(error){ console.warn('Could not list other managed teams:',error); return; }
+  const entries=(data||[]).filter(row=>row.competition_slug && row.team_code && row.season != null);
+  const panel=document.getElementById('managedTeamsPanel');
+  const select=document.getElementById('managedTeamSelect');
+  if(!entries.length){panel.classList.add('hidden');return;}
+  select.innerHTML='';
+  entries.sort((a,b)=>String(a.competition_slug).localeCompare(String(b.competition_slug)) || String(a.team_code).localeCompare(String(b.team_code)));
+  for(const row of entries){
+    const code=row.competition_slug==='futbola-masters' && row.team_code==='GOB'?'GOF':row.team_code;
+    const option=document.createElement('option');
+    option.value=`./team-manage.html?team=${encodeURIComponent(code)}&league=${encodeURIComponent(row.competition_slug)}&season=${encodeURIComponent(row.season)}`;
+    const league=row.competition_slug==='futbola-masters'?'Masters 40+':'Semi-Veteran';
+    option.textContent=`${league} S${row.season} · ${MANAGED_TEAM_LABELS[row.competition_slug]?.[code]||code}`;
+    option.selected=row.competition_slug===COMPETITION && Number(row.season)===SEASON && code===TEAM;
+    select.appendChild(option);
+  }
+  select.onchange=()=>{ if(select.value)window.location.href=select.value; };
+  panel.classList.toggle('hidden',entries.length<2);
+}
 
 async function getTeamAccess(userId){
   const {data,error}=await supabase.from('team_managers').select('id,user_id,team_code,role,active,competition_slug,season').eq('user_id',userId).eq('competition_slug',COMPETITION).eq('season',SEASON).eq('team_code',TEAM).eq('active',true).maybeSingle();
@@ -1244,6 +1275,7 @@ async function refreshAuthState(){
     await loadAuthorizedPlayerList();
     await loadInactivePlayerList();
     await loadTeamMatches();
+    await loadManagedTeams(session.user.id);
   }catch(err){ console.error(err); hideAllStates(); loginState.classList.remove('hidden'); const msg=document.getElementById('loginMessage'); msg.classList.remove('hidden'); msg.className='text-sm mt-4 text-red-600 font-bold'; msg.textContent=err.message||String(err); }
 }
 
