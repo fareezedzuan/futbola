@@ -880,8 +880,9 @@ async function uploadPlayerPhoto(playerId){
 
   // Use a unique object path for every upload. Reusing the same URL can
   // leave the browser/Supabase CDN showing the previous cached image.
-  const path=`${COMPETITION}/season-${SEASON}/${TEAM}/${playerId}-${Date.now()}.${extension}`;
-  const previousPhotoPath=currentPhotoPath;
+  // Storage RLS checks the FIRST folder against the manager's team code.
+  // Keep team code first, while separating league/season for new uploads.
+  const path=`${TEAM}/${COMPETITION}/season-${SEASON}/${playerId}-${Date.now()}.${extension}`;
 
   const {error:uploadError}=await supabase.storage
     .from('player-headshots')
@@ -900,15 +901,8 @@ async function uploadPlayerPhoto(playerId){
   currentPhotoUrl=data.publicUrl;
   currentPhotoPath=path;
 
-  // Best-effort cleanup of the old uploaded object after the new upload
-  // succeeds. Failure here should not block saving the new photo URL.
-  if(previousPhotoPath && previousPhotoPath !== path){
-    const {error:cleanupError}=await supabase.storage
-      .from('player-headshots')
-      .remove([previousPhotoPath]);
-
-    if(cleanupError) console.warn('Could not remove previous photo:',cleanupError);
-  }
+  // Do not delete previous objects: FSVL and Masters can share old URLs.
+  // Old images are retained to protect historical registrations.
 
   return currentPhotoUrl;
 }
@@ -919,18 +913,12 @@ async function removeStoredPhoto(){
 
   if(!id || !currentPhotoUrl) return;
 
-  const ok=confirm('Remove this uploaded photo?');
+  const ok=confirm('Remove this photo from this registration? The original image file will be kept for other leagues.');
   if(!ok) return;
 
   try{
-    if(currentPhotoPath){
-      const {error:removeError}=await supabase.storage
-        .from('player-headshots')
-        .remove([currentPhotoPath]);
-
-      if(removeError) throw removeError;
-    }
-
+    // Unlink only this registration. Do not delete the Storage object,
+    // because another league's registration may still reference it.
     const {error:updateError}=await supabase
       .from('season_players')
       .update({photo_url:null})
@@ -1112,7 +1100,7 @@ document.getElementById('personForm').addEventListener('submit',async e=>{
   e.preventDefault();
 
   const id=document.getElementById('personId').value || null;
-  const fullName=document.getElementById('personFullName').value.trim();
+  const fullName=document.getElementById('personFullName').value.replace(/^[\s☐☑□✓✔•\-]+/u, '').trim();
   const jerseyName=document.getElementById('personJerseyName').value.trim();
   const dobInput=document.getElementById('personDobOrIc').value.trim();
   const isPlayer=document.getElementById('rolePlayer').checked;
@@ -1195,6 +1183,9 @@ document.getElementById('personForm').addEventListener('submit',async e=>{
       savedId=inserted.id;
     }
 
+    // Preserve the inserted record ID immediately. If the photo upload fails,
+    // the next Save retries as UPDATE instead of creating a duplicate player.
+    document.getElementById('personId').value=savedId;
     const uploadedPhotoUrl=await uploadPlayerPhoto(savedId);
 
     if(uploadedPhotoUrl){
@@ -1223,7 +1214,7 @@ document.getElementById('personForm').addEventListener('submit',async e=>{
     console.error(err);
     msg.classList.remove('hidden');
     msg.className='text-sm text-red-600 font-bold';
-    msg.textContent=err.message || String(err);
+    msg.textContent=(document.getElementById('personId').value ? 'Player details saved or already exist; photo may not have uploaded. Retry Save to update this player. ' : '') + (err.message || String(err));
 
   }finally{
     button.disabled=false;
